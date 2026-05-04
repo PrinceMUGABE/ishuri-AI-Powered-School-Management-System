@@ -1,0 +1,123 @@
+{
+    "language_code": "rw",
+    "language_name": "Ikinyarwanda",
+    
+    "success": {
+        "login_success": "Winjiye neza",
+        "logout_success": "Wasohotse neza",
+        "user_created": "Umukoresha '{username}' yaremywe neza",
+        "user_updated": "Umukoresha '{username}' yavuguruwe neza",
+        "user_deleted": "Umukoresha '{username}' yasibwe neza",
+        "user_activated": "Umukoresha '{username}' yarakozwe",
+        "user_deactivated": "Umukoresha '{username}' yarahagaritswe",
+        "profile_updated": "Amakuru yawe yavuguruwe neza",
+        "password_changed": "Ijambobanga ryahinduwe neza",
+        "user_retrieved": "Amakuru y'umukoresha yabonetse",
+        "users_retrieved": "Abakoresha babonetse"
+    },
+    
+    "errors": {
+        "authentication": {
+            "invalid_credentials": "Izina ry'umukoresha cyangwa ijambobanga si byo",
+            "invalid_role": "Uruhande rwatoranijwe ntabwo ari rwo. Konti iyi yanditswe nka {role}",
+            "account_inactive": "Konti yawe ntabwo ikora. Sangiza umuyobozi",
+            "account_suspended": "Konti yawe yarahagaritswe. Sangiza umuyobozi",
+            "token_invalid": "Ikimenyetso ntabwo gikora cyangwa cyarashaje",
+            "token_required": "Ikimenyetso gisabwa",
+            "permission_denied": "Nta buyobozi ufite bwo gukora iki gikorwa",
+            "not_authenticated": "Nta mikoreshereze yatanzwe"
+        },
+        "user_management": {
+            "username_exists": "Izina '{username}' rirahari",
+            "username_required": "Izina ry'umukoresha rirakenewe",
+            "username_invalid": "Izina ry'umukoresha rigomba kugira inyuguti, imibare, cyangwa imirongo y'epfo gusa",
+            "username_length": "Izina ry'umukoresha rigomba kuba hagati ya {min_length} na {max_length}",
+            "user_not_found": "Umukoresha ufite ID '{user_id}' ntibonetse",
+            "cannot_delete_self": "Ntushobora gusiba konti yawe ubwawe",
+            "cannot_change_own_status": "Ntushobora guhindura imiterere ya konti yawe ubwawe",
+            "invalid_status": "Imiterere ntabwo ikora. Agomba kuba 'active', 'inactive' cyangwa 'suspended'",
+            "invalid_role_value": "Uruhande ntabwo rukora. Agomba kuba 'admin', 'teacher', 'student' cyangwa 'parent'",
+            "user_id_required": "ID y'umukoresha irakenewe",
+            "invalid_user_id": "ID y'umukoresha ntabwo ikora"
+        },
+        "password": {
+            "password_mismatch": "Ijambobanga ntabwo rihwanye",
+            "password_too_short": "Ijambobanga rigomba kugira byibura inyuguti {min_length}",
+            "password_too_common": "Ijambobanga ntirisanzwe",
+            "password_numeric": "Ijambobanga ntirigomba kuba imibare gusa",
+            "password_similar_to_username": "Ijambobanga risa cyane n'izina ry'umukoresha",
+            "password_similar_to_email": "Ijambobanga risa cyane na email",
+            "current_password_required": "Ijambobanga ry'ubu rirakenewe kugira ngo uhindure ijambobanga",
+            "current_password_incorrect": "Ijambobanga ry'ubu si ryo",
+            "new_password_required": "Ijambobanga rishya rirakenewe"
+        },
+        "validation": {
+            "required_field": "{field} irakenewe",
+            "invalid_email": "Email ntabwo ikora",
+            "invalid_phone": "Numero ya terefone ntabwo ikora",
+            "field_too_long": "{field} ntigomba kurenga {max_length}",
+            "field_too_short": "{field} igomba kugira byibura {min_length}",
+            "invalid_choice": "Uhitamo ntabwo rukora kuri {field}. Amahitamo akora: {choices}"
+        },
+        "system": {
+            "internal_error": "Hari ikibazo cyabaye muri sisitemu. Gerageza nyuma",
+            "database_error": "Ikibazo cyabaye muri base y'amakuru",
+            "service_unavailable": "Serivisi ntabwo ikora ku ya none",
+            "bad_request": "Icyo usaba ntabwo gikora. Gerageza gusubiramo amakuru"
+        }
+    },
+    
+    "notifications": {
+        "user_created": {
+            "title": "Konti Yaremywe",
+            "body": "Konti nshya ya {role} '{username}' yaremywe"
+        },
+        "user_updated": {
+            "title": "Konti Yavuguruwe",
+            "body": "Amakuru ya konti yawe yavuguruwe"
+        },
+        "user_deleted": {
+            "title": "Konti Yasibwe",
+            "body": "Konti yawe yasibwe n'umuyobozi"
+        },
+        "user_status_changed": {
+            "title": "Imiterere ya Konti Yahinduwe",
+            "body": "Imiterere ya konti yawe yahinduwe {status}"
+        },
+        "password_changed": {
+            "title": "Ijambobanga Ryahinduwe",
+            "body": "Ijambobanga ryawe ryahinduwe neza"
+        },
+        "user_login": {
+            "title": "Uwinjiye",
+            "body": "Winjiye muri sisitemu uva {ip_address} saa {time}"
+        }
+    },
+    
+    "roles": {
+        "admin": "Umuyobozi",
+        "teacher": "Umwarimu",
+        "student": "Umunyeshuri",
+        "parent": "Umubyeyi"
+    },
+    
+    "statuses": {
+        "active": "Gikora",
+        "inactive": "Ntigikora",
+        "suspended": "Gihagaritswe"
+    },
+    
+    "fields": {
+        "username": "Izina ry'umukoresha",
+        "password": "Ijambobanga",
+        "role": "Uruhande",
+        "status": "Imiterere",
+        "email": "Email",
+        "phone": "Numero ya terefone",
+        "full_name": "Izina ryuzuye"
+    }
+}
+
+
+
+

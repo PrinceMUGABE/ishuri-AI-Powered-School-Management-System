@@ -1,0 +1,122 @@
+{
+    "language_code": "fr",
+    "language_name": "Français",
+    
+    "success": {
+        "login_success": "Connexion réussie",
+        "logout_success": "Déconnexion réussie",
+        "user_created": "L'utilisateur '{username}' a été créé avec succès",
+        "user_updated": "L'utilisateur '{username}' a été mis à jour avec succès",
+        "user_deleted": "L'utilisateur '{username}' a été supprimé avec succès",
+        "user_activated": "L'utilisateur '{username}' a été activé",
+        "user_deactivated": "L'utilisateur '{username}' a été désactivé",
+        "profile_updated": "Profil mis à jour avec succès",
+        "password_changed": "Mot de passe changé avec succès",
+        "user_retrieved": "Utilisateur récupéré avec succès",
+        "users_retrieved": "Utilisateurs récupérés avec succès"
+    },
+    
+    "errors": {
+        "authentication": {
+            "invalid_credentials": "Nom d'utilisateur ou mot de passe invalide",
+            "invalid_role": "Sélection de rôle invalide. Ce compte est enregistré comme {role}",
+            "account_inactive": "Votre compte est inactif. Veuillez contacter l'administrateur",
+            "account_suspended": "Votre compte a été suspendu. Veuillez contacter l'administrateur",
+            "token_invalid": "Jeton invalide ou expiré",
+            "token_required": "Un jeton d'authentification est requis",
+            "permission_denied": "Vous n'avez pas la permission d'effectuer cette action",
+            "not_authenticated": "Les informations d'authentification n'ont pas été fournies"
+        },
+        "user_management": {
+            "username_exists": "Le nom d'utilisateur '{username}' existe déjà",
+            "username_required": "Le nom d'utilisateur est requis",
+            "username_invalid": "Le nom d'utilisateur ne peut contenir que des lettres, des chiffres et des underscores",
+            "username_length": "Le nom d'utilisateur doit contenir entre {min_length} et {max_length} caractères",
+            "user_not_found": "Utilisateur avec l'ID '{user_id}' non trouvé",
+            "cannot_delete_self": "Vous ne pouvez pas supprimer votre propre compte",
+            "cannot_change_own_status": "Vous ne pouvez pas modifier le statut de votre propre compte",
+            "invalid_status": "Valeur de statut invalide. Doit être 'active', 'inactive' ou 'suspended'",
+            "invalid_role_value": "Valeur de rôle invalide. Doit être 'admin', 'teacher', 'student' ou 'parent'",
+            "user_id_required": "L'ID utilisateur est requis",
+            "invalid_user_id": "Format d'ID utilisateur invalide"
+        },
+        "password": {
+            "password_mismatch": "Les mots de passe ne correspondent pas",
+            "password_too_short": "Le mot de passe doit contenir au moins {min_length} caractères",
+            "password_too_common": "Le mot de passe est trop commun",
+            "password_numeric": "Le mot de passe ne peut pas être entièrement numérique",
+            "password_similar_to_username": "Le mot de passe est trop similaire au nom d'utilisateur",
+            "password_similar_to_email": "Le mot de passe est trop similaire à l'email",
+            "current_password_required": "Le mot de passe actuel est requis pour changer le mot de passe",
+            "current_password_incorrect": "Le mot de passe actuel est incorrect",
+            "new_password_required": "Le nouveau mot de passe est requis"
+        },
+        "validation": {
+            "required_field": "{field} est requis",
+            "invalid_email": "Format d'email invalide",
+            "invalid_phone": "Format de numéro de téléphone invalide",
+            "field_too_long": "{field} ne doit pas dépasser {max_length} caractères",
+            "field_too_short": "{field} doit contenir au moins {min_length} caractères",
+            "invalid_choice": "Choix invalide pour {field}. Options valides: {choices}"
+        },
+        "system": {
+            "internal_error": "Une erreur système interne s'est produite. Veuillez réessayer plus tard",
+            "database_error": "L'opération de base de données a échoué",
+            "service_unavailable": "Service temporairement indisponible",
+            "bad_request": "Requête invalide. Veuillez vérifier votre saisie"
+        }
+    },
+    
+    "notifications": {
+        "user_created": {
+            "title": "Compte Créé",
+            "body": "Un nouveau compte {role} '{username}' a été créé"
+        },
+        "user_updated": {
+            "title": "Compte Mis à Jour",
+            "body": "Les informations de votre compte ont été mises à jour"
+        },
+        "user_deleted": {
+            "title": "Compte Supprimé",
+            "body": "Votre compte a été supprimé par l'administrateur"
+        },
+        "user_status_changed": {
+            "title": "Statut du Compte Changé",
+            "body": "Le statut de votre compte a été changé en {status}"
+        },
+        "password_changed": {
+            "title": "Mot de Passe Changé",
+            "body": "Votre mot de passe a été changé avec succès"
+        },
+        "user_login": {
+            "title": "Nouvelle Connexion",
+            "body": "Vous vous êtes connecté depuis {ip_address} à {time}"
+        }
+    },
+    
+    "roles": {
+        "admin": "Administrateur",
+        "teacher": "Enseignant",
+        "student": "Élève",
+        "parent": "Parent"
+    },
+    
+    "statuses": {
+        "active": "Actif",
+        "inactive": "Inactif",
+        "suspended": "Suspendu"
+    },
+    
+    "fields": {
+        "username": "Nom d'utilisateur",
+        "password": "Mot de passe",
+        "role": "Rôle",
+        "status": "Statut",
+        "email": "Email",
+        "phone": "Numéro de téléphone",
+        "full_name": "Nom complet"
+    }
+}
+
+
+
