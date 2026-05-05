@@ -1,0 +1,445 @@
+{
+  "nav": {
+    "features": "Ibiranga",
+    "about": "Ibyerekeye",
+    "testimonials": "Ibyo bavuga",
+    "contact": "Twandikire",
+    "signIn": "Injira"
+  },
+  "hero": {
+    "badge": "Imiyoborere y'ishuri ifashwe na AI",
+    "title": "Murakaza neza kuri",
+    "description": "Hindura imiyoborere y'ishuri ryawe hamwe na platforme yacu ihangitse. Koroshya amasomo, itumanaho, n'ubuyobozi byose ahantu hamwe.",
+    "getStarted": "Tangira",
+    "learnMore": "Menya byinshi"
+  },
+  "stats": {
+    "students": "Abanyeshuri",
+    "teachers": "Abarezi",
+    "satisfaction": "Kunyurwa",
+    "paperForms": "Fishi z'impapuro"
+  },
+  "featuresSection": {
+    "title": "Ibintu byose ukeneye kugira ngo utsinde",
+    "subtitle": "Ibiranga bikomeye byateguwe kugira ngo byoroshye buri gice cy'imiyoborere y'ishuri"
+  },
+  "features": {
+    "ai": {
+      "title": "Isesengura rya AI",
+      "desc": "Hanura ibyangwa n'abanyeshuri hanyuma umenye abanyeshuri bari mu kaga hakiri kare"
+    },
+    "dashboard": {
+      "title": "Ikibonezamvugo gikorera ubwacyo",
+      "desc": "Amakuru ya nyuma n'isesengura rirambuye riri mu ntoki zawe"
+    },
+    "communication": {
+      "title": "Ikigo itumanaho",
+      "desc": "Ubutumwa butoroshye hagati y'ababyeyi, abarezi, n'abayobozi"
+    },
+    "security": {
+      "title": "Umutekano w'ibikorwa",
+      "desc": "Kodeka nk'ibikoreshwa muri banki hamwe n'igenzura ry'ibikorwa ukurikije inshingano"
+    },
+    "reports": {
+      "title": "Raporo zikorwa mu buryo bwikora",
+      "desc": "Kora raporo zirambuye z'amashuri n'ubuyobozi mu buryo bwihuse"
+    },
+    "fees": {
+      "title": "Imiyoborere y'ishuri",
+      "desc": "Kurikirana amafaranga yo kwishyura, kohereza ibibutso, no gucunga amafaranga neza"
+    }
+  },
+  "rolesSection": {
+    "title": "Byakorewe buri wese",
+    "subtitle": "Uburambe buhuje n'umuntu wese mu muryango wawe w'ishuri"
+  },
+  "roles": {
+    "student": "Umunyeshuri",
+    "teacher": "Umurezi",
+    "parent": "Umubyeyi",
+    "admin": "Ubuyobozi",
+    "students": "Abanyeshuri",
+    "parents": "Ababyeyi",
+    "teachers": "Abarezi",
+    "admins": "Abayobozi"
+  },
+  "roleFeatures": {
+    "student": {
+      "0": "Reba amanota n'iterambere",
+      "1": "Kora imikoro yashyizwe",
+      "2": "Kurikirana itabere",
+      "3": "Ikarita y'indangamuntu ya digitale"
+    },
+    "parent": {
+      "0": "Kurikirana iterambere ry'umwana",
+      "1": "Kubona ubutumwa bwihuse",
+      "2": "Kwishyura amafaranga ya shuri kuri interineti",
+      "3": "Itumanaho n'abarezi"
+    },
+    "teacher": {
+      "0": "Gucunga amasomo kuri interineti",
+      "1": "Kwandika amanota byoroshye",
+      "2": "Umufasha wo gushyira amanota AI",
+      "3": "Itumanaho n'ababyeyi"
+    },
+    "admin": {
+      "0": "Kugenzura sisitemu byuzuye",
+      "1": "Gukora raporo",
+      "2": "Imiyoborere y'abakoresha",
+      "3": "Kugenzura imari"
+    }
+  },
+  "aiSection": {
+    "badge": "Amakuru yakozwe na AI",
+    "title": "Isesengura rihangitse ku ngaruka nziza",
+    "description": "Koresha ubwenge bw'ikora kugira ngo umenye ibintu, hanure ibyangwa, kandi utangire gufasha mbere y'uko abanyeshuri basiga inyuma.",
+    "cardTitle": "Ishusho rusange y'ibyagezweho mu ishuri",
+    "cardDesc": "Isesengura rya nyuma ryerekana ibikorwa by'ishuri n'impamvu zishobora guteza akaga",
+    "classAvg": "Urugero rw'amanota y'ishuri",
+    "atRisk": "Abanyeshuri bari mu kaga"
+  },
+  "zones": {
+    "green": {
+      "title": "Akagari k'icyatsi (75-100%)",
+      "desc": "Iterambere rihebuje - Bageze aho bagombwa kuba"
+    },
+    "yellow": {
+      "title": "Akagari k'umuhondo (50-74%)",
+      "desc": "Akaga gaciriritse - Bikeneye kwitabwaho"
+    },
+    "red": {
+      "title": "Akagari k'umutuku (0-49%)",
+      "desc": "Akaga gakomeye - Hakenewe kubafasha ako kanya"
+    }
+  },
+  "testimonialsSection": {
+    "title": "Twizerwa n'abanyagihugu bacu",
+    "subtitle": "Ibyo ababyeyi, abarezi, n'abakozi bavuga kuri Ishuri"
+  },
+  "testimonials": {
+    "parent": "Ubu nshoboye gukurikira iterambere ry'umwana wanjye mu gihe nyakuri. Ubutumwa bwihuse bumbwira ibyose bibaho ku ishuri.",
+    "teacher": "Umufasha wo gushyira amanota ya AI ampa amasaha menshi yo gukora. Ndashobora kwibanda ku nyigisho aho gukora iby'imyandikire.",
+    "director": "Iyi platforme yahinduye uko ducunga ishuri ryacu. Ibintu byose kuva ku myishyu kugeza ku raporo ubu bya digitale.",
+    "directorRole": "Mukuru w'ishuri"
+  },
+  "chart": {
+    "title": "Imyitwarire y'ibyagezweho mu masomo",
+    "classAverage": "Urugero rw'amanota y'ishuri (%)",
+    "atRisk": "Abanyeshuri bari mu kaga",
+    "attendance": "Igipimo cy'itabere (%)"
+  },
+  "cta": {
+    "title": "Uriteguye guhindura ishuri ryawe?",
+    "subtitle": "Fatanya n'amashuri amajana akoresha Ishuri kugira ngo oroshye imikorere yabo.",
+    "signIn": "Injira mu kibonezamvugo",
+    "contact": "Twandikire",
+    "note": "Kwerekana ubuntu birahari ku bayobozi"
+  },
+  "login": {
+    "title": "Murakaza neza",
+    "subtitle": "Injira muri konti yawe",
+    "username": "Izina ry'ukoresha",
+    "usernamePlaceholder": "Andika izina ryawe",
+    "password": "Ijambobanga",
+    "passwordPlaceholder": "Andika ijambobanga ryawe",
+    "role": "Hitamo inshingano",
+    "selectRole": "Nyamuneka hitamo inshingano",
+    "forgotPassword": "Wibagiwe ijambobanga?",
+    "signIn": "Injira",
+    "welcome": "Murakaze neza!",
+    "invalidCredentials": "Izina, ijambobanga, cyangwa inshingano si byo",
+    "adminNote": "Twandikire ubuyobozi bw'ishuri niba ukeneye konti"
+  },
+  "forgotPassword": {
+    "title": "Subiza ijambobanga",
+    "subtitle": "Tuzo kohereza umuringa wo gusubiza ijambobanga ryawe",
+    "emailLabel": "Aderesi ya imeri",
+    "emailPlaceholder": "Andika aderesi yawe ya imeri",
+    "sendReset": "Kohereza umuringa wo gusubiza",
+    "sentMessage": "Raba imeri yawe kugira ngo ubone umuringa wo gusubiza ijambobanga.",
+    "backToSignIn": "Subira mu cyinjira"
+  },
+  "footer": {
+    "description": "Platforme y'iki giye yo gucunga ishuri Les Hirondelles de Don Bosco, Ndera, Rwanda.",
+    "quickLinks": "Aho werekeza vuba",
+    "contact": "Twandikire",
+    "resources": "Ibikoresho",
+    "schoolWebsite": "Urubuga rw'ishuri",
+    "documentation": "Inyandiko z'ibisobanuro",
+    "support": "Ubufasha",
+    "rights": "Uburenganzira bwose buragirirwa.",
+    "tagline": "Gushoboza uburezi binyuze mu ikoranabuhanga"
+  },
+
+  "app": {
+    "tagline": "Imiyoborere y'ishuri ihangitse"
+  },
+  "header": {
+    "guest": "Umukoresha utemerewe",
+    "role": "Hitamo inshingano"
+  },
+  "teacher": {
+    "uploadAssignments": "Shyiraho imikoro"
+  },
+  "parent": {
+    "childProfile": "Ibiranga umwana",
+    "feePayment": "Kwishyura amafaranga ya shuri"
+  },
+  "admin": {
+    "gradeApproval": "Kwemeza amanota",
+    "feeManagement": "Imiyoborere y'amafaranga"
+  },
+  "grades": {
+    "upload": "Shyiraho amanota"
+  },
+  "attendance": {
+    "record": "Andika itabere"
+  },
+
+  "app": {
+    "tagline": "Imiyoborere y'ishuri ihangitse"
+  },
+  "header": {
+    "guest": "Umukoresha utemerewe",
+    "role": "Hitamo inshingano"
+  },
+  "nav": {
+    "dashboard": "Ikibonezamvugo",
+    "grades": "Amanota",
+    "attendance": "Itabere",
+    "assignments": "Imikoro",
+    "digitalId": "Ikarita y'Indangamuntu ya Digitali",
+    "academicReport": "Raporo y'Amasomo",
+    "communications": "Itumanaho",
+    "timetable": "Gahunda y'amasaha",
+    "users": "Imiyoborere y'Abakoresha",
+    "reports": "Raporo",
+    "settings": "Igenamiterere",
+    "logout": "Sohoka",
+    "features": "Ibiranga",
+    "about": "Ibyerekeye",
+    "testimonials": "Ibyo bavuga",
+    "contact": "Twandikire",
+    "signIn": "Injira"
+  },
+  "teacher": {
+    "uploadAssignments": "Shyiraho imikoro"
+  },
+  "parent": {
+    "childProfile": "Ibiranga umwana",
+    "feePayment": "Kwishyura amafaranga ya shuri"
+  },
+  "admin": {
+    "gradeApproval": "Kwemeza amanota",
+    "feeManagement": "Imiyoborere y'amafaranga"
+  },
+  "grades": {
+    "upload": "Shyiraho amanota"
+  },
+  "attendance": {
+    "record": "Andika itabere"
+  },
+  "hero": {
+    "badge": "Imiyoborere y'ishuri ifashwe na AI",
+    "title": "Murakaza neza kuri",
+    "description": "Hindura imiyoborere y'ishuri ryawe hamwe na platforme yacu ihangitse. Koroshya amasomo, itumanaho, n'ubuyobozi byose ahantu hamwe.",
+    "getStarted": "Tangira",
+    "learnMore": "Menya byinshi"
+  },
+  "stats": {
+    "students": "Abanyeshuri",
+    "teachers": "Abarezi",
+    "satisfaction": "Kunyurwa",
+    "paperForms": "Fishi z'impapuro"
+  },
+  "featuresSection": {
+    "title": "Ibintu byose ukeneye kugira ngo utsinde",
+    "subtitle": "Ibiranga bikomeye byateguwe kugira ngo byoroshye buri gice cy'imiyoborere y'ishuri"
+  },
+  "features": {
+    "ai": {
+      "title": "Isesengura rya AI",
+      "desc": "Hanura ibyangwa n'abanyeshuri hanyuma umenye abanyeshuri bari mu kaga hakiri kare"
+    },
+    "dashboard": {
+      "title": "Ikibonezamvugo gikorera ubwacyo",
+      "desc": "Amakuru ya nyuma n'isesengura rirambuye riri mu ntoki zawe"
+    },
+    "communication": {
+      "title": "Ikigo itumanaho",
+      "desc": "Ubutumwa butoroshye hagati y'ababyeyi, abarezi, n'abayobozi"
+    },
+    "security": {
+      "title": "Umutekano w'ibikorwa",
+      "desc": "Kodeka nk'ibikoreshwa muri banki hamwe n'igenzura ry'ibikorwa ukurikije inshingano"
+    },
+    "reports": {
+      "title": "Raporo zikorwa mu buryo bwikora",
+      "desc": "Kora raporo zirambuye z'amashuri n'ubuyobozi mu buryo bwihuse"
+    },
+    "fees": {
+      "title": "Imiyoborere y'ishuri",
+      "desc": "Kurikirana amafaranga yo kwishyura, kohereza ibibutso, no gucunga amafaranga neza"
+    }
+  },
+  "rolesSection": {
+    "title": "Byakorewe buri wese",
+    "subtitle": "Uburambe buhuje n'umuntu wese mu muryango wawe w'ishuri"
+  },
+  "roles": {
+    "student": "Umunyeshuri",
+    "teacher": "Umurezi",
+    "parent": "Umubyeyi",
+    "admin": "Ubuyobozi",
+    "students": "Abanyeshuri",
+    "parents": "Ababyeyi",
+    "teachers": "Abarezi",
+    "admins": "Abayobozi"
+  },
+  "roleFeatures": {
+    "student": {
+      "0": "Reba amanota n'iterambere",
+      "1": "Kora imikoro yashyizwe",
+      "2": "Kurikirana itabere",
+      "3": "Ikarita y'indangamuntu ya digitale"
+    },
+    "parent": {
+      "0": "Kurikirana iterambere ry'umwana",
+      "1": "Kubona ubutumwa bwihuse",
+      "2": "Kwishyura amafaranga ya shuri kuri interineti",
+      "3": "Itumanaho n'abarezi"
+    },
+    "teacher": {
+      "0": "Gucunga amasomo kuri interineti",
+      "1": "Kwandika amanota byoroshye",
+      "2": "Umufasha wo gushyira amanota AI",
+      "3": "Itumanaho n'ababyeyi"
+    },
+    "admin": {
+      "0": "Kugenzura sisitemu byuzuye",
+      "1": "Gukora raporo",
+      "2": "Imiyoborere y'abakoresha",
+      "3": "Kugenzura imari"
+    }
+  },
+  "aiSection": {
+    "badge": "Amakuru yakozwe na AI",
+    "title": "Isesengura rihangitse ku ngaruka nziza",
+    "description": "Koresha ubwenge bw'ikora kugira ngo umenye ibintu, hanure ibyangwa, kandi utangire gufasha mbere y'uko abanyeshuri basiga inyuma.",
+    "cardTitle": "Ishusho rusange y'ibyagezweho mu ishuri",
+    "cardDesc": "Isesengura rya nyuma ryerekana ibikorwa by'ishuri n'impamvu zishobora guteza akaga",
+    "classAvg": "Urugero rw'amanota y'ishuri",
+    "atRisk": "Abanyeshuri bari mu kaga"
+  },
+  "zones": {
+    "green": {
+      "title": "Akagari k'icyatsi (75-100%)",
+      "desc": "Iterambere rihebuje - Bageze aho bagombwa kuba"
+    },
+    "yellow": {
+      "title": "Akagari k'umuhondo (50-74%)",
+      "desc": "Akaga gaciriritse - Bikeneye kwitabwaho"
+    },
+    "red": {
+      "title": "Akagari k'umutuku (0-49%)",
+      "desc": "Akaga gakomeye - Hakenewe kubafasha ako kanya"
+    }
+  },
+  "testimonialsSection": {
+    "title": "Twizerwa n'abanyagihugu bacu",
+    "subtitle": "Ibyo ababyeyi, abarezi, n'abakozi bavuga kuri Ishuri"
+  },
+  "testimonials": {
+    "parent": "Ubu nshoboye gukurikira iterambere ry'umwana wanjye mu gihe nyakuri. Ubutumwa bwihuse bumbwira ibyose bibaho ku ishuri.",
+    "teacher": "Umufasha wo gushyira amanota ya AI ampa amasaha menshi yo gukora. Ndashobora kwibanda ku nyigisho aho gukora iby'imyandikire.",
+    "director": "Iyi platforme yahinduye uko ducunga ishuri ryacu. Ibintu byose kuva ku myishyu kugeza ku raporo ubu bya digitale.",
+    "directorRole": "Mukuru w'ishuri"
+  },
+  "chart": {
+    "title": "Imyitwarire y'ibyagezweho mu masomo",
+    "classAverage": "Urugero rw'amanota y'ishuri (%)",
+    "atRisk": "Abanyeshuri bari mu kaga",
+    "attendance": "Igipimo cy'itabere (%)"
+  },
+  "cta": {
+    "title": "Uriteguye guhindura ishuri ryawe?",
+    "subtitle": "Fatanya n'amashuri amajana akoresha Ishuri kugira ngo oroshye imikorere yabo.",
+    "signIn": "Injira mu kibonezamvugo",
+    "contact": "Twandikire",
+    "note": "Kwerekana ubuntu birahari ku bayobozi"
+  },
+  "login": {
+    "title": "Murakaza neza",
+    "subtitle": "Injira muri konti yawe",
+    "username": "Izina ry'ukoresha",
+    "usernamePlaceholder": "Andika izina ryawe",
+    "password": "Ijambobanga",
+    "passwordPlaceholder": "Andika ijambobanga ryawe",
+    "role": "Hitamo inshingano",
+    "selectRole": "Nyamuneka hitamo inshingano",
+    "forgotPassword": "Wibagiwe ijambobanga?",
+    "signIn": "Injira",
+    "welcome": "Murakaze neza!",
+    "invalidCredentials": "Izina, ijambobanga, cyangwa inshingano si byo",
+    "adminNote": "Twandikire ubuyobozi bw'ishuri niba ukeneye konti"
+  },
+  "forgotPassword": {
+    "title": "Subiza ijambobanga",
+    "subtitle": "Tuzo kohereza umuringa wo gusubiza ijambobanga ryawe",
+    "emailLabel": "Aderesi ya imeri",
+    "emailPlaceholder": "Andika aderesi yawe ya imeri",
+    "sendReset": "Kohereza umuringa wo gusubiza",
+    "sentMessage": "Raba imeri yawe kugira ngo ubone umuringa wo gusubiza ijambobanga.",
+    "backToSignIn": "Subira mu cyinjira"
+  },
+  "footer": {
+    "description": "Platforme y'iki giye yo gucunga ishuri Les Hirondelles de Don Bosco, Ndera, Rwanda.",
+    "quickLinks": "Aho werekeza vuba",
+    "contact": "Twandikire",
+    "resources": "Ibikoresho",
+    "schoolWebsite": "Urubuga rw'ishuri",
+    "documentation": "Inyandiko z'ibisobanuro",
+    "support": "Ubufasha",
+    "rights": "Uburenganzira bwose buragirirwa.",
+    "tagline": "Gushoboza uburezi binyuze mu ikoranabuhanga"
+  },
+
+  "admin": {
+    "dashboard": {
+      "title": "Ikibonezamvugo cy'Ubuyobozi",
+      "subtitle": "Ishusho rusange n'imiyoborere ya sisitemu"
+    },
+    "stats": {
+      "totalStudents": "Abanyeshuri bose",
+      "totalTeachers": "Abarezi bose",
+      "feeCollection": "Kwishyura amafaranga",
+      "riskZoneStudents": "Abanyeshuri bari mu kaga"
+    },
+    "approvals": {
+      "title": "Ibyategereje kwemeza",
+      "gradeUploads": "Gushyiraho amanota",
+      "leaveRequests": "Amasabwa y'ikiruhuko",
+      "parentMessages": "Ubutumwa bw'ababyeyi",
+      "sciences": "Ubumenyi",
+      "various": "Bitandukanye",
+      "communications": "Itumanaho",
+      "pending": "biracyategereje",
+      "review": "Gusuzuma"
+    },
+    "riskZone": {
+      "title": "Abanyeshuri bari mu kaga",
+      "academic": "Amasomo",
+      "attendance": "Itabere",
+      "intervene": "Gutabara"
+    },
+    "reports": {
+      "title": "Raporo za sisitemu",
+      "performance": "Raporo y'ibyagezweho",
+      "performanceDesc": "Isesengura ry'ibyagezweho mu masomo",
+      "feeCollection": "Raporo y'amafaranga yishyuwe",
+      "feeCollectionDesc": "Ishusho rusange y'imari",
+      "attendance": "Raporo y'itabere",
+      "attendanceDesc": "Imyitwarire y'itabere ry'abanyeshuri"
+    }
+  }
+}

@@ -1,0 +1,445 @@
+{
+  "nav": {
+    "features": "Features",
+    "about": "About",
+    "testimonials": "Testimonials",
+    "contact": "Contact",
+    "signIn": "Sign In"
+  },
+  "hero": {
+    "badge": "AI-Powered School Management",
+    "title": "Welcome to",
+    "description": "Transform your school management with our intelligent platform. Streamline academics, communication, and administration all in one place.",
+    "getStarted": "Get Started",
+    "learnMore": "Learn More"
+  },
+  "stats": {
+    "students": "Students",
+    "teachers": "Teachers",
+    "satisfaction": "Satisfaction",
+    "paperForms": "Paper Forms"
+  },
+  "featuresSection": {
+    "title": "Everything You Need to Succeed",
+    "subtitle": "Powerful features designed to streamline every aspect of school management"
+  },
+  "features": {
+    "ai": {
+      "title": "AI Analytics",
+      "desc": "Predict student performance and identify at-risk students early"
+    },
+    "dashboard": {
+      "title": "Smart Dashboard",
+      "desc": "Real-time insights and comprehensive analytics at your fingertips"
+    },
+    "communication": {
+      "title": "Communication Hub",
+      "desc": "Seamless messaging between parents, teachers, and administrators"
+    },
+    "security": {
+      "title": "Enterprise Security",
+      "desc": "Bank-grade encryption and role-based access control"
+    },
+    "reports": {
+      "title": "Automated Reports",
+      "desc": "Generate detailed academic and administrative reports instantly"
+    },
+    "fees": {
+      "title": "Fee Management",
+      "desc": "Track payments, send reminders, and manage finances efficiently"
+    }
+  },
+  "rolesSection": {
+    "title": "Made for Everyone",
+    "subtitle": "Tailored experiences for every member of your school community"
+  },
+  "roles": {
+    "student": "Student",
+    "teacher": "Teacher",
+    "parent": "Parent",
+    "admin": "Admin",
+    "students": "Students",
+    "parents": "Parents",
+    "teachers": "Teachers",
+    "admins": "Administrators"
+  },
+  "roleFeatures": {
+    "student": {
+      "0": "View grades & progress",
+      "1": "Access assignments",
+      "2": "Track attendance",
+      "3": "Digital ID card"
+    },
+    "parent": {
+      "0": "Monitor child's progress",
+      "1": "Receive instant alerts",
+      "2": "Pay fees online",
+      "3": "Teacher communication"
+    },
+    "teacher": {
+      "0": "Manage classes online",
+      "1": "Record grades easily",
+      "2": "AI grading assistant",
+      "3": "Parent communication"
+    },
+    "admin": {
+      "0": "Full system control",
+      "1": "Generate reports",
+      "2": "User management",
+      "3": "Financial oversight"
+    }
+  },
+  "aiSection": {
+    "badge": "AI-Powered Insights",
+    "title": "Smart Analytics for Better Outcomes",
+    "description": "Leverage artificial intelligence to identify patterns, predict performance, and intervene before students fall behind.",
+    "cardTitle": "Class Performance Overview",
+    "cardDesc": "Real-time analytics showing current class trends and risk factors",
+    "classAvg": "Class Average",
+    "atRisk": "At-Risk Students"
+  },
+  "zones": {
+    "green": {
+      "title": "Green Zone (75-100%)",
+      "desc": "Excellent progress - On track for success"
+    },
+    "yellow": {
+      "title": "Yellow Zone (50-74%)",
+      "desc": "Moderate risk - Needs attention"
+    },
+    "red": {
+      "title": "Red Zone (0-49%)",
+      "desc": "High risk - Immediate intervention required"
+    }
+  },
+  "testimonialsSection": {
+    "title": "Trusted by Our Community",
+    "subtitle": "What parents, teachers, and staff say about Ishuri"
+  },
+  "testimonials": {
+    "parent": "I can now track my child's progress in real-time. The instant alerts keep me informed about everything happening at school.",
+    "teacher": "The AI grading assistant saves me hours of work. I can focus more on teaching and less on paperwork.",
+    "director": "This platform has transformed how we manage our school. Everything from fees to reports is now digital.",
+    "directorRole": "School Director"
+  },
+  "chart": {
+    "title": "Academic Performance Trends",
+    "classAverage": "Class Average (%)",
+    "atRisk": "At-Risk Students",
+    "attendance": "Attendance Rate (%)"
+  },
+  "cta": {
+    "title": "Ready to Transform Your School?",
+    "subtitle": "Join hundreds of schools already using Ishuri to streamline their operations.",
+    "signIn": "Sign In to Dashboard",
+    "contact": "Contact Us",
+    "note": "Free demo available for administrators"
+  },
+  "login": {
+    "title": "Welcome Back",
+    "subtitle": "Sign in to your account",
+    "username": "Username",
+    "usernamePlaceholder": "Enter your username",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "role": "Select Role",
+    "selectRole": "Please select a role",
+    "forgotPassword": "Forgot Password?",
+    "signIn": "Sign In",
+    "welcome": "Welcome back!",
+    "invalidCredentials": "Invalid username, password, or role",
+    "adminNote": "Contact your school administrator if you need an account"
+  },
+  "forgotPassword": {
+    "title": "Reset Password",
+    "subtitle": "We'll send you a link to reset your password",
+    "emailLabel": "Email Address",
+    "emailPlaceholder": "Enter your email address",
+    "sendReset": "Send Reset Link",
+    "sentMessage": "Check your email for a password reset link.",
+    "backToSignIn": "Back to Sign In"
+  },
+  "footer": {
+    "description": "Modern school management platform for Les Hirondelles de Don Bosco, Ndera, Rwanda.",
+    "quickLinks": "Quick Links",
+    "contact": "Contact",
+    "resources": "Resources",
+    "schoolWebsite": "School Website",
+    "documentation": "Documentation",
+    "support": "Support",
+    "rights": "All rights reserved.",
+    "tagline": "Empowering education through technology"
+  },
+
+  "app": {
+    "tagline": "Smart School Management"
+  },
+  "header": {
+    "guest": "Guest User",
+    "role": "Select Role"
+  },
+  "teacher": {
+    "uploadAssignments": "Upload Assignments"
+  },
+  "parent": {
+    "childProfile": "Child Profile",
+    "feePayment": "Fee Payment"
+  },
+  "admin": {
+    "gradeApproval": "Grade Approval",
+    "feeManagement": "Fee Management"
+  },
+  "grades": {
+    "upload": "Upload Grades"
+  },
+  "attendance": {
+    "record": "Record Attendance"
+  },
+
+  "app": {
+    "tagline": "Smart School Management"
+  },
+  "header": {
+    "guest": "Guest User",
+    "role": "Select Role"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "grades": "Grades",
+    "attendance": "Attendance",
+    "assignments": "Assignments",
+    "digitalId": "Digital ID Card",
+    "academicReport": "Academic Report",
+    "communications": "Communications",
+    "timetable": "Timetable",
+    "users": "User Management",
+    "reports": "Reports",
+    "settings": "Settings",
+    "logout": "Logout",
+    "features": "Features",
+    "about": "About",
+    "testimonials": "Testimonials",
+    "contact": "Contact",
+    "signIn": "Sign In"
+  },
+  "teacher": {
+    "uploadAssignments": "Upload Assignments"
+  },
+  "parent": {
+    "childProfile": "Child Profile",
+    "feePayment": "Fee Payment"
+  },
+  "admin": {
+    "gradeApproval": "Grade Approval",
+    "feeManagement": "Fee Management"
+  },
+  "grades": {
+    "upload": "Upload Grades"
+  },
+  "attendance": {
+    "record": "Record Attendance"
+  },
+  "hero": {
+    "badge": "AI-Powered School Management",
+    "title": "Welcome to",
+    "description": "Transform your school management with our intelligent platform. Streamline academics, communication, and administration all in one place.",
+    "getStarted": "Get Started",
+    "learnMore": "Learn More"
+  },
+  "stats": {
+    "students": "Students",
+    "teachers": "Teachers",
+    "satisfaction": "Satisfaction",
+    "paperForms": "Paper Forms"
+  },
+  "featuresSection": {
+    "title": "Everything You Need to Succeed",
+    "subtitle": "Powerful features designed to streamline every aspect of school management"
+  },
+  "features": {
+    "ai": {
+      "title": "AI Analytics",
+      "desc": "Predict student performance and identify at-risk students early"
+    },
+    "dashboard": {
+      "title": "Smart Dashboard",
+      "desc": "Real-time insights and comprehensive analytics at your fingertips"
+    },
+    "communication": {
+      "title": "Communication Hub",
+      "desc": "Seamless messaging between parents, teachers, and administrators"
+    },
+    "security": {
+      "title": "Enterprise Security",
+      "desc": "Bank-grade encryption and role-based access control"
+    },
+    "reports": {
+      "title": "Automated Reports",
+      "desc": "Generate detailed academic and administrative reports instantly"
+    },
+    "fees": {
+      "title": "Fee Management",
+      "desc": "Track payments, send reminders, and manage finances efficiently"
+    }
+  },
+  "rolesSection": {
+    "title": "Made for Everyone",
+    "subtitle": "Tailored experiences for every member of your school community"
+  },
+  "roles": {
+    "student": "Student",
+    "teacher": "Teacher",
+    "parent": "Parent",
+    "admin": "Admin",
+    "students": "Students",
+    "parents": "Parents",
+    "teachers": "Teachers",
+    "admins": "Administrators"
+  },
+  "roleFeatures": {
+    "student": {
+      "0": "View grades & progress",
+      "1": "Access assignments",
+      "2": "Track attendance",
+      "3": "Digital ID card"
+    },
+    "parent": {
+      "0": "Monitor child's progress",
+      "1": "Receive instant alerts",
+      "2": "Pay fees online",
+      "3": "Teacher communication"
+    },
+    "teacher": {
+      "0": "Manage classes online",
+      "1": "Record grades easily",
+      "2": "AI grading assistant",
+      "3": "Parent communication"
+    },
+    "admin": {
+      "0": "Full system control",
+      "1": "Generate reports",
+      "2": "User management",
+      "3": "Financial oversight"
+    }
+  },
+  "aiSection": {
+    "badge": "AI-Powered Insights",
+    "title": "Smart Analytics for Better Outcomes",
+    "description": "Leverage artificial intelligence to identify patterns, predict performance, and intervene before students fall behind.",
+    "cardTitle": "Class Performance Overview",
+    "cardDesc": "Real-time analytics showing current class trends and risk factors",
+    "classAvg": "Class Average",
+    "atRisk": "At-Risk Students"
+  },
+  "zones": {
+    "green": {
+      "title": "Green Zone (75-100%)",
+      "desc": "Excellent progress - On track for success"
+    },
+    "yellow": {
+      "title": "Yellow Zone (50-74%)",
+      "desc": "Moderate risk - Needs attention"
+    },
+    "red": {
+      "title": "Red Zone (0-49%)",
+      "desc": "High risk - Immediate intervention required"
+    }
+  },
+  "testimonialsSection": {
+    "title": "Trusted by Our Community",
+    "subtitle": "What parents, teachers, and staff say about Ishuri"
+  },
+  "testimonials": {
+    "parent": "I can now track my child's progress in real-time. The instant alerts keep me informed about everything happening at school.",
+    "teacher": "The AI grading assistant saves me hours of work. I can focus more on teaching and less on paperwork.",
+    "director": "This platform has transformed how we manage our school. Everything from fees to reports is now digital.",
+    "directorRole": "School Director"
+  },
+  "chart": {
+    "title": "Academic Performance Trends",
+    "classAverage": "Class Average (%)",
+    "atRisk": "At-Risk Students",
+    "attendance": "Attendance Rate (%)"
+  },
+  "cta": {
+    "title": "Ready to Transform Your School?",
+    "subtitle": "Join hundreds of schools already using Ishuri to streamline their operations.",
+    "signIn": "Sign In to Dashboard",
+    "contact": "Contact Us",
+    "note": "Free demo available for administrators"
+  },
+  "login": {
+    "title": "Welcome Back",
+    "subtitle": "Sign in to your account",
+    "username": "Username",
+    "usernamePlaceholder": "Enter your username",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "role": "Select Role",
+    "selectRole": "Please select a role",
+    "forgotPassword": "Forgot Password?",
+    "signIn": "Sign In",
+    "welcome": "Welcome back!",
+    "invalidCredentials": "Invalid username, password, or role",
+    "adminNote": "Contact your school administrator if you need an account"
+  },
+  "forgotPassword": {
+    "title": "Reset Password",
+    "subtitle": "We'll send you a link to reset your password",
+    "emailLabel": "Email Address",
+    "emailPlaceholder": "Enter your email address",
+    "sendReset": "Send Reset Link",
+    "sentMessage": "Check your email for a password reset link.",
+    "backToSignIn": "Back to Sign In"
+  },
+  "footer": {
+    "description": "Modern school management platform for Les Hirondelles de Don Bosco, Ndera, Rwanda.",
+    "quickLinks": "Quick Links",
+    "contact": "Contact",
+    "resources": "Resources",
+    "schoolWebsite": "School Website",
+    "documentation": "Documentation",
+    "support": "Support",
+    "rights": "All rights reserved.",
+    "tagline": "Empowering education through technology"
+  },
+
+  "admin": {
+    "dashboard": {
+      "title": "Admin Dashboard",
+      "subtitle": "System overview and management"
+    },
+    "stats": {
+      "totalStudents": "Total Students",
+      "totalTeachers": "Total Teachers",
+      "feeCollection": "Fee Collection",
+      "riskZoneStudents": "Risk Zone Students"
+    },
+    "approvals": {
+      "title": "Pending Approvals",
+      "gradeUploads": "Grade Uploads",
+      "leaveRequests": "Leave Requests",
+      "parentMessages": "Parent Messages",
+      "sciences": "Sciences",
+      "various": "Various",
+      "communications": "Communications",
+      "pending": "pending",
+      "review": "Review"
+    },
+    "riskZone": {
+      "title": "Students in Risk Zone",
+      "academic": "Academic",
+      "attendance": "Attendance",
+      "intervene": "Intervene"
+    },
+    "reports": {
+      "title": "System Reports",
+      "performance": "Performance Report",
+      "performanceDesc": "Academic performance analysis",
+      "feeCollection": "Fee Collection Report",
+      "feeCollectionDesc": "Financial summary",
+      "attendance": "Attendance Report",
+      "attendanceDesc": "Student attendance trends"
+    }
+  }
+}

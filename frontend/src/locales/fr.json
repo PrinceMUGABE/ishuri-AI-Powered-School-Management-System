@@ -1,0 +1,446 @@
+{
+  "nav": {
+    "features": "Fonctionnalités",
+    "about": "À propos",
+    "testimonials": "Témoignages",
+    "contact": "Contact",
+    "signIn": "Connexion"
+  },
+  "hero": {
+    "badge": "Gestion scolaire alimentée par l'IA",
+    "title": "Bienvenue à",
+    "description": "Transformez la gestion de votre école avec notre plateforme intelligente. Rationalisez les études, la communication et l'administration en un seul endroit.",
+    "getStarted": "Commencer",
+    "learnMore": "En savoir plus"
+  },
+  "stats": {
+    "students": "Élèves",
+    "teachers": "Enseignants",
+    "satisfaction": "Satisfaction",
+    "paperForms": "Formulaires papier"
+  },
+  "featuresSection": {
+    "title": "Tout ce dont vous avez besoin pour réussir",
+    "subtitle": "Des fonctionnalités puissantes conçues pour rationaliser chaque aspect de la gestion scolaire"
+  },
+  "features": {
+    "ai": {
+      "title": "Analyses IA",
+      "desc": "Prédisez les performances des élèves et identifiez les élèves à risque tôt"
+    },
+    "dashboard": {
+      "title": "Tableau de bord intelligent",
+      "desc": "Informations en temps réel et analyses complètes à portée de main"
+    },
+    "communication": {
+      "title": "Centre de communication",
+      "desc": "Messagerie transparente entre parents, enseignants et administrateurs"
+    },
+    "security": {
+      "title": "Sécurité d'entreprise",
+      "desc": "Chiffrement de qualité bancaire et contrôle d'accès basé sur les rôles"
+    },
+    "reports": {
+      "title": "Rapports automatisés",
+      "desc": "Générez des rapports académiques et administratifs détaillés instantanément"
+    },
+    "fees": {
+      "title": "Gestion des frais",
+      "desc": "Suivez les paiements, envoyez des rappels et gérez les finances efficacement"
+    }
+  },
+  "rolesSection": {
+    "title": "Conçu pour tous",
+    "subtitle": "Des expériences adaptées à chaque membre de votre communauté scolaire"
+  },
+  "roles": {
+    "student": "Élève",
+    "teacher": "Enseignant",
+    "parent": "Parent",
+    "admin": "Admin",
+    "students": "Élèves",
+    "parents": "Parents",
+    "teachers": "Enseignants",
+    "admins": "Administrateurs"
+  },
+  "roleFeatures": {
+    "student": {
+      "0": "Voir les notes et progrès",
+      "1": "Accéder aux devoirs",
+      "2": "Suivre l'assiduité",
+      "3": "Carte d'identité numérique"
+    },
+    "parent": {
+      "0": "Suivre les progrès de l'enfant",
+      "1": "Recevoir des alertes instantanées",
+      "2": "Payer les frais en ligne",
+      "3": "Communication avec les enseignants"
+    },
+    "teacher": {
+      "0": "Gérer les cours en ligne",
+      "1": "Enregistrer les notes facilement",
+      "2": "Assistant de notation IA",
+      "3": "Communication avec les parents"
+    },
+    "admin": {
+      "0": "Contrôle complet du système",
+      "1": "Générer des rapports",
+      "2": "Gestion des utilisateurs",
+      "3": "Supervision financière"
+    }
+  },
+  "aiSection": {
+    "badge": "Informations alimentées par l'IA",
+    "title": "Analyses intelligentes pour de meilleurs résultats",
+    "description": "Utilisez l'intelligence artificielle pour identifier les tendances, prédire les performances et intervenir avant que les élèves ne prennent du retard.",
+    "cardTitle": "Aperçu des performances de la classe",
+    "cardDesc": "Analyses en temps réel montrant les tendances actuelles de la classe et les facteurs de risque",
+    "classAvg": "Moyenne de la classe",
+    "atRisk": "Élèves à risque"
+  },
+  "zones": {
+    "green": {
+      "title": "Zone verte (75-100%)",
+      "desc": "Progrès excellent - Sur la voie du succès"
+    },
+    "yellow": {
+      "title": "Zone jaune (50-74%)",
+      "desc": "Risque modéré - Nécessite une attention"
+    },
+    "red": {
+      "title": "Zone rouge (0-49%)",
+      "desc": "Risque élevé - Intervention immédiate requise"
+    }
+  },
+  "testimonialsSection": {
+    "title": "Approuvé par notre communauté",
+    "subtitle": "Ce que les parents, les enseignants et le personnel disent d'Ishuri"
+  },
+  "testimonials": {
+    "parent": "Je peux maintenant suivre les progrès de mon enfant en temps réel. Les alertes instantanées me tiennent informé de tout ce qui se passe à l'école.",
+    "teacher": "L'assistant de notation IA me fait gagner des heures de travail. Je peux me concentrer davantage sur l'enseignement et moins sur les formalités administratives.",
+    "director": "Cette plateforme a transformé notre façon de gérer notre école. Tout, des frais aux rapports, est désormais numérique.",
+    "directorRole": "Directeur d'école"
+  },
+  "chart": {
+    "title": "Tendances des performances académiques",
+    "classAverage": "Moyenne de la classe (%)",
+    "atRisk": "Élèves à risque",
+    "attendance": "Taux d'assiduité (%)"
+  },
+  "cta": {
+    "title": "Prêt à transformer votre école ?",
+    "subtitle": "Rejoignez des centaines d'écoles qui utilisent déjà Ishuri pour rationaliser leurs opérations.",
+    "signIn": "Se connecter au tableau de bord",
+    "contact": "Nous contacter",
+    "note": "Démo gratuite disponible pour les administrateurs"
+  },
+  "login": {
+    "title": "Bon retour",
+    "subtitle": "Connectez-vous à votre compte",
+    "username": "Nom d'utilisateur",
+    "usernamePlaceholder": "Entrez votre nom d'utilisateur",
+    "password": "Mot de passe",
+    "passwordPlaceholder": "Entrez votre mot de passe",
+    "role": "Sélectionner un rôle",
+    "selectRole": "Veuillez sélectionner un rôle",
+    "forgotPassword": "Mot de passe oublié ?",
+    "signIn": "Se connecter",
+    "welcome": "Bon retour !",
+    "invalidCredentials": "Nom d'utilisateur, mot de passe ou rôle invalide",
+    "adminNote": "Contactez votre administrateur scolaire si vous avez besoin d'un compte"
+  },
+  "forgotPassword": {
+    "title": "Réinitialiser le mot de passe",
+    "subtitle": "Nous vous enverrons un lien pour réinitialiser votre mot de passe",
+    "emailLabel": "Adresse e-mail",
+    "emailPlaceholder": "Entrez votre adresse e-mail",
+    "sendReset": "Envoyer le lien de réinitialisation",
+    "sentMessage": "Vérifiez votre e-mail pour un lien de réinitialisation de mot de passe.",
+    "backToSignIn": "Retour à la connexion"
+  },
+  "footer": {
+    "description": "Plateforme moderne de gestion scolaire pour Les Hirondelles de Don Bosco, Ndera, Rwanda.",
+    "quickLinks": "Liens rapides",
+    "contact": "Contact",
+    "resources": "Ressources",
+    "schoolWebsite": "Site web de l'école",
+    "documentation": "Documentation",
+    "support": "Support",
+    "rights": "Tous droits réservés.",
+    "tagline": "Autonomiser l'éducation grâce à la technologie"
+  },
+
+  "app": {
+    "tagline": "Gestion scolaire intelligente"
+  },
+  "header": {
+    "guest": "Utilisateur invité",
+    "role": "Sélectionner un rôle"
+  },
+  "teacher": {
+    "uploadAssignments": "Télécharger les devoirs"
+  },
+  "parent": {
+    "childProfile": "Profil de l'enfant",
+    "feePayment": "Paiement des frais"
+  },
+  "admin": {
+    "gradeApproval": "Approbation des notes",
+    "feeManagement": "Gestion des frais"
+  },
+  "grades": {
+    "upload": "Télécharger les notes"
+  },
+  "attendance": {
+    "record": "Enregistrer l'assiduité"
+  },
+
+  "app": {
+    "tagline": "Gestion scolaire intelligente"
+  },
+  "header": {
+    "guest": "Utilisateur invité",
+    "role": "Sélectionner un rôle"
+  },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "grades": "Notes",
+    "attendance": "Assiduité",
+    "assignments": "Devoirs",
+    "digitalId": "Carte d'identité numérique",
+    "academicReport": "Bulletin scolaire",
+    "communications": "Communications",
+    "timetable": "Emploi du temps",
+    "users": "Gestion des utilisateurs",
+    "reports": "Rapports",
+    "settings": "Paramètres",
+    "logout": "Déconnexion",
+    "features": "Fonctionnalités",
+    "about": "À propos",
+    "testimonials": "Témoignages",
+    "contact": "Contact",
+    "signIn": "Connexion"
+  },
+  "teacher": {
+    "uploadAssignments": "Télécharger les devoirs"
+  },
+  "parent": {
+    "childProfile": "Profil de l'enfant",
+    "feePayment": "Paiement des frais"
+  },
+  "admin": {
+    "gradeApproval": "Approbation des notes",
+    "feeManagement": "Gestion des frais"
+  },
+  "grades": {
+    "upload": "Télécharger les notes"
+  },
+  "attendance": {
+    "record": "Enregistrer l'assiduité"
+  },
+  "hero": {
+    "badge": "Gestion scolaire alimentée par l'IA",
+    "title": "Bienvenue à",
+    "description": "Transformez la gestion de votre école avec notre plateforme intelligente. Rationalisez les études, la communication et l'administration en un seul endroit.",
+    "getStarted": "Commencer",
+    "learnMore": "En savoir plus"
+  },
+  "stats": {
+    "students": "Élèves",
+    "teachers": "Enseignants",
+    "satisfaction": "Satisfaction",
+    "paperForms": "Formulaires papier"
+  },
+  "featuresSection": {
+    "title": "Tout ce dont vous avez besoin pour réussir",
+    "subtitle": "Des fonctionnalités puissantes conçues pour rationaliser chaque aspect de la gestion scolaire"
+  },
+  "features": {
+    "ai": {
+      "title": "Analyses IA",
+      "desc": "Prédisez les performances des élèves et identifiez les élèves à risque tôt"
+    },
+    "dashboard": {
+      "title": "Tableau de bord intelligent",
+      "desc": "Informations en temps réel et analyses complètes à portée de main"
+    },
+    "communication": {
+      "title": "Centre de communication",
+      "desc": "Messagerie transparente entre parents, enseignants et administrateurs"
+    },
+    "security": {
+      "title": "Sécurité d'entreprise",
+      "desc": "Chiffrement de qualité bancaire et contrôle d'accès basé sur les rôles"
+    },
+    "reports": {
+      "title": "Rapports automatisés",
+      "desc": "Générez des rapports académiques et administratifs détaillés instantanément"
+    },
+    "fees": {
+      "title": "Gestion des frais",
+      "desc": "Suivez les paiements, envoyez des rappels et gérez les finances efficacement"
+    }
+  },
+  "rolesSection": {
+    "title": "Conçu pour tous",
+    "subtitle": "Des expériences adaptées à chaque membre de votre communauté scolaire"
+  },
+  "roles": {
+    "student": "Élève",
+    "teacher": "Enseignant",
+    "parent": "Parent",
+    "admin": "Admin",
+    "students": "Élèves",
+    "parents": "Parents",
+    "teachers": "Enseignants",
+    "admins": "Administrateurs"
+  },
+  "roleFeatures": {
+    "student": {
+      "0": "Voir les notes et progrès",
+      "1": "Accéder aux devoirs",
+      "2": "Suivre l'assiduité",
+      "3": "Carte d'identité numérique"
+    },
+    "parent": {
+      "0": "Suivre les progrès de l'enfant",
+      "1": "Recevoir des alertes instantanées",
+      "2": "Payer les frais en ligne",
+      "3": "Communication avec les enseignants"
+    },
+    "teacher": {
+      "0": "Gérer les cours en ligne",
+      "1": "Enregistrer les notes facilement",
+      "2": "Assistant de notation IA",
+      "3": "Communication avec les parents"
+    },
+    "admin": {
+      "0": "Contrôle complet du système",
+      "1": "Générer des rapports",
+      "2": "Gestion des utilisateurs",
+      "3": "Supervision financière"
+    }
+  },
+  "aiSection": {
+    "badge": "Informations alimentées par l'IA",
+    "title": "Analyses intelligentes pour de meilleurs résultats",
+    "description": "Utilisez l'intelligence artificielle pour identifier les tendances, prédire les performances et intervenir avant que les élèves ne prennent du retard.",
+    "cardTitle": "Aperçu des performances de la classe",
+    "cardDesc": "Analyses en temps réel montrant les tendances actuelles de la classe et les facteurs de risque",
+    "classAvg": "Moyenne de la classe",
+    "atRisk": "Élèves à risque"
+  },
+  "zones": {
+    "green": {
+      "title": "Zone verte (75-100%)",
+      "desc": "Progrès excellent - Sur la voie du succès"
+    },
+    "yellow": {
+      "title": "Zone jaune (50-74%)",
+      "desc": "Risque modéré - Nécessite une attention"
+    },
+    "red": {
+      "title": "Zone rouge (0-49%)",
+      "desc": "Risque élevé - Intervention immédiate requise"
+    }
+  },
+  "testimonialsSection": {
+    "title": "Approuvé par notre communauté",
+    "subtitle": "Ce que les parents, les enseignants et le personnel disent d'Ishuri"
+  },
+  "testimonials": {
+    "parent": "Je peux maintenant suivre les progrès de mon enfant en temps réel. Les alertes instantanées me tiennent informé de tout ce qui se passe à l'école.",
+    "teacher": "L'assistant de notation IA me fait gagner des heures de travail. Je peux me concentrer davantage sur l'enseignement et moins sur les formalités administratives.",
+    "director": "Cette plateforme a transformé notre façon de gérer notre école. Tout, des frais aux rapports, est désormais numérique.",
+    "directorRole": "Directeur d'école"
+  },
+  "chart": {
+    "title": "Tendances des performances académiques",
+    "classAverage": "Moyenne de la classe (%)",
+    "atRisk": "Élèves à risque",
+    "attendance": "Taux d'assiduité (%)"
+  },
+  "cta": {
+    "title": "Prêt à transformer votre école ?",
+    "subtitle": "Rejoignez des centaines d'écoles qui utilisent déjà Ishuri pour rationaliser leurs opérations.",
+    "signIn": "Se connecter au tableau de bord",
+    "contact": "Nous contacter",
+    "note": "Démo gratuite disponible pour les administrateurs"
+  },
+  "login": {
+    "title": "Bon retour",
+    "subtitle": "Connectez-vous à votre compte",
+    "username": "Nom d'utilisateur",
+    "usernamePlaceholder": "Entrez votre nom d'utilisateur",
+    "password": "Mot de passe",
+    "passwordPlaceholder": "Entrez votre mot de passe",
+    "role": "Sélectionner un rôle",
+    "selectRole": "Veuillez sélectionner un rôle",
+    "forgotPassword": "Mot de passe oublié ?",
+    "signIn": "Se connecter",
+    "welcome": "Bon retour !",
+    "invalidCredentials": "Nom d'utilisateur, mot de passe ou rôle invalide",
+    "adminNote": "Contactez votre administrateur scolaire si vous avez besoin d'un compte"
+  },
+  "forgotPassword": {
+    "title": "Réinitialiser le mot de passe",
+    "subtitle": "Nous vous enverrons un lien pour réinitialiser votre mot de passe",
+    "emailLabel": "Adresse e-mail",
+    "emailPlaceholder": "Entrez votre adresse e-mail",
+    "sendReset": "Envoyer le lien de réinitialisation",
+    "sentMessage": "Vérifiez votre e-mail pour un lien de réinitialisation de mot de passe.",
+    "backToSignIn": "Retour à la connexion"
+  },
+  "footer": {
+    "description": "Plateforme moderne de gestion scolaire pour Les Hirondelles de Don Bosco, Ndera, Rwanda.",
+    "quickLinks": "Liens rapides",
+    "contact": "Contact",
+    "resources": "Ressources",
+    "schoolWebsite": "Site web de l'école",
+    "documentation": "Documentation",
+    "support": "Support",
+    "rights": "Tous droits réservés.",
+    "tagline": "Autonomiser l'éducation grâce à la technologie"
+  },
+
+  
+  "admin": {
+    "dashboard": {
+      "title": "Tableau de bord Admin",
+      "subtitle": "Aperçu et gestion du système"
+    },
+    "stats": {
+      "totalStudents": "Élèves au total",
+      "totalTeachers": "Enseignants au total",
+      "feeCollection": "Collecte des frais",
+      "riskZoneStudents": "Élèves en zone à risque"
+    },
+    "approvals": {
+      "title": "Approbations en attente",
+      "gradeUploads": "Téléchargements de notes",
+      "leaveRequests": "Demandes de congé",
+      "parentMessages": "Messages des parents",
+      "sciences": "Sciences",
+      "various": "Divers",
+      "communications": "Communications",
+      "pending": "en attente",
+      "review": "Examiner"
+    },
+    "riskZone": {
+      "title": "Élèves en zone à risque",
+      "academic": "Académique",
+      "attendance": "Assiduité",
+      "intervene": "Intervenir"
+    },
+    "reports": {
+      "title": "Rapports système",
+      "performance": "Rapport de performance",
+      "performanceDesc": "Analyse des performances académiques",
+      "feeCollection": "Rapport de collecte des frais",
+      "feeCollectionDesc": "Résumé financier",
+      "attendance": "Rapport d'assiduité",
+      "attendanceDesc": "Tendances de l'assiduité des élèves"
+    }
+  }
+}
