@@ -2,10 +2,8 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import Layout from './components/Layout/Layout';
-import Login from './pages/Login';
 import LandingPage from './components/common/LandingPage';
 
 // Dashboard imports
@@ -39,15 +37,62 @@ import GradeApproval from './pages/Admin/GradeApproval';
 import FeeManagement from './pages/Admin/FeeManagement';
 import Reports from './pages/Admin/Reports';
 
-// ProtectedRoute: redirects to /login if not authenticated
-const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { user, isAuthenticated } = useAuth();
+// Helper function to check if user is authenticated from localStorage
+const isAuthenticated = () => {
+  const token = localStorage.getItem('access_token');
+  const user = localStorage.getItem('user');
+  
+  if (!token || !user) {
+    return false;
+  }
+  
+  try {
+    const userData = JSON.parse(user);
+    const tokenExpiry = localStorage.getItem('token_expiry');
+    
+    // Check if token exists and is not expired
+    if (tokenExpiry && Date.now() > parseInt(tokenExpiry)) {
+      // Token expired, clear storage
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('token_expiry');
+      localStorage.removeItem('user_language');
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error checking authentication:', error);
+    return false;
+  }
+};
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+// Get user from localStorage
+const getUser = () => {
+  const userStr = localStorage.getItem('user');
+  if (!userStr) return null;
+  
+  try {
+    return JSON.parse(userStr);
+  } catch (error) {
+    console.error('Error parsing user from storage:', error);
+    return null;
+  }
+};
+
+// ProtectedRoute: redirects to root (/) if not authenticated
+const ProtectedRoute = ({ children, allowedRoles }) => {
+  const isAuth = isAuthenticated();
+  const user = getUser();
+
+  if (!isAuth) {
+    console.log('[ProtectedRoute] Not authenticated, redirecting to /');
+    return <Navigate to="/" replace />;
   }
 
   if (allowedRoles && !allowedRoles.includes(user?.role)) {
+    console.log(`[ProtectedRoute] Role ${user?.role} not allowed, redirecting to /app/dashboard`);
     return <Navigate to="/app/dashboard" replace />;
   }
 
@@ -55,7 +100,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 };
 
 const AppRoutes = () => {
-  const { user } = useAuth();
+  const user = getUser();
 
   const getDashboard = () => {
     switch (user?.role) {
@@ -63,15 +108,15 @@ const AppRoutes = () => {
       case 'teacher': return <TeacherDashboard />;
       case 'parent': return <ParentDashboard />;
       case 'admin': return <AdminDashboard />;
-      default: return <Navigate to="/login" replace />;
+      default: return <Navigate to="/" replace />;
     }
   };
 
   return (
     <Routes>
-      {/* Public Routes */}
+      {/* Public Routes - Landing page at root */}
       <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<Login />} />
+      <Route path="/login" element={<Navigate to="/" replace />} />
 
       {/* Protected Routes under /app */}
       <Route path="/app" element={<Layout />}>
@@ -180,7 +225,7 @@ const AppRoutes = () => {
         <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
       </Route>
 
-      {/* Global fallback */}
+      {/* Global fallback - redirect to root */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
@@ -189,12 +234,10 @@ const AppRoutes = () => {
 function App() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <LanguageProvider>
-          <Toaster position="top-right" />
-          <AppRoutes />
-        </LanguageProvider>
-      </AuthProvider>
+      <LanguageProvider>
+        <Toaster position="top-right" />
+        <AppRoutes />
+      </LanguageProvider>
     </ThemeProvider>
   );
 }

@@ -1,129 +1,163 @@
-from typing import Dict, Any, Optional
+import logging
+from django.db import transaction
 from django.utils import timezone
-from accounts.models import User
-from accounts.translations.translator import translator
-from .models import Notification
+from django.contrib.contenttypes.models import ContentType
+
+from notifications.models import Notification, NotificationPreference, NotificationStatus
+
+logger = logging.getLogger(__name__)
 
 
 class NotificationService:
-    """Service class for creating and managing notifications."""
+    """Service for creating and managing in-app notifications"""
     
     @classmethod
-    def create_notification(cls, user: User, notification_type: str, 
-                           title: str, message: str, 
-                           created_by: Optional[User] = None,
-                           priority: str = 'medium',
-                           extra_data: Dict[str, Any] = None) -> Notification:
-        """
-        Create a notification for a user.
+    def create_notification(
+        cls,
+        recipient,
+        notification_type,
+        title,
+        message,
+        priority='medium',
+        created_by=None,
+        content_object=None,
+        data=None,
+        action_url=''
+    ):
+        """Create a new in-app notification"""
+        try:
+            # Get user preferences
+            preferences, _ = NotificationPreference.objects.get_or_create(user=recipient)
+            
+            # Check if user wants this type of notification
+            if not cls._should_send_notification(notification_type, preferences):
+                return None
+            
+            notification = Notification(
+                recipient=recipient,
+                notification_type=notification_type,
+                priority=priority,
+                title=title,
+                message=message,
+                created_by=created_by,
+                data=data or {},
+                action_url=action_url
+            )
+            
+            if content_object:
+                notification.content_type = ContentType.objects.get_for_model(content_object)
+                notification.object_id = content_object.pk
+                notification.content_object = content_object
+            
+            notification.save()
+            return notification
+            
+        except Exception as e:
+            logger.error(f"Failed to create notification: {str(e)}")
+            return None
+    
+    @classmethod
+    def _should_send_notification(cls, notification_type, preferences):
+        """Check if user wants this type of notification"""
+        mapping = {
+            'user_created': 'user_management_alerts',
+            'user_updated': 'user_management_alerts',
+            'user_deleted': 'user_management_alerts',
+            'user_status_changed': 'user_management_alerts',
+            'login_success': 'user_management_alerts',
+            'password_changed': 'user_management_alerts',
+            'password_reset': 'user_management_alerts',
+            'grade_uploaded': 'grade_alerts',
+            'grade_approved': 'grade_alerts',
+            'assignment_created': 'assignment_alerts',
+            'assignment_submitted': 'assignment_alerts',
+            'assignment_graded': 'assignment_alerts',
+            'attendance_marked': 'attendance_alerts',
+            'low_attendance_warning': 'attendance_alerts',
+            'message_received': 'communication_alerts',
+            'announcement_posted': 'communication_alerts',
+            'fee_payment_received': 'fee_alerts',
+            'fee_payment_overdue': 'fee_alerts',
+        }
         
-        Args:
-            user: User to notify
-            notification_type: Type of notification
-            title: Notification title
-            message: Notification message
-            created_by: User who created the notification (optional)
-            priority: Notification priority (low, medium, high, urgent)
-            extra_data: Additional data to store with notification
+        category = mapping.get(notification_type, 'user_management_alerts')
+        return getattr(preferences, category, True)
+    
+    @classmethod
+    def create_user_notification(cls, user, notification_type, created_by=None, extra_data=None, **kwargs):
+        """Create notification for user-related events"""
         
-        Returns:
-            Created Notification instance
-        """
-        notification = Notification.objects.create(
-            user=user,
-            created_by=created_by,
+        # Default messages based on notification type
+        message_templates = {
+            'user_created': f"Your account has been created with role: {extra_data.get('role', 'user') if extra_data else 'user'}.",
+            'user_updated': f"Your account information has been updated.",
+            'user_deleted': f"Your account has been deleted from the system.",
+            'user_status_changed': f"Your account has been {extra_data.get('action', 'updated')} by {created_by.username if created_by else 'administrator'}.",
+            'login_success': f"You logged in successfully.",
+            'password_changed': f"Your password has been changed successfully.",
+            'password_reset': f"Your password has been reset successfully.",
+        }
+        
+        title_templates = {
+            'user_created': 'Account Created',
+            'user_updated': 'Account Updated',
+            'user_deleted': 'Account Deleted',
+            'user_status_changed': 'Account Status Changed',
+            'login_success': 'Login Successful',
+            'password_changed': 'Password Changed',
+            'password_reset': 'Password Reset',
+        }
+        
+        # Get title and message from kwargs, otherwise use defaults
+        title = title_templates.get(notification_type, notification_type.replace('_', ' ').title())
+        message = message_templates.get(notification_type, f"{notification_type.replace('_', ' ').title()} notification")
+        
+        # Remove title and message from kwargs to avoid duplication
+        kwargs.pop('title', None)
+        kwargs.pop('message', None)
+        
+        return cls.create_notification(
+            recipient=user,
             notification_type=notification_type,
-            priority=priority,
             title=title,
             message=message,
-            extra_data=extra_data or {}
-        )
-        
-        return notification
-    
-    @classmethod
-    def create_user_notification(cls, user: User, notification_type: str,
-                                 created_by: Optional[User] = None,
-                                 extra_data: Dict[str, Any] = None,
-                                 request=None) -> Notification:
-        """
-        Create a user-related notification with translated content.
-        
-        Args:
-            user: User to notify
-            notification_type: Type of notification
-            created_by: User who performed the action
-            extra_data: Additional data for the notification
-            request: HTTP request object for language detection
-        
-        Returns:
-            Created Notification instance
-        """
-        # Get translated notification content
-        notification_info = translator.get_notification(
-            notification_type, 
-            request=request, 
-            **(extra_data or {})
-        )
-        
-        # Determine priority based on notification type
-        priority = cls._get_priority_for_type(notification_type)
-        
-        # Create notification
-        return cls.create_notification(
-            user=user,
-            notification_type=notification_type,
-            title=notification_info['title'],
-            message=notification_info['body'],
             created_by=created_by,
-            priority=priority,
-            extra_data=extra_data
+            data=extra_data or {},
+            **kwargs
         )
     
     @classmethod
-    def _get_priority_for_type(cls, notification_type: str) -> str:
-        """Get priority based on notification type."""
-        high_priority_types = ['user_status_changed', 'grade_rejected', 'fee_status_updated']
-        urgent_priority_types = ['user_deleted']
-        
-        if notification_type in urgent_priority_types:
-            return 'urgent'
-        elif notification_type in high_priority_types:
-            return 'high'
-        else:
-            return 'medium'
-    
-    @classmethod
-    def mark_as_read(cls, notification_id: int, user: User) -> bool:
-        """Mark a notification as read."""
-        try:
-            notification = Notification.objects.get(id=notification_id, user=user)
-            notification.mark_as_read()
-            return True
-        except Notification.DoesNotExist:
-            return False
-    
-    @classmethod
-    def mark_all_as_read(cls, user: User) -> int:
-        """Mark all unread notifications as read for a user."""
-        count = Notification.objects.filter(user=user, is_read=False).update(
-            is_read=True,
+    def mark_as_read(cls, notification_ids, user):
+        """Mark multiple notifications as read"""
+        return Notification.objects.filter(
+            id__in=notification_ids,
+            recipient=user,
+            status=NotificationStatus.UNREAD
+        ).update(
+            status=NotificationStatus.READ,
             read_at=timezone.now()
         )
-        return count
     
     @classmethod
-    def get_user_notifications(cls, user: User, limit: int = 50, 
-                              unread_only: bool = False) -> list:
-        """Get notifications for a user."""
-        queryset = Notification.objects.filter(user=user)
-        
-        if unread_only:
-            queryset = queryset.filter(is_read=False)
-        
-        return queryset[:limit]
+    def mark_all_as_read(cls, user):
+        """Mark all notifications as read for a user"""
+        return Notification.objects.filter(
+            recipient=user,
+            status=NotificationStatus.UNREAD
+        ).update(
+            status=NotificationStatus.READ,
+            read_at=timezone.now()
+        )
     
+    @classmethod
+    def get_unread_count(cls, user):
+        """Get unread notification count for a user"""
+        return Notification.objects.filter(
+            recipient=user,
+            status=NotificationStatus.UNREAD
+        ).count()
     
-    
-    
-    
+    @classmethod
+    def get_recent_notifications(cls, user, limit=10):
+        """Get recent notifications for a user"""
+        return Notification.objects.filter(recipient=user)[:limit]

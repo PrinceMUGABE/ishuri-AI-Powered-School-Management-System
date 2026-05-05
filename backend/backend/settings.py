@@ -47,7 +47,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'accounts.views.language_views.LanguageMiddleware',  # Custom language middleware
+    'accounts.middleware.LanguageMiddleware',  # Custom language middleware
 ]
 
 
@@ -72,6 +72,7 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
+    'x-language',
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -101,7 +102,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'germain_db',
+        'NAME': 'germain',
         'USER': 'root',
         'PASSWORD': '',
         'HOST': '127.0.0.1', 

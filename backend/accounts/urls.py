@@ -1,33 +1,24 @@
 from django.urls import path
-from accounts.views.auth_views import LoginView, LogoutView, RefreshTokenView  # Changed from 'view' to 'views'
-from accounts.views.user_views import (
-    UserCreateView, UserRetrieveUpdateDeleteView, AllUsersListView,
-    CurrentUserView, ProfileUpdateView, UserActivationToggleView
-)
-from accounts.views.language_views import (
-    GetCurrentLanguageView, ChangeLanguageView, ClearLanguageView
-)
-
-app_name = 'accounts'
+from accounts import views
 
 urlpatterns = [
-    # Authentication endpoints
-    path('login/', LoginView.as_view(), name='login'),
-    path('logout/', LogoutView.as_view(), name='logout'),
-    path('refresh/', RefreshTokenView.as_view(), name='token_refresh'),
+    # Auth
+    path('login/', views.LoginView.as_view(), name='login'),
+    path('logout/', views.LogoutView.as_view(), name='logout'),
+    path('refresh/', views.RefreshTokenView.as_view(), name='token_refresh'),
     
-    # Language endpoints
-    path('language/', GetCurrentLanguageView.as_view(), name='get-language'),
-    path('language/change/', ChangeLanguageView.as_view(), name='change-language'),
-    path('language/clear/', ClearLanguageView.as_view(), name='clear-language'),
+    # Password Reset
+    path('password-reset/request/', views.PasswordResetRequestView.as_view()),
+    path('password-reset/confirm/', views.PasswordResetConfirmView.as_view()),
+    path('change-password/', views.ChangePasswordView.as_view()),
     
-    # Current user endpoints
-    path('me/', CurrentUserView.as_view(), name='current-user'),
-    path('me/update/', ProfileUpdateView.as_view(), name='profile-update'),
+    # Profile
+    path('me/', views.CurrentUserView.as_view()),
+    path('me/update/', views.ProfileUpdateView.as_view()),
     
-    # User management endpoints (admin only)
-    path('users/', AllUsersListView.as_view(), name='user-list'),
-    path('users/create/', UserCreateView.as_view(), name='user-create'),
-    path('users/<int:user_id>/', UserRetrieveUpdateDeleteView.as_view(), name='user-detail'),
-    path('users/<int:user_id>/toggle-status/', UserActivationToggleView.as_view(), name='user-toggle-status'),
+    # User Management (Admin Only)
+    path('users/', views.UserListView.as_view()),
+    path('users/create/', views.UserCreateView.as_view()),
+    path('users/<int:user_id>/', views.UserDetailView.as_view()),
+    path('users/<int:user_id>/toggle-status/', views.UserActivationToggleView.as_view()),
 ]

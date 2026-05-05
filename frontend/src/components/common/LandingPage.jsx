@@ -1,56 +1,122 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  GraduationCap,
-  Brain,
-  MessageSquare,
-  BarChart3,
-  Users,
-  Shield,
-  ChevronRight,
-  CheckCircle,
-  ArrowRight,
-  Star,
-  FileText,
-  CreditCard,
-  Heart,
-  X,
-  User,
-  Lock,
-  LogIn,
-  ArrowLeft,
-  Mail,
+  GraduationCap, Brain, MessageSquare, BarChart3, Users, Shield,
+  ChevronRight, CheckCircle, ArrowRight, Star, FileText, CreditCard,
+  Heart, X, User, Lock, LogIn, ArrowLeft, Mail
 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import ThemeToggle from '../../components/Common/ThemeToggle';
 import LanguageSwitcher from '../../components/Common/LanguageSwitcher';
-import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import schoolLogo from '../../../public/imgs/school-logo.png';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
+import axios from 'axios';
+import { useAuth } from '../../contexts/AuthContext';
 
-// Register components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-// ─── Color Palette (from hdb.rw + logo) ────────────────────────────────────
-// Primary green: #2e7d32 / #388e3c (logo green)
-// Gold/accent:   #f9a825 / #fbc02d (logo golden ring)
-// Dark navy:     #1a237e / #283593 (logo dark blue-black text)
-// White:         #ffffff
-// ────────────────────────────────────────────────────────────────────────────
+// API Configuration
+const API_BASE_URL = 'http://127.0.0.1:8000/api/account';
 
-// ─── Dashboard Chart Data (editable here) ───────────────────────────────────
+// Create axios instance with interceptors
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Request interceptor - Add language header to EVERY request
+apiClient.interceptors.request.use(
+  (config) => {
+    // IMPORTANT: Get current language from i18n (not just localStorage)
+    // This ensures we get the language that the user actually selected
+    let currentLanguage = 'en';
+
+    // Method 1: Get from i18n (most reliable)
+    const { i18n } = window;
+    if (i18n && i18n.language) {
+      currentLanguage = i18n.language;
+      console.log(`[Interceptor] Language from i18n: ${currentLanguage}`);
+    }
+
+    // Method 2: Get from localStorage as fallback
+    const storedLang = localStorage.getItem('user_language');
+    if (storedLang && ['en', 'fr', 'rw'].includes(storedLang)) {
+      currentLanguage = storedLang;
+      console.log(`[Interceptor] Language from localStorage: ${currentLanguage}`);
+    }
+
+    // Method 3: Get from sessionStorage
+    const sessionLang = sessionStorage.getItem('selected_language');
+    if (sessionLang && ['en', 'fr', 'rw'].includes(sessionLang)) {
+      currentLanguage = sessionLang;
+      console.log(`[Interceptor] Language from sessionStorage: ${currentLanguage}`);
+    }
+
+    // Validate language
+    if (!['en', 'fr', 'rw'].includes(currentLanguage)) {
+      currentLanguage = 'en';
+    }
+
+    // Add language header
+    config.headers['X-Language'] = currentLanguage;
+
+    // Add authorization token if exists
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`);
+    console.log(`[API Request] Headers:`, {
+      'X-Language': config.headers['X-Language'],
+      'Authorization': config.headers['Authorization'] ? 'Bearer ***' : 'None'
+    });
+
+    return config;
+  },
+  (error) => {
+    console.error('[API Request Error]', error);
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor - Capture language from response
+apiClient.interceptors.response.use(
+  (response) => {
+    console.log(`[API Response] ${response.config.url} - Status: ${response.status}`);
+
+    // If response has language field, update localStorage and i18n
+    if (response.data && response.data.language) {
+      const responseLang = response.data.language;
+      const currentLang = localStorage.getItem('user_language');
+
+      if (currentLang !== responseLang) {
+        localStorage.setItem('user_language', responseLang);
+        sessionStorage.setItem('selected_language', responseLang);
+
+        // Update i18n if available
+        const { i18n } = window;
+        if (i18n && i18n.language !== responseLang) {
+          i18n.changeLanguage(responseLang);
+          console.log(`[API Response] Language updated to: ${responseLang}`);
+        }
+      }
+    }
+
+    return response;
+  },
+  (error) => {
+    console.error('[API Response Error]', error.response?.data || error.message);
+    return Promise.reject(error);
+  }
+);
+
+// Dashboard Chart Data
 export const DASHBOARD_CHART_DATA = {
   labels: ['Term 1', 'Term 2', 'Term 3'],
   datasets: [
@@ -60,7 +126,7 @@ export const DASHBOARD_CHART_DATA = {
       backgroundColor: 'rgba(46,125,50,0.82)',
       borderColor: '#2e7d32',
       borderWidth: 2,
-      borderRadius: 6,
+      borderRadius: 6
     },
     {
       label: 'At-Risk Students',
@@ -68,7 +134,7 @@ export const DASHBOARD_CHART_DATA = {
       backgroundColor: 'rgba(249,168,37,0.82)',
       borderColor: '#f9a825',
       borderWidth: 2,
-      borderRadius: 6,
+      borderRadius: 6
     },
     {
       label: 'Attendance Rate (%)',
@@ -76,7 +142,7 @@ export const DASHBOARD_CHART_DATA = {
       backgroundColor: 'rgba(40,53,147,0.75)',
       borderColor: '#283593',
       borderWidth: 2,
-      borderRadius: 6,
+      borderRadius: 6
     },
   ],
 };
@@ -86,49 +152,129 @@ export const DASHBOARD_CHART_OPTIONS = {
   maintainAspectRatio: false,
   plugins: {
     legend: { display: false },
-    title: { display: false },
+    title: { display: false }
   },
   scales: {
     x: {
       ticks: { color: '#ccc', font: { size: 13 } },
-      grid: { color: 'rgba(255,255,255,0.07)' },
+      grid: { color: 'rgba(255,255,255,0.07)' }
     },
     y: {
       ticks: { color: '#ccc', font: { size: 12 } },
       grid: { color: 'rgba(255,255,255,0.07)' },
       min: 0,
-      max: 110,
+      max: 110
     },
   },
 };
-// ────────────────────────────────────────────────────────────────────────────
 
-// ─── Login Modal ─────────────────────────────────────────────────────────────
-const LoginModal = ({ onClose, onForgotPassword }) => {
-  const { t } = useTranslation();
-  const { login } = useAuth();
+// Helper: Extract error message from response
+const getErrorMessage = (error, t) => {
+  console.log('[Error Debug]', error.response?.data);
+
+  if (error.response?.data) {
+    const data = error.response.data;
+
+    if (typeof data.message === 'string') return data.message;
+    if (typeof data.error === 'string') return data.error;
+
+    if (data.non_field_errors?.length) {
+      const err = data.non_field_errors[0];
+      return typeof err === 'string' ? err : JSON.stringify(err);
+    }
+
+    for (const key in data) {
+      if (Array.isArray(data[key]) && data[key].length) {
+        const err = data[key][0];
+        if (typeof err === 'string') return err;
+        if (err?.string) return err.string;
+        if (err?.message) return err.message;
+        return JSON.stringify(err);
+      }
+      if (typeof data[key] === 'string') return data[key];
+    }
+  }
+
+  if (error.message === 'Network Error') return t('errors.networkError');
+  if (error.message) return error.message;
+
+  return t('errors.somethingWentWrong');
+};
+
+// Login Modal
+const LoginModal = ({ onClose, onForgotPassword, onLoginSuccess }) => {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({ username: '', password: '', role: '' });
+  const [formData, setFormData] = useState({ username: '', password: '' });
 
-  const roles = [
-    { value: 'student', label: t('roles.student') },
-    { value: 'teacher', label: t('roles.teacher') },
-    { value: 'parent', label: t('roles.parent') },
-    { value: 'admin', label: t('roles.admin') },
-  ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.role) { toast.error(t('login.selectRole')); return; }
+
+    if (!formData.username.trim()) {
+      toast.error(t('login.usernameRequired'));
+      return;
+    }
+    if (!formData.password) {
+      toast.error(t('login.passwordRequired'));
+      return;
+    }
+
     setLoading(true);
+
+    const currentLanguage = i18n.language || localStorage.getItem('user_language') || 'en';
+    console.log(`[LoginModal] Submitting login with language: ${currentLanguage}`);
+
     try {
-      await login(formData.username, formData.password, formData.role);
-      toast.success(t('login.welcome'));
-      onClose();
-      navigate('/app/dashboard');
-    } catch {
-      toast.error(t('login.invalidCredentials'));
+      // REMOVED the 'role' field from the request
+      const response = await apiClient.post('/login/', {
+        username: formData.username,
+        password: formData.password
+        // role field is removed - backend will determine role from user record
+      }, {
+        headers: {
+          'X-Language': currentLanguage
+        }
+      });
+
+      console.log('[Login Response]', response.data);
+
+      if (response.data.success) {
+        const { access_token, refresh_token, user } = response.data.data;
+
+        localStorage.setItem('access_token', access_token);
+        localStorage.setItem('refresh_token', refresh_token);
+        localStorage.setItem('user', JSON.stringify(user));
+
+        const userLanguage = user.language || response.data.language || currentLanguage;
+        localStorage.setItem('user_language', userLanguage);
+        sessionStorage.setItem('selected_language', userLanguage);
+
+        await i18n.changeLanguage(userLanguage);
+
+        apiClient.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+        apiClient.defaults.headers.common['X-Language'] = userLanguage;
+
+        toast.success(response.data.message || t('login.welcome'));
+
+        if (onLoginSuccess) onLoginSuccess(user);
+        onClose();
+
+        // Navigate based on role from backend
+        const routes = {
+          admin: '/app/admin/dashboard',
+          teacher: '/app/teacher/dashboard',
+          student: '/app/student/dashboard',
+          parent: '/app/parent/dashboard',
+        };
+        navigate(routes[user.role] || '/app/dashboard');
+      } else {
+        toast.error(response.data.message || 'Login failed');
+      }
+    } catch (error) {
+      console.error('[Login Error]', error);
+      toast.error(getErrorMessage(error, t));
     } finally {
       setLoading(false);
     }
@@ -144,9 +290,17 @@ const LoginModal = ({ onClose, onForgotPassword }) => {
       </button>
 
       <div className="text-center mb-6">
-        <img src={schoolLogo} alt="HDB Logo" className="w-16 h-16 mx-auto mb-3 rounded-full object-contain" />
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('login.title')}</h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('login.subtitle')}</p>
+        <img
+          src={schoolLogo}
+          alt="Logo"
+          className="w-16 h-16 mx-auto mb-3 rounded-full object-contain"
+        />
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          {t('login.title')}
+        </h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          {t('login.subtitle')}
+        </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -162,7 +316,8 @@ const LoginModal = ({ onClose, onForgotPassword }) => {
               onChange={(e) => setFormData({ ...formData, username: e.target.value })}
               className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
               placeholder={t('login.usernamePlaceholder')}
-              required
+              disabled={loading}
+              autoFocus
             />
           </div>
         </div>
@@ -179,30 +334,8 @@ const LoginModal = ({ onClose, onForgotPassword }) => {
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
               placeholder={t('login.passwordPlaceholder')}
-              required
+              disabled={loading}
             />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-            {t('login.role')}
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            {roles.map((role) => (
-              <button
-                key={role.value}
-                type="button"
-                onClick={() => setFormData({ ...formData, role: role.value })}
-                className={`py-2 px-3 rounded-lg border-2 text-sm font-medium transition-all ${
-                  formData.role === role.value
-                    ? 'border-green-700 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
-                    : 'border-gray-300 dark:border-gray-600 hover:border-green-400 text-gray-700 dark:text-gray-300'
-                }`}
-              >
-                {role.label}
-              </button>
-            ))}
           </div>
         </div>
 
@@ -219,34 +352,70 @@ const LoginModal = ({ onClose, onForgotPassword }) => {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-green-700 hover:bg-green-800 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
+          className="w-full bg-green-700 hover:bg-green-800 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (
             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
           ) : (
-            <><LogIn className="w-4 h-4" />{t('login.signIn')}</>
+            <>
+              <LogIn className="w-4 h-4" />
+              {t('login.signIn')}
+            </>
           )}
         </button>
       </form>
 
-      <p className="text-xs text-center text-gray-400 mt-5">{t('login.adminNote')}</p>
+      <p className="text-xs text-center text-gray-400 mt-5">
+        {t('login.adminNote')}
+      </p>
     </div>
   );
 };
 
-// ─── Forgot Password Modal ────────────────────────────────────────────────────
+// Forgot Password Modal
 const ForgotPasswordModal = ({ onBack, onClose }) => {
-  const { t } = useTranslation();
-  const [email, setEmail] = useState('');
+  const { t, i18n } = useTranslation();
+  const [username, setUsername] = useState('');
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resetToken, setResetToken] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1200));
-    setSent(true);
-    setLoading(false);
+
+    // Get current language
+    const currentLanguage = i18n.language || localStorage.getItem('user_language') || 'en';
+    console.log(`[ForgotPasswordModal] Submitting with language: ${currentLanguage}`);
+
+    try {
+      const response = await apiClient.post('/password-reset/request/', {
+        username
+      }, {
+        headers: {
+          'X-Language': currentLanguage
+        }
+      });
+
+      console.log('[Password Reset Response]', response.data);
+
+      if (response.data.success) {
+        setSent(true);
+
+        if (response.data.data?.token) {
+          setResetToken(response.data.data.token);
+        }
+
+        toast.success(response.data.message || t('forgotPassword.resetSent'));
+      } else {
+        toast.error(response.data.message || 'Request failed');
+      }
+    } catch (error) {
+      console.error('[Password Reset Error]', error);
+      toast.error(getErrorMessage(error, t));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -262,42 +431,60 @@ const ForgotPasswordModal = ({ onBack, onClose }) => {
         <div className="inline-flex items-center justify-center w-14 h-14 bg-amber-100 dark:bg-amber-900/30 rounded-full mb-3">
           <Mail className="w-7 h-7 text-amber-600" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('forgotPassword.title')}</h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('forgotPassword.subtitle')}</p>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          {t('forgotPassword.title')}
+        </h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          {t('forgotPassword.subtitle')}
+        </p>
       </div>
 
       {!sent ? (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-              {t('forgotPassword.emailLabel')}
+              {t('forgotPassword.usernameLabel')}
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
-                placeholder={t('forgotPassword.emailPlaceholder')}
+                placeholder={t('forgotPassword.usernamePlaceholder')}
                 required
+                disabled={loading}
               />
             </div>
           </div>
+
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
+            className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : t('forgotPassword.sendReset')}
+            ) : (
+              t('forgotPassword.sendReset')
+            )}
           </button>
         </form>
       ) : (
         <div className="text-center py-4">
           <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-3" />
-          <p className="text-gray-700 dark:text-gray-300 text-sm">{t('forgotPassword.sentMessage')}</p>
+          <p className="text-gray-700 dark:text-gray-300 text-sm mb-3">
+            {t('forgotPassword.resetInstructionsSent')}
+          </p>
+          {resetToken && (
+            <div className="mt-3 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
+              <p className="text-xs text-gray-500 mb-1">{t('forgotPassword.yourToken')}</p>
+              <code className="text-sm font-mono text-green-700 dark:text-green-400 break-all">
+                {resetToken}
+              </code>
+            </div>
+          )}
         </div>
       )}
 
@@ -312,44 +499,174 @@ const ForgotPasswordModal = ({ onBack, onClose }) => {
   );
 };
 
-// ─── Modal Overlay ────────────────────────────────────────────────────────────
-const AuthModal = ({ onClose }) => {
-  const [view, setView] = useState('login'); // 'login' | 'forgot'
+// Auth Modal
+const AuthModal = ({ onClose, onLoginSuccess }) => {
+  const [view, setView] = useState('login');
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = ''; };
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, []);
-
-  const handleOverlayClick = (e) => {
-    if (e.target === e.currentTarget) onClose();
-  };
 
   return (
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm"
-      onClick={handleOverlayClick}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
     >
       {view === 'login' ? (
-        <LoginModal onClose={onClose} onForgotPassword={() => setView('forgot')} />
+        <LoginModal
+          onClose={onClose}
+          onForgotPassword={() => setView('forgot')}
+          onLoginSuccess={onLoginSuccess}
+        />
       ) : (
-        <ForgotPasswordModal onBack={() => setView('login')} onClose={onClose} />
+        <ForgotPasswordModal
+          onBack={() => setView('login')}
+          onClose={onClose}
+        />
       )}
     </div>
   );
 };
 
-// ─── Main Landing Page ────────────────────────────────────────────────────────
+// Main Landing Page
 const LandingPage = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
 
+  // Initialize language on component mount
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
+    // Get language from various sources
+    let initialLanguage = 'en';
+
+    // Priority 1: From localStorage
+    const storedLang = localStorage.getItem('user_language');
+    if (storedLang && ['en', 'fr', 'rw'].includes(storedLang)) {
+      initialLanguage = storedLang;
+      console.log(`[LandingPage] Language from localStorage: ${initialLanguage}`);
+    }
+
+    // Priority 2: From sessionStorage
+    const sessionLang = sessionStorage.getItem('selected_language');
+    if (sessionLang && ['en', 'fr', 'rw'].includes(sessionLang)) {
+      initialLanguage = sessionLang;
+      console.log(`[LandingPage] Language from sessionStorage: ${initialLanguage}`);
+    }
+
+    // Priority 3: From i18n
+    if (i18n.language && ['en', 'fr', 'rw'].includes(i18n.language)) {
+      initialLanguage = i18n.language;
+      console.log(`[LandingPage] Language from i18n: ${initialLanguage}`);
+    }
+
+    // Set the language
+    if (initialLanguage !== i18n.language) {
+      i18n.changeLanguage(initialLanguage);
+    }
+
+    // Store in all places for consistency
+    localStorage.setItem('user_language', initialLanguage);
+    sessionStorage.setItem('selected_language', initialLanguage);
+
+    // Set default header
+    apiClient.defaults.headers.common['X-Language'] = initialLanguage;
+
+    console.log(`[LandingPage] Initialized with language: ${initialLanguage}`);
+  }, [i18n]);
+
+  // Check existing session on mount
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    const user = localStorage.getItem('user');
+
+    if (token && user) {
+      try {
+        const userData = JSON.parse(user);
+
+        // Set authorization header
+        apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+        // Set language from user profile
+        if (userData.language) {
+          const userLang = userData.language;
+          i18n.changeLanguage(userLang);
+          localStorage.setItem('user_language', userLang);
+          sessionStorage.setItem('selected_language', userLang);
+          apiClient.defaults.headers.common['X-Language'] = userLang;
+        }
+
+        // Navigate to role-based dashboard
+        const routes = {
+          admin: '/app/admin/dashboard',
+          teacher: '/app/teacher/dashboard',
+          student: '/app/student/dashboard',
+          parent: '/app/parent/dashboard',
+        };
+        navigate(routes[userData.role] || '/app/dashboard');
+      } catch (err) {
+        console.error('[Session Error] Error parsing user data:', err);
+        localStorage.removeItem('user');
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+      }
+    }
+  }, [navigate, i18n]);
+
+  // Handle scroll for navbar
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const handleLoginSuccess = (user) => {
+    if (user.language && user.language !== i18n.language) {
+      i18n.changeLanguage(user.language);
+      localStorage.setItem('user_language', user.language);
+      sessionStorage.setItem('selected_language', user.language);
+      apiClient.defaults.headers.common['X-Language'] = user.language;
+    }
+  };
+
+  // Listen for language changes from LanguageSwitcher
+  useEffect(() => {
+    const handleLanguageChange = () => {
+      const newLang = i18n.language;
+      console.log(`[LandingPage] Language changed to: ${newLang}`);
+
+      // Update all storage locations
+      localStorage.setItem('user_language', newLang);
+      sessionStorage.setItem('selected_language', newLang);
+
+      // Update axios default header
+      apiClient.defaults.headers.common['X-Language'] = newLang;
+
+      // Also update user profile if authenticated
+      const token = localStorage.getItem('access_token');
+      if (token) {
+        // Optionally update user's language preference in backend
+        apiClient.put('/me/update/', { language: newLang }).catch(err => {
+          console.error('Failed to update user language preference:', err);
+        });
+      }
+    };
+
+    // Subscribe to i18n language changes
+    i18n.on('languageChanged', handleLanguageChange);
+
+    return () => {
+      i18n.off('languageChanged', handleLanguageChange);
+    };
+  }, [i18n]);
 
   const features = [
     { icon: Brain, title: t('features.ai.title'), description: t('features.ai.desc') },
@@ -379,43 +696,49 @@ const LandingPage = () => {
     { color: '#283593', label: t('chart.attendance') },
   ];
 
+  // Debug: Log current language on every render
+  console.log(`[LandingPage Render] Current language: ${i18n.language}`);
+
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
+      {showAuthModal && (
+        <AuthModal
+          onClose={() => setShowAuthModal(false)}
+          onLoginSuccess={handleLoginSuccess}
+        />
+      )}
 
-      {/* ── Navbar ── */}
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
+      {/* Navbar */}
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
           ? 'bg-white/95 dark:bg-gray-900/95 shadow-lg backdrop-blur-sm border-b border-green-100 dark:border-green-900/30'
           : 'bg-transparent'
-      }`}>
+        }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-
-            {/* Logo + Brand */}
-            <div className="flex items-center gap-2.5 min-w-0">
+            {/* Logo */}
+            <div className="flex items-center gap-2.5">
               <img
                 src={schoolLogo}
-                alt="Les Hirondelles de Don Bosco"
-                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-contain flex-shrink-0 ring-2 ring-green-700/30"
+                alt="Logo"
+                className="w-10 h-10 rounded-full object-contain ring-2 ring-green-700/30"
               />
-              <div className="min-w-0">
-                <span className="text-lg sm:text-xl font-bold text-green-800 dark:text-green-400 leading-none block">
+              <div>
+                <span className="text-lg sm:text-xl font-bold text-green-800 dark:text-green-400 block">
                   Ishuri
                 </span>
-                <span className="text-[10px] text-gray-400 hidden sm:block leading-none mt-0.5">
+                <span className="text-[10px] text-gray-400 hidden sm:block">
                   Les Hirondelles de Don Bosco
                 </span>
               </div>
             </div>
 
             {/* Nav Links */}
-            <div className="hidden md:flex items-center gap-6 lg:gap-8">
+            <div className="hidden md:flex items-center gap-6">
               {['features', 'about', 'testimonials', 'contact'].map((section) => (
                 <a
                   key={section}
                   href={`#${section}`}
-                  className="text-sm text-gray-700 dark:text-gray-300 hover:text-green-700 dark:hover:text-green-400 transition-colors font-medium capitalize"
+                  className="text-sm text-gray-700 dark:text-gray-300 hover:text-green-700 dark:hover:text-green-400 transition-colors capitalize"
                 >
                   {t(`nav.${section}`)}
                 </a>
@@ -437,7 +760,7 @@ const LandingPage = () => {
         </div>
       </nav>
 
-      {/* ── Hero ── */}
+      {/* Hero Section */}
       <section className="relative pt-32 pb-20 px-4 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-white to-amber-50 dark:from-gray-900 dark:via-gray-900 dark:to-green-900/10" />
         <div className="absolute top-20 right-10 w-72 h-72 bg-green-300 rounded-full mix-blend-multiply filter blur-3xl opacity-15 animate-pulse" />
@@ -451,16 +774,13 @@ const LandingPage = () => {
                 {t('hero.badge')}
               </span>
             </div>
-
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
               {t('hero.title')}
               <span className="text-green-700 dark:text-green-400"> Les Hirondelles de Don Bosco</span>
             </h1>
-
             <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-8">
               {t('hero.description')}
             </p>
-
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={() => setShowAuthModal(true)}
@@ -479,20 +799,18 @@ const LandingPage = () => {
             </div>
           </div>
 
-          {/* ── Dashboard Preview with real Chart ── */}
+          {/* Chart Preview */}
           <div className="mt-16 relative">
             <div className="bg-gray-900 rounded-xl shadow-2xl overflow-hidden border border-gray-700">
-              {/* Browser chrome */}
               <div className="bg-gray-800 px-4 py-3 flex items-center gap-2">
                 <div className="w-3 h-3 bg-red-500 rounded-full" />
                 <div className="w-3 h-3 bg-yellow-500 rounded-full" />
                 <div className="w-3 h-3 bg-green-500 rounded-full" />
-                <span className="text-sm text-gray-400 ml-2">ishuri.donbosco.rw/app/dashboard</span>
+                <span className="text-sm text-gray-400 ml-2">
+                  ishuri.donbosco.rw/dashboard
+                </span>
               </div>
-
-              {/* Chart area */}
-              <div className="p-6 bg-gray-900">
-                {/* Legend */}
+              <div className="p-6">
                 <div className="flex flex-wrap gap-4 mb-4">
                   {chartLegend.map((item) => (
                     <span key={item.color} className="flex items-center gap-1.5 text-xs text-gray-300">
@@ -504,14 +822,16 @@ const LandingPage = () => {
                 <div style={{ position: 'relative', width: '100%', height: '260px' }}>
                   <Bar data={DASHBOARD_CHART_DATA} options={DASHBOARD_CHART_OPTIONS} />
                 </div>
-                <p className="text-xs text-gray-500 text-center mt-3">{t('chart.title')}</p>
+                <p className="text-xs text-gray-500 text-center mt-3">
+                  {t('chart.title')}
+                </p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── Stats ── */}
+      {/* Stats Section */}
       <section className="py-16 px-4 bg-green-800 dark:bg-green-900">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -522,15 +842,19 @@ const LandingPage = () => {
                     <stat.icon className="w-6 h-6 text-amber-300" />
                   </div>
                 </div>
-                <div className="text-3xl md:text-4xl font-bold text-white">{stat.value}</div>
-                <div className="text-green-200 mt-1 text-sm">{stat.label}</div>
+                <div className="text-3xl md:text-4xl font-bold text-white">
+                  {stat.value}
+                </div>
+                <div className="text-green-200 mt-1 text-sm">
+                  {stat.label}
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Features ── */}
+      {/* Features Section */}
       <section id="features" className="py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
@@ -545,158 +869,51 @@ const LandingPage = () => {
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="card group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-green-100 dark:border-green-900/30 rounded-xl p-6"
+                className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-green-100 dark:border-green-900/30 rounded-xl p-6"
               >
                 <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg w-fit mb-4 group-hover:bg-green-200 dark:group-hover:bg-green-800/40 transition-colors">
                   <feature.icon className="w-6 h-6 text-green-700 dark:text-green-400" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{feature.title}</h3>
-                <p className="text-gray-600 dark:text-gray-400">{feature.description}</p>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  {feature.description}
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Role Cards ── */}
-      <section id="about" className="py-20 px-4 bg-gradient-to-r from-green-50 to-amber-50 dark:from-gray-800 dark:to-gray-800">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              {t('rolesSection.title')}
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400">{t('rolesSection.subtitle')}</p>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              {
-                role: t('roles.students'),
-                icon: GraduationCap,
-                features: [
-                  t('roleFeatures.student.0'), t('roleFeatures.student.1'),
-                  t('roleFeatures.student.2'), t('roleFeatures.student.3'),
-                ],
-              },
-              {
-                role: t('roles.parents'),
-                icon: Users,
-                features: [
-                  t('roleFeatures.parent.0'), t('roleFeatures.parent.1'),
-                  t('roleFeatures.parent.2'), t('roleFeatures.parent.3'),
-                ],
-              },
-              {
-                role: t('roles.teachers'),
-                icon: Brain,
-                features: [
-                  t('roleFeatures.teacher.0'), t('roleFeatures.teacher.1'),
-                  t('roleFeatures.teacher.2'), t('roleFeatures.teacher.3'),
-                ],
-              },
-              {
-                role: t('roles.admins'),
-                icon: Shield,
-                features: [
-                  t('roleFeatures.admin.0'), t('roleFeatures.admin.1'),
-                  t('roleFeatures.admin.2'), t('roleFeatures.admin.3'),
-                ],
-              },
-            ].map((item, index) => (
-              <div
-                key={index}
-                className="bg-white dark:bg-gray-900 rounded-xl p-6 text-center hover:shadow-xl transition-all border border-green-100 dark:border-green-900/30"
-              >
-                <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-full w-fit mx-auto mb-4">
-                  <item.icon className="w-8 h-8 text-green-700 dark:text-green-400" />
-                </div>
-                <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-white">{item.role}</h3>
-                <ul className="space-y-2 text-left">
-                  {item.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                      <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── AI Analytics ── */}
-      <section className="py-20 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 bg-green-100 dark:bg-green-900/30 px-4 py-2 rounded-full mb-6">
-                <Brain className="w-4 h-4 text-green-700" />
-                <span className="text-sm font-medium text-green-700 dark:text-green-400">{t('aiSection.badge')}</span>
-              </div>
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                {t('aiSection.title')}
-              </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-400 mb-6">{t('aiSection.description')}</p>
-              <div className="space-y-4">
-                {[
-                  { color: 'bg-green-500', bg: 'bg-green-50 dark:bg-green-900/20', title: t('zones.green.title'), desc: t('zones.green.desc'), text: 'text-green-800 dark:text-green-300', subdesc: 'text-green-600 dark:text-green-400' },
-                  { color: 'bg-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20', title: t('zones.yellow.title'), desc: t('zones.yellow.desc'), text: 'text-amber-800 dark:text-amber-300', subdesc: 'text-amber-600 dark:text-amber-400' },
-                  { color: 'bg-red-500', bg: 'bg-red-50 dark:bg-red-900/20', title: t('zones.red.title'), desc: t('zones.red.desc'), text: 'text-red-800 dark:text-red-300', subdesc: 'text-red-600 dark:text-red-400' },
-                ].map((zone) => (
-                  <div key={zone.color} className={`flex items-center gap-3 p-3 ${zone.bg} rounded-lg`}>
-                    <div className={`w-4 h-4 ${zone.color} rounded-full flex-shrink-0`} />
-                    <div>
-                      <p className={`font-medium ${zone.text}`}>{zone.title}</p>
-                      <p className={`text-sm ${zone.subdesc}`}>{zone.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-8 text-white">
-              <BarChart3 className="w-12 h-12 text-green-400 mb-4" />
-              <h3 className="text-2xl font-bold mb-4">{t('aiSection.cardTitle')}</h3>
-              <p className="text-gray-300 mb-6">{t('aiSection.cardDesc')}</p>
-              <div className="space-y-3">
-                {[
-                  { label: t('aiSection.classAvg'), value: '78%', color: 'bg-green-500', width: '78%', textColor: 'text-green-400' },
-                  { label: t('aiSection.atRisk'), value: '24', color: 'bg-amber-500', width: '24%', textColor: 'text-amber-400' },
-                ].map((item) => (
-                  <div key={item.label}>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>{item.label}</span>
-                      <span className={item.textColor}>{item.value}</span>
-                    </div>
-                    <div className="w-full bg-gray-700 rounded-full h-2">
-                      <div className={`${item.color} h-2 rounded-full`} style={{ width: item.width }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Testimonials ── */}
+      {/* Testimonials Section */}
       <section id="testimonials" className="py-20 px-4 bg-gray-50 dark:bg-gray-800/50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
               {t('testimonialsSection.title')}
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400">{t('testimonialsSection.subtitle')}</p>
+            <p className="text-xl text-gray-600 dark:text-gray-400">
+              {t('testimonialsSection.subtitle')}
+            </p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <div key={index} className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-green-100 dark:border-green-900/30 shadow-sm">
+              <div
+                key={index}
+                className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-green-100 dark:border-green-900/30 shadow-sm"
+              >
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center text-2xl">
                     {testimonial.avatar}
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 dark:text-white">{testimonial.name}</p>
-                    <p className="text-sm text-gray-500">{testimonial.role}</p>
+                    <p className="font-semibold text-gray-900 dark:text-white">
+                      {testimonial.name}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {testimonial.role}
+                    </p>
                   </div>
                 </div>
                 <div className="flex mb-3">
@@ -704,19 +921,25 @@ const LandingPage = () => {
                     <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
                   ))}
                 </div>
-                <p className="text-gray-600 dark:text-gray-400 italic text-sm">"{testimonial.content}"</p>
+                <p className="text-gray-600 dark:text-gray-400 italic text-sm">
+                  "{testimonial.content}"
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── CTA ── */}
+      {/* CTA Section */}
       <section className="py-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-gradient-to-r from-green-700 to-green-900 rounded-2xl text-white p-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">{t('cta.title')}</h2>
-            <p className="text-lg text-green-100 mb-8">{t('cta.subtitle')}</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              {t('cta.title')}
+            </h2>
+            <p className="text-lg text-green-100 mb-8">
+              {t('cta.subtitle')}
+            </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={() => setShowAuthModal(true)}
@@ -731,18 +954,24 @@ const LandingPage = () => {
                 {t('cta.contact')}
               </a>
             </div>
-            <p className="text-sm text-green-200 mt-6">{t('cta.note')}</p>
+            <p className="text-sm text-green-200 mt-6">
+              {t('cta.note')}
+            </p>
           </div>
         </div>
       </section>
 
-      {/* ── Footer ── */}
+      {/* Footer */}
       <footer id="contact" className="bg-gray-900 text-gray-400 py-12 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
               <div className="flex items-center gap-2.5 mb-4">
-                <img src={schoolLogo} alt="HDB Logo" className="w-8 h-8 rounded-full object-contain ring-1 ring-green-700/40" />
+                <img
+                  src={schoolLogo}
+                  alt="Logo"
+                  className="w-8 h-8 rounded-full object-contain ring-1 ring-green-700/40"
+                />
                 <span className="text-xl font-bold text-white">Ishuri</span>
               </div>
               <p className="text-sm">{t('footer.description')}</p>
@@ -767,7 +996,11 @@ const LandingPage = () => {
             <div>
               <h3 className="text-white font-semibold mb-3">{t('footer.resources')}</h3>
               <ul className="space-y-2 text-sm">
-                <li><a href="https://hdb.rw" target="_blank" rel="noopener noreferrer" className="hover:text-green-400 transition-colors">{t('footer.schoolWebsite')}</a></li>
+                <li>
+                  <a href="https://hdb.rw" target="_blank" rel="noopener noreferrer" className="hover:text-green-400 transition-colors">
+                    {t('footer.schoolWebsite')}
+                  </a>
+                </li>
                 <li><a href="#" className="hover:text-green-400 transition-colors">{t('footer.documentation')}</a></li>
                 <li><a href="#" className="hover:text-green-400 transition-colors">{t('footer.support')}</a></li>
               </ul>

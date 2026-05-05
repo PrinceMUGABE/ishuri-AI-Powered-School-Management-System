@@ -441,5 +441,153 @@
       "attendance": "Attendance Report",
       "attendanceDesc": "Student attendance trends"
     }
+  },
+
+
+  "parent": {
+    "dashboard": {
+      "title": "Parent Dashboard",
+      "subtitle": "Monitor your children's academic progress"
+    },
+    "classes": {
+      "s5": "Senior 5",
+      "s4": "Senior 4",
+      "s3": "Senior 3",
+      "s2": "Senior 2",
+      "s1": "Senior 1"
+    },
+    "academicAverage": "Academic Average",
+    "attendanceRate": "Attendance Rate",
+    "viewDetails": "View Details",
+    "messageTeacher": "Message Teacher",
+    "contactSchool": "Contact School",
+    "notifications": {
+      "title": "Recent Notifications",
+      "gradeUpload": "New grade uploaded for John in Mathematics",
+      "feeDeadline": "School fees deadline approaching",
+      "parentMeeting": "Parent-teacher meeting scheduled for Friday",
+      "time2hours": "2 hours ago",
+      "time1day": "1 day ago",
+      "time2days": "2 days ago"
+    },
+    "quickStats": {
+      "title": "Quick Stats",
+      "totalChildren": "Total Children",
+      "avgPerformance": "Average Performance",
+      "unreadMessages": "Unread Messages",
+      "feeStatus": "Fee Status",
+      "paid": "Paid",
+      "pending": "Pending",
+      "overdue": "Overdue"
+    },
+    "recentActivity": {
+      "title": "Recent Activity",
+      "avgGrade": "Average Grade",
+      "upcomingEvents": "Upcoming Events",
+      "unreadMessages": "Unread Messages",
+      "feeStatus": "Fee Status"
+    }
+  },
+  "performance": {
+    "satisfactory": "Satisfactory",
+    "good": "Good",
+    "excellent": "Excellent",
+    "nearDanger": "Needs Attention",
+    "danger": "At Risk"
+  },
+
+  "userManagement": {
+      "title": "User Management",
+      "subtitle": "Manage all system users",
+      "addUser": "Add User",
+      "addNewUser": "Add New User",
+      "editUser": "Edit User",
+      "userDetails": "User Details",
+      "deleteUser": "Delete User",
+      "deleteConfirmation": "Are you sure you want to delete user",
+      "deleteWarning": "This action cannot be undone.",
+      "username": "Username",
+      "email": "Email",
+      "role": "Role",
+      "status": "Status",
+      "createdAt": "Created At",
+      "updatedAt": "Updated At",
+      "actions": "Actions",
+      "view": "View",
+      "edit": "Edit",
+      "delete": "Delete",
+      "activate": "Activate",
+      "deactivate": "Deactivate",
+      "create": "Create User",
+      "update": "Update User",
+      "cancel": "Cancel",
+      "close": "Close",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "searchPlaceholder": "Search users by username or email...",
+      "allRoles": "All Roles",
+      "allStatus": "All Status",
+      "showing": "Showing",
+      "perPage": "per page",
+      "page": "Page",
+      "of": "of",
+      "first": "First",
+      "last": "Last",
+      "noUsers": "No users found",
+      "id": "ID"
+    },
+    "roles": {
+      "admin": "Administrator",
+      "teacher": "Teacher",
+      "student": "Student",
+      "parent": "Parent"
+    },
+    "statuses": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "suspended": "Suspended"
+    },
+    "summary": {
+      "totalUsers": "Total Users",
+      "activeUsers": "Active Users",
+      "inactiveUsers": "Inactive/Suspended",
+      "studentsTeachers": "Students/Teachers"
+    },
+    "messages": {
+      "userCreated": "User created successfully",
+      "userUpdated": "User updated successfully",
+      "userDeleted": "User deleted successfully",
+      "userActivated": "User activated successfully",
+      "userDeactivated": "User deactivated successfully",
+      "fillRequiredFields": "Please fill in all required fields",
+      "passwordsDoNotMatch": "Passwords do not match",
+      "passwordMinLength": "Password must be at least 6 characters",
+      "failedToFetchUsers": "Failed to fetch users",
+      "failedToCreateUser": "Failed to create user",
+      "failedToUpdateUser": "Failed to update user",
+      "failedToDeleteUser": "Failed to delete user",
+      "failedToToggleStatus": "Failed to toggle status"
+    },
+    "errors": {
+      "networkError": "Network error. Please check your connection.",
+      "somethingWentWrong": "Something went wrong. Please try again.",
+      "invalidCredentials": "Invalid username or password",
+      "accountInactive": "Your account is inactive. Please contact the administrator.",
+      "accountSuspended": "Your account has been suspended. Please contact the administrator.",
+      "invalidRole": "Invalid role. This account is registered as {role}.",
+      "permissionDenied": "Permission denied. You don't have access to this resource.",
+      "usernameExists": "Username already exists",
+      "usernameInvalid": "Username can only contain letters, numbers, and @/./+/-/_ characters"
+    },
+
+    "header": {
+    "title": "Ishuri System",
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout",
+    "user": "User"
+  },
+  "messages": {
+    "logoutSuccess": "Logged out successfully"
   }
 }
