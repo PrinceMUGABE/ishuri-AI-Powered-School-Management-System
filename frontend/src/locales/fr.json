@@ -170,7 +170,6 @@
     "rights": "Tous droits réservés.",
     "tagline": "Autonomiser l'éducation grâce à la technologie"
   },
-
   "app": {
     "tagline": "Gestion scolaire intelligente"
   },
@@ -195,7 +194,6 @@
   "attendance": {
     "record": "Enregistrer l'assiduité"
   },
-
   "app": {
     "tagline": "Gestion scolaire intelligente"
   },
@@ -403,8 +401,6 @@
     "rights": "Tous droits réservés.",
     "tagline": "Autonomiser l'éducation grâce à la technologie"
   },
-
-  
   "admin": {
     "dashboard": {
       "title": "Tableau de bord Admin",
@@ -443,8 +439,6 @@
       "attendanceDesc": "Tendances de l'assiduité des élèves"
     }
   },
-
-
   "parent": {
     "dashboard": {
       "title": "Tableau de bord Parent",
@@ -496,92 +490,90 @@
     "nearDanger": "Nécessite une attention",
     "danger": "À risque"
   },
-
   "userManagement": {
-      "title": "Gestion des Utilisateurs",
-      "subtitle": "Gérer tous les utilisateurs du système",
-      "addUser": "Ajouter un Utilisateur",
-      "addNewUser": "Ajouter un Nouvel Utilisateur",
-      "editUser": "Modifier l'Utilisateur",
-      "userDetails": "Détails de l'Utilisateur",
-      "deleteUser": "Supprimer l'Utilisateur",
-      "deleteConfirmation": "Êtes-vous sûr de vouloir supprimer l'utilisateur",
-      "deleteWarning": "Cette action est irréversible.",
-      "username": "Nom d'utilisateur",
-      "email": "Email",
-      "role": "Rôle",
-      "status": "Statut",
-      "createdAt": "Date de création",
-      "updatedAt": "Date de modification",
-      "actions": "Actions",
-      "view": "Voir",
-      "edit": "Modifier",
-      "delete": "Supprimer",
-      "activate": "Activer",
-      "deactivate": "Désactiver",
-      "create": "Créer l'Utilisateur",
-      "update": "Mettre à jour",
-      "cancel": "Annuler",
-      "close": "Fermer",
-      "password": "Mot de passe",
-      "confirmPassword": "Confirmer le mot de passe",
-      "searchPlaceholder": "Rechercher par nom d'utilisateur ou email...",
-      "allRoles": "Tous les rôles",
-      "allStatus": "Tous les statuts",
-      "showing": "Affichage de",
-      "perPage": "par page",
-      "page": "Page",
-      "of": "de",
-      "first": "Premier",
-      "last": "Dernier",
-      "noUsers": "Aucun utilisateur trouvé",
-      "id": "ID"
-    },
-    "roles": {
-      "admin": "Administrateur",
-      "teacher": "Enseignant",
-      "student": "Étudiant",
-      "parent": "Parent"
-    },
-    "statuses": {
-      "active": "Actif",
-      "inactive": "Inactif",
-      "suspended": "Suspendu"
-    },
-    "summary": {
-      "totalUsers": "Total des Utilisateurs",
-      "activeUsers": "Utilisateurs Actifs",
-      "inactiveUsers": "Inactifs/Suspendus",
-      "studentsTeachers": "Étudiants/Enseignants"
-    },
-    "messages": {
-      "userCreated": "Utilisateur créé avec succès",
-      "userUpdated": "Utilisateur mis à jour avec succès",
-      "userDeleted": "Utilisateur supprimé avec succès",
-      "userActivated": "Utilisateur activé avec succès",
-      "userDeactivated": "Utilisateur désactivé avec succès",
-      "fillRequiredFields": "Veuillez remplir tous les champs obligatoires",
-      "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
-      "passwordMinLength": "Le mot de passe doit contenir au moins 6 caractères",
-      "failedToFetchUsers": "Échec de la récupération des utilisateurs",
-      "failedToCreateUser": "Échec de la création de l'utilisateur",
-      "failedToUpdateUser": "Échec de la mise à jour de l'utilisateur",
-      "failedToDeleteUser": "Échec de la suppression de l'utilisateur",
-      "failedToToggleStatus": "Échec du changement de statut"
-    },
-    "errors": {
-      "networkError": "Erreur réseau. Veuillez vérifier votre connexion.",
-      "somethingWentWrong": "Une erreur s'est produite. Veuillez réessayer.",
-      "invalidCredentials": "Nom d'utilisateur ou mot de passe invalide",
-      "accountInactive": "Votre compte est inactif. Veuillez contacter l'administrateur.",
-      "accountSuspended": "Votre compte a été suspendu. Veuillez contacter l'administrateur.",
-      "invalidRole": "Rôle invalide. Ce compte est enregistré comme {role}.",
-      "permissionDenied": "Permission refusée. Vous n'avez pas accès à cette ressource.",
-      "usernameExists": "Ce nom d'utilisateur existe déjà",
-      "usernameInvalid": "Le nom d'utilisateur ne peut contenir que des lettres, des chiffres et les caractères @/./+/-/_"
-    },
-
-     "header": {
+    "title": "Gestion des Utilisateurs",
+    "subtitle": "Gérer tous les utilisateurs du système",
+    "addUser": "Ajouter un Utilisateur",
+    "addNewUser": "Ajouter un Nouvel Utilisateur",
+    "editUser": "Modifier l'Utilisateur",
+    "userDetails": "Détails de l'Utilisateur",
+    "deleteUser": "Supprimer l'Utilisateur",
+    "deleteConfirmation": "Êtes-vous sûr de vouloir supprimer l'utilisateur",
+    "deleteWarning": "Cette action est irréversible.",
+    "username": "Nom d'utilisateur",
+    "email": "Email",
+    "role": "Rôle",
+    "status": "Statut",
+    "createdAt": "Date de création",
+    "updatedAt": "Date de modification",
+    "actions": "Actions",
+    "view": "Voir",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "activate": "Activer",
+    "deactivate": "Désactiver",
+    "create": "Créer l'Utilisateur",
+    "update": "Mettre à jour",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "password": "Mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "searchPlaceholder": "Rechercher par nom d'utilisateur ou email...",
+    "allRoles": "Tous les rôles",
+    "allStatus": "Tous les statuts",
+    "showing": "Affichage de",
+    "perPage": "par page",
+    "page": "Page",
+    "of": "de",
+    "first": "Premier",
+    "last": "Dernier",
+    "noUsers": "Aucun utilisateur trouvé",
+    "id": "ID"
+  },
+  "roles": {
+    "admin": "Administrateur",
+    "teacher": "Enseignant",
+    "student": "Étudiant",
+    "parent": "Parent"
+  },
+  "statuses": {
+    "active": "Actif",
+    "inactive": "Inactif",
+    "suspended": "Suspendu"
+  },
+  "summary": {
+    "totalUsers": "Total des Utilisateurs",
+    "activeUsers": "Utilisateurs Actifs",
+    "inactiveUsers": "Inactifs/Suspendus",
+    "studentsTeachers": "Étudiants/Enseignants"
+  },
+  "messages": {
+    "userCreated": "Utilisateur créé avec succès",
+    "userUpdated": "Utilisateur mis à jour avec succès",
+    "userDeleted": "Utilisateur supprimé avec succès",
+    "userActivated": "Utilisateur activé avec succès",
+    "userDeactivated": "Utilisateur désactivé avec succès",
+    "fillRequiredFields": "Veuillez remplir tous les champs obligatoires",
+    "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
+    "passwordMinLength": "Le mot de passe doit contenir au moins 6 caractères",
+    "failedToFetchUsers": "Échec de la récupération des utilisateurs",
+    "failedToCreateUser": "Échec de la création de l'utilisateur",
+    "failedToUpdateUser": "Échec de la mise à jour de l'utilisateur",
+    "failedToDeleteUser": "Échec de la suppression de l'utilisateur",
+    "failedToToggleStatus": "Échec du changement de statut"
+  },
+  "errors": {
+    "networkError": "Erreur réseau. Veuillez vérifier votre connexion.",
+    "somethingWentWrong": "Une erreur s'est produite. Veuillez réessayer.",
+    "invalidCredentials": "Nom d'utilisateur ou mot de passe invalide",
+    "accountInactive": "Votre compte est inactif. Veuillez contacter l'administrateur.",
+    "accountSuspended": "Votre compte a été suspendu. Veuillez contacter l'administrateur.",
+    "invalidRole": "Rôle invalide. Ce compte est enregistré comme {role}.",
+    "permissionDenied": "Permission refusée. Vous n'avez pas accès à cette ressource.",
+    "usernameExists": "Ce nom d'utilisateur existe déjà",
+    "usernameInvalid": "Le nom d'utilisateur ne peut contenir que des lettres, des chiffres et les caractères @/./+/-/_"
+  },
+  "header": {
     "title": "Système Ishuri",
     "profile": "Profil",
     "settings": "Paramètres",
@@ -590,5 +582,76 @@
   },
   "messages": {
     "logoutSuccess": "Déconnecté avec succès"
+  },
+  "academics": {
+    "title": "Gestion Académique",
+    "subtitle": "Gérer les années académiques, niveaux, salles de classe, matières et frais",
+    "academicYears": "Années Académiques",
+    "schoolLevels": "Niveaux Scolaires",
+    "classLevels": "Niveaux de Classe",
+    "classrooms": "Salles de Classe",
+    "subjects": "Matières",
+    "assignments": "Assignations de Matières",
+    "costs": "Structures de Frais",
+    "add": "Ajouter",
+    "search": "Rechercher",
+    "showing": "Affichage de",
+    "perPage": "par page",
+    "page": "Page",
+    "of": "sur",
+    "first": "Première",
+    "last": "Dernière",
+    "actions": "Actions",
+    "view": "Voir",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "create": "Créer",
+    "update": "Mettre à jour",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "status": {
+      "active": "Actif",
+      "inactive": "Inactif",
+      "suspended": "Suspendu"
+    },
+    "form": {
+      "name": "Nom",
+      "code": "Code",
+      "description": "Description",
+      "startDate": "Date de Début",
+      "endDate": "Date de Fin",
+      "currentYear": "Année en Cours",
+      "levelType": "Type de Niveau",
+      "category": "Catégorie",
+      "schoolLevel": "Niveau Scolaire",
+      "classLevel": "Niveau de Classe",
+      "roomType": "Type de Salle",
+      "shift": "Quart",
+      "capacity": "Capacité",
+      "subjectName": "Nom de la Matière",
+      "subjectCode": "Code de la Matière",
+      "gradingSystem": "Système de Notation",
+      "passMark": "Note de Réussite",
+      "teachingFrequency": "Fréquence d'Enseignement",
+      "hoursPerWeek": "Heures par Semaine",
+      "compulsory": "Obligatoire",
+      "feeName": "Nom des Frais",
+      "paymentType": "Type de Paiement",
+      "amount": "Montant",
+      "frequency": "Fréquence",
+      "mandatory": "Obligatoire",
+      "displayOrder": "Ordre d'Affichage"
+    },
+    "messages": {
+      "createSuccess": "{{name}} créé avec succès",
+      "updateSuccess": "{{name}} mis à jour avec succès",
+      "deleteSuccess": "{{name}} supprimé avec succès",
+      "deleteConfirmation": "Êtes-vous sûr de vouloir supprimer cet élément ?",
+      "deleteWarning": "Cette action ne peut pas être annulée.",
+      "noData": "Aucune donnée trouvée",
+      "fetchError": "Échec de la récupération des données",
+      "validationError": "Échec de la validation",
+      "duplicateError": "Un élément avec ce nom existe déjà"
+    }
   }
-  }
+}

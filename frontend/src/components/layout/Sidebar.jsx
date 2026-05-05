@@ -17,6 +17,7 @@ import {
   UserCheck,
   DollarSign,
   BadgeCheck,
+  GraduationCapIcon,
   X
 } from 'lucide-react';
 import schoolLogo from '../../../public/imgs/school-logo.png';
@@ -52,6 +53,7 @@ const Sidebar = ({ role, onClose }) => {
     ],
     admin: [
       { path: '/app/dashboard',      icon: LayoutDashboard, label: t('nav.dashboard',        'Dashboard') },
+      { path: '/app/academics',     icon: GraduationCapIcon,             label: t('nav.academics',        'Academics') },
       { path: '/app/users',          icon: Users,           label: t('nav.users',            'Users') },
       { path: '/app/grade-approval', icon: CheckCircle,     label: t('admin.gradeApproval',  'Grade Approval') },
       { path: '/app/fee-management', icon: DollarSign,      label: t('admin.feeManagement',  'Fee Management') },

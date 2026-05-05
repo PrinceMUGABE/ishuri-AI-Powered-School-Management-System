@@ -170,7 +170,6 @@
     "rights": "Uburenganzira bwose buragirirwa.",
     "tagline": "Gushoboza uburezi binyuze mu ikoranabuhanga"
   },
-
   "app": {
     "tagline": "Imiyoborere y'ishuri ihangitse"
   },
@@ -195,7 +194,6 @@
   "attendance": {
     "record": "Andika itabere"
   },
-
   "app": {
     "tagline": "Imiyoborere y'ishuri ihangitse"
   },
@@ -403,7 +401,6 @@
     "rights": "Uburenganzira bwose buragirirwa.",
     "tagline": "Gushoboza uburezi binyuze mu ikoranabuhanga"
   },
-
   "admin": {
     "dashboard": {
       "title": "Ikibonezamvugo cy'Ubuyobozi",
@@ -442,8 +439,6 @@
       "attendanceDesc": "Imyitwarire y'itabere ry'abanyeshuri"
     }
   },
-
-
   "parent": {
     "dashboard": {
       "title": "Ikibonezamvugo cy'Umubyeyi",
@@ -495,92 +490,90 @@
     "nearDanger": "Bikeneye kwitabwaho",
     "danger": "Mu kaga"
   },
-
   "userManagement": {
-      "title": "Gestioni y'Abakoresha",
-      "subtitle": "Genga abakoresha bose ba sisitemu",
-      "addUser": "Ongera Umukoresha",
-      "addNewUser": "Ongera Umukoresha Mushya",
-      "editUser": "Hindura Umukoresha",
-      "userDetails": "Ibijyanye n'Umukoresha",
-      "deleteUser": "Kuraho Umukoresha",
-      "deleteConfirmation": "Urahataniye gukuraho umukoresha",
-      "deleteWarning": "Iki gikorwa ntigishobora gusubirwaho.",
-      "username": "Izina ry'umukoresha",
-      "email": "Imeri",
-      "role": "Uruhare",
-      "status": "Imiterere",
-      "createdAt": "Itariki yaremewe",
-      "updatedAt": "Itariki yahinduwemo",
-      "actions": "Ibikorwa",
-      "view": "Reba",
-      "edit": "Hindura",
-      "delete": "Kuraho",
-      "activate": "Kora",
-      "deactivate": "Hagarika",
-      "create": "Kurema Umukoresha",
-      "update": "Kuvugurura",
-      "cancel": "Hagarika",
-      "close": "Funga",
-      "password": "Ijambo bangwa",
-      "confirmPassword": "Emeza ijambo bangwa",
-      "searchPlaceholder": "Shakisha ukoresheje izina cyangwa imeri...",
-      "allRoles": "Uruhare rwose",
-      "allStatus": "Imiterere yose",
-      "showing": "Kwerekana",
-      "perPage": "ku rupapuro",
-      "page": "Urupapuro",
-      "of": "kuri",
-      "first": "Uwa mbere",
-      "last": "Uwa nyuma",
-      "noUsers": "Nta mukoresha wabonetse",
-      "id": "Indangamuntu"
-    },
-    "roles": {
-      "admin": "Ubuyobozi",
-      "teacher": "Umwarimu",
-      "student": "Umwan'nyeshuri",
-      "parent": "Umubyeyi"
-    },
-    "statuses": {
-      "active": "Gikora",
-      "inactive": "Ntigikora",
-      "suspended": "Yahagaritswe"
-    },
-    "summary": {
-      "totalUsers": "Abakoresha Bose",
-      "activeUsers": "Abakoresha Bakora",
-      "inactiveUsers": "Abadahakora/Bahagaritswe",
-      "studentsTeachers": "Abanyeshuri/Barimu"
-    },
-    "messages": {
-      "userCreated": "Umukoresha yaremwe neza",
-      "userUpdated": "Umukoresha yahinduwe neza",
-      "userDeleted": "Umukoresha yakuwe neza",
-      "userActivated": "Umukoresha yarakoze neza",
-      "userDeactivated": "Umukoresha yahagaritswe neza",
-      "fillRequiredFields": "Nyamuneka uzuze ibyangombwa byose",
-      "passwordsDoNotMatch": "Amagambo bangwa ntabwo ahwanye",
-      "passwordMinLength": "Ijambo bangwa rigomba kuba byibuze inyuguti 6",
-      "failedToFetchUsers": "Byananiwe kubona abakoresha",
-      "failedToCreateUser": "Byananiwe kurema umukoresha",
-      "failedToUpdateUser": "Byananiwe guhindura umukoresha",
-      "failedToDeleteUser": "Byananiwe gukuraho umukoresha",
-      "failedToToggleStatus": "Byananiwe guhindura imiterere"
-    },
-    "errors": {
-      "networkError": "Ikibazo cy'umuyoboro. Nyamuneka ugerageze ukora neza.",
-      "somethingWentWrong": "Habaye ikibazo. Nyamuneka ongera ugerageze.",
-      "invalidCredentials": "Izina cyangwa ijambo bangwa si byo",
-      "accountInactive": "Konti yawe nkora. Nyamuneka wagirane n'umuyobozi.",
-      "accountSuspended": "Konti yawe yahagaritswe. Nyamuneka wagirane n'umuyobozi.",
-      "invalidRole": "Uruhare si rwo. Iyi konti yiyandikishije nk'{role}.",
-      "permissionDenied": "Uruhare ntirwemewe. Ntabwo ufite uburenganzira bwo kubona ibi.",
-      "usernameExists": "Izina ry'umukoresha risanzwe ribaho",
-      "usernameInvalid": "Izina ry'umukoresha rishobora kuba rigizwe n'inyuguti, imibare, n'ibimenyetso @/./+/-/_ gusa"
-    },
-
-     "header": {
+    "title": "Gestioni y'Abakoresha",
+    "subtitle": "Genga abakoresha bose ba sisitemu",
+    "addUser": "Ongera Umukoresha",
+    "addNewUser": "Ongera Umukoresha Mushya",
+    "editUser": "Hindura Umukoresha",
+    "userDetails": "Ibijyanye n'Umukoresha",
+    "deleteUser": "Kuraho Umukoresha",
+    "deleteConfirmation": "Urahataniye gukuraho umukoresha",
+    "deleteWarning": "Iki gikorwa ntigishobora gusubirwaho.",
+    "username": "Izina ry'umukoresha",
+    "email": "Imeri",
+    "role": "Uruhare",
+    "status": "Imiterere",
+    "createdAt": "Itariki yaremewe",
+    "updatedAt": "Itariki yahinduwemo",
+    "actions": "Ibikorwa",
+    "view": "Reba",
+    "edit": "Hindura",
+    "delete": "Kuraho",
+    "activate": "Kora",
+    "deactivate": "Hagarika",
+    "create": "Kurema Umukoresha",
+    "update": "Kuvugurura",
+    "cancel": "Hagarika",
+    "close": "Funga",
+    "password": "Ijambo bangwa",
+    "confirmPassword": "Emeza ijambo bangwa",
+    "searchPlaceholder": "Shakisha ukoresheje izina cyangwa imeri...",
+    "allRoles": "Uruhare rwose",
+    "allStatus": "Imiterere yose",
+    "showing": "Kwerekana",
+    "perPage": "ku rupapuro",
+    "page": "Urupapuro",
+    "of": "kuri",
+    "first": "Uwa mbere",
+    "last": "Uwa nyuma",
+    "noUsers": "Nta mukoresha wabonetse",
+    "id": "Indangamuntu"
+  },
+  "roles": {
+    "admin": "Ubuyobozi",
+    "teacher": "Umwarimu",
+    "student": "Umwan'nyeshuri",
+    "parent": "Umubyeyi"
+  },
+  "statuses": {
+    "active": "Gikora",
+    "inactive": "Ntigikora",
+    "suspended": "Yahagaritswe"
+  },
+  "summary": {
+    "totalUsers": "Abakoresha Bose",
+    "activeUsers": "Abakoresha Bakora",
+    "inactiveUsers": "Abadahakora/Bahagaritswe",
+    "studentsTeachers": "Abanyeshuri/Barimu"
+  },
+  "messages": {
+    "userCreated": "Umukoresha yaremwe neza",
+    "userUpdated": "Umukoresha yahinduwe neza",
+    "userDeleted": "Umukoresha yakuwe neza",
+    "userActivated": "Umukoresha yarakoze neza",
+    "userDeactivated": "Umukoresha yahagaritswe neza",
+    "fillRequiredFields": "Nyamuneka uzuze ibyangombwa byose",
+    "passwordsDoNotMatch": "Amagambo bangwa ntabwo ahwanye",
+    "passwordMinLength": "Ijambo bangwa rigomba kuba byibuze inyuguti 6",
+    "failedToFetchUsers": "Byananiwe kubona abakoresha",
+    "failedToCreateUser": "Byananiwe kurema umukoresha",
+    "failedToUpdateUser": "Byananiwe guhindura umukoresha",
+    "failedToDeleteUser": "Byananiwe gukuraho umukoresha",
+    "failedToToggleStatus": "Byananiwe guhindura imiterere"
+  },
+  "errors": {
+    "networkError": "Ikibazo cy'umuyoboro. Nyamuneka ugerageze ukora neza.",
+    "somethingWentWrong": "Habaye ikibazo. Nyamuneka ongera ugerageze.",
+    "invalidCredentials": "Izina cyangwa ijambo bangwa si byo",
+    "accountInactive": "Konti yawe nkora. Nyamuneka wagirane n'umuyobozi.",
+    "accountSuspended": "Konti yawe yahagaritswe. Nyamuneka wagirane n'umuyobozi.",
+    "invalidRole": "Uruhare si rwo. Iyi konti yiyandikishije nk'{role}.",
+    "permissionDenied": "Uruhare ntirwemewe. Ntabwo ufite uburenganzira bwo kubona ibi.",
+    "usernameExists": "Izina ry'umukoresha risanzwe ribaho",
+    "usernameInvalid": "Izina ry'umukoresha rishobora kuba rigizwe n'inyuguti, imibare, n'ibimenyetso @/./+/-/_ gusa"
+  },
+  "header": {
     "title": "Sisitemu Ishuri",
     "profile": "Ibiranga",
     "settings": "Igenamiterere",
@@ -589,5 +582,76 @@
   },
   "messages": {
     "logoutSuccess": "Wasohotse neza"
+  },
+  "academics": {
+    "title": "Gestioni y'Amashuri",
+    "subtitle": "Gena imyaka y'amashuri, amasomo, ibyumba, amasomo n'ibiciro",
+    "academicYears": "Imyaka y'Amashuri",
+    "schoolLevels": "Urwego rw'Amashuri",
+    "classLevels": "Urwego rw'Ishuri",
+    "classrooms": "Ibyumba by'Amashuri",
+    "subjects": "Amasomo",
+    "assignments": "Ibyo Masomo yashyizweho",
+    "costs": "Ibiciro",
+    "add": "Ongera",
+    "search": "Shakisha",
+    "showing": "Urigaragaza",
+    "perPage": "ku rupapuro",
+    "page": "Urupapuro",
+    "of": "ku",
+    "first": "Uwa Mbere",
+    "last": "Uwa Nyuma",
+    "actions": "Ibikorwa",
+    "view": "Reba",
+    "edit": "Hindura",
+    "delete": "Siba",
+    "create": "Kora",
+    "update": "Vugurura",
+    "cancel": "Hagarika",
+    "close": "Funga",
+    "status": {
+      "active": "Gikora",
+      "inactive": "Ntigikora",
+      "suspended": "Guhagarikwa"
+    },
+    "form": {
+      "name": "Izina",
+      "code": "Kode",
+      "description": "Ibisobanuro",
+      "startDate": "Itariki Itangirira",
+      "endDate": "Itariki Iheruka",
+      "currentYear": "Umwaka uriho",
+      "levelType": "Ubwoko bw'Urwego",
+      "category": "Icyiciro",
+      "schoolLevel": "Urwego rw'Amashuri",
+      "classLevel": "Urwego rw'Ishuri",
+      "roomType": "Ubwoko bw'Icyumba",
+      "shift": "Igihe",
+      "capacity": "Ubushobozi",
+      "subjectName": "Izina rya Somo",
+      "subjectCode": "Kode ya Somo",
+      "gradingSystem": "Uburyo bwo Gutanga Amanota",
+      "passMark": "Amanota yo gutsinda",
+      "teachingFrequency": "Uburyo bwo Kwigisha",
+      "hoursPerWeek": "Amasaha ku cyumweru",
+      "compulsory": "Nshingano",
+      "feeName": "Izina ry'Ibiciro",
+      "paymentType": "Ubwoko bw'ishyuro",
+      "amount": "Igiciro",
+      "frequency": "Inshuro",
+      "mandatory": "Nshingano",
+      "displayOrder": "Urutonde rwo Kugaragaza"
+    },
+    "messages": {
+      "createSuccess": "{{name}} yakozwe neza",
+      "updateSuccess": "{{name}} yahinduwe neza",
+      "deleteSuccess": "{{name}} yasibwe neza",
+      "deleteConfirmation": "Uri gushaka ko ukuraho iki kintu?",
+      "deleteWarning": "Iki gikorwa ntigishobora gusubirwaho.",
+      "noData": "Nta makuru yabonetse",
+      "fetchError": "Kubona amakuru byananiwe",
+      "validationError": "Kugenzura byananiwe",
+      "duplicateError": "Ikintu gifite iri zina kirabaho"
+    }
   }
-  }
+}

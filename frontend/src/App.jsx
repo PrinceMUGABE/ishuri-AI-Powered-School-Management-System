@@ -36,6 +36,7 @@ import UserManagement from './pages/Admin/UserManagement';
 import GradeApproval from './pages/Admin/GradeApproval';
 import FeeManagement from './pages/Admin/FeeManagement';
 import Reports from './pages/Admin/Reports';
+import AcademicsManagement from './pages/admin/AcademicsManagement';
 
 // Helper function to check if user is authenticated from localStorage
 const isAuthenticated = () => {
@@ -218,6 +219,12 @@ const AppRoutes = () => {
         <Route path="reports" element={
           <ProtectedRoute allowedRoles={['admin']}>
             <Reports />
+          </ProtectedRoute>
+        } />
+
+        <Route path="academics" element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AcademicsManagement />
           </ProtectedRoute>
         } />
 

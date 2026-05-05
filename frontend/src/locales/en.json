@@ -170,7 +170,6 @@
     "rights": "All rights reserved.",
     "tagline": "Empowering education through technology"
   },
-
   "app": {
     "tagline": "Smart School Management"
   },
@@ -195,7 +194,6 @@
   "attendance": {
     "record": "Record Attendance"
   },
-
   "app": {
     "tagline": "Smart School Management"
   },
@@ -403,7 +401,6 @@
     "rights": "All rights reserved.",
     "tagline": "Empowering education through technology"
   },
-
   "admin": {
     "dashboard": {
       "title": "Admin Dashboard",
@@ -442,8 +439,6 @@
       "attendanceDesc": "Student attendance trends"
     }
   },
-
-
   "parent": {
     "dashboard": {
       "title": "Parent Dashboard",
@@ -495,92 +490,90 @@
     "nearDanger": "Needs Attention",
     "danger": "At Risk"
   },
-
   "userManagement": {
-      "title": "User Management",
-      "subtitle": "Manage all system users",
-      "addUser": "Add User",
-      "addNewUser": "Add New User",
-      "editUser": "Edit User",
-      "userDetails": "User Details",
-      "deleteUser": "Delete User",
-      "deleteConfirmation": "Are you sure you want to delete user",
-      "deleteWarning": "This action cannot be undone.",
-      "username": "Username",
-      "email": "Email",
-      "role": "Role",
-      "status": "Status",
-      "createdAt": "Created At",
-      "updatedAt": "Updated At",
-      "actions": "Actions",
-      "view": "View",
-      "edit": "Edit",
-      "delete": "Delete",
-      "activate": "Activate",
-      "deactivate": "Deactivate",
-      "create": "Create User",
-      "update": "Update User",
-      "cancel": "Cancel",
-      "close": "Close",
-      "password": "Password",
-      "confirmPassword": "Confirm Password",
-      "searchPlaceholder": "Search users by username or email...",
-      "allRoles": "All Roles",
-      "allStatus": "All Status",
-      "showing": "Showing",
-      "perPage": "per page",
-      "page": "Page",
-      "of": "of",
-      "first": "First",
-      "last": "Last",
-      "noUsers": "No users found",
-      "id": "ID"
-    },
-    "roles": {
-      "admin": "Administrator",
-      "teacher": "Teacher",
-      "student": "Student",
-      "parent": "Parent"
-    },
-    "statuses": {
-      "active": "Active",
-      "inactive": "Inactive",
-      "suspended": "Suspended"
-    },
-    "summary": {
-      "totalUsers": "Total Users",
-      "activeUsers": "Active Users",
-      "inactiveUsers": "Inactive/Suspended",
-      "studentsTeachers": "Students/Teachers"
-    },
-    "messages": {
-      "userCreated": "User created successfully",
-      "userUpdated": "User updated successfully",
-      "userDeleted": "User deleted successfully",
-      "userActivated": "User activated successfully",
-      "userDeactivated": "User deactivated successfully",
-      "fillRequiredFields": "Please fill in all required fields",
-      "passwordsDoNotMatch": "Passwords do not match",
-      "passwordMinLength": "Password must be at least 6 characters",
-      "failedToFetchUsers": "Failed to fetch users",
-      "failedToCreateUser": "Failed to create user",
-      "failedToUpdateUser": "Failed to update user",
-      "failedToDeleteUser": "Failed to delete user",
-      "failedToToggleStatus": "Failed to toggle status"
-    },
-    "errors": {
-      "networkError": "Network error. Please check your connection.",
-      "somethingWentWrong": "Something went wrong. Please try again.",
-      "invalidCredentials": "Invalid username or password",
-      "accountInactive": "Your account is inactive. Please contact the administrator.",
-      "accountSuspended": "Your account has been suspended. Please contact the administrator.",
-      "invalidRole": "Invalid role. This account is registered as {role}.",
-      "permissionDenied": "Permission denied. You don't have access to this resource.",
-      "usernameExists": "Username already exists",
-      "usernameInvalid": "Username can only contain letters, numbers, and @/./+/-/_ characters"
-    },
-
-    "header": {
+    "title": "User Management",
+    "subtitle": "Manage all system users",
+    "addUser": "Add User",
+    "addNewUser": "Add New User",
+    "editUser": "Edit User",
+    "userDetails": "User Details",
+    "deleteUser": "Delete User",
+    "deleteConfirmation": "Are you sure you want to delete user",
+    "deleteWarning": "This action cannot be undone.",
+    "username": "Username",
+    "email": "Email",
+    "role": "Role",
+    "status": "Status",
+    "createdAt": "Created At",
+    "updatedAt": "Updated At",
+    "actions": "Actions",
+    "view": "View",
+    "edit": "Edit",
+    "delete": "Delete",
+    "activate": "Activate",
+    "deactivate": "Deactivate",
+    "create": "Create User",
+    "update": "Update User",
+    "cancel": "Cancel",
+    "close": "Close",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "searchPlaceholder": "Search users by username or email...",
+    "allRoles": "All Roles",
+    "allStatus": "All Status",
+    "showing": "Showing",
+    "perPage": "per page",
+    "page": "Page",
+    "of": "of",
+    "first": "First",
+    "last": "Last",
+    "noUsers": "No users found",
+    "id": "ID"
+  },
+  "roles": {
+    "admin": "Administrator",
+    "teacher": "Teacher",
+    "student": "Student",
+    "parent": "Parent"
+  },
+  "statuses": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "suspended": "Suspended"
+  },
+  "summary": {
+    "totalUsers": "Total Users",
+    "activeUsers": "Active Users",
+    "inactiveUsers": "Inactive/Suspended",
+    "studentsTeachers": "Students/Teachers"
+  },
+  "messages": {
+    "userCreated": "User created successfully",
+    "userUpdated": "User updated successfully",
+    "userDeleted": "User deleted successfully",
+    "userActivated": "User activated successfully",
+    "userDeactivated": "User deactivated successfully",
+    "fillRequiredFields": "Please fill in all required fields",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "passwordMinLength": "Password must be at least 6 characters",
+    "failedToFetchUsers": "Failed to fetch users",
+    "failedToCreateUser": "Failed to create user",
+    "failedToUpdateUser": "Failed to update user",
+    "failedToDeleteUser": "Failed to delete user",
+    "failedToToggleStatus": "Failed to toggle status"
+  },
+  "errors": {
+    "networkError": "Network error. Please check your connection.",
+    "somethingWentWrong": "Something went wrong. Please try again.",
+    "invalidCredentials": "Invalid username or password",
+    "accountInactive": "Your account is inactive. Please contact the administrator.",
+    "accountSuspended": "Your account has been suspended. Please contact the administrator.",
+    "invalidRole": "Invalid role. This account is registered as {role}.",
+    "permissionDenied": "Permission denied. You don't have access to this resource.",
+    "usernameExists": "Username already exists",
+    "usernameInvalid": "Username can only contain letters, numbers, and @/./+/-/_ characters"
+  },
+  "header": {
     "title": "Ishuri System",
     "profile": "Profile",
     "settings": "Settings",
@@ -589,5 +582,76 @@
   },
   "messages": {
     "logoutSuccess": "Logged out successfully"
+  },
+  "academics": {
+    "title": "Academics Management",
+    "subtitle": "Manage academic years, levels, classrooms, subjects, and fees",
+    "academicYears": "Academic Years",
+    "schoolLevels": "School Levels",
+    "classLevels": "Class Levels",
+    "classrooms": "Classrooms",
+    "subjects": "Subjects",
+    "assignments": "Subject Assignments",
+    "costs": "Fee Structures",
+    "add": "Add",
+    "search": "Search",
+    "showing": "Showing",
+    "perPage": "per page",
+    "page": "Page",
+    "of": "of",
+    "first": "First",
+    "last": "Last",
+    "actions": "Actions",
+    "view": "View",
+    "edit": "Edit",
+    "delete": "Delete",
+    "create": "Create",
+    "update": "Update",
+    "cancel": "Cancel",
+    "close": "Close",
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "suspended": "Suspended"
+    },
+    "form": {
+      "name": "Name",
+      "code": "Code",
+      "description": "Description",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "currentYear": "Current Year",
+      "levelType": "Level Type",
+      "category": "Category",
+      "schoolLevel": "School Level",
+      "classLevel": "Class Level",
+      "roomType": "Room Type",
+      "shift": "Shift",
+      "capacity": "Capacity",
+      "subjectName": "Subject Name",
+      "subjectCode": "Subject Code",
+      "gradingSystem": "Grading System",
+      "passMark": "Pass Mark",
+      "teachingFrequency": "Teaching Frequency",
+      "hoursPerWeek": "Hours per Week",
+      "compulsory": "Compulsory",
+      "feeName": "Fee Name",
+      "paymentType": "Payment Type",
+      "amount": "Amount",
+      "frequency": "Frequency",
+      "mandatory": "Mandatory",
+      "displayOrder": "Display Order"
+    },
+    "messages": {
+      "createSuccess": "{{name}} created successfully",
+      "updateSuccess": "{{name}} updated successfully",
+      "deleteSuccess": "{{name}} deleted successfully",
+      "deleteConfirmation": "Are you sure you want to delete this item?",
+      "deleteWarning": "This action cannot be undone.",
+      "noData": "No data found",
+      "fetchError": "Failed to fetch data",
+      "validationError": "Validation failed",
+      "duplicateError": "Item with this name already exists"
+    }
   }
 }
