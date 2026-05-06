@@ -3,10 +3,10 @@ import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import { 
   Calendar, School, BookOpen, Users, CreditCard, 
-  Plus, Edit, Trash2, Search, Filter, Eye, X,
+  Plus, Edit, Trash2, Search, Eye, X,
   ChevronLeft, ChevronRight, RefreshCw, CheckCircle,
-  AlertCircle, Clock, DollarSign, Building2, GraduationCap,
-  LayoutGrid, List, ClipboardList, Wallet, TrendingUp
+  AlertCircle, Clock, Building2, GraduationCap,
+  LayoutGrid, ClipboardList, Wallet
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -60,10 +60,10 @@ const AcademicsManagement = () => {
   
   // Filters
   const [filters, setFilters] = useState({
+    academic_year: '',
     school_level: '',
     class_level: '',
-    category: '',
-    shift: ''
+    status: ''
   });
 
   const tabs = [
@@ -75,6 +75,41 @@ const AcademicsManagement = () => {
     { id: 'assignments', label: 'Subject Assignments', icon: ClipboardList, color: 'indigo' },
     { id: 'costs', label: 'Fee Structures', icon: Wallet, color: 'teal' }
   ];
+
+  // Fetch all dropdown data
+  const fetchDropdownData = async () => {
+    try {
+      // Fetch school levels for class levels dropdown
+      const schoolLevelsRes = await apiClient.get('/school-levels/');
+      if (schoolLevelsRes.data.success) {
+        const data = schoolLevelsRes.data.data;
+        setSchoolLevels(data.results || data);
+      }
+      
+      // Fetch class levels for classrooms, assignments, costs dropdowns
+      const classLevelsRes = await apiClient.get('/class-levels/');
+      if (classLevelsRes.data.success) {
+        const data = classLevelsRes.data.data;
+        setClassLevels(data.results || data);
+      }
+      
+      // Fetch subjects for assignments dropdown
+      const subjectsRes = await apiClient.get('/subjects/');
+      if (subjectsRes.data.success) {
+        const data = subjectsRes.data.data;
+        setSubjects(data.results || data);
+      }
+      
+      // Fetch academic years for costs dropdown
+      const academicYearsRes = await apiClient.get('/academic-years/');
+      if (academicYearsRes.data.success) {
+        const data = academicYearsRes.data.data;
+        setAcademicYears(data.results || data);
+      }
+    } catch (error) {
+      console.error('Error fetching dropdown data:', error);
+    }
+  };
 
   // Fetch data based on active tab
   const fetchData = async () => {
@@ -95,16 +130,16 @@ const AcademicsManagement = () => {
         case 'class-levels':
           url = '/class-levels/';
           if (filters.school_level) params.append('school_level', filters.school_level);
-          if (filters.category) params.append('category', filters.category);
+          if (filters.status) params.append('status', filters.status);
           break;
         case 'classrooms':
           url = '/class-rooms/';
           if (filters.class_level) params.append('class_level', filters.class_level);
-          if (filters.shift) params.append('shift', filters.shift);
+          if (filters.status) params.append('status', filters.status);
           break;
         case 'subjects':
           url = '/subjects/';
-          if (filters.category) params.append('category', filters.category);
+          if (filters.status) params.append('status', filters.status);
           break;
         case 'assignments':
           url = '/class-level-subjects/';
@@ -113,6 +148,7 @@ const AcademicsManagement = () => {
         case 'costs':
           url = '/class-level-costs/';
           if (filters.class_level) params.append('class_level', filters.class_level);
+          if (filters.academic_year) params.append('academic_year', filters.academic_year);
           break;
         default:
           return;
@@ -147,6 +183,7 @@ const AcademicsManagement = () => {
   };
 
   useEffect(() => {
+    fetchDropdownData();
     fetchData();
   }, [activeTab, searchTerm, filters, currentPage, itemsPerPage]);
 
@@ -173,7 +210,11 @@ const AcademicsManagement = () => {
     setLoading(true);
     try {
       let url = '';
-      let payload = newItem;
+      let payload = { ...newItem };
+      
+      // Set default status for active fields
+      if (activeTab === 'classrooms' && !payload.status) payload.status = 'active';
+      if (activeTab === 'subjects' && !payload.status) payload.status = 'active';
       
       switch(activeTab) {
         case 'academic-years':
@@ -206,6 +247,7 @@ const AcademicsManagement = () => {
         setShowAddModal(false);
         setNewItem({});
         fetchData();
+        fetchDropdownData(); // Refresh dropdown data
       } else {
         const errors = response.data.errors;
         const errorMessage = Object.values(errors || {}).flat()[0] || 'Failed to create';
@@ -224,6 +266,7 @@ const AcademicsManagement = () => {
     setLoading(true);
     try {
       let url = '';
+      let payload = { ...editItem };
       
       switch(activeTab) {
         case 'academic-years':
@@ -244,13 +287,14 @@ const AcademicsManagement = () => {
           return;
       }
       
-      const response = await apiClient.put(url, editItem);
+      const response = await apiClient.put(url, payload);
       
       if (response.data.success) {
         toast.success(response.data.message || 'Updated successfully');
         setShowEditModal(false);
         setEditItem({});
         fetchData();
+        fetchDropdownData();
       } else {
         toast.error(response.data.message || 'Failed to update');
       }
@@ -301,12 +345,45 @@ const AcademicsManagement = () => {
         setShowDeleteModal(false);
         setSelectedItem(null);
         fetchData();
+        fetchDropdownData();
       } else {
         toast.error(response.data.message || 'Failed to delete');
       }
     } catch (error) {
       console.error('Error deleting:', error);
       toast.error(error.response?.data?.message || 'Failed to delete');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Toggle status for classrooms and subjects
+  const handleToggleStatus = async (item) => {
+    setLoading(true);
+    try {
+      const newStatus = item.status === 'active' ? 'inactive' : 'active';
+      let url = '';
+      
+      if (activeTab === 'classrooms') {
+        url = `/class-rooms/${item.id}/`;
+      } else if (activeTab === 'subjects') {
+        url = `/subjects/${item.id}/`;
+      } else {
+        setLoading(false);
+        return;
+      }
+      
+      const response = await apiClient.put(url, { ...item, status: newStatus });
+      
+      if (response.data.success) {
+        toast.success(`Status updated to ${newStatus}`);
+        fetchData();
+      } else {
+        toast.error('Failed to update status');
+      }
+    } catch (error) {
+      console.error('Error toggling status:', error);
+      toast.error('Failed to update status');
     } finally {
       setLoading(false);
     }
@@ -338,6 +415,16 @@ const AcademicsManagement = () => {
             rows={3}
             placeholder={field.placeholder}
           />
+        ) : field.type === 'checkbox' ? (
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={item[field.name] || false}
+              onChange={(e) => setItem({...item, [field.name]: e.target.checked})}
+              className="w-4 h-4 text-green-600 rounded"
+            />
+            <span className="text-sm text-gray-700 dark:text-gray-300">{field.label}</span>
+          </label>
         ) : (
           <input
             type={field.type}
@@ -358,90 +445,62 @@ const AcademicsManagement = () => {
         { name: 'is_current', label: 'Set as Current Year', type: 'checkbox' }
       ],
       'school-levels': [
-
-        { name: 'name', label: 'Level Name', type: 'text', required: true, placeholder: 'e.g., Primary, Secondary' },
-        { name: 'level_type', label: 'Level Type', type: 'select', required: true, options: [
-            {value: 'nursery', label: 'Nursery' },
-          { value: 'primary', label: 'Primary' },
-          { value: 'secondary', label: 'Secondary' },
-          { value: 'high_school', label: 'High School' }
-          
-        ]},
-        { name: 'description', label: 'Description', type: 'textarea', required: false },
-        { name: 'order', label: 'Display Order', type: 'number', required: false }
+        { name: 'name', label: 'Level Name', type: 'text', required: true, placeholder: 'e.g., Nursery, Primary, Secondary' },
+        { name: 'description', label: 'Description', type: 'textarea', required: false }
       ],
       'class-levels': [
-        { name: 'name', label: 'Class Name', type: 'text', required: true, placeholder: 'e.g., Senior 1, Grade 1' },
-        { name: 'code', label: 'Class Code', type: 'text', required: true, placeholder: 'e.g., S1, G1' },
-        { name: 'category', label: 'Category', type: 'select', required: true, options: [
-          { value: 'ordinary', label: 'Ordinary Level' },
-          { value: 'advanced', label: 'Advanced Level' }
-        ]},
+        { name: 'name', label: 'Class Name', type: 'text', required: true, placeholder: 'e.g., Primary One, Senior 1' },
+        { name: 'code', label: 'Class Code', type: 'text', required: true, placeholder: 'e.g., P1, S1' },
         { name: 'school_level', label: 'School Level', type: 'select', required: true, options: schoolLevels.map(s => ({ value: s.id, label: s.name })) },
-        { name: 'description', label: 'Description', type: 'textarea', required: false },
-        { name: 'default_teaching_frequency', label: 'Teaching Frequency', type: 'select', options: [
-          { value: 'daily', label: 'Daily' },
-          { value: 'weekly', label: 'Weekly' }
-        ]}
+        { name: 'description', label: 'Description', type: 'textarea', required: false }
       ],
       'classrooms': [
         { name: 'name', label: 'Room Name', type: 'text', required: true, placeholder: 'e.g., Room A101' },
         { name: 'code', label: 'Room Code', type: 'text', required: true, placeholder: 'e.g., A101' },
         { name: 'class_level', label: 'Class Level', type: 'select', required: true, options: classLevels.map(c => ({ value: c.id, label: c.name })) },
-        { name: 'room_type', label: 'Room Type', type: 'select', options: [
+        { name: 'room_type', label: 'Room Type', type: 'select', required: true, options: [
           { value: 'standard', label: 'Standard' },
           { value: 'laboratory', label: 'Laboratory' },
-          { value: 'workshop', label: 'Workshop' }
+          { value: 'workshop', label: 'Workshop' },
+          { value: 'auditorium', label: 'Auditorium' }
         ]},
-        { name: 'shift', label: 'Shift', type: 'select', options: [
-          { value: 'morning', label: 'Morning' },
-          { value: 'afternoon', label: 'Afternoon' },
-          { value: 'evening', label: 'Evening' }
-        ]},
-        { name: 'capacity', label: 'Capacity', type: 'number', placeholder: 'Number of students' }
+        { name: 'capacity', label: 'Capacity', type: 'number', required: true, placeholder: 'Number of students' },
+        { name: 'status', label: 'Status', type: 'select', required: true, options: [
+          { value: 'active', label: 'Active' },
+          { value: 'inactive', label: 'Inactive' }
+        ]}
       ],
       'subjects': [
         { name: 'name', label: 'Subject Name', type: 'text', required: true, placeholder: 'e.g., Mathematics' },
         { name: 'code', label: 'Subject Code', type: 'text', required: true, placeholder: 'e.g., MATH101' },
-        { name: 'category', label: 'Category', type: 'select', options: [
-          { value: 'core', label: 'Core' },
-          { value: 'elective', label: 'Elective' },
-          { value: 'vocational', label: 'Vocational' }
+        { name: 'pass_mark', label: 'Pass Score', type: 'number', required: true, placeholder: 'e.g., 50' },
+        { name: 'status', label: 'Status', type: 'select', required: true, options: [
+          { value: 'active', label: 'Active' },
+          { value: 'inactive', label: 'Inactive' }
         ]},
-        { name: 'description', label: 'Description', type: 'textarea' },
-        { name: 'grading_system', label: 'Grading System', type: 'select', options: [
-          { value: 'numeric', label: 'Numeric (0-100)' },
-          { value: 'letter', label: 'Letter Grade (A-F)' }
-        ]},
-        { name: 'pass_mark', label: 'Pass Mark', type: 'number' }
+        { name: 'description', label: 'Description', type: 'textarea', required: false }
       ],
       'assignments': [
         { name: 'class_level', label: 'Class Level', type: 'select', required: true, options: classLevels.map(c => ({ value: c.id, label: c.name })) },
-        { name: 'subject', label: 'Subject', type: 'select', required: true, options: subjects.map(s => ({ value: s.id, label: s.name })) },
-        { name: 'teaching_frequency', label: 'Teaching Frequency', type: 'select', options: [
+        { name: 'subject', label: 'Subject', type: 'select', required: true, options: subjects.filter(s => s.status === 'active').map(s => ({ value: s.id, label: s.name })) },
+        { name: 'teaching_frequency', label: 'Teaching Frequency', type: 'select', required: true, options: [
           { value: 'daily', label: 'Daily' },
           { value: 'weekly', label: 'Weekly' }
         ]},
-        { name: 'hours_per_week', label: 'Hours per Week', type: 'number' },
-        { name: 'is_compulsory', label: 'Compulsory', type: 'checkbox' }
+        { name: 'hours_per_week', label: 'Hours per Week', type: 'number', required: true, placeholder: 'e.g., 4' },
+        { name: 'is_compulsory', label: 'Compulsory Subject', type: 'checkbox' }
       ],
       'costs': [
         { name: 'name', label: 'Fee Name', type: 'text', required: true, placeholder: 'e.g., Tuition Fee' },
-        { name: 'class_level', label: 'Class Level', type: 'select', required: true, options: classLevels.map(c => ({ value: c.id, label: c.name })) },
         { name: 'academic_year', label: 'Academic Year', type: 'select', required: true, options: academicYears.map(y => ({ value: y.id, label: y.name })) },
-        { name: 'payment_type', label: 'Payment Type', type: 'select', required: true, options: [
-          { value: 'tuition', label: 'Tuition' },
-          { value: 'registration', label: 'Registration' },
-          { value: 'exam', label: 'Exam Fee' },
-          { value: 'activity', label: 'Activity Fee' }
-        ]},
-        { name: 'amount', label: 'Amount', type: 'number', required: true, placeholder: '0.00' },
-        { name: 'frequency', label: 'Frequency', type: 'select', options: [
+        { name: 'class_level', label: 'Class Level', type: 'select', required: true, options: classLevels.map(c => ({ value: c.id, label: c.name })) },
+        { name: 'amount', label: 'Amount (RWF)', type: 'number', required: true, placeholder: '0' },
+        { name: 'frequency', label: 'Frequency', type: 'select', required: true, options: [
           { value: 'termly', label: 'Termly' },
           { value: 'yearly', label: 'Yearly' },
           { value: 'monthly', label: 'Monthly' }
         ]},
-        { name: 'is_mandatory', label: 'Mandatory', type: 'checkbox' }
+        { name: 'is_mandatory', label: 'Mandatory Fee', type: 'checkbox' }
       ]
     };
 
@@ -450,15 +509,15 @@ const AcademicsManagement = () => {
 
   // Render table rows based on active tab
   const renderTableRow = (item) => {
-    const getStatusBadge = (status, isActive = true) => {
-      const active = status === 'active' || isActive;
+    const getStatusBadge = (status) => {
+      const isActive = status === 'active';
       return (
         <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-          active ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 
-          'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
+          isActive ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 
+          'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
         }`}>
-          {active ? <CheckCircle className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
-          {active ? 'Active' : 'Inactive'}
+          {isActive ? <CheckCircle className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
+          {isActive ? 'Active' : 'Inactive'}
         </span>
       );
     };
@@ -470,11 +529,16 @@ const AcademicsManagement = () => {
             <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">{item.name}</td>
             <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{item.start_date || '-'}</td>
             <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{item.end_date || '-'}</td>
-            <td className="px-4 py-3">{getStatusBadge('active', item.is_current)}</td>
             <td className="px-4 py-3">
-              <div className="flex gap-2">
-                {renderActionButtons(item)}
-              </div>
+              {item.is_current && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                  <CheckCircle className="w-3 h-3" />
+                  Current
+                </span>
+              )}
+            </td>
+            <td className="px-4 py-3">
+              <div className="flex gap-2">{renderActionButtons(item)}</div>
             </td>
           </tr>
         );
@@ -483,9 +547,7 @@ const AcademicsManagement = () => {
         return (
           <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30">
             <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">{item.name}</td>
-            <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{item.level_type_display || item.level_type}</td>
             <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{item.description || '-'}</td>
-            <td className="px-4 py-3">{getStatusBadge(item.is_active)}</td>
             <td className="px-4 py-3">
               <div className="flex gap-2">{renderActionButtons(item)}</div>
             </td>
@@ -497,9 +559,8 @@ const AcademicsManagement = () => {
           <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30">
             <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">{item.name}</td>
             <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{item.code}</td>
-            <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{item.category_display || item.category}</td>
             <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{item.school_level_name || '-'}</td>
-            <td className="px-4 py-3">{getStatusBadge(item.is_active)}</td>
+            <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{item.description || '-'}</td>
             <td className="px-4 py-3">
               <div className="flex gap-2">{renderActionButtons(item)}</div>
             </td>
@@ -511,12 +572,24 @@ const AcademicsManagement = () => {
           <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30">
             <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">{item.name}</td>
             <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{item.code}</td>
-            <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{item.class_level_name || '-'}</td>
-            <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{item.shift || '-'}</td>
+            <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{item.room_type || '-'}</td>
             <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{item.capacity || '-'}</td>
-            <td className="px-4 py-3">{getStatusBadge(item.is_active)}</td>
+            <td className="px-4 py-3">{getStatusBadge(item.status)}</td>
             <td className="px-4 py-3">
-              <div className="flex gap-2">{renderActionButtons(item)}</div>
+              <div className="flex gap-2">
+                <button onClick={() => { setSelectedItem(item); setShowViewModal(true); }} className="p-1 hover:bg-gray-100 rounded" title="View">
+                  <Eye className="w-4 h-4 text-blue-500" />
+                </button>
+                <button onClick={() => { setEditItem(item); setShowEditModal(true); }} className="p-1 hover:bg-gray-100 rounded" title="Edit">
+                  <Edit className="w-4 h-4 text-yellow-500" />
+                </button>
+                <button onClick={() => handleToggleStatus(item)} className="p-1 hover:bg-gray-100 rounded" title="Toggle Status">
+                  {item.status === 'active' ? <Clock className="w-4 h-4 text-orange-500" /> : <CheckCircle className="w-4 h-4 text-green-500" />}
+                </button>
+                <button onClick={() => { setSelectedItem(item); setShowDeleteModal(true); }} className="p-1 hover:bg-gray-100 rounded" title="Delete">
+                  <Trash2 className="w-4 h-4 text-red-500" />
+                </button>
+              </div>
             </td>
           </tr>
         );
@@ -526,11 +599,23 @@ const AcademicsManagement = () => {
           <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30">
             <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">{item.name}</td>
             <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{item.code}</td>
-            <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{item.category_display || item.category}</td>
             <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{item.pass_mark || '-'}</td>
-            <td className="px-4 py-3">{getStatusBadge(item.is_active)}</td>
+            <td className="px-4 py-3">{getStatusBadge(item.status)}</td>
             <td className="px-4 py-3">
-              <div className="flex gap-2">{renderActionButtons(item)}</div>
+              <div className="flex gap-2">
+                <button onClick={() => { setSelectedItem(item); setShowViewModal(true); }} className="p-1 hover:bg-gray-100 rounded" title="View">
+                  <Eye className="w-4 h-4 text-blue-500" />
+                </button>
+                <button onClick={() => { setEditItem(item); setShowEditModal(true); }} className="p-1 hover:bg-gray-100 rounded" title="Edit">
+                  <Edit className="w-4 h-4 text-yellow-500" />
+                </button>
+                <button onClick={() => handleToggleStatus(item)} className="p-1 hover:bg-gray-100 rounded" title="Toggle Status">
+                  {item.status === 'active' ? <Clock className="w-4 h-4 text-orange-500" /> : <CheckCircle className="w-4 h-4 text-green-500" />}
+                </button>
+                <button onClick={() => { setSelectedItem(item); setShowDeleteModal(true); }} className="p-1 hover:bg-gray-100 rounded" title="Delete">
+                  <Trash2 className="w-4 h-4 text-red-500" />
+                </button>
+              </div>
             </td>
           </tr>
         );
@@ -544,7 +629,7 @@ const AcademicsManagement = () => {
             <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{item.hours_per_week || '-'}</td>
             <td className="px-4 py-3">
               <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-                item.is_compulsory ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700' : 'bg-gray-100 text-gray-700'
+                item.is_compulsory ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700' : 'bg-gray-100 dark:bg-gray-700 text-gray-700'
               }`}>
                 {item.is_compulsory ? 'Compulsory' : 'Optional'}
               </span>
@@ -559,13 +644,19 @@ const AcademicsManagement = () => {
         return (
           <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30">
             <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">{item.name}</td>
+            <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{item.academic_year_name || '-'}</td>
             <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{item.class_level_name || '-'}</td>
-            <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{item.payment_type_display || item.payment_type}</td>
             <td className="px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white">
               {new Intl.NumberFormat().format(item.amount)} RWF
             </td>
             <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{item.frequency || '-'}</td>
-            <td className="px-4 py-3">{getStatusBadge(item.is_active)}</td>
+            <td className="px-4 py-3">
+              <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                item.is_mandatory ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700' : 'bg-gray-100 text-gray-700'
+              }`}>
+                {item.is_mandatory ? 'Mandatory' : 'Optional'}
+              </span>
+            </td>
             <td className="px-4 py-3">
               <div className="flex gap-2">{renderActionButtons(item)}</div>
             </td>
@@ -586,7 +677,7 @@ const AcademicsManagement = () => {
       >
         <Eye className="w-4 h-4 text-blue-500" />
       </button>
-      {activeTab !== 'assignments' && activeTab !== 'class-levels' && activeTab !== 'school-levels' && (
+      {(activeTab === 'academic-years' || activeTab === 'classrooms' || activeTab === 'subjects' || activeTab === 'costs') && (
         <button
           onClick={() => { setEditItem(item); setShowEditModal(true); }}
           className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
@@ -608,12 +699,12 @@ const AcademicsManagement = () => {
   const renderTableHeaders = () => {
     const headers = {
       'academic-years': ['Year Name', 'Start Date', 'End Date', 'Current', 'Actions'],
-      'school-levels': ['Level Name', 'Type', 'Description', 'Status', 'Actions'],
-      'class-levels': ['Class Name', 'Code', 'Category', 'School Level', 'Status', 'Actions'],
-      'classrooms': ['Room Name', 'Code', 'Class Level', 'Shift', 'Capacity', 'Status', 'Actions'],
-      'subjects': ['Subject Name', 'Code', 'Category', 'Pass Mark', 'Status', 'Actions'],
+      'school-levels': ['Level Name', 'Description', 'Actions'],
+      'class-levels': ['Class Name', 'Code', 'School Level', 'Description', 'Actions'],
+      'classrooms': ['Room Name', 'Code', 'Room Type', 'Capacity', 'Status', 'Actions'],
+      'subjects': ['Subject Name', 'Code', 'Pass Score', 'Status', 'Actions'],
       'assignments': ['Class Level', 'Subject', 'Frequency', 'Hours/Week', 'Type', 'Actions'],
-      'costs': ['Fee Name', 'Class Level', 'Payment Type', 'Amount', 'Frequency', 'Status', 'Actions']
+      'costs': ['Fee Name', 'Academic Year', 'Class Level', 'Amount', 'Frequency', 'Mandatory', 'Actions']
     };
     
     return headers[activeTab]?.map(header => (
@@ -632,7 +723,7 @@ const AcademicsManagement = () => {
             Academics Management
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Manage academic years, levels, classrooms, subjects, and fees
+            Manage academic years, school levels, classes, classrooms, subjects, and fees
           </p>
         </div>
         <button
@@ -652,7 +743,7 @@ const AcademicsManagement = () => {
             return (
               <button
                 key={tab.id}
-                onClick={() => { setActiveTab(tab.id); setCurrentPage(1); setSearchTerm(''); }}
+                onClick={() => { setActiveTab(tab.id); setCurrentPage(1); setSearchTerm(''); setFilters({ academic_year: '', school_level: '', class_level: '', status: '' }); }}
                 className={`px-4 py-2 text-sm font-medium transition-colors flex items-center gap-2 border-b-2 ${
                   activeTab === tab.id 
                     ? `border-${tab.color}-600 text-${tab.color}-600 dark:text-${tab.color}-400`
@@ -682,29 +773,15 @@ const AcademicsManagement = () => {
           </div>
           
           <div className="flex gap-2">
-            {(activeTab === 'class-levels' || activeTab === 'subjects') && (
+            {activeTab === 'costs' && (
               <select
-                value={filters.category}
-                onChange={(e) => setFilters({...filters, category: e.target.value})}
+                value={filters.academic_year}
+                onChange={(e) => setFilters({...filters, academic_year: e.target.value})}
                 className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
               >
-                <option value="">All Categories</option>
-                <option value="ordinary">Ordinary Level</option>
-                <option value="advanced">Advanced Level</option>
-                <option value="core">Core</option>
-                <option value="elective">Elective</option>
-              </select>
-            )}
-            
-            {(activeTab === 'class-levels' || activeTab === 'classrooms' || activeTab === 'assignments' || activeTab === 'costs') && (
-              <select
-                value={filters.class_level}
-                onChange={(e) => setFilters({...filters, class_level: e.target.value})}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
-              >
-                <option value="">All Class Levels</option>
-                {classLevels.map(level => (
-                  <option key={level.id} value={level.id}>{level.name}</option>
+                <option value="">All Academic Years</option>
+                {academicYears.map(year => (
+                  <option key={year.id} value={year.id}>{year.name}</option>
                 ))}
               </select>
             )}
@@ -722,16 +799,28 @@ const AcademicsManagement = () => {
               </select>
             )}
             
-            {activeTab === 'classrooms' && (
+            {(activeTab === 'classrooms' || activeTab === 'assignments' || activeTab === 'costs') && (
               <select
-                value={filters.shift}
-                onChange={(e) => setFilters({...filters, shift: e.target.value})}
+                value={filters.class_level}
+                onChange={(e) => setFilters({...filters, class_level: e.target.value})}
                 className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
               >
-                <option value="">All Shifts</option>
-                <option value="morning">Morning</option>
-                <option value="afternoon">Afternoon</option>
-                <option value="evening">Evening</option>
+                <option value="">All Class Levels</option>
+                {classLevels.map(level => (
+                  <option key={level.id} value={level.id}>{level.name}</option>
+                ))}
+              </select>
+            )}
+            
+            {(activeTab === 'classrooms' || activeTab === 'subjects') && (
+              <select
+                value={filters.status}
+                onChange={(e) => setFilters({...filters, status: e.target.value})}
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
+              >
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
               </select>
             )}
             
