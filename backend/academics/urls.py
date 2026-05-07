@@ -27,14 +27,14 @@ urlpatterns = [
     path('subjects/<int:pk>/', views.subject_detail, name='subject'),
     
     # Assignments
-    path('assignments/', views.class_level_subject_list_create, name='assignments'),
-    path('assignments/<int:pk>/', views.class_level_subject_delete, name='delete_assignment'),
+    path('class-level-subjects/', views.class_level_subject_list_create, name='assignments'),
+    path('class-level-subjects/<int:pk>/', views.class_level_subject_delete, name='delete_assignment'),
     path('class-levels/<int:class_level_id>/subjects/', 
          views.get_subjects_by_class_level, name='class_level_subjects'),
     
     # Fee Structures
-    path('costs/', views.class_level_cost_list_create, name='costs'),
-    path('costs/<int:pk>/', views.class_level_cost_detail, name='cost'),
+    path('class-level-costs/', views.class_level_cost_list_create, name='costs'),
+    path('class-level-costs/<int:pk>/', views.class_level_cost_detail, name='cost'),
     
     # Dashboard
     path('dashboard/stats/', views.dashboard_stats, name='dashboard_stats'),

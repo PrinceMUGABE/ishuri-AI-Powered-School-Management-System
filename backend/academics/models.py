@@ -1,3 +1,4 @@
+# models.py
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
@@ -16,7 +17,7 @@ class AcademicYear(models.Model):
         validators=[
             RegexValidator(
                 regex=r'^\d{4}-\d{4}$',
-                message='Year name must be in format YYYY-YYYY (e.g., 2024-2025)'
+                message=_('Year name must be in format YYYY-YYYY (e.g., 2024-2025)')
             )
         ]
     )
@@ -85,7 +86,7 @@ class SchoolLevel(models.Model):
         validators=[
             RegexValidator(
                 regex=r'^[a-zA-Z\s\-]+$',
-                message='School level name can only contain letters, spaces, and hyphens'
+                message=_('School level name can only contain letters, spaces, and hyphens')
             )
         ]
     )
@@ -107,7 +108,7 @@ class SchoolLevel(models.Model):
     def delete(self, *args, **kwargs):
         if self.class_levels.filter(is_active=True).exists():
             raise ValidationError(
-                'Cannot delete school level because it has active class levels.'
+                _('Cannot delete school level because it has active class levels.')
             )
         super().delete(*args, **kwargs)
     
@@ -126,7 +127,7 @@ class ClassLevel(models.Model):
         validators=[
             RegexValidator(
                 regex=r'^[A-Z0-9]+$',
-                message='Class code must be uppercase letters and numbers only'
+                message=_('Class code must contain only uppercase letters and numbers')
             )
         ]
     )
@@ -154,7 +155,7 @@ class ClassLevel(models.Model):
         
         if self.school_level_id and not self.school_level.is_active:
             raise ValidationError({
-                'school_level': 'Cannot assign class level to an inactive school level'
+                'school_level': _('Cannot assign class level to an inactive school level')
             })
     
     def save(self, *args, **kwargs):
@@ -164,15 +165,15 @@ class ClassLevel(models.Model):
     def delete(self, *args, **kwargs):
         if self.classrooms.filter(status='active').exists():
             raise ValidationError(
-                'Cannot delete class level because it has active classrooms.'
+                _('Cannot delete class level because it has active classrooms.')
             )
         if self.subjects.exists():
             raise ValidationError(
-                'Cannot delete class level because it has assigned subjects.'
+                _('Cannot delete class level because it has assigned subjects.')
             )
         if self.costs.exists():
             raise ValidationError(
-                'Cannot delete class level because it has fee structures.'
+                _('Cannot delete class level because it has fee structures.')
             )
         super().delete(*args, **kwargs)
     
@@ -197,7 +198,7 @@ class ClassRoom(models.Model):
         validators=[
             RegexValidator(
                 regex=r'^[A-Z0-9]+$',
-                message='Room code must be uppercase letters and numbers only'
+                message=_('Room code must contain only uppercase letters and numbers')
             )
         ]
     )
@@ -215,13 +216,14 @@ class ClassRoom(models.Model):
     capacity = models.PositiveIntegerField(
         _('capacity'), 
         default=30,
-        validators=[MinValueValidator(1), MaxValueValidator(200)]
+        validators=[MinValueValidator(1, message=_('Capacity must be at least 1')), 
+                   MaxValueValidator(200, message=_('Capacity cannot exceed 200'))]
     )
     status = models.CharField(
         _('status'), 
         max_length=20, 
         default='active',
-        choices=[('active', 'Active'), ('inactive', 'Inactive')]
+        choices=[('active', _('Active')), ('inactive', _('Inactive'))]
     )
     created_at = models.DateTimeField(_('created at'), auto_now_add=True)
     updated_at = models.DateTimeField(_('updated at'), auto_now=True)
@@ -240,7 +242,7 @@ class ClassRoom(models.Model):
         
         if self.class_level_id and not self.class_level.is_active:
             raise ValidationError({
-                'class_level': 'Cannot assign classroom to an inactive class level'
+                'class_level': _('Cannot assign classroom to an inactive class level')
             })
     
     def save(self, *args, **kwargs):
@@ -262,7 +264,7 @@ class Subject(models.Model):
         validators=[
             RegexValidator(
                 regex=r'^[A-Z0-9]+$',
-                message='Subject code must be uppercase letters and numbers only'
+                message=_('Subject code must contain only uppercase letters and numbers')
             )
         ]
     )
@@ -271,13 +273,14 @@ class Subject(models.Model):
         max_digits=5,
         decimal_places=2,
         default=50.00,
-        validators=[MinValueValidator(0), MaxValueValidator(100)]
+        validators=[MinValueValidator(0, message=_('Pass mark cannot be less than 0')), 
+                   MaxValueValidator(100, message=_('Pass mark cannot exceed 100'))]
     )
     status = models.CharField(
         _('status'), 
         max_length=20, 
         default='active',
-        choices=[('active', 'Active'), ('inactive', 'Inactive')]
+        choices=[('active', _('Active')), ('inactive', _('Inactive'))]
     )
     description = models.TextField(_('description'), blank=True)
     created_at = models.DateTimeField(_('created at'), auto_now_add=True)
@@ -298,7 +301,7 @@ class Subject(models.Model):
     def delete(self, *args, **kwargs):
         if self.class_levels.exists():
             raise ValidationError(
-                'Cannot delete subject because it is assigned to class levels.'
+                _('Cannot delete subject because it is assigned to class levels.')
             )
         super().delete(*args, **kwargs)
     
@@ -334,7 +337,8 @@ class ClassLevelSubject(models.Model):
         max_digits=4,
         decimal_places=1,
         default=4.0,
-        validators=[MinValueValidator(0.5), MaxValueValidator(40)]
+        validators=[MinValueValidator(0.5, message=_('Hours per week must be at least 0.5')), 
+                   MaxValueValidator(40, message=_('Hours per week cannot exceed 40'))]
     )
     is_compulsory = models.BooleanField(_('is compulsory'), default=True)
     created_at = models.DateTimeField(_('created at'), auto_now_add=True)
@@ -347,15 +351,15 @@ class ClassLevelSubject(models.Model):
     
     def clean(self):
         if not self.class_level.is_active:
-            raise ValidationError('Cannot assign subject to an inactive class level')
+            raise ValidationError(_('Cannot assign subject to an inactive class level'))
         
         if self.subject.status != 'active':
-            raise ValidationError('Cannot assign an inactive subject')
+            raise ValidationError(_('Cannot assign an inactive subject'))
         
         if self.teaching_frequency == 'daily' and self.hours_per_week > 30:
-            raise ValidationError('For daily teaching, hours per week cannot exceed 30')
+            raise ValidationError(_('For daily teaching, hours per week cannot exceed 30'))
         elif self.teaching_frequency == 'weekly' and self.hours_per_week > 10:
-            raise ValidationError('For weekly teaching, hours per week cannot exceed 10')
+            raise ValidationError(_('For weekly teaching, hours per week cannot exceed 10'))
     
     def save(self, *args, **kwargs):
         self.clean()
@@ -388,7 +392,7 @@ class ClassLevelCost(models.Model):
         _('amount'),
         max_digits=12,
         decimal_places=2,
-        validators=[MinValueValidator(Decimal('0.01'))]
+        validators=[MinValueValidator(Decimal('0.01'), message=_('Amount must be greater than 0'))]
     )
     frequency = models.CharField(
         _('frequency'), 
@@ -411,11 +415,11 @@ class ClassLevelCost(models.Model):
             self.name = self.name.strip().title()
         
         if not self.class_level.is_active:
-            raise ValidationError('Cannot add fee structure for an inactive class level')
+            raise ValidationError(_('Cannot add fee structure for an inactive class level'))
         
         from django.utils import timezone
         if self.academic_year and self.academic_year.end_date < timezone.now().date():
-            raise ValidationError('Cannot add fee structure for a past academic year')
+            raise ValidationError(_('Cannot add fee structure for a past academic year'))
     
     def save(self, *args, **kwargs):
         self.clean()

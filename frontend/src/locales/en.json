@@ -653,5 +653,439 @@
       "validationError": "Validation failed",
       "duplicateError": "Item with this name already exists"
     }
+  },
+
+  "title": "Academics Management",
+  "subtitle": "Manage academic years, school levels, classes, classrooms, subjects, and fees",
+  
+  "tabs": {
+    "academicYears": "Academic Years",
+    "academicYearsDesc": "Manage school academic calendar years",
+    "schoolLevels": "School Levels",
+    "schoolLevelsDesc": "Define education levels (Primary, Secondary)",
+    "classLevels": "Class Levels",
+    "classLevelsDesc": "Create classes for each school level",
+    "classrooms": "Classrooms",
+    "classroomsDesc": "Manage physical classroom spaces",
+    "subjects": "Subjects",
+    "subjectsDesc": "Define academic subjects",
+    "assignments": "Subject Assignments",
+    "assignmentsDesc": "Assign subjects to class levels",
+    "feeStructures": "Fee Structures",
+    "feeStructuresDesc": "Manage tuition and fee structures"
+  },
+  
+  "stats": {
+    "schoolLevels": "School Levels",
+    "classLevels": "Class Levels",
+    "classrooms": "Classrooms",
+    "subjects": "Subjects",
+    "assignments": "Assignments",
+    "feeStructures": "Fee Structures"
+  },
+  
+  "table": {
+    "yearName": "Year Name",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "current": "Current",
+    "actions": "Actions",
+    "levelName": "Level Name",
+    "description": "Description",
+    "className": "Class Name",
+    "classCode": "Class Code",
+    "schoolLevel": "School Level",
+    "roomName": "Room Name",
+    "roomCode": "Room Code",
+    "roomType": "Room Type",
+    "capacity": "Capacity",
+    "status": "Status",
+    "subjectName": "Subject Name",
+    "subjectCode": "Subject Code",
+    "passScore": "Pass Score",
+    "frequency": "Frequency",
+    "hoursPerWeek": "Hours/Week",
+    "type": "Type",
+    "feeName": "Fee Name",
+    "academicYear": "Academic Year",
+    "classLevel": "Class Level",
+    "amount": "Amount",
+    "mandatory": "Mandatory"
+  },
+  
+  "form": {
+    "yearName": "Year Name",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "setAsCurrent": "Set as Current Year",
+    "levelName": "Level Name",
+    "description": "Description",
+    "className": "Class Name",
+    "classCode": "Class Code",
+    "schoolLevel": "School Level",
+    "roomName": "Room Name",
+    "roomCode": "Room Code",
+    "classLevel": "Class Level",
+    "roomType": "Room Type",
+    "capacity": "Capacity",
+    "status": "Status",
+    "subjectName": "Subject Name",
+    "subjectCode": "Subject Code",
+    "passScore": "Pass Score",
+    "teachingFrequency": "Teaching Frequency",
+    "hoursPerWeek": "Hours per Week",
+    "compulsory": "Compulsory Subject",
+    "feeName": "Fee Name",
+    "academicYear": "Academic Year",
+    "amount": "Amount (RWF)",
+    "frequency": "Frequency",
+    "mandatory": "Mandatory Fee",
+    "subject": "Subject",
+    "select": "Select"
+  },
+  
+  "placeholders": {
+    "yearName": "e.g., 2024-2025",
+    "levelName": "e.g., Nursery, Primary, Secondary",
+    "description": "Describe this item...",
+    "className": "e.g., Primary One, Senior 1",
+    "classCode": "e.g., P1, S1",
+    "roomName": "e.g., Room A101",
+    "roomCode": "e.g., A101",
+    "capacity": "Number of students",
+    "subjectName": "e.g., Mathematics",
+    "subjectCode": "e.g., MATH101",
+    "passScore": "e.g., 50",
+    "hoursPerWeek": "e.g., 4",
+    "feeName": "e.g., Tuition Fee",
+    "amount": "0"
+  },
+  
+  "roomTypes": {
+    "standard": "Standard",
+    "laboratory": "Laboratory",
+    "workshop": "Workshop",
+    "auditorium": "Auditorium"
+  },
+  
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "current": "Current",
+    "no": "No",
+    "yes": "Yes",
+    "suspended": "Suspended"
+  },
+  
+  "frequency": {
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "termly": "Termly",
+    "yearly": "Yearly",
+    "monthly": "Monthly"
+  },
+  
+  "actions": {
+    "view": "View",
+    "edit": "Edit",
+    "delete": "Delete",
+    "add": "Add {name}",
+    "search": "Search...",
+    "refresh": "Refresh",
+    "toggleDarkMode": "Toggle Dark Mode",
+    "clickToAdd": "Click here to add new record"
+  },
+  
+  "pagination": {
+    "showing": "Showing",
+    "perPage": "per page",
+    "total": "Total records",
+    "first": "First",
+    "last": "Last",
+    "page": "Page"
+  },
+  
+  "messages": {
+    "loading": "Loading data...",
+    "noData": "No data found",
+    "fetchError": "Failed to fetch data",
+    "createSuccess": "{name} created successfully",
+    "createError": "Failed to create",
+    "updateSuccess": "Updated successfully",
+    "updateError": "Failed to update",
+    "updateNotSupported": "Update not supported for this section",
+    "deleteSuccess": "Deleted successfully",
+    "deleteError": "Failed to delete",
+    "statusUpdated": "Status updated to {status}",
+    "statusError": "Failed to update status",
+    "dataLoaded": "Data loaded successfully ({count} records)"
+  },
+
+  
+  "actions": {
+    "create": "Create",
+    "update": "Update",
+    "cancel": "Cancel",
+    "close": "Close",
+    "viewDetails": "View Details",
+    "add": "Add",
+    "clickToAdd": "Click here to add new record",
+    "delete": "Delete",
+    "edit": "Edit",
+    "refresh": "Refresh",
+    "toggleDarkMode": "Toggle Dark Mode",
+    "search": "Search...",
+    "view": "View"
+  },
+  
+  "view": {
+    "basicInfo": "Basic Information",
+    "timestamps": "Timestamps",
+    "createdAt": "Created At",
+    "updatedAt": "Updated At"
+  },
+  
+  "delete": {
+    "title": "Delete Item",
+    "confirmation": "Are you sure you want to delete this item?",
+    "itemName": "Item",
+    "currentYearWarning": "This is the current academic year. Deleting it may affect system functionality.",
+    "warning": "This action cannot be undone."
+  },
+  
+  "status": {
+    "yes": "Yes",
+    "no": "No", 
+    "current": "Current",
+    "active": "Active",
+    "inactive": "Inactive",
+    "suspended": "Suspended"
+  },
+  
+  "messages": {
+    "creating": "Creating...",
+    "updating": "Updating...",
+    "deleting": "Deleting..."
+  },
+
+  
+  "title": "Academics Management",
+  "subtitle": "Manage academic structure, subjects, and fee configurations",
+  "subtitleWithYear": "Academic Year: {{year}} — Manage structure, subjects, and fee configurations",
+
+  "tabs": {
+    "academicYears": "Academic Years",
+    "schoolLevels": "School Levels",
+    "classLevels": "Class Levels",
+    "classrooms": "Classrooms",
+    "subjects": "Subjects",
+    "assignments": "Assignments",
+    "feeStructures": "Fee Structures"
+  },
+
+  "stats": {
+    "schoolLevels": "School Levels",
+    "classLevels": "Class Levels",
+    "classrooms": "Classrooms",
+    "subjects": "Subjects",
+    "assignments": "Assignments",
+    "feeStructures": "Fee Structures"
+  },
+
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "current": "Current",
+    "yes": "Yes",
+    "no": "No"
+  },
+
+  "labels": {
+    "required": "Required",
+    "optional": "Optional",
+    "mandatory": "Mandatory"
+  },
+
+  "roomTypes": {
+    "standard": "Standard",
+    "laboratory": "Laboratory",
+    "workshop": "Workshop",
+    "auditorium": "Auditorium"
+  },
+
+  "frequency": {
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "termly": "Termly",
+    "yearly": "Yearly",
+    "monthly": "Monthly"
+  },
+
+  "actions": {
+    "add": "Add {{name}}",
+    "edit": "Edit",
+    "delete": "Delete",
+    "view": "View Details",
+    "viewDetails": "View Details",
+    "create": "Create",
+    "update": "Update",
+    "cancel": "Cancel",
+    "close": "Close",
+    "search": "Search {{name}}...",
+    "refresh": "Refresh",
+    "filters": "Filters",
+    "clearFilters": "Clear Filters",
+    "clickToAdd": "Click here to add one",
+    "toggleDarkMode": "Toggle dark mode",
+    "toggleStatus": "Click to toggle status"
+  },
+
+  "table": {
+    "yearName": "Year Name",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "current": "Current",
+    "actions": "Actions",
+    "levelName": "Level Name",
+    "description": "Description",
+    "active": "Active",
+    "className": "Class Name",
+    "classCode": "Code",
+    "schoolLevel": "School Level",
+    "roomName": "Room Name",
+    "roomCode": "Code",
+    "classLevel": "Class Level",
+    "roomType": "Room Type",
+    "capacity": "Capacity",
+    "status": "Status",
+    "subjectName": "Subject Name",
+    "subjectCode": "Code",
+    "passScore": "Pass Score",
+    "subject": "Subject",
+    "frequency": "Frequency",
+    "hoursPerWeek": "Hours/Week",
+    "compulsory": "Compulsory",
+    "feeName": "Fee Name",
+    "academicYear": "Academic Year",
+    "amount": "Amount",
+    "mandatory": "Mandatory"
+  },
+
+  "form": {
+    "yearName": "Year Name",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "setAsCurrent": "Set as Current Year",
+    "levelName": "Level Name",
+    "description": "Description",
+    "className": "Class Name",
+    "classCode": "Class Code",
+    "schoolLevel": "School Level",
+    "roomName": "Room Name",
+    "roomCode": "Room Code",
+    "classLevel": "Class Level",
+    "roomType": "Room Type",
+    "capacity": "Capacity",
+    "status": "Status",
+    "subjectName": "Subject Name",
+    "subjectCode": "Subject Code",
+    "passScore": "Pass Score (%)",
+    "subject": "Subject",
+    "teachingFrequency": "Teaching Frequency",
+    "hoursPerWeek": "Hours per Week",
+    "compulsory": "Compulsory Subject",
+    "feeName": "Fee Name",
+    "academicYear": "Academic Year",
+    "amount": "Amount (RWF)",
+    "frequency": "Payment Frequency",
+    "mandatory": "Mandatory Fee",
+    "selectOption": "Select {{label}}"
+  },
+
+  "placeholders": {
+    "yearName": "e.g. 2024–2025",
+    "levelName": "e.g. Primary, Secondary",
+    "description": "Optional description...",
+    "className": "e.g. Grade 1",
+    "classCode": "e.g. G1",
+    "roomName": "e.g. Room A",
+    "roomCode": "e.g. RM-A",
+    "capacity": "e.g. 40",
+    "subjectName": "e.g. Mathematics",
+    "subjectCode": "e.g. MATH101",
+    "passScore": "e.g. 50",
+    "hoursPerWeek": "e.g. 5",
+    "feeName": "e.g. Tuition Fee",
+    "amount": "e.g. 150000"
+  },
+
+  "filters": {
+    "status": "Status",
+    "allStatus": "All Statuses",
+    "classLevel": "Class Level",
+    "allClassLevels": "All Class Levels",
+    "schoolLevel": "School Level",
+    "allSchoolLevels": "All School Levels",
+    "roomType": "Room Type",
+    "allRoomTypes": "All Room Types",
+    "subjectType": "Subject Type",
+    "academicYear": "Academic Year",
+    "allYears": "All Years",
+    "frequency": "Frequency",
+    "allFrequencies": "All Frequencies",
+    "mandatoryType": "Mandatory",
+    "yearType": "Year Type",
+    "all": "All",
+    "currentOnly": "Current Year Only",
+    "pastOnly": "Past Years Only"
+  },
+
+  "modal": {
+    "fillDetails": "Fill in the details below to create a new record.",
+    "updateDetails": "Update the fields below and save your changes.",
+    "idLabel": "Record ID: #{{id}}"
+  },
+
+  "view": {
+    "basicInfo": "Basic Information",
+    "timestamps": "Timestamps",
+    "createdAt": "Created At",
+    "updatedAt": "Last Updated"
+  },
+
+  "delete": {
+    "title": "Confirm Deletion",
+    "confirmation": "Are you sure you want to delete this record? This action cannot be undone.",
+    "itemName": "Item",
+    "currentYearWarning": "Warning: This is the current academic year. Deleting it may affect other records.",
+    "warning": "This action is permanent and cannot be reversed."
+  },
+
+  "messages": {
+    "loading": "Loading data...",
+    "noData": "No records found.",
+    "dataLoaded": "{{tab}} loaded — {{count}} record(s) found.",
+    "fetchError": "Failed to load data. Please try again.",
+    "createSuccess": "{{name}} created successfully.",
+    "createError": "Failed to create record. Please check your inputs.",
+    "updateSuccess": "Record updated successfully.",
+    "updateError": "Failed to update record.",
+    "updateNotSupported": "Editing is not supported for this section.",
+    "deleteSuccess": "Record deleted successfully.",
+    "deleteError": "Failed to delete record.",
+    "statusUpdated": "Status changed to {{status}}.",
+    "statusError": "Failed to update status.",
+    "creating": "Creating...",
+    "updating": "Updating...",
+    "deleting": "Deleting..."
+  },
+
+  "pagination": {
+    "show": "Show",
+    "ofTotal": "of {{count}} records",
+    "totalCount": "{{count}} records",
+    "page": "Page {{current}} of {{total}}",
+    "first": "First",
+    "last": "Last"
   }
 }

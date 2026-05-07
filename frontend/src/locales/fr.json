@@ -653,5 +653,436 @@
       "validationError": "Échec de la validation",
       "duplicateError": "Un élément avec ce nom existe déjà"
     }
+  },
+
+  
+  "title": "Gestion Académique",
+  "subtitle": "Gérer les années académiques, niveaux, classes, salles, matières et frais",
+  
+  "tabs": {
+    "academicYears": "Années Académiques",
+    "academicYearsDesc": "Gérer le calendrier scolaire",
+    "schoolLevels": "Niveaux Scolaires",
+    "schoolLevelsDesc": "Définir les niveaux d'enseignement",
+    "classLevels": "Niveaux de Classe",
+    "classLevelsDesc": "Créer des classes pour chaque niveau",
+    "classrooms": "Salles de Classe",
+    "classroomsDesc": "Gérer les espaces physiques",
+    "subjects": "Matières",
+    "subjectsDesc": "Définir les matières académiques",
+    "assignments": "Assignations",
+    "assignmentsDesc": "Assigner les matières aux niveaux",
+    "feeStructures": "Structures de Frais",
+    "feeStructuresDesc": "Gérer les frais de scolarité"
+  },
+  
+  "stats": {
+    "schoolLevels": "Niveaux Scolaires",
+    "classLevels": "Niveaux de Classe",
+    "classrooms": "Salles",
+    "subjects": "Matières",
+    "assignments": "Assignations",
+    "feeStructures": "Structures de Frais"
+  },
+  
+  "table": {
+    "yearName": "Nom de l'Année",
+    "startDate": "Date de Début",
+    "endDate": "Date de Fin",
+    "current": "Actuelle",
+    "actions": "Actions",
+    "levelName": "Nom du Niveau",
+    "description": "Description",
+    "className": "Nom de la Classe",
+    "classCode": "Code Classe",
+    "schoolLevel": "Niveau Scolaire",
+    "roomName": "Nom Salle",
+    "roomCode": "Code Salle",
+    "roomType": "Type Salle",
+    "capacity": "Capacité",
+    "status": "Statut",
+    "subjectName": "Nom Matière",
+    "subjectCode": "Code Matière",
+    "passScore": "Note Réussite",
+    "frequency": "Fréquence",
+    "hoursPerWeek": "Heures/Semaine",
+    "type": "Type",
+    "feeName": "Nom Frais",
+    "academicYear": "Année Académique",
+    "classLevel": "Niveau Classe",
+    "amount": "Montant",
+    "mandatory": "Obligatoire"
+  },
+  
+  "form": {
+    "yearName": "Nom de l'Année",
+    "startDate": "Date de Début",
+    "endDate": "Date de Fin",
+    "setAsCurrent": "Définir comme Année en Cours",
+    "levelName": "Nom du Niveau",
+    "description": "Description",
+    "className": "Nom de la Classe",
+    "classCode": "Code de la Classe",
+    "schoolLevel": "Niveau Scolaire",
+    "roomName": "Nom de la Salle",
+    "roomCode": "Code de la Salle",
+    "classLevel": "Niveau de Classe",
+    "roomType": "Type de Salle",
+    "capacity": "Capacité",
+    "status": "Statut",
+    "subjectName": "Nom de la Matière",
+    "subjectCode": "Code de la Matière",
+    "passScore": "Note de Réussite",
+    "teachingFrequency": "Fréquence d'Enseignement",
+    "hoursPerWeek": "Heures par Semaine",
+    "compulsory": "Matière Obligatoire",
+    "feeName": "Nom des Frais",
+    "academicYear": "Année Académique",
+    "amount": "Montant (RWF)",
+    "frequency": "Fréquence",
+    "mandatory": "Frais Obligatoire",
+    "subject": "Matière",
+    "select": "Sélectionner"
+  },
+  
+  "placeholders": {
+    "yearName": "ex: 2024-2025",
+    "levelName": "ex: Maternelle, Primaire, Secondaire",
+    "description": "Décrivez cet élément...",
+    "className": "ex: Première Année, Senior 1",
+    "classCode": "ex: P1, S1",
+    "roomName": "ex: Salle A101",
+    "roomCode": "ex: A101",
+    "capacity": "Nombre d'étudiants",
+    "subjectName": "ex: Mathématiques",
+    "subjectCode": "ex: MATH101",
+    "passScore": "ex: 50",
+    "hoursPerWeek": "ex: 4",
+    "feeName": "ex: Frais de Scolarité",
+    "amount": "0"
+  },
+  
+  "roomTypes": {
+    "standard": "Standard",
+    "laboratory": "Laboratoire",
+    "workshop": "Atelier",
+    "auditorium": "Auditorium"
+  },
+  
+  "status": {
+    "active": "Actif",
+    "inactive": "Inactif",
+    "current": "En Cours"
+  },
+  
+  "frequency": {
+    "daily": "Quotidien",
+    "weekly": "Hebdomadaire",
+    "termly": "Trimestriel",
+    "yearly": "Annuel",
+    "monthly": "Mensuel"
+  },
+  
+  "actions": {
+    "view": "Voir",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "add": "Ajouter {name}",
+    "search": "Rechercher...",
+    "refresh": "Actualiser",
+    "toggleDarkMode": "Mode Sombre",
+    "clickToAdd": "Cliquez ici pour ajouter"
+  },
+  
+  "pagination": {
+    "showing": "Affichage de",
+    "perPage": "par page",
+    "total": "Total enregistrements",
+    "first": "Premier",
+    "last": "Dernier",
+    "page": "Page"
+  },
+  
+  "messages": {
+    "loading": "Chargement des données...",
+    "noData": "Aucune donnée trouvée",
+    "fetchError": "Échec du chargement",
+    "createSuccess": "{name} créé avec succès",
+    "createError": "Échec de la création",
+    "updateSuccess": "Mis à jour avec succès",
+    "updateError": "Échec de la mise à jour",
+    "updateNotSupported": "Mise à jour non supportée",
+    "deleteSuccess": "Supprimé avec succès",
+    "deleteError": "Échec de la suppression",
+    "statusUpdated": "Statut mis à jour vers {status}",
+    "statusError": "Échec mise à jour statut",
+    "dataLoaded": "Données chargées ({count} enregistrements)"
+  },
+
+  
+  "actions": {
+    "create": "Créer",
+    "update": "Mettre à jour",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "viewDetails": "Voir les détails",
+    "add": "Ajouter",
+    "clickToAdd": "Cliquez ici pour ajouter",
+    "refresh": "Actualiser",
+    "toggleDarkMode": "Mode Sombre",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "search": "Rechercher..."
+  },
+  
+  "view": {
+    "basicInfo": "Informations de base",
+    "timestamps": "Horodatages",
+    "createdAt": "Créé le",
+    "updatedAt": "Mis à jour le"
+  },
+  
+  "delete": {
+    "title": "Supprimer l'élément",
+    "confirmation": "Êtes-vous sûr de vouloir supprimer cet élément ?",
+    "itemName": "Élément",
+    "currentYearWarning": "Ceci est l'année académique en cours. Sa suppression peut affecter le système.",
+    "warning": "Cette action est irréversible."
+  },
+  
+  "status": {
+    "yes": "Oui",
+    "no": "Non",
+    "current": "En cours",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "suspended": "Suspendu"
+  },
+  
+  "messages": {
+    "creating": "Création en cours...",
+    "updating": "Mise à jour en cours...",
+    "deleting": "Suppression en cours..."
+  },
+
+  
+  "title": "Gestion Académique",
+  "subtitle": "Gérer la structure académique, les matières et les configurations de frais",
+  "subtitleWithYear": "Année académique : {{year}} — Gérer la structure, les matières et les frais",
+
+  "tabs": {
+    "academicYears": "Années académiques",
+    "schoolLevels": "Niveaux scolaires",
+    "classLevels": "Niveaux de classe",
+    "classrooms": "Salles de classe",
+    "subjects": "Matières",
+    "assignments": "Affectations",
+    "feeStructures": "Structures de frais"
+  },
+
+  "stats": {
+    "schoolLevels": "Niveaux scolaires",
+    "classLevels": "Niveaux de classe",
+    "classrooms": "Salles",
+    "subjects": "Matières",
+    "assignments": "Affectations",
+    "feeStructures": "Frais"
+  },
+
+  "status": {
+    "active": "Actif",
+    "inactive": "Inactif",
+    "current": "En cours",
+    "yes": "Oui",
+    "no": "Non"
+  },
+
+  "labels": {
+    "required": "Obligatoire",
+    "optional": "Optionnel",
+    "mandatory": "Obligatoire"
+  },
+
+  "roomTypes": {
+    "standard": "Standard",
+    "laboratory": "Laboratoire",
+    "workshop": "Atelier",
+    "auditorium": "Auditorium"
+  },
+
+  "frequency": {
+    "daily": "Quotidien",
+    "weekly": "Hebdomadaire",
+    "termly": "Par trimestre",
+    "yearly": "Annuel",
+    "monthly": "Mensuel"
+  },
+
+  "actions": {
+    "add": "Ajouter {{name}}",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "view": "Voir les détails",
+    "viewDetails": "Voir les détails",
+    "create": "Créer",
+    "update": "Mettre à jour",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "search": "Rechercher {{name}}...",
+    "refresh": "Actualiser",
+    "filters": "Filtres",
+    "clearFilters": "Effacer les filtres",
+    "clickToAdd": "Cliquez ici pour en ajouter un",
+    "toggleDarkMode": "Basculer le mode sombre",
+    "toggleStatus": "Cliquer pour changer le statut"
+  },
+
+  "table": {
+    "yearName": "Nom de l'année",
+    "startDate": "Date de début",
+    "endDate": "Date de fin",
+    "current": "En cours",
+    "actions": "Actions",
+    "levelName": "Nom du niveau",
+    "description": "Description",
+    "active": "Actif",
+    "className": "Nom de la classe",
+    "classCode": "Code",
+    "schoolLevel": "Niveau scolaire",
+    "roomName": "Nom de la salle",
+    "roomCode": "Code",
+    "classLevel": "Niveau de classe",
+    "roomType": "Type de salle",
+    "capacity": "Capacité",
+    "status": "Statut",
+    "subjectName": "Nom de la matière",
+    "subjectCode": "Code",
+    "passScore": "Score de passage",
+    "subject": "Matière",
+    "frequency": "Fréquence",
+    "hoursPerWeek": "Heures/semaine",
+    "compulsory": "Obligatoire",
+    "feeName": "Nom des frais",
+    "academicYear": "Année académique",
+    "amount": "Montant",
+    "mandatory": "Obligatoire"
+  },
+
+  "form": {
+    "yearName": "Nom de l'année",
+    "startDate": "Date de début",
+    "endDate": "Date de fin",
+    "setAsCurrent": "Définir comme année en cours",
+    "levelName": "Nom du niveau",
+    "description": "Description",
+    "className": "Nom de la classe",
+    "classCode": "Code de la classe",
+    "schoolLevel": "Niveau scolaire",
+    "roomName": "Nom de la salle",
+    "roomCode": "Code de la salle",
+    "classLevel": "Niveau de classe",
+    "roomType": "Type de salle",
+    "capacity": "Capacité",
+    "status": "Statut",
+    "subjectName": "Nom de la matière",
+    "subjectCode": "Code de la matière",
+    "passScore": "Score de passage (%)",
+    "subject": "Matière",
+    "teachingFrequency": "Fréquence d'enseignement",
+    "hoursPerWeek": "Heures par semaine",
+    "compulsory": "Matière obligatoire",
+    "feeName": "Nom des frais",
+    "academicYear": "Année académique",
+    "amount": "Montant (RWF)",
+    "frequency": "Fréquence de paiement",
+    "mandatory": "Frais obligatoires",
+    "selectOption": "Sélectionner {{label}}"
+  },
+
+  "placeholders": {
+    "yearName": "ex. 2024–2025",
+    "levelName": "ex. Primaire, Secondaire",
+    "description": "Description optionnelle...",
+    "className": "ex. Classe 1",
+    "classCode": "ex. CL1",
+    "roomName": "ex. Salle A",
+    "roomCode": "ex. SL-A",
+    "capacity": "ex. 40",
+    "subjectName": "ex. Mathématiques",
+    "subjectCode": "ex. MATH101",
+    "passScore": "ex. 50",
+    "hoursPerWeek": "ex. 5",
+    "feeName": "ex. Frais de scolarité",
+    "amount": "ex. 150000"
+  },
+
+  "filters": {
+    "status": "Statut",
+    "allStatus": "Tous les statuts",
+    "classLevel": "Niveau de classe",
+    "allClassLevels": "Tous les niveaux",
+    "schoolLevel": "Niveau scolaire",
+    "allSchoolLevels": "Tous les niveaux",
+    "roomType": "Type de salle",
+    "allRoomTypes": "Tous les types",
+    "subjectType": "Type de matière",
+    "academicYear": "Année académique",
+    "allYears": "Toutes les années",
+    "frequency": "Fréquence",
+    "allFrequencies": "Toutes les fréquences",
+    "mandatoryType": "Obligatoire",
+    "yearType": "Type d'année",
+    "all": "Tous",
+    "currentOnly": "Année en cours uniquement",
+    "pastOnly": "Années passées uniquement"
+  },
+
+  "modal": {
+    "fillDetails": "Remplissez les détails ci-dessous pour créer un nouvel enregistrement.",
+    "updateDetails": "Mettez à jour les champs ci-dessous et enregistrez vos modifications.",
+    "idLabel": "ID d'enregistrement : #{{id}}"
+  },
+
+  "view": {
+    "basicInfo": "Informations de base",
+    "timestamps": "Horodatages",
+    "createdAt": "Créé le",
+    "updatedAt": "Dernière mise à jour"
+  },
+
+  "delete": {
+    "title": "Confirmer la suppression",
+    "confirmation": "Êtes-vous sûr de vouloir supprimer cet enregistrement ? Cette action est irréversible.",
+    "itemName": "Élément",
+    "currentYearWarning": "Avertissement : Il s'agit de l'année académique en cours. La supprimer peut affecter d'autres enregistrements.",
+    "warning": "Cette action est permanente et ne peut pas être annulée."
+  },
+
+  "messages": {
+    "loading": "Chargement des données...",
+    "noData": "Aucun enregistrement trouvé.",
+    "dataLoaded": "{{tab}} chargé — {{count}} enregistrement(s) trouvé(s).",
+    "fetchError": "Échec du chargement. Veuillez réessayer.",
+    "createSuccess": "{{name}} créé avec succès.",
+    "createError": "Échec de la création. Vérifiez vos données.",
+    "updateSuccess": "Enregistrement mis à jour avec succès.",
+    "updateError": "Échec de la mise à jour.",
+    "updateNotSupported": "La modification n'est pas prise en charge pour cette section.",
+    "deleteSuccess": "Enregistrement supprimé avec succès.",
+    "deleteError": "Échec de la suppression.",
+    "statusUpdated": "Statut modifié en {{status}}.",
+    "statusError": "Échec de la mise à jour du statut.",
+    "creating": "Création en cours...",
+    "updating": "Mise à jour en cours...",
+    "deleting": "Suppression en cours..."
+  },
+
+  "pagination": {
+    "show": "Afficher",
+    "ofTotal": "sur {{count}} enregistrements",
+    "totalCount": "{{count}} enregistrements",
+    "page": "Page {{current}} sur {{total}}",
+    "first": "Première",
+    "last": "Dernière"
   }
 }

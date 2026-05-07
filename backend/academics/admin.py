@@ -33,6 +33,7 @@ class ClassRoomAdmin(admin.ModelAdmin):
     list_display = ['name', 'code', 'class_level', 'room_type', 'capacity', 'status']
     list_filter = ['class_level', 'room_type', 'status']
     search_fields = ['name', 'code']
+    list_editable = ['status']
 
 
 @admin.register(Subject)
@@ -40,7 +41,6 @@ class SubjectAdmin(admin.ModelAdmin):
     list_display = ['name', 'code', 'pass_mark', 'status']
     list_filter = ['status']
     search_fields = ['name', 'code']
-    list_editable = ['status']
 
 
 @admin.register(ClassLevelSubject)

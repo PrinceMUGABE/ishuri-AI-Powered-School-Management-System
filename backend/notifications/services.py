@@ -60,24 +60,71 @@ class NotificationService:
     def _should_send_notification(cls, notification_type, preferences):
         """Check if user wants this type of notification"""
         mapping = {
+            # User Management
             'user_created': 'user_management_alerts',
             'user_updated': 'user_management_alerts',
             'user_deleted': 'user_management_alerts',
             'user_status_changed': 'user_management_alerts',
+            'user_role_changed': 'user_management_alerts',
             'login_success': 'user_management_alerts',
             'password_changed': 'user_management_alerts',
             'password_reset': 'user_management_alerts',
+            
+            # Academics - Academic Years
+            'academic_year_created': 'user_management_alerts',
+            'academic_year_updated': 'user_management_alerts',
+            'academic_year_deleted': 'user_management_alerts',
+            
+            # Academics - School Levels
+            'school_level_created': 'user_management_alerts',
+            'school_level_deleted': 'user_management_alerts',
+            
+            # Academics - Class Levels
+            'class_level_created': 'user_management_alerts',
+            'class_level_deleted': 'user_management_alerts',
+            
+            # Academics - Classrooms
+            'classroom_created': 'user_management_alerts',
+            'classroom_updated': 'user_management_alerts',
+            'classroom_deleted': 'user_management_alerts',
+            
+            # Academics - Subjects
+            'subject_created': 'user_management_alerts',
+            'subject_updated': 'user_management_alerts',
+            'subject_deleted': 'user_management_alerts',
+            
+            # Academics - Assignments
+            'subject_assigned': 'assignment_alerts',
+            'subject_unassigned': 'assignment_alerts',
+            
+            # Academics - Fee Structures
+            'fee_structure_created': 'fee_alerts',
+            'fee_structure_updated': 'fee_alerts',
+            'fee_structure_deleted': 'fee_alerts',
+            
+            # Grades
             'grade_uploaded': 'grade_alerts',
             'grade_approved': 'grade_alerts',
+            
+            # Assignments
             'assignment_created': 'assignment_alerts',
             'assignment_submitted': 'assignment_alerts',
             'assignment_graded': 'assignment_alerts',
+            
+            # Attendance
             'attendance_marked': 'attendance_alerts',
             'low_attendance_warning': 'attendance_alerts',
+            
+            # Communication
             'message_received': 'communication_alerts',
             'announcement_posted': 'communication_alerts',
+            
+            # Fees
             'fee_payment_received': 'fee_alerts',
             'fee_payment_overdue': 'fee_alerts',
+            
+            # Reminders
+            'deadline_reminder': 'assignment_alerts',
         }
         
         category = mapping.get(notification_type, 'user_management_alerts')
@@ -93,6 +140,7 @@ class NotificationService:
             'user_updated': f"Your account information has been updated.",
             'user_deleted': f"Your account has been deleted from the system.",
             'user_status_changed': f"Your account has been {extra_data.get('action', 'updated')} by {created_by.username if created_by else 'administrator'}.",
+            'user_role_changed': f"Your role has been changed to {extra_data.get('new_role', 'user')}.",
             'login_success': f"You logged in successfully.",
             'password_changed': f"Your password has been changed successfully.",
             'password_reset': f"Your password has been reset successfully.",
@@ -103,14 +151,15 @@ class NotificationService:
             'user_updated': 'Account Updated',
             'user_deleted': 'Account Deleted',
             'user_status_changed': 'Account Status Changed',
+            'user_role_changed': 'Role Changed',
             'login_success': 'Login Successful',
             'password_changed': 'Password Changed',
             'password_reset': 'Password Reset',
         }
         
         # Get title and message from kwargs, otherwise use defaults
-        title = title_templates.get(notification_type, notification_type.replace('_', ' ').title())
-        message = message_templates.get(notification_type, f"{notification_type.replace('_', ' ').title()} notification")
+        title = kwargs.get('title', title_templates.get(notification_type, notification_type.replace('_', ' ').title()))
+        message = kwargs.get('message', message_templates.get(notification_type, f"{notification_type.replace('_', ' ').title()} notification"))
         
         # Remove title and message from kwargs to avoid duplication
         kwargs.pop('title', None)
@@ -121,6 +170,39 @@ class NotificationService:
             notification_type=notification_type,
             title=title,
             message=message,
+            created_by=created_by,
+            data=extra_data or {},
+            **kwargs
+        )
+    
+    @classmethod
+    def create_academic_notification(cls, user, notification_type, created_by=None, extra_data=None, **kwargs):
+        """
+        Create notification for academic-related events.
+        This method accepts pre-translated title and message from the caller.
+        """
+        # The title and message should already be translated by the calling view
+        title = kwargs.get('title', '')
+        message = kwargs.get('message', '')
+        
+        # Determine priority based on notification type
+        priority = kwargs.get('priority', 'medium')
+        if 'deleted' in notification_type or 'overdue' in notification_type:
+            priority = 'high'
+        elif 'updated' in notification_type:
+            priority = 'low'
+        
+        # Remove title, message, priority from kwargs to avoid duplication
+        kwargs.pop('title', None)
+        kwargs.pop('message', None)
+        kwargs.pop('priority', None)
+        
+        return cls.create_notification(
+            recipient=user,
+            notification_type=notification_type,
+            title=title,
+            message=message,
+            priority=priority,
             created_by=created_by,
             data=extra_data or {},
             **kwargs
