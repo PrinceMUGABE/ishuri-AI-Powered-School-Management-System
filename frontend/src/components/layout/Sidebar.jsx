@@ -54,6 +54,7 @@ const Sidebar = ({ role, onClose }) => {
     admin: [
       { path: '/app/dashboard',      icon: LayoutDashboard, label: t('nav.dashboard',        'Dashboard') },
       { path: '/app/academics',     icon: GraduationCapIcon,             label: t('nav.academics',        'Academics') },
+      { path: '/app/teacher-management', icon: Users,           label: t('admin.teacherManagement', 'Teacher') },
       { path: '/app/users',          icon: Users,           label: t('nav.users',            'Users') },
       { path: '/app/grade-approval', icon: CheckCircle,     label: t('admin.gradeApproval',  'Grade Approval') },
       { path: '/app/fee-management', icon: DollarSign,      label: t('admin.feeManagement',  'Fee Management') },

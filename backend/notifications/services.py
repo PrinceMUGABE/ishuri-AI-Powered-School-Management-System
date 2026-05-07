@@ -102,6 +102,31 @@ class NotificationService:
             'fee_structure_updated': 'fee_alerts',
             'fee_structure_deleted': 'fee_alerts',
             
+            # Teachers - Teacher Management
+            'teacher_created': 'user_management_alerts',
+            'teacher_updated': 'user_management_alerts',
+            'teacher_deleted': 'user_management_alerts',
+            'teacher_profile_updated': 'user_management_alerts',
+            
+            # Teachers - Assignments
+            'teacher_assignment_created': 'assignment_alerts',
+            'teacher_assignment_deleted': 'assignment_alerts',
+            
+            # Teachers - Timetable
+            'timetable_generated': 'assignment_alerts',
+            'timetable_entry_created': 'assignment_alerts',
+            'timetable_entry_updated': 'assignment_alerts',
+            'timetable_conflict_detected': 'assignment_alerts',
+            
+            # Teachers - Day Settings
+            'day_setting_created': 'user_management_alerts',
+            'day_setting_updated': 'user_management_alerts',
+            'day_setting_deleted': 'user_management_alerts',
+            
+            # Teachers - Holidays
+            'holiday_created': 'user_management_alerts',
+            'holiday_deleted': 'user_management_alerts',
+            
             # Grades
             'grade_uploaded': 'grade_alerts',
             'grade_approved': 'grade_alerts',
@@ -144,6 +169,12 @@ class NotificationService:
             'login_success': f"You logged in successfully.",
             'password_changed': f"Your password has been changed successfully.",
             'password_reset': f"Your password has been reset successfully.",
+            
+            # Teacher notifications
+            'teacher_created': f"You have been registered as a teacher. Welcome to the team!",
+            'teacher_updated': f"Your teacher profile has been updated.",
+            'teacher_deleted': f"Your teacher account has been deactivated.",
+            'teacher_profile_updated': f"Your profile information has been updated successfully.",
         }
         
         title_templates = {
@@ -155,6 +186,12 @@ class NotificationService:
             'login_success': 'Login Successful',
             'password_changed': 'Password Changed',
             'password_reset': 'Password Reset',
+            
+            # Teacher notifications
+            'teacher_created': 'Welcome to the Team',
+            'teacher_updated': 'Profile Updated',
+            'teacher_deleted': 'Account Deactivated',
+            'teacher_profile_updated': 'Profile Update Confirmed',
         }
         
         # Get title and message from kwargs, otherwise use defaults
@@ -191,6 +228,43 @@ class NotificationService:
             priority = 'high'
         elif 'updated' in notification_type:
             priority = 'low'
+        
+        # Remove title, message, priority from kwargs to avoid duplication
+        kwargs.pop('title', None)
+        kwargs.pop('message', None)
+        kwargs.pop('priority', None)
+        
+        return cls.create_notification(
+            recipient=user,
+            notification_type=notification_type,
+            title=title,
+            message=message,
+            priority=priority,
+            created_by=created_by,
+            data=extra_data or {},
+            **kwargs
+        )
+    
+    @classmethod
+    def create_teacher_notification(cls, user, notification_type, created_by=None, extra_data=None, **kwargs):
+        """
+        Create notification for teacher-related events.
+        This method accepts pre-translated title and message from the caller.
+        """
+        # The title and message should already be translated by the calling view
+        title = kwargs.get('title', '')
+        message = kwargs.get('message', '')
+        
+        # Determine priority based on notification type
+        priority = kwargs.get('priority', 'medium')
+        if 'deleted' in notification_type or 'conflict' in notification_type:
+            priority = 'high'
+        elif 'updated' in notification_type:
+            priority = 'low'
+        
+        # For timetable generation, set high priority
+        if 'timetable' in notification_type:
+            priority = 'high'
         
         # Remove title, message, priority from kwargs to avoid duplication
         kwargs.pop('title', None)

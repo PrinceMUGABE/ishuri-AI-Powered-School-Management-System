@@ -1084,5 +1084,181 @@
     "page": "Page {{current}} sur {{total}}",
     "first": "Première",
     "last": "Dernière"
+  },
+
+  
+  "title": "Gestion des Enseignants",
+  "subtitle": "Gérer les enseignants, affectations, emplois du temps et jours scolaires",
+  
+  "tabs": {
+    "teachers": "Enseignants",
+    "assignments": "Affectations",
+    "timetable": "Emploi du temps",
+    "daySettings": "Jours scolaires",
+    "holidays": "Jours fériés"
+  },
+  
+  "stats": {
+    "totalTeachers": "Total Enseignants",
+    "activeTeachers": "Enseignants Actifs",
+    "totalAssignments": "Affectations",
+    "timetableEntries": "Entrées d'emploi du temps"
+  },
+  
+  "table": {
+    "fullName": "Nom complet",
+    "email": "Email",
+    "phone": "Téléphone",
+    "specialization": "Spécialisation",
+    "status": "Statut",
+    "actions": "Actions",
+    "teacher": "Enseignant",
+    "subject": "Matière",
+    "classLevel": "Niveau de classe",
+    "hoursPerWeek": "Heures/semaine",
+    "schoolLevel": "Niveau scolaire",
+    "day": "Jour",
+    "schedule": "Horaire",
+    "holidayName": "Nom du jour férié",
+    "date": "Date",
+    "academicYear": "Année académique",
+    "recurring": "Récurrent"
+  },
+  
+  "form": {
+    "fullName": "Nom complet",
+    "email": "Adresse email",
+    "phone": "Numéro de téléphone",
+    "address": "Adresse",
+    "gender": "Genre",
+    "educationLevel": "Niveau d'études",
+    "qualification": "Qualifications",
+    "specialization": "Spécialisation",
+    "experience": "Années d'expérience",
+    "birthDate": "Date de naissance",
+    "hireDate": "Date d'embauche",
+    "status": "Statut",
+    "bio": "Biographie",
+    "teacher": "Enseignant",
+    "schoolLevel": "Niveau scolaire",
+    "classLevel": "Niveau de classe",
+    "subject": "Matière",
+    "academicYear": "Année académique",
+    "hoursPerWeek": "Heures par semaine",
+    "notes": "Notes",
+    "dayOfWeek": "Jour de la semaine",
+    "isSchoolDay": "Est un jour d'école",
+    "startTime": "Heure de début",
+    "endTime": "Heure de fin",
+    "morningBreakStart": "Début pause matin",
+    "morningBreakEnd": "Fin pause matin",
+    "lunchBreakStart": "Début pause déjeuner",
+    "lunchBreakEnd": "Fin pause déjeuner",
+    "holidayName": "Nom du jour férié",
+    "date": "Date",
+    "isRecurring": "Récurrent annuellement",
+    "description": "Description",
+    "selectOption": "Sélectionner {label}",
+    "allLevels": "Tous les niveaux"
+  },
+  
+  "placeholders": {
+    "fullName": "ex: Jean Dupont",
+    "address": "Rue, Ville, Pays",
+    "qualification": "Listez vos qualifications...",
+    "specialization": "ex: Mathématiques",
+    "bio": "Parlez-nous de vous...",
+    "notes": "Notes supplémentaires...",
+    "holidayName": "ex: Noël"
+  },
+  
+  "gender": {
+    "male": "Masculin",
+    "female": "Féminin",
+    "other": "Autre"
+  },
+  
+  "education": {
+    "diploma": "Diplôme",
+    "bachelor": "Licence",
+    "master": "Master",
+    "doctorate": "Doctorat",
+    "certificate": "Certificat"
+  },
+  
+  "status": {
+    "active": "Actif",
+    "inactive": "Inactif",
+    "onLeave": "En congé",
+    "suspended": "Suspendu",
+    "completed": "Terminé",
+    "notSchoolDay": "Pas un jour d'école",
+    "recurring": "Récurrent",
+    "yes": "Oui",
+    "no": "Non"
+  },
+  
+  "days": {
+    "monday": "Lundi",
+    "tuesday": "Mardi",
+    "wednesday": "Mercredi",
+    "thursday": "Jeudi",
+    "friday": "Vendredi",
+    "saturday": "Samedi",
+    "sunday": "Dimanche"
+  },
+  
+  "actions": {
+    "view": "Voir",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "add": "Ajouter {name}",
+    "search": "Rechercher...",
+    "refresh": "Actualiser",
+    "create": "Créer",
+    "update": "Mettre à jour",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "viewDetails": "Voir les détails",
+    "clickToAdd": "Cliquez ici pour ajouter",
+    "generateTimetable": "Générer l'emploi du temps"
+  },
+  
+  "filters": {
+    "allStatus": "Tous les statuts",
+    "allWeeks": "Toutes les semaines",
+    "week": "Semaine {week}",
+    "allAcademicYears": "Toutes les années académiques"
+  },
+  
+  "pagination": {
+    "showing": "Affichage de",
+    "perPage": "par page",
+    "total": "Total: {count} enregistrements",
+    "first": "Premier",
+    "last": "Dernier",
+    "page": "Page {current} sur {total}"
+  },
+  
+  "delete": {
+    "title": "Supprimer l'élément",
+    "confirmation": "Êtes-vous sûr de vouloir supprimer cet élément ?",
+    "itemName": "Élément",
+    "warning": "Cette action est irréversible."
+  },
+  
+  "messages": {
+    "loading": "Chargement des données...",
+    "noData": "Aucune donnée trouvée",
+    "fetchError": "Échec du chargement",
+    "createSuccess": "Créé avec succès",
+    "createError": "Échec de la création",
+    "updateSuccess": "Mis à jour avec succès",
+    "updateError": "Échec de la mise à jour",
+    "updateNotSupported": "Mise à jour non supportée",
+    "deleteSuccess": "Supprimé avec succès",
+    "deleteError": "Échec de la suppression",
+    "timetableGenerated": "Emploi du temps généré avec succès",
+    "timetableGenerateError": "Échec de la génération de l'emploi du temps"
   }
 }

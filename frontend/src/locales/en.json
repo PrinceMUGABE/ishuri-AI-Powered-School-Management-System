@@ -1087,5 +1087,181 @@
     "page": "Page {{current}} of {{total}}",
     "first": "First",
     "last": "Last"
+  },
+
+  
+  "title": "Teacher Management",
+  "subtitle": "Manage teachers, assignments, timetables, and school days",
+  
+  "tabs": {
+    "teachers": "Teachers",
+    "assignments": "Assignments",
+    "timetable": "Timetable",
+    "daySettings": "School Days",
+    "holidays": "Holidays"
+  },
+  
+  "stats": {
+    "totalTeachers": "Total Teachers",
+    "activeTeachers": "Active Teachers",
+    "totalAssignments": "Assignments",
+    "timetableEntries": "Timetable Entries"
+  },
+  
+  "table": {
+    "fullName": "Full Name",
+    "email": "Email",
+    "phone": "Phone",
+    "specialization": "Specialization",
+    "status": "Status",
+    "actions": "Actions",
+    "teacher": "Teacher",
+    "subject": "Subject",
+    "classLevel": "Class Level",
+    "hoursPerWeek": "Hours/Week",
+    "schoolLevel": "School Level",
+    "day": "Day",
+    "schedule": "Schedule",
+    "holidayName": "Holiday Name",
+    "date": "Date",
+    "academicYear": "Academic Year",
+    "recurring": "Recurring"
+  },
+  
+  "form": {
+    "fullName": "Full Name",
+    "email": "Email Address",
+    "phone": "Phone Number",
+    "address": "Address",
+    "gender": "Gender",
+    "educationLevel": "Education Level",
+    "qualification": "Qualifications",
+    "specialization": "Specialization",
+    "experience": "Years of Experience",
+    "birthDate": "Birth Date",
+    "hireDate": "Hire Date",
+    "status": "Status",
+    "bio": "Biography",
+    "teacher": "Teacher",
+    "schoolLevel": "School Level",
+    "classLevel": "Class Level",
+    "subject": "Subject",
+    "academicYear": "Academic Year",
+    "hoursPerWeek": "Hours per Week",
+    "notes": "Notes",
+    "dayOfWeek": "Day of Week",
+    "isSchoolDay": "Is School Day",
+    "startTime": "Start Time",
+    "endTime": "End Time",
+    "morningBreakStart": "Morning Break Start",
+    "morningBreakEnd": "Morning Break End",
+    "lunchBreakStart": "Lunch Break Start",
+    "lunchBreakEnd": "Lunch Break End",
+    "holidayName": "Holiday Name",
+    "date": "Date",
+    "isRecurring": "Recurring Yearly",
+    "description": "Description",
+    "selectOption": "Select {label}",
+    "allLevels": "All Levels"
+  },
+  
+  "placeholders": {
+    "fullName": "e.g., John Doe",
+    "address": "Street, City, Country",
+    "qualification": "List your qualifications...",
+    "specialization": "e.g., Mathematics",
+    "bio": "Tell us about yourself...",
+    "notes": "Additional notes...",
+    "holidayName": "e.g., Christmas Day"
+  },
+  
+  "gender": {
+    "male": "Male",
+    "female": "Female",
+    "other": "Other"
+  },
+  
+  "education": {
+    "diploma": "Diploma",
+    "bachelor": "Bachelor's Degree",
+    "master": "Master's Degree",
+    "doctorate": "Doctorate",
+    "certificate": "Certificate"
+  },
+  
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "onLeave": "On Leave",
+    "suspended": "Suspended",
+    "completed": "Completed",
+    "notSchoolDay": "Not a School Day",
+    "recurring": "Recurring",
+    "yes": "Yes",
+    "no": "No"
+  },
+  
+  "days": {
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday"
+  },
+  
+  "actions": {
+    "view": "View",
+    "edit": "Edit",
+    "delete": "Delete",
+    "add": "Add {name}",
+    "search": "Search...",
+    "refresh": "Refresh",
+    "create": "Create",
+    "update": "Update",
+    "cancel": "Cancel",
+    "close": "Close",
+    "viewDetails": "View Details",
+    "clickToAdd": "Click here to add new record",
+    "generateTimetable": "Generate Timetable"
+  },
+  
+  "filters": {
+    "allStatus": "All Status",
+    "allWeeks": "All Weeks",
+    "week": "Week {week}",
+    "allAcademicYears": "All Academic Years"
+  },
+  
+  "pagination": {
+    "showing": "Showing",
+    "perPage": "per page",
+    "total": "Total: {count} records",
+    "first": "First",
+    "last": "Last",
+    "page": "Page {current} of {total}"
+  },
+  
+  "delete": {
+    "title": "Delete Item",
+    "confirmation": "Are you sure you want to delete this item?",
+    "itemName": "Item",
+    "warning": "This action cannot be undone."
+  },
+  
+  "messages": {
+    "loading": "Loading data...",
+    "noData": "No data found",
+    "fetchError": "Failed to fetch data",
+    "createSuccess": "Created successfully",
+    "createError": "Failed to create",
+    "updateSuccess": "Updated successfully",
+    "updateError": "Failed to update",
+    "updateNotSupported": "Update not supported for this section",
+    "deleteSuccess": "Deleted successfully",
+    "deleteError": "Failed to delete",
+    "timetableGenerated": "Timetable generated successfully",
+    "timetableGenerateError": "Failed to generate timetable"
   }
 }
