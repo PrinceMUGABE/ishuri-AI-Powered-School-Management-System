@@ -24,7 +24,7 @@ class TeacherSerializer(serializers.ModelSerializer):
             'experience_years', 'birth_date', 'age', 'hire_date', 'status', 'bio',
             'profile_picture', 'created_at', 'updated_at', 'created_by'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'age']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'created_by', 'age', 'user']
     
     def validate_email(self, value):
         """Validate email uniqueness."""
@@ -55,6 +55,45 @@ class TeacherSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError('Invalid birth date')
         return value
 
+class TeacherCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating a new teacher (without user field)."""
+    
+    class Meta:
+        model = Teacher
+        fields = [
+            'full_name', 'email', 'phone_number', 'address', 'gender',
+            'education_level', 'qualification', 'specialization', 'experience_years',
+            'birth_date', 'hire_date', 'status', 'bio', 'profile_picture'
+        ]
+    
+    def validate_email(self, value):
+        """Validate email uniqueness."""
+        value = value.lower().strip()
+        if Teacher.objects.filter(email=value).exists():
+            raise serializers.ValidationError('A teacher with this email already exists')
+        return value
+    
+    def validate_phone_number(self, value):
+        """Validate phone number uniqueness."""
+        import re
+        value = re.sub(r'\s+', '', value)
+        if Teacher.objects.filter(phone_number=value).exists():
+            raise serializers.ValidationError('A teacher with this phone number already exists')
+        return value
+    
+    def validate_birth_date(self, value):
+        """Validate birth date."""
+        if value:
+            today = timezone.now().date()
+            age = today.year - value.year
+            if today.month < value.month or (today.month == value.month and today.day < value.day):
+                age -= 1
+            
+            if age < 18:
+                raise serializers.ValidationError('Teacher must be at least 18 years old')
+            if age > 80:
+                raise serializers.ValidationError('Invalid birth date')
+        return value
 
 class TeacherProfileUpdateSerializer(serializers.ModelSerializer):
     """Serializer for teacher profile update."""

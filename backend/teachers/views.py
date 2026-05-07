@@ -1,3 +1,4 @@
+from datetime import date
 import traceback
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -15,10 +16,12 @@ from .serializers import (
     SchoolDaySettingSerializer, HolidaySerializer, TeacherTimetableSerializer
 )
 from .translations import get_translation, get_notification_title, get_notification_message
-from .services import create_teacher_user_account, send_teacher_welcome_email, generate_password
+from .services import create_teacher_user_account, generate_username, send_teacher_welcome_email, generate_password
 from academics.models import AcademicYear, SchoolLevel, ClassLevel, Subject, ClassRoom
 from notifications.services import NotificationService
-
+from django.db import models as django_models
+from django.db import models
+from accounts.models import User
 
 def is_admin(user):
     return user.is_authenticated and user.role == 'admin'
@@ -87,6 +90,8 @@ def log_error(view_name, step, error, error_type="ERROR"):
 
 # ==================== TEACHER CRUD ====================
 
+# Update the teacher_list_create function - replace the POST section
+
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def teacher_list_create(request):
@@ -124,20 +129,43 @@ def teacher_list_create(request):
             return Response({'success': False, 'message': msg}, status=403)
         
         try:
+            print(f"[{view_name}] Request data: {request.data}")
             print(f"[{view_name}] Validating teacher data...")
-            serializer = TeacherSerializer(data=request.data)
+            
+            # First, validate the teacher data
+            from .serializers import TeacherCreateSerializer
+            serializer = TeacherCreateSerializer(data=request.data)
             
             if serializer.is_valid():
-                print(f"[{view_name}] Data is valid, creating teacher...")
+                print(f"[{view_name}] Data is valid, creating user account...")
                 
                 with transaction.atomic():
-                    teacher = serializer.save(created_by=request.user)
+                    # Generate password and create user account FIRST
+                    from .services import generate_password, send_teacher_welcome_email
                     
-                    # Generate password and create user account
                     password = generate_password()
-                    user = create_teacher_user_account(teacher, password)
-                    teacher.user = user
-                    teacher.save()
+                    username = generate_username(serializer.validated_data['full_name'])
+                    
+                    # Create the user account
+                    user = User.objects.create(
+                        username=username,
+                        email=serializer.validated_data['email'],
+                        role='teacher',
+                        status='active'
+                    )
+                    user.set_password(password)
+                    user.save()
+                    
+                    print(f"[{view_name}] User account created: {username}")
+                    
+                    # Now create the teacher with the user
+                    teacher = Teacher.objects.create(
+                        user=user,
+                        created_by=request.user,
+                        **serializer.validated_data
+                    )
+                    
+                    print(f"[{view_name}] Teacher created successfully: ID={teacher.id}, Name={teacher.full_name}")
                     
                     # Send welcome email
                     email_sent = send_teacher_welcome_email(teacher, password, lang)
@@ -145,9 +173,7 @@ def teacher_list_create(request):
                     if not email_sent:
                         print(f"[{view_name}] WARNING: Failed to send welcome email to {teacher.email}")
                 
-                print(f"[{view_name}] Teacher created successfully: ID={teacher.id}, Name={teacher.full_name}")
-                
-                # Create notification
+                # Create notification for admin
                 try:
                     title = get_notification_title('teacher_created', lang)
                     message = get_notification_message('teacher_create_success', lang, name=teacher.full_name)
@@ -160,18 +186,41 @@ def teacher_list_create(request):
                         extra_data={
                             'teacher_id': teacher.id,
                             'teacher_name': teacher.full_name,
-                            'username': teacher.user.username,
+                            'username': user.username,
                             'password_sent': email_sent
                         },
                         action_url='/app/teachers',
                         priority='medium'
                     )
-                    print(f"[{view_name}] Notification created successfully")
+                    print(f"[{view_name}] Admin notification created successfully")
                 except Exception as e:
-                    print(f"[{view_name}] WARNING: Failed to create notification: {str(e)}")
+                    print(f"[{view_name}] WARNING: Failed to create admin notification: {str(e)}")
                 
+                # Create notification for the new teacher
+                try:
+                    teacher_title = get_notification_title('teacher_created', lang)
+                    teacher_message = get_notification_message('teacher_welcome_notification', lang, name=teacher.full_name)
+                    NotificationService.create_user_notification(
+                        user=user,
+                        notification_type='teacher_created',
+                        title=teacher_title,
+                        message=teacher_message,
+                        created_by=request.user,
+                        extra_data={
+                            'teacher_id': teacher.id,
+                            'teacher_name': teacher.full_name,
+                            'username': user.username
+                        },
+                        action_url='/app/teacher/profile',
+                        priority='high'
+                    )
+                    print(f"[{view_name}] Teacher notification created successfully")
+                except Exception as e:
+                    print(f"[{view_name}] WARNING: Failed to create teacher notification: {str(e)}")
+                
+                # Prepare response data
                 response_data = TeacherSerializer(teacher).data
-                response_data['username'] = teacher.user.username
+                response_data['username'] = user.username
                 if email_sent:
                     response_data['message'] = get_translation('teacher_password_generated', lang, email=teacher.email)
                 else:
@@ -203,7 +252,8 @@ def teacher_list_create(request):
             traceback.print_exc()
             log_error(view_name, "unexpected", e)
             return Response({'success': False, 'message': str(e)}, status=500)
-
+        
+            
 
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([IsAuthenticated])

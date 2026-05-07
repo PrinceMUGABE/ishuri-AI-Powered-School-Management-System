@@ -1,3 +1,5 @@
+# teachers/services.py
+
 import random
 import string
 from django.core.mail import send_mail
@@ -8,7 +10,10 @@ from accounts.models import User
 
 def generate_username(full_name):
     """Generate a unique username from full name."""
+    # Convert to lowercase and replace spaces with dots
     base = full_name.lower().replace(' ', '.')
+    # Remove any special characters
+    base = ''.join(c for c in base if c.isalnum() or c == '.')
     username = base
     counter = 1
     
@@ -51,7 +56,7 @@ def send_teacher_welcome_email(teacher, password, lang='en'):
 
 
 def create_teacher_user_account(teacher, password):
-    """Create user account for teacher."""
+    """Create user account for teacher (legacy function - kept for compatibility)."""
     username = generate_username(teacher.full_name)
     
     user = User.objects.create(

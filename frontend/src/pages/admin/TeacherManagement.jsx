@@ -46,7 +46,7 @@ apiClient.interceptors.response.use(
 );
 
 const TeacherManagement = () => {
-  const { t } = useTranslation('teachers');
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('teachers');
   const [searchTerm, setSearchTerm] = useState('');
