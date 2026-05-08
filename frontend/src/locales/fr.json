@@ -1500,5 +1500,138 @@
       "deleting": "Suppression en cours...",
       "adding": "Ajout en cours..."
     }
+  },
+
+
+  
+  "students": {
+    "title": "Gestion des étudiants et parents",
+    "subtitle": "Gérer les étudiants, parents et relations",
+    "tabs": {
+      "students": "Étudiants",
+      "parents": "Parents",
+      "reports": "Rapports"
+    },
+    "form": {
+      "fullName": "Nom complet",
+      "email": "Email",
+      "phone": "Numéro de téléphone",
+      "birthDate": "Date de naissance",
+      "academicYear": "Année académique",
+      "schoolLevel": "Niveau scolaire",
+      "classLevel": "Niveau de classe",
+      "status": "Statut",
+      "physicalAddress": "Adresse physique",
+      "relationshipType": "Type de relation",
+      "linkedStudents": "Étudiants liés"
+    },
+    "table": {
+      "rollNumber": "N° matricule",
+      "fullName": "Nom complet",
+      "email": "Email",
+      "phone": "Téléphone",
+      "classLevel": "Niveau de classe",
+      "schoolLevel": "Niveau scolaire",
+      "parents": "Parents",
+      "status": "Statut",
+      "actions": "Actions",
+      "relationship": "Relation",
+      "students": "Étudiants",
+      "age": "Âge"
+    },
+    "status": {
+      "active": "Actif",
+      "inactive": "Inactif"
+    },
+    "relationship": {
+      "father": "Père",
+      "mother": "Mère",
+      "guardian": "Tuteur",
+      "other": "Autre"
+    },
+    "messages": {
+      "dataLoaded": "enregistrements chargés",
+      "fetchError": "Échec du chargement des données",
+      "createSuccess": "Créé avec succès",
+      "createError": "Échec de la création",
+      "updateSuccess": "Mis à jour avec succès",
+      "updateError": "Échec de la mise à jour",
+      "deleteSuccess": "Supprimé avec succès",
+      "deleteError": "Échec de la suppression",
+      "parentLinked": "Parent lié avec succès",
+      "reportGenerated": "Rapport généré avec succès",
+      "reportError": "Échec de la génération du rapport",
+      "exportSuccess": "Export réussi",
+      "loading": "Chargement...",
+      "noData": "Aucune donnée trouvée",
+      "noStudentsForLink": "Aucun étudiant disponible pour la liaison"
+    },
+    "actions": {
+      "search": "Rechercher...",
+      "refresh": "Actualiser",
+      "addNew": "Ajouter nouveau",
+      "add": "Ajouter",
+      "edit": "Modifier",
+      "view": "Voir",
+      "delete": "Supprimer",
+      "addParent": "Ajouter parent",
+      "linkParent": "Lier parent",
+      "create": "Créer",
+      "update": "Mettre à jour",
+      "cancel": "Annuler",
+      "close": "Fermer",
+      "viewDetails": "Voir les détails",
+      "generateReport": "Générer rapport",
+      "downloadReport": "Télécharger rapport",
+      "printReport": "Imprimer rapport",
+      "clickToAdd": "Cliquez ici pour ajouter",
+      "select": "Sélectionner"
+    },
+    "filters": {
+      "allStatus": "Tous statuts",
+      "allSchoolLevels": "Tous niveaux scolaires",
+      "allClassLevels": "Tous niveaux de classe",
+      "allAcademicYears": "Toutes années académiques",
+      "allRelationships": "Toutes relations"
+    },
+    "delete": {
+      "title": "Confirmer la suppression",
+      "confirmation": "Êtes-vous sûr de vouloir supprimer cet élément ?",
+      "warning": "Cette action est irréversible."
+    },
+    "modal": {
+      "linkParentFor": "Lier un nouveau parent pour"
+    },
+    "placeholders": {
+      "fullName": "Entrez le nom complet",
+      "address": "Entrez l'adresse physique"
+    },
+    "reports": {
+      "title": "Rapport étudiants et parents",
+      "generatedOn": "Généré le",
+      "studentsList": "Liste des étudiants",
+      "showingFirst": "Affichage des premiers",
+      "of": "sur",
+      "clickToGenerate": "Cliquez sur le bouton ci-dessous pour générer un rapport",
+      "description": "Générer un rapport détaillé de tous les étudiants et parents avec statistiques."
+    },
+    "stats": {
+      "totalStudents": "Total étudiants",
+      "activeStudents": "Étudiants actifs",
+      "inactiveStudents": "Étudiants inactifs",
+      "totalParents": "Total parents",
+      "activeParents": "Parents actifs",
+      "studentsWithParents": "Étudiants avec parents"
+    },
+    "pagination": {
+      "showing": "Affichage",
+      "perPage": "par page",
+      "total": "Total",
+      "records": "enregistrements",
+      "page": "Page",
+      "of": "de",
+      "first": "Première",
+      "last": "Dernière"
+    }
   }
 }

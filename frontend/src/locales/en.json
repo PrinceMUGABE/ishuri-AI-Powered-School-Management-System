@@ -1501,5 +1501,138 @@
       "adding": "Adding...",
       "deleting": "Deleting..."
     }
+  },
+
+
+  
+  "students": {
+    "title": "Student & Parent Management",
+    "subtitle": "Manage students, parents, and relationships",
+    "tabs": {
+      "students": "Students",
+      "parents": "Parents",
+      "reports": "Reports"
+    },
+    "form": {
+      "fullName": "Full Name",
+      "email": "Email",
+      "phone": "Phone Number",
+      "birthDate": "Birth Date",
+      "academicYear": "Academic Year",
+      "schoolLevel": "School Level",
+      "classLevel": "Class Level",
+      "status": "Status",
+      "physicalAddress": "Physical Address",
+      "relationshipType": "Relationship Type",
+      "linkedStudents": "Linked Students"
+    },
+    "table": {
+      "rollNumber": "Roll No",
+      "fullName": "Full Name",
+      "email": "Email",
+      "phone": "Phone",
+      "classLevel": "Class Level",
+      "schoolLevel": "School Level",
+      "parents": "Parents",
+      "status": "Status",
+      "actions": "Actions",
+      "relationship": "Relationship",
+      "students": "Students",
+      "age": "Age"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "relationship": {
+      "father": "Father",
+      "mother": "Mother",
+      "guardian": "Guardian",
+      "other": "Other"
+    },
+    "messages": {
+      "dataLoaded": "records loaded",
+      "fetchError": "Failed to load data",
+      "createSuccess": "Created successfully",
+      "createError": "Creation failed",
+      "updateSuccess": "Updated successfully",
+      "updateError": "Update failed",
+      "deleteSuccess": "Deleted successfully",
+      "deleteError": "Deletion failed",
+      "parentLinked": "Parent linked successfully",
+      "reportGenerated": "Report generated successfully",
+      "reportError": "Failed to generate report",
+      "exportSuccess": "Export successful",
+      "loading": "Loading...",
+      "noData": "No data found",
+      "noStudentsForLink": "No students available for linking"
+    },
+    "actions": {
+      "search": "Search...",
+      "refresh": "Refresh",
+      "addNew": "Add New",
+      "add": "Add",
+      "edit": "Edit",
+      "view": "View",
+      "delete": "Delete",
+      "addParent": "Add Parent",
+      "linkParent": "Link Parent",
+      "create": "Create",
+      "update": "Update",
+      "cancel": "Cancel",
+      "close": "Close",
+      "viewDetails": "View Details",
+      "generateReport": "Generate Report",
+      "downloadReport": "Download Report",
+      "printReport": "Print Report",
+      "clickToAdd": "Click here to add",
+      "select": "Select"
+    },
+    "filters": {
+      "allStatus": "All Status",
+      "allSchoolLevels": "All School Levels",
+      "allClassLevels": "All Class Levels",
+      "allAcademicYears": "All Academic Years",
+      "allRelationships": "All Relationships"
+    },
+    "delete": {
+      "title": "Confirm Delete",
+      "confirmation": "Are you sure you want to delete this item?",
+      "warning": "This action cannot be undone."
+    },
+    "modal": {
+      "linkParentFor": "Link new parent for"
+    },
+    "placeholders": {
+      "fullName": "Enter full name",
+      "address": "Enter physical address"
+    },
+    "reports": {
+      "title": "Student & Parent Report",
+      "generatedOn": "Generated on",
+      "studentsList": "Students List",
+      "showingFirst": "Showing first",
+      "of": "of",
+      "clickToGenerate": "Click the button below to generate a report",
+      "description": "Generate a detailed report of all students and parents with statistics."
+    },
+    "stats": {
+      "totalStudents": "Total Students",
+      "activeStudents": "Active Students",
+      "inactiveStudents": "Inactive Students",
+      "totalParents": "Total Parents",
+      "activeParents": "Active Parents",
+      "studentsWithParents": "Students with Parents"
+    },
+    "pagination": {
+      "showing": "Showing",
+      "perPage": "per page",
+      "total": "Total",
+      "records": "records",
+      "page": "Page",
+      "of": "of",
+      "first": "First",
+      "last": "Last"
+    }
   }
 }

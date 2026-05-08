@@ -1320,6 +1320,138 @@
       "reportGenerated": "Raporu yakozwe",
       "reportError": "Gukora raporu byananiwe"
     }
-  }
+  },
 
+
+  
+  "students": {
+    "title": "Gestion y’Abanyeshuli n’Ababyeyi",
+    "subtitle": "Kuyobora abanyeshuli, ababyeyi n’imibanire",
+    "tabs": {
+      "students": "Abanyeshuli",
+      "parents": "Ababyeyi",
+      "reports": "Raporo"
+    },
+    "form": {
+      "fullName": "Izina ryuzuye",
+      "email": "Imeli",
+      "phone": "Nimero ya terefone",
+      "birthDate": "Itariki y’ivuko",
+      "academicYear": "Umwaka w’amashuri",
+      "schoolLevel": "Urwego rw’ishuri",
+      "classLevel": "Urwego rw’ishuri (icyiciro)",
+      "status": "Imiterere",
+      "physicalAddress": "Aho utuye",
+      "relationshipType": "Uruhando rw’isano",
+      "linkedStudents": "Abanyeshuli bahujwe"
+    },
+    "table": {
+      "rollNumber": "Nomero y’ishuri",
+      "fullName": "Izina ryuzuye",
+      "email": "Imeli",
+      "phone": "Terefone",
+      "classLevel": "Urwego rw’ishuri (icyiciro)",
+      "schoolLevel": "Urwego rw’ishuri",
+      "parents": "Ababyeyi",
+      "status": "Imiterere",
+      "actions": "Ibikorwa",
+      "relationship": "Isano",
+      "students": "Abanyeshuli",
+      "age": "Imyaka"
+    },
+    "status": {
+      "active": "Gikora",
+      "inactive": "Ntigikora"
+    },
+    "relationship": {
+      "father": "Data",
+      "mother": "Mama",
+      "guardian": "Umurinzi",
+      "other": "Ibindi"
+    },
+    "messages": {
+      "dataLoaded": "byanditswe byakuriwe",
+      "fetchError": "Kuvana amakuru byananiranye",
+      "createSuccess": "Byakozwe neza",
+      "createError": "Kurema byananiranye",
+      "updateSuccess": "Byahinduwe neza",
+      "updateError": "Kuhindura byananiranye",
+      "deleteSuccess": "Byasibwe neza",
+      "deleteError": "Kusiba byananiranye",
+      "parentLinked": "Umubyeyi yahujwe neza",
+      "reportGenerated": "Raporo yarateguwe neza",
+      "reportError": "Gutegura raporo byananiranye",
+      "exportSuccess": "Kuvana hanze byagenze neza",
+      "loading": "Birimo birahaguruka...",
+      "noData": "Nta makuru yabonetse",
+      "noStudentsForLink": "Nta mnyeshuri uhari wo guhuza"
+    },
+    "actions": {
+      "search": "Shakisha...",
+      "refresh": "Vugurura",
+      "addNew": "Ongeramo gishya",
+      "add": "Ongera",
+      "edit": "Hindura",
+      "view": "Reba",
+      "delete": "Siba",
+      "addParent": "Ongeramo umubyeyi",
+      "linkParent": "Huza umubyeyi",
+      "create": "Kora",
+      "update": "Hindura",
+      "cancel": "Hagarika",
+      "close": "Funga",
+      "viewDetails": "Reba ibiraye",
+      "generateReport": "Tangiza raporo",
+      "downloadReport": "Kuvana raporo",
+      "printReport": "Capa raporo",
+      "clickToAdd": "Kanda hano wongere",
+      "select": "Hitamo"
+    },
+    "filters": {
+      "allStatus": "Imiterere yose",
+      "allSchoolLevels": "Urwego rw’ishuri rwose",
+      "allClassLevels": "Ibyiciro by’ishuri byose",
+      "allAcademicYears": "Imyaka y’amashuri yose",
+      "allRelationships": "Isano ryose"
+    },
+    "delete": {
+      "title": "Emeza gusiba",
+      "confirmation": "Urahatiye ko ushaka gusiba iki kintu?",
+      "warning": "Iyi nkora ntishobora gusubirwaho."
+    },
+    "modal": {
+      "linkParentFor": "Huza umubyeyi mushya kuri"
+    },
+    "placeholders": {
+      "fullName": "Andika izina ryuzuye",
+      "address": "Andika aho utuye"
+    },
+    "reports": {
+      "title": "Raporo y’Abanyeshuli n’Ababyeyi",
+      "generatedOn": "Yateguwe ku",
+      "studentsList": "Urutonde rw’abanyeshuli",
+      "showingFirst": "Zerekanwa za mbere",
+      "of": "muri",
+      "clickToGenerate": "Kanda kuri buto yo hepfo utegure raporo",
+      "description": "Tegura raporo irambuye y’abanyeshuli n’ababyeyi hamwe n’imibare."
+    },
+    "stats": {
+      "totalStudents": "Abanyeshuli bose",
+      "activeStudents": "Abanyeshuli bakora",
+      "inactiveStudents": "Abanyeshuli batakora",
+      "totalParents": "Ababyeyi bose",
+      "activeParents": "Ababyeyi bakora",
+      "studentsWithParents": "Abanyeshuli bafite ababyeyi"
+    },
+    "pagination": {
+      "showing": "Zerekanwa",
+      "perPage": "ku ipaji",
+      "total": "Igiteranyo",
+      "records": "byanditswe",
+      "page": "Ipaji",
+      "of": "muri",
+      "first": "Iya mbere",
+      "last": "Iya nyuma"
+    }
+  }
 }

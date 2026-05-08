@@ -60,6 +60,7 @@ const Sidebar = ({ role, onClose }) => {
       { path: '/app/fee-management', icon: DollarSign,      label: t('admin.feeManagement',  'Fee Management') },
       { path: '/app/reports',        icon: BarChart3,       label: t('nav.reports',          'Reports') },
       { path: '/app/settings',       icon: Settings,        label: t('nav.settings',         'Settings') },
+      { path: '/app/student-management', icon: Users,          label: t('admin.studentManagement', 'Student Management') },
     ],
   };
 
