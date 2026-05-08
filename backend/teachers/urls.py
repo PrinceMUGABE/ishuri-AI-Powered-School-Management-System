@@ -15,8 +15,10 @@ urlpatterns = [
     
     # Timetable
     path('timetable/generate/', views.generate_timetable, name='generate_timetable'),
-    path('timetable/', views.get_teacher_timetable, name='get_my_timetable'),
+    path('timetable/', views.get_teacher_timetable, name='get_timetable'),
     path('timetable/<int:teacher_id>/', views.get_teacher_timetable, name='get_teacher_timetable'),
+    path('timetable/export/<int:teacher_id>/', views.get_teacher_timetable_export, name='export_teacher_timetable'),
+    path('timetable/export/', views.get_teacher_timetable_export, name='export_my_timetable'),
     
     # School Day Settings
     path('day-settings/', views.day_setting_list_create, name='day_setting_list_create'),

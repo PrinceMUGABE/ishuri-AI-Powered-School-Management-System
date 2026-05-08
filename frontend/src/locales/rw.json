@@ -920,7 +920,7 @@
   },
 
   "actions": {
-    "add": "Ongeraho {{name}}",
+    "add": "Ongeraho ",
     "edit": "Hindura",
     "delete": "Siba",
     "view": "Reba Amakuru",
@@ -966,7 +966,8 @@
     "feeName": "Izina ry'Amafaranga",
     "academicYear": "Umwaka w'Ishuri",
     "amount": "Amafaranga",
-    "mandatory": "Ngombwa"
+    "mandatory": "Ngombwa",
+    "username": "Izina ry'Abakoresha"
   },
 
   "form": {
@@ -997,7 +998,8 @@
     "amount": "Amafaranga (RWF)",
     "frequency": "Inshuro zo Kwishyura",
     "mandatory": "Amafaranga Ngombwa",
-    "selectOption": "Hitamo {{label}}"
+    "username": "Izina ry'Abakoresha",
+    "selectOption": "Hitamo"
   },
 
   "placeholders": {
@@ -1085,5 +1087,239 @@
     "page": "Urupapuro {{current}} rwa {{total}}",
     "first": "Rya Mbere",
     "last": "Rya Nyuma"
+  },
+
+  "teachers": {
+    "title": "Gestioni y'Abarezi",
+    "subtitle": "Genca abarezi, imirimo, igihe cy'amasomo n'iminsi y'amashuri",
+    
+    "tabs": {
+      "teachers": "Abarezi",
+      "assignments": "Imirimo",
+      "timetable": "Igihe cy'amasomo",
+      "daySettings": "Iminsi y'amashuri",
+      "holidays": "Iminsi mikuru",
+      "reports": "Raporuzi"
+    },
+    
+    "stats": {
+      "totalTeachers": "Abarezi bose",
+      "activeTeachers": "Bakora",
+      "inactiveTeachers": "Batahakora",
+      "onLeaveTeachers": "Bakiri kiruhuko",
+      "totalAssignments": "Imirimo",
+      "timetableEntries": "Igihe cy'amasomo",
+      "totalHolidays": "Iminsi mikuru"
+    },
+    
+    "table": {
+      "fullName": "Izina ryuzuye",
+      "username": "Izina rya konti",
+      "email": "Imeli",
+      "phone": "Telefone",
+      "specialization": "Ubuhanga",
+      "status": "Imiterere",
+      "actions": "Ibikorwa",
+      "teacher": "Umwarimu",
+      "subject": "Icyigisho",
+      "classLevel": "Urwego rw'ishuri",
+      "hoursPerWeek": "Amasaha/icyumweru",
+      "hoursPerWeekSuffix": "s/cyum",
+      "schoolLevel": "Urwego rw'amashuri",
+      "day": "Umunsi",
+      "schedule": "Igihe",
+      "holidayName": "Izina ry'umunsi mukuru",
+      "date": "Itariki",
+      "academicYear": "Umwaka w'amashuri",
+      "recurring": "Buri mwaka"
+    },
+    
+    "form": {
+      "fullName": "Izina ryuzuye",
+      "email": "Imeli",
+      "phone": "Nimero ya terefone",
+      "address": "Aho atuye",
+      "gender": "Igitsina",
+      "educationLevel": "Urwego rw'uburezi",
+      "qualification": "Impamyabumenyi",
+      "specialization": "Ubuhanga bwihariye",
+      "experience": "Imyaka y'uburambe",
+      "birthDate": "Itariki y'amavuko",
+      "hireDate": "Itariki y'akazi",
+      "status": "Imiterere",
+      "bio": "Amateka",
+      "teacher": "Umwarimu",
+      "schoolLevel": "Urwego rw'amashuri",
+      "classLevel": "Urwego rw'ishuri",
+      "subject": "Icyigisho",
+      "academicYear": "Umwaka w'amashuri",
+      "hoursPerWeek": "Amasaha ku cyumweru",
+      "notes": "Ibisobanuro",
+      "dayOfWeek": "Umunsi w'icyumweru",
+      "isSchoolDay": "Umunsi wigisha",
+      "startTime": "Igihe kitangira",
+      "endTime": "Igihe kirangira",
+      "morningBreakStart": "Ikiruhuko cya mugitondo gitangira",
+      "morningBreakEnd": "Ikiruhuko cya mugitondo kirangira",
+      "lunchBreakStart": "Ikiruhuko cya saa sita gitangira",
+      "lunchBreakEnd": "Ikiruhuko cya saa sita kirangira",
+      "holidayName": "Izina ry'umunsi mukuru",
+      "date": "Itariki",
+      "isRecurring": "Buri mwaka",
+      "description": "Ibisobanuro",
+      "selectOption": "Hitamo {label}",
+      "allLevels": "Urwego rwose"
+    },
+    
+    "placeholders": {
+      "fullName": "Urugero: Mukasine Jean",
+      "address": "Umuhanda, Umujyi, Igihugu",
+      "qualification": "Andika impamyabumenyi...",
+      "specialization": "Urugero: Imibare",
+      "bio": "Twivugeho...",
+      "notes": "Ibisobanuro birambuye...",
+      "holidayName": "Urugero: Noheri"
+    },
+    
+    "gender": {
+      "male": "Gabo",
+      "female": "Gore",
+      "other": "Ibindi"
+    },
+    
+    "education": {
+      "diploma": "Impamyabumenyi",
+      "bachelor": "Impamyabumenyi ya mbere",
+      "master": "Impamyabumenyi ya kabiri",
+      "doctorate": "Ubugoroba",
+      "certificate": "Icyemezo"
+    },
+    
+    "status": {
+      "active": "Gikora",
+      "inactive": "Ntigikora",
+      "onLeave": "Gikiri kiruhuko",
+      "suspended": "Guhagaritswe",
+      "completed": "Byarangiye",
+      "notSchoolDay": "Ntabwo wigisha",
+      "recurring": "Buri mwaka",
+      "yes": "Yego",
+      "no": "Oya"
+    },
+    
+    "days": {
+      "monday": "Kuwa mbere",
+      "tuesday": "Kuwa kabiri",
+      "wednesday": "Kuwa gatatu",
+      "thursday": "Kuwa kane",
+      "friday": "Kuwa gatanu",
+      "saturday": "Kuwa gatandatu",
+      "sunday": "Ku cyumweru"
+    },
+    
+    "actions": {
+      "view": "Reba",
+      "edit": "Hindura",
+      "delete": "Siba",
+      "add": "Ongera ",
+      "search": "Shakisha...",
+      "refresh": "Vugurura",
+      "create": "Kora",
+      "update": "Vugurura",
+      "cancel": "Hagarika",
+      "close": "Funga",
+      "viewDetails": "Reba ibisobanuro",
+      "clickToAdd": "Kanda hano wongere",
+      "generateTimetable": "Kora igihe",
+      "export": "Sohora",
+      "generateReport": "Kora raporo",
+      "downloadReport": "Kurura raporo",
+      "printReport": "Capa raporo",
+      "addNew": "Ongeraho",
+      "select": "Hitamo"
+    },
+    
+    "filters": {
+      "allStatus": "Imiterere yose",
+      "allTeachers": "Abarezi bose",
+      "allWeeks": "Icyumweru cyose",
+      "allDays": "Iminsi yose",
+      "week": "Icyumweru ",
+      "allAcademicYears": "Imyaka yose",
+      "allSchoolLevels": "Urwego rwose"
+    },
+    
+    "pagination": {
+      "showing": "Yerekana",
+      "perPage": "ku rupapuro",
+      "total": "Igiteranyo: ",
+      "first": "Icya mbere",
+      "last": "Icya nyuma",
+      "page": "Urupapuro ",
+      "records": "irekodi",
+      "of": "ku"
+    },
+    
+    "timetable": {
+      "noData": "Nta gihe cy'amasomo. Kanda Kora.",
+      "noEntries": "Ntabusobanuro buboneka.",
+      "day": "Umunsi",
+      "startTime": "Gitangira",
+      "endTime": "Girangira",
+      "subject": "Icyigisho",
+      "classLevel": "Icyiciro",
+      "classroom": "Icyumba",
+      "totalTeachers": "Abarezi bose",
+      "withTimetable": "Bafite igihe",
+      "totalEntries": "Ibinyabugenewe",
+      "avgPerTeacher": "Impuzandengo",
+      "hoursPerWeek": "amasaha/cyum",
+      "entries": "ibinyabugenewe",
+      "noClasses": "Nta masomo"
+    },
+    
+    "reports": {
+      "title": "Raporu y'Abarezi",
+      "generatedOn": "Yakozwe ku",
+      "clickToGenerate": "Kanda Kora raporu",
+      "description": "Raporu yuzuye y'abarezi, imirimo, igihe n'iminsi mikuru",
+      "teachersList": "Urutonde rw'abarezi",
+      "showingFirst": "Yerekana za mbere",
+      "of": "muri"
+    },
+    
+    "holidays": {
+      "upcoming": "Iminsi mikuru iri imbere"
+    },
+    
+    "delete": {
+      "title": "Gusiba",
+      "confirmation": "Uri gushaka ko ukuraho?",
+      "itemName": "Ikintu",
+      "warning": "Ntigishobora gusubirwaho"
+    },
+    
+    "messages": {
+      "loading": "Birakoresha...",
+      "noData": "Nta makuru",
+      "fetchError": "Kubona amakuru byananiwe",
+      "dataLoaded": "Amakuru yatwaye byanditswe)",
+      "createSuccess": "Byakozwe neza",
+      "createError": "Kurema byananiwe",
+      "updateSuccess": "Byahinduwe neza",
+      "updateError": "Guhindura byananiwe",
+      "updateNotSupported": "Guhindura ntibishoboka",
+      "deleteSuccess": "Byakuvwe neza",
+      "deleteError": "Gusiba byananiwe",
+      "timetableGenerated": "Igihe cy'amasomo cyakozwe",
+      "timetableGenerateError": "Gukora igihe byananiwe",
+      "entriesCreated": "byanditswe byakozwe",
+      "conflictsDetected": "amakimbirane yabonetse",
+      "exportSuccess": "Kuva mu sisitemu byakozwe",
+      "exportError": "Kuva mu sisitemu byananiwe",
+      "reportGenerated": "Raporu yakozwe",
+      "reportError": "Gukora raporu byananiwe"
+    }
   }
+
 }

@@ -1125,7 +1125,8 @@
     "holidayName": "Holiday Name",
     "date": "Date",
     "academicYear": "Academic Year",
-    "recurring": "Recurring"
+    "recurring": "Recurring",
+    "username": "Username"
   },
   
   "form": {
@@ -1263,5 +1264,242 @@
     "deleteError": "Failed to delete",
     "timetableGenerated": "Timetable generated successfully",
     "timetableGenerateError": "Failed to generate timetable"
+  },
+
+    "teachers": {
+    "title": "Teacher Management",
+    "subtitle": "Manage teachers, assignments, timetables, and school days",
+    
+    "tabs": {
+      "teachers": "Teachers",
+      "assignments": "Assignments",
+      "timetable": "Timetable",
+      "daySettings": "School Days",
+      "holidays": "Holidays",
+      "reports": "Reports"
+    },
+    
+    "stats": {
+      "totalTeachers": "Total Teachers",
+      "activeTeachers": "Active",
+      "inactiveTeachers": "Inactive",
+      "onLeaveTeachers": "On Leave",
+      "totalAssignments": "Assignments",
+      "timetableEntries": "Timetable Entries",
+      "totalHolidays": "Holidays"
+    },
+    
+    "table": {
+      "fullName": "Full Name",
+      "username": "Username",
+      "email": "Email",
+      "phone": "Phone",
+      "specialization": "Specialization",
+      "status": "Status",
+      "actions": "Actions",
+      "teacher": "Teacher",
+      "subject": "Subject",
+      "classLevel": "Class Level",
+      "hoursPerWeek": "Hours/Week",
+      "hoursPerWeekSuffix": "h/wk",
+      "schoolLevel": "School Level",
+      "day": "Day",
+      "schedule": "Schedule",
+      "holidayName": "Holiday Name",
+      "date": "Date",
+      "academicYear": "Academic Year",
+      "recurring": "Recurring"
+    },
+    
+    "form": {
+      "fullName": "Full Name",
+      "email": "Email Address",
+      "phone": "Phone Number",
+      "address": "Address",
+      "gender": "Gender",
+      "educationLevel": "Education Level",
+      "qualification": "Qualifications",
+      "specialization": "Specialization",
+      "experience": "Years of Experience",
+      "birthDate": "Birth Date",
+      "hireDate": "Hire Date",
+      "status": "Status",
+      "bio": "Biography",
+      "teacher": "Teacher",
+      "schoolLevel": "School Level",
+      "classLevel": "Class Level",
+      "subject": "Subject",
+      "academicYear": "Academic Year",
+      "hoursPerWeek": "Hours per Week",
+      "notes": "Notes",
+      "dayOfWeek": "Day of Week",
+      "isSchoolDay": "Is School Day",
+      "startTime": "Start Time",
+      "endTime": "End Time",
+      "morningBreakStart": "Morning Break Start",
+      "morningBreakEnd": "Morning Break End",
+      "lunchBreakStart": "Lunch Break Start",
+      "lunchBreakEnd": "Lunch Break End",
+      "holidayName": "Holiday Name",
+      "date": "Date",
+      "isRecurring": "Recurring Yearly",
+      "description": "Description",
+      "selectOption": "Select {label}",
+      "allLevels": "All Levels"
+    },
+    
+    "placeholders": {
+      "fullName": "e.g., John Doe",
+      "address": "Street, City, Country",
+      "qualification": "List your qualifications...",
+      "specialization": "e.g., Mathematics",
+      "bio": "Tell us about yourself...",
+      "notes": "Additional notes...",
+      "holidayName": "e.g., Christmas Day"
+    },
+    
+    "gender": {
+      "male": "Male",
+      "female": "Female",
+      "other": "Other"
+    },
+    
+    "education": {
+      "diploma": "Diploma",
+      "bachelor": "Bachelor's Degree",
+      "master": "Master's Degree",
+      "doctorate": "Doctorate",
+      "certificate": "Certificate"
+    },
+    
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "onLeave": "On Leave",
+      "suspended": "Suspended",
+      "completed": "Completed",
+      "notSchoolDay": "Not a School Day",
+      "recurring": "Recurring",
+      "yes": "Yes",
+      "no": "No"
+    },
+    
+    "days": {
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday"
+    },
+    
+    "actions": {
+      "view": "View",
+      "edit": "Edit",
+      "delete": "Delete",
+      "add": "Add ",
+      "search": "Search...",
+      "refresh": "Refresh",
+      "create": "Create",
+      "update": "Update",
+      "cancel": "Cancel",
+      "close": "Close",
+      "viewDetails": "View Details",
+      "clickToAdd": "Click here to add new record",
+      "generateTimetable": "Generate",
+      "export": "Export",
+      "generateReport": "Generate Report",
+      "downloadReport": "Download Report",
+      "printReport": "Print Report",
+      "addNew": "Add New",
+      "status": "Status",
+      "select": "Select"
+    },
+    
+    "filters": {
+      "allStatus": "All Status",
+      "allTeachers": "All Teachers",
+      "allWeeks": "All Weeks",
+      "allDays": "All Days",
+      "week": "Week {week}",
+      "allAcademicYears": "All Academic Years",
+      "allSchoolLevels": "All School Levels"
+    },
+    
+    "pagination": {
+      "showing": "Showing",
+      "perPage": "per page",
+      "total": "Total: ",
+      "first": "First",
+      "last": "Last",
+      "page": "Page ",
+      "records": "records",
+      "of": "of"
+    },
+    
+    "timetable": {
+      "noData": "No timetable data available. Click Generate to create one.",
+      "noEntries": "No timetable entries found for the selected criteria.",
+      "day": "Day",
+      "startTime": "Start",
+      "endTime": "End",
+      "subject": "Subject",
+      "classLevel": "Class",
+      "classroom": "Room",
+      "totalTeachers": "Total Teachers",
+      "withTimetable": "With Timetable",
+      "totalEntries": "Total Entries",
+      "avgPerTeacher": "Avg/Teacher",
+      "hoursPerWeek": "hours/week",
+      "entries": "entries",
+      "noClasses": "No classes scheduled"
+    },
+    
+    "reports": {
+      "title": "Teacher Management Report",
+      "generatedOn": "Generated on",
+      "clickToGenerate": "Click Generate Report to view insights",
+      "description": "Comprehensive report including teachers, assignments, timetables, and holidays",
+      "teachersList": "Teachers List",
+      "showingFirst": "Showing first",
+      "of": "of"
+    },
+    
+    "holidays": {
+      "upcoming": "Upcoming Holidays"
+    },
+    
+    "delete": {
+      "title": "Delete Item",
+      "confirmation": "Are you sure you want to delete this item?",
+      "itemName": "Item",
+      "warning": "This action cannot be undone."
+    },
+    
+    "messages": {
+      "loading": "Loading data...",
+      "noData": "No data found",
+      "fetchError": "Failed to fetch data",
+      "dataLoaded": "Data loaded successfully ({count} records)",
+      "createSuccess": "Created successfully",
+      "createError": "Failed to create",
+      "updateSuccess": "Updated successfully",
+      "updateError": "Failed to update",
+      "updateNotSupported": "Update not supported for this section",
+      "deleteSuccess": "Deleted successfully",
+      "deleteError": "Failed to delete",
+      "timetableGenerated": "Timetable generated successfully",
+      "timetableGenerateError": "Failed to generate timetable",
+      "entriesCreated": "entries created",
+      "conflictsDetected": "conflicts detected",
+      "exportSuccess": "Export completed successfully",
+      "exportError": "Failed to export data",
+      "reportGenerated": "Report generated successfully",
+      "reportError": "Failed to generate report",
+      "updating": "Updating...",
+      "adding": "Adding...",
+      "deleting": "Deleting..."
+    }
   }
 }

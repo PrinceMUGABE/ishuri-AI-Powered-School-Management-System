@@ -575,6 +575,11 @@ def generate_timetable(request):
     try:
         academic_year_id = request.data.get('academic_year')
         week_number = request.data.get('week_number', 1)
+        teacher_id = request.data.get('teacher_id')  # Optional: generate for specific teacher only
+        
+        print(f"[{view_name}] Generating timetable for Week {week_number}, Academic Year ID: {academic_year_id}")
+        if teacher_id:
+            print(f"[{view_name}] Filtering for teacher ID: {teacher_id}")
         
         if not academic_year_id:
             return Response({
@@ -584,11 +589,16 @@ def generate_timetable(request):
         
         academic_year = get_object_or_404(AcademicYear, id=academic_year_id)
         
-        # Clear existing timetables for this week and academic year
-        TeacherTimetable.objects.filter(
-            academic_year=academic_year,
-            week_number=week_number
-        ).delete()
+        # Clear existing timetables for this week and academic year (only for specific teacher if provided)
+        timetable_filter = {
+            'academic_year': academic_year,
+            'week_number': week_number
+        }
+        if teacher_id:
+            timetable_filter['teacher_id'] = teacher_id
+        
+        deleted_count = TeacherTimetable.objects.filter(**timetable_filter).delete()[0]
+        print(f"[{view_name}] Deleted {deleted_count} existing timetable entries")
         
         # Get all active assignments
         assignments = TeacherAssignment.objects.filter(
@@ -596,11 +606,16 @@ def generate_timetable(request):
             academic_year=academic_year
         ).select_related('teacher', 'school_level', 'class_level', 'subject')
         
+        if teacher_id:
+            assignments = assignments.filter(teacher_id=teacher_id)
+        
         if not assignments.exists():
             return Response({
                 'success': False,
                 'message': 'No active assignments found for this academic year'
             }, status=400)
+        
+        print(f"[{view_name}] Found {assignments.count()} active assignments")
         
         # Get school day settings
         school_days = SchoolDaySetting.objects.filter(
@@ -619,28 +634,52 @@ def generate_timetable(request):
         # Generate timetable entries
         timetable_entries = []
         conflicts = []
+        entries_created = 0
+        
+        from datetime import datetime, timedelta
+        from django.utils import timezone as django_timezone
         
         for school_id, school_assignments in assignments_by_school.items():
             # Get school day settings for this school level
             school_days_for_level = school_days.filter(school_level_id=school_id)
+            print(f"[{view_name}] Processing school level ID {school_id} with {len(school_assignments)} assignments and {school_days_for_level.count()} school days")
             
             for school_day in school_days_for_level:
                 day = school_day.day_of_week
+                day_name = dict(SchoolDaySetting.DAYS_OF_WEEK).get(day, str(day))
+                print(f"[{view_name}]   Processing {day_name}")
                 
                 # Calculate available time slots
                 current_time = school_day.start_time
                 end_time = school_day.end_time
                 
-                from datetime import datetime, timedelta
+                if not current_time or not end_time:
+                    print(f"[{view_name}]     No start/end time set for {day_name}, skipping")
+                    continue
                 
-                while current_time < end_time:
-                    # Calculate slot end time (assuming 1 hour slots)
-                    slot_end = (datetime.combine(date.today(), current_time) + timedelta(hours=1)).time()
+                # Calculate total available minutes
+                start_minutes = current_time.hour * 60 + current_time.minute
+                end_minutes = end_time.hour * 60 + end_time.minute
+                total_minutes = end_minutes - start_minutes
+                
+                # Create 1-hour slots (60 minutes)
+                slot_duration = 60  # minutes
+                num_slots = total_minutes // slot_duration
+                
+                print(f"[{view_name}]     Total minutes: {total_minutes}, Number of 1-hour slots: {num_slots}")
+                
+                for slot in range(num_slots):
+                    slot_start_minutes = start_minutes + (slot * slot_duration)
+                    slot_end_minutes = slot_start_minutes + slot_duration
                     
-                    if slot_end > end_time:
-                        slot_end = end_time
+                    slot_start_time = f"{slot_start_minutes // 60:02d}:{slot_start_minutes % 60:02d}"
+                    slot_end_time = f"{slot_end_minutes // 60:02d}:{slot_end_minutes % 60:02d}"
                     
-                    # Find available classroom for this time
+                    from datetime import time
+                    current_time_obj = time(hour=slot_start_minutes // 60, minute=slot_start_minutes % 60)
+                    slot_end_obj = time(hour=slot_end_minutes // 60, minute=slot_end_minutes % 60)
+                    
+                    # For each assignment, try to assign a classroom
                     for assignment in school_assignments:
                         # Find available classroom for this class level
                         classroom = ClassRoom.objects.filter(
@@ -648,43 +687,54 @@ def generate_timetable(request):
                             status='active'
                         ).first()
                         
-                        if classroom:
-                            # Check for conflicts
-                            timetable_entry = TeacherTimetable(
-                                teacher=assignment.teacher,
-                                day_of_week=day,
-                                start_time=current_time,
-                                end_time=slot_end,
-                                subject=assignment.subject,
-                                class_level=assignment.class_level,
-                                classroom=classroom,
-                                assignment=assignment,
-                                academic_year=academic_year,
-                                week_number=week_number
-                            )
-                            
-                            try:
-                                timetable_entry.clean()
-                                timetable_entries.append(timetable_entry)
-                                break  # Assign this slot to this teacher
-                            except ValidationError as e:
-                                conflicts.append({
-                                    'teacher': assignment.teacher.full_name,
-                                    'time': f"{current_time} - {slot_end}",
-                                    'error': str(e)
-                                })
-                    
-                    current_time = slot_end
+                        if not classroom:
+                            print(f"[{view_name}]     No active classroom found for class level {assignment.class_level.name}")
+                            continue
+                        
+                        # Check for conflicts
+                        timetable_entry = TeacherTimetable(
+                            teacher=assignment.teacher,
+                            day_of_week=day,
+                            start_time=current_time_obj,
+                            end_time=slot_end_obj,
+                            subject=assignment.subject,
+                            class_level=assignment.class_level,
+                            classroom=classroom,
+                            assignment=assignment,
+                            academic_year=academic_year,
+                            week_number=week_number
+                        )
+                        
+                        try:
+                            timetable_entry.clean()
+                            timetable_entries.append(timetable_entry)
+                            entries_created += 1
+                            print(f"[{view_name}]     Created entry for {assignment.teacher.full_name} on {day_name} at {slot_start_time}")
+                            break  # Assign this slot to this teacher and move to next slot
+                        except ValidationError as e:
+                            conflicts.append({
+                                'teacher': assignment.teacher.full_name,
+                                'day': day_name,
+                                'time': f"{slot_start_time} - {slot_end_time}",
+                                'error': str(e)
+                            })
+                            print(f"[{view_name}]     Conflict: {assignment.teacher.full_name} - {str(e)}")
         
         # Bulk create timetable entries
         if timetable_entries:
             TeacherTimetable.objects.bulk_create(timetable_entries)
+            print(f"[{view_name}] Successfully created {len(timetable_entries)} timetable entries")
+        else:
+            print(f"[{view_name}] No timetable entries were created")
         
         result = {
             'total_entries': len(timetable_entries),
+            'entries_created': entries_created,
             'conflicts': conflicts,
+            'conflicts_count': len(conflicts),
             'week_number': week_number,
-            'academic_year': academic_year.name
+            'academic_year': academic_year.name,
+            'teacher_filter': teacher_id if teacher_id else 'all'
         }
         
         log_response(view_name, 200, get_translation('timetable_generate_success', lang))
@@ -698,20 +748,191 @@ def generate_timetable(request):
         log_error(view_name, "generate", e)
         return Response({
             'success': False,
-            'message': get_translation('timetable_generate_error', lang)
+            'message': get_translation('timetable_generate_error', lang),
+            'error': str(e)
         }, status=500)
-
+        
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_teacher_timetable(request, teacher_id=None):
-    """Get timetable for a specific teacher or current teacher."""
+    """
+    Get timetable for teachers.
+    - If admin: returns all teachers' timetables or filtered by teacher_id
+    - If teacher: returns only their own timetable
+    """
     view_name = "GetTeacherTimetable"
     log_request(view_name, request)
     lang = get_request_language(request)
     
     try:
-        # Determine which teacher to show
+        academic_year_id = request.query_params.get('academic_year')
+        week_number = request.query_params.get('week_number', 1)
+        day_filter = request.query_params.get('day')  # Optional: filter by day (0-6)
+        
+        # Determine which teacher(s) to show
+        if is_admin(request.user):
+            # Admin can see all teachers or filter by specific teacher
+            if teacher_id:
+                teacher = get_object_or_404(Teacher, id=teacher_id)
+                teachers = [teacher]
+                print(f"[{view_name}] Admin viewing timetable for teacher: {teacher.full_name}")
+            else:
+                # Get all active teachers
+                teachers = Teacher.objects.filter(status='active')
+                print(f"[{view_name}] Admin viewing timetable for all {teachers.count()} teachers")
+        else:
+            # Teacher can only see their own timetable
+            if not is_teacher(request.user):
+                return Response({'success': False, 'message': get_translation('teacher_access_required', lang)}, status=403)
+            teacher = get_object_or_404(Teacher, user=request.user)
+            teachers = [teacher]
+            print(f"[{view_name}] Teacher viewing own timetable: {teacher.full_name}")
+        
+        # Get academic year (use current if not specified)
+        if academic_year_id:
+            academic_year = get_object_or_404(AcademicYear, id=academic_year_id)
+        else:
+            academic_year = AcademicYear.objects.filter(is_current=True).first()
+            if not academic_year:
+                return Response({
+                    'success': False,
+                    'message': 'No current academic year found. Please specify an academic year.'
+                }, status=400)
+        
+        print(f"[{view_name}] Academic Year: {academic_year.name}, Week: {week_number}")
+        
+        # Build the timetable data for all teachers
+        all_timetables = []
+        days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        
+        for teacher in teachers:
+            # Get timetable entries for this teacher
+            queryset = TeacherTimetable.objects.filter(
+                teacher=teacher,
+                week_number=week_number,
+                academic_year=academic_year
+            ).order_by('day_of_week', 'start_time')
+            
+            if day_filter is not None:
+                queryset = queryset.filter(day_of_week=int(day_filter))
+            
+            serializer = TeacherTimetableSerializer(queryset, many=True)
+            
+            # Group by day
+            grouped_timetable = {day: [] for day in days}
+            for entry in serializer.data:
+                day_name = days[entry['day_of_week']]
+                grouped_timetable[day_name].append(entry)
+            
+            # Calculate teacher's weekly hours
+            total_hours = sum(float(entry['end_time'].split(':')[0]) + float(entry['end_time'].split(':')[1])/60 - 
+                             (float(entry['start_time'].split(':')[0]) + float(entry['start_time'].split(':')[1])/60)
+                             for entry in serializer.data)
+            
+            teacher_data = {
+                'teacher': TeacherSerializer(teacher).data,
+                'timetable': grouped_timetable,
+                'total_weekly_hours': round(total_hours, 1),
+                'total_entries': len(serializer.data)
+            }
+            
+            all_timetables.append(teacher_data)
+        
+        # Get holidays for the week
+        from datetime import datetime, timedelta
+        start_date = datetime(academic_year.start_date.year, academic_year.start_date.month, academic_year.start_date.day)
+        # Calculate week start date (simplified)
+        week_start = start_date + timedelta(days=(week_number - 1) * 7)
+        week_end = week_start + timedelta(days=6)
+        
+        holidays = Holiday.objects.filter(
+            academic_year=academic_year,
+            date__gte=week_start.date(),
+            date__lte=week_end.date()
+        ).select_related('school_level')
+        
+        holiday_data = []
+        for holiday in holidays:
+            holiday_data.append({
+                'id': holiday.id,
+                'name': holiday.name,
+                'date': holiday.date,
+                'is_recurring': holiday.is_recurring,
+                'school_level': holiday.school_level.name if holiday.school_level else 'All Levels',
+                'description': holiday.description
+            })
+        
+        # Get school day settings for reference
+        school_day_settings = SchoolDaySetting.objects.filter(
+            academic_year=academic_year
+        ).select_related('school_level')
+        
+        settings_data = {}
+        for setting in school_day_settings:
+            key = f"{setting.school_level.id}_{setting.day_of_week}"
+            settings_data[key] = {
+                'is_school_day': setting.is_school_day,
+                'start_time': setting.start_time,
+                'end_time': setting.end_time,
+                'breaks': {
+                    'morning': {'start': setting.morning_break_start, 'end': setting.morning_break_end} if setting.morning_break_start else None,
+                    'lunch': {'start': setting.lunch_break_start, 'end': setting.lunch_break_end} if setting.lunch_break_start else None,
+                    'afternoon': {'start': setting.afternoon_break_start, 'end': setting.afternoon_break_end} if setting.afternoon_break_start else None
+                }
+            }
+        
+        result = {
+            'timetables': all_timetables,
+            'week_number': int(week_number),
+            'academic_year': {
+                'id': academic_year.id,
+                'name': academic_year.name
+            },
+            'holidays': holiday_data,
+            'school_day_settings': settings_data,
+            'days_of_week': days
+        }
+        
+        # Add summary statistics for admin view
+        if is_admin(request.user) and not teacher_id:
+            total_teachers = len(teachers)
+            teachers_with_timetable = len([t for t in all_timetables if t['total_entries'] > 0])
+            total_entries = sum(t['total_entries'] for t in all_timetables)
+            
+            result['summary'] = {
+                'total_teachers': total_teachers,
+                'teachers_with_timetable': teachers_with_timetable,
+                'teachers_without_timetable': total_teachers - teachers_with_timetable,
+                'total_timetable_entries': total_entries,
+                'average_entries_per_teacher': round(total_entries / total_teachers, 1) if total_teachers > 0 else 0
+            }
+        
+        log_response(view_name, 200, "Timetable retrieved successfully")
+        return Response({'success': True, 'data': result})
+        
+    except Exception as e:
+        log_error(view_name, "get_timetable", e)
+        return Response({'success': False, 'message': str(e)}, status=500)
+    
+    
+    
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_teacher_timetable_export(request, teacher_id=None):
+    """
+    Export timetable for a teacher in a formatted way (for printing or download).
+    """
+    view_name = "GetTeacherTimetableExport"
+    log_request(view_name, request)
+    lang = get_request_language(request)
+    
+    try:
+        academic_year_id = request.query_params.get('academic_year')
+        week_number = request.query_params.get('week_number', 1)
+        
+        # Determine which teacher
         if teacher_id:
             if not is_admin(request.user):
                 return Response({'success': False, 'message': get_translation('admin_access_required', lang)}, status=403)
@@ -721,41 +942,49 @@ def get_teacher_timetable(request, teacher_id=None):
                 return Response({'success': False, 'message': get_translation('teacher_access_required', lang)}, status=403)
             teacher = get_object_or_404(Teacher, user=request.user)
         
-        academic_year_id = request.query_params.get('academic_year')
-        week_number = request.query_params.get('week_number', 1)
+        # Get academic year
+        if academic_year_id:
+            academic_year = get_object_or_404(AcademicYear, id=academic_year_id)
+        else:
+            academic_year = AcademicYear.objects.filter(is_current=True).first()
+            if not academic_year:
+                return Response({'success': False, 'message': 'No current academic year found'}, status=400)
         
+        # Get timetable entries
         queryset = TeacherTimetable.objects.filter(
             teacher=teacher,
-            week_number=week_number
-        )
-        
-        if academic_year_id:
-            queryset = queryset.filter(academic_year_id=academic_year_id)
+            week_number=week_number,
+            academic_year=academic_year
+        ).order_by('day_of_week', 'start_time')
         
         serializer = TeacherTimetableSerializer(queryset, many=True)
         
-        # Group by day
+        # Format for export
         days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-        grouped_data = {day: [] for day in days}
+        export_data = {
+            'teacher': TeacherSerializer(teacher).data,
+            'week_number': week_number,
+            'academic_year': academic_year.name,
+            'generated_on': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'timetable': []
+        }
         
         for entry in serializer.data:
-            day_name = days[entry['day_of_week']]
-            grouped_data[day_name].append(entry)
+            export_data['timetable'].append({
+                'day': days[entry['day_of_week']],
+                'start_time': entry['start_time'],
+                'end_time': entry['end_time'],
+                'subject': entry['subject_name'],
+                'class_level': entry['class_level_name'],
+                'classroom': entry['classroom_name']
+            })
         
-        log_response(view_name, 200, "Timetable retrieved successfully")
-        return Response({
-            'success': True,
-            'data': {
-                'teacher': TeacherSerializer(teacher).data,
-                'timetable': grouped_data,
-                'week_number': int(week_number)
-            }
-        })
+        log_response(view_name, 200, "Timetable exported successfully")
+        return Response({'success': True, 'data': export_data})
         
     except Exception as e:
-        log_error(view_name, "get_timetable", e)
+        log_error(view_name, "export_timetable", e)
         return Response({'success': False, 'message': str(e)}, status=500)
-
 
 # ==================== DAY SETTINGS CRUD ====================
 

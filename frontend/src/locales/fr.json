@@ -1122,7 +1122,8 @@
     "holidayName": "Nom du jour férié",
     "date": "Date",
     "academicYear": "Année académique",
-    "recurring": "Récurrent"
+    "recurring": "Récurrent",
+    "username": "Nom d'utilisateur"
   },
   
   "form": {
@@ -1260,5 +1261,244 @@
     "deleteError": "Échec de la suppression",
     "timetableGenerated": "Emploi du temps généré avec succès",
     "timetableGenerateError": "Échec de la génération de l'emploi du temps"
+  },
+
+
+  
+  "teachers": {
+    "title": "Gestion des Enseignants",
+    "subtitle": "Gérer les enseignants, affectations, emplois du temps et jours scolaires",
+    
+    "tabs": {
+      "teachers": "Enseignants",
+      "assignments": "Affectations",
+      "timetable": "Emploi du temps",
+      "daySettings": "Jours scolaires",
+      "holidays": "Jours fériés",
+      "reports": "Rapports"
+    },
+    
+    "stats": {
+      "totalTeachers": "Total Enseignants",
+      "activeTeachers": "Actifs",
+      "inactiveTeachers": "Inactifs",
+      "onLeaveTeachers": "En congé",
+      "totalAssignments": "Affectations",
+      "timetableEntries": "Entrées EDT",
+      "totalHolidays": "Jours fériés"
+    },
+    
+    "table": {
+      "fullName": "Nom complet",
+      "username": "Nom utilisateur",
+      "email": "Email",
+      "phone": "Téléphone",
+      "specialization": "Spécialisation",
+      "status": "Statut",
+      "actions": "Actions",
+      "teacher": "Enseignant",
+      "subject": "Matière",
+      "classLevel": "Niveau classe",
+      "hoursPerWeek": "Heures/semaine",
+      "hoursPerWeekSuffix": "h/sem",
+      "schoolLevel": "Niveau scolaire",
+      "day": "Jour",
+      "schedule": "Horaire",
+      "holidayName": "Nom jour férié",
+      "date": "Date",
+      "academicYear": "Année académique",
+      "recurring": "Récurrent"
+    },
+    
+    "form": {
+      "fullName": "Nom complet",
+      "email": "Adresse email",
+      "phone": "Numéro téléphone",
+      "address": "Adresse",
+      "gender": "Genre",
+      "educationLevel": "Niveau d'études",
+      "qualification": "Qualifications",
+      "specialization": "Spécialisation",
+      "experience": "Années d'expérience",
+      "birthDate": "Date naissance",
+      "hireDate": "Date embauche",
+      "status": "Statut",
+      "bio": "Biographie",
+      "teacher": "Enseignant",
+      "schoolLevel": "Niveau scolaire",
+      "classLevel": "Niveau classe",
+      "subject": "Matière",
+      "academicYear": "Année académique",
+      "hoursPerWeek": "Heures par semaine",
+      "notes": "Notes",
+      "dayOfWeek": "Jour semaine",
+      "isSchoolDay": "Jour d'école",
+      "startTime": "Heure début",
+      "endTime": "Heure fin",
+      "morningBreakStart": "Début pause matin",
+      "morningBreakEnd": "Fin pause matin",
+      "lunchBreakStart": "Début pause déjeuner",
+      "lunchBreakEnd": "Fin pause déjeuner",
+      "holidayName": "Nom jour férié",
+      "date": "Date",
+      "isRecurring": "Récurrent annuel",
+      "description": "Description",
+      "selectOption": "Sélectionner {label}",
+      "allLevels": "Tous niveaux"
+    },
+    
+    "placeholders": {
+      "fullName": "ex: Jean Dupont",
+      "address": "Rue, Ville, Pays",
+      "qualification": "Listez vos qualifications...",
+      "specialization": "ex: Mathématiques",
+      "bio": "Parlez de vous...",
+      "notes": "Notes supplémentaires...",
+      "holidayName": "ex: Noël"
+    },
+    
+    "gender": {
+      "male": "Masculin",
+      "female": "Féminin",
+      "other": "Autre"
+    },
+    
+    "education": {
+      "diploma": "Diplôme",
+      "bachelor": "Licence",
+      "master": "Master",
+      "doctorate": "Doctorat",
+      "certificate": "Certificat"
+    },
+    
+    "status": {
+      "active": "Actif",
+      "inactive": "Inactif",
+      "onLeave": "En congé",
+      "suspended": "Suspendu",
+      "completed": "Terminé",
+      "notSchoolDay": "Pas jour d'école",
+      "recurring": "Récurrent",
+      "yes": "Oui",
+      "no": "Non"
+    },
+    
+    "days": {
+      "monday": "Lundi",
+      "tuesday": "Mardi",
+      "wednesday": "Mercredi",
+      "thursday": "Jeudi",
+      "friday": "Vendredi",
+      "saturday": "Samedi",
+      "sunday": "Dimanche"
+    },
+    
+    "actions": {
+      "view": "Voir",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "add": "Ajouter ",
+      "search": "Rechercher...",
+      "refresh": "Actualiser",
+      "create": "Créer",
+      "update": "Mettre à jour",
+      "cancel": "Annuler",
+      "close": "Fermer",
+      "viewDetails": "Voir détails",
+      "clickToAdd": "Cliquez pour ajouter",
+      "generateTimetable": "Générer",
+      "export": "Exporter",
+      "generateReport": "Générer rapport",
+      "downloadReport": "Télécharger",
+      "printReport": "Imprimer",
+      "addNew": "Ajouter nouveau",
+      "select": "Sélectionner"
+    },
+    
+    "filters": {
+      "allStatus": "Tous statuts",
+      "allTeachers": "Tous enseignants",
+      "allWeeks": "Toutes semaines",
+      "allDays": "Tous jours",
+      "week": "Semaine {week}",
+      "allAcademicYears": "Toutes années",
+      "allSchoolLevels": "Tous niveaux"
+    },
+    
+    "pagination": {
+      "showing": "Affichage",
+      "perPage": "par page",
+      "total": "Total: ",
+      "first": "Premier",
+      "last": "Dernier",
+      "page": "Page ",
+      "records": "enregistrements",
+      "of": "sur"
+    },
+    
+    "timetable": {
+      "noData": "Aucun emploi du temps. Cliquez Générer.",
+      "noEntries": "Aucune entrée trouvée.",
+      "day": "Jour",
+      "startTime": "Début",
+      "endTime": "Fin",
+      "subject": "Matière",
+      "classLevel": "Classe",
+      "classroom": "Salle",
+      "totalTeachers": "Total enseignants",
+      "withTimetable": "Avec EDT",
+      "totalEntries": "Total entrées",
+      "avgPerTeacher": "Moy/enseignant",
+      "hoursPerWeek": "heures/semaine",
+      "entries": "entrées",
+      "noClasses": "Aucun cours"
+    },
+    
+    "reports": {
+      "title": "Rapport Enseignants",
+      "generatedOn": "Généré le",
+      "clickToGenerate": "Cliquez pour générer le rapport",
+      "description": "Rapport complet enseignants, affectations, EDT, jours fériés",
+      "teachersList": "Liste enseignants",
+      "showingFirst": "Affichage premiers",
+      "of": "sur"
+    },
+    
+    "holidays": {
+      "upcoming": "Jours fériés à venir"
+    },
+    
+    "delete": {
+      "title": "Supprimer",
+      "confirmation": "Confirmer la suppression ?",
+      "itemName": "Élément",
+      "warning": "Action irréversible"
+    },
+    
+    "messages": {
+      "loading": "Chargement...",
+      "noData": "Aucune donnée",
+      "fetchError": "Échec chargement",
+      "dataLoaded": "Données chargées ({count} enregistrements)",
+      "createSuccess": "Créé avec succès",
+      "createError": "Échec création",
+      "updateSuccess": "Mis à jour",
+      "updateError": "Échec mise à jour",
+      "updateNotSupported": "Modification non supportée",
+      "deleteSuccess": "Supprimé",
+      "deleteError": "Échec suppression",
+      "timetableGenerated": "EDT généré",
+      "timetableGenerateError": "Échec génération EDT",
+      "entriesCreated": "entrées créées",
+      "conflictsDetected": "conflits détectés",
+      "exportSuccess": "Export réussi",
+      "exportError": "Échec export",
+      "reportGenerated": "Rapport généré",
+      "reportError": "Échec génération rapport",
+      "updating": "Mise à jour en cours...",
+      "creating": "Création en cours...",
+      "deleting": "Suppression en cours...",
+      "adding": "Ajout en cours..."
+    }
   }
 }
