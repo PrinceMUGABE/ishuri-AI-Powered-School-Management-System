@@ -81,7 +81,7 @@ class ParentListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'full_name', 'phone_number', 'email',
             'relationship_type', 'relationship_type_display',
-            'status', 'students_count', 'created_at'
+            'status', 'students_count', 'created_at', 'physical_address'
         ]
 
     def get_students_count(self, obj):

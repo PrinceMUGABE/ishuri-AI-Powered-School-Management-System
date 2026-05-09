@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import {
@@ -27,26 +27,19 @@ apiClient.interceptors.request.use((config) => {
   const language = localStorage.getItem('user_language') || 'en';
   if (token) config.headers['Authorization'] = `Bearer ${token}`;
   config.headers['X-Language'] = language;
-  console.log(`[API ▶] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
   return config;
-}, (error) => { console.error('[API Request Error]', error); return Promise.reject(error); });
+}, (error) => Promise.reject(error));
 
 apiClient.interceptors.response.use(
-  (res) => {
-    console.log(`[API ◀] ${res.config.method?.toUpperCase()} ${res.config.url} → ${res.status}`, res.data);
-    return res;
-  },
-  (error) => {
-    console.error('[API Error]', error.response?.data || error.message);
-    return Promise.reject(error);
-  }
+  (res) => res,
+  (error) => Promise.reject(error)
 );
 
 // ─────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────
 const STATUS_COLORS = {
-  active:   'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
+  active:   'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
   inactive: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
 };
 
@@ -73,7 +66,7 @@ const StudentManagement = () => {
   const [showEditModal,   setShowEditModal]   = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showViewModal,   setShowViewModal]   = useState(false);
-  const [showLinkModal,   setShowLinkModal]   = useState(false); // link extra parent to student
+  const [showLinkModal,   setShowLinkModal]   = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [selectedItem,    setSelectedItem]    = useState(null);
   const [newItem,  setNewItem]  = useState({});
@@ -92,8 +85,16 @@ const StudentManagement = () => {
   // ── Dropdowns ─────────────────────────────────────────────
   const [academicYears,  setAcademicYears]  = useState([]);
   const [schoolLevels,   setSchoolLevels]   = useState([]);
-  const [classLevels,    setClassLevels]    = useState([]);
   const [allClassLevels, setAllClassLevels] = useState([]);
+
+  // ── Per-context class level lists ─────────────────────────
+  const [addClassLevels,    setAddClassLevels]    = useState([]);
+  const [editClassLevels,   setEditClassLevels]   = useState([]);
+  const [filterClassLevels, setFilterClassLevels] = useState([]);
+
+  const [addClassLoading,    setAddClassLoading]    = useState(false);
+  const [editClassLoading,   setEditClassLoading]   = useState(false);
+  const [filterClassLoading, setFilterClassLoading] = useState(false);
 
   // ── Filters ───────────────────────────────────────────────
   const [filters, setFilters] = useState({
@@ -108,50 +109,104 @@ const StudentManagement = () => {
   });
 
   // ─────────────────────────────────────────────────────────
-  // Tabs
+  // Tabs — using landing page green/amber palette
   // ─────────────────────────────────────────────────────────
   const tabs = [
-    { id: 'students', label: t('students.tabs.students'), icon: GraduationCap, color: 'indigo'  },
-    { id: 'parents',  label: t('students.tabs.parents'),  icon: Shield,        color: 'teal'    },
-    { id: 'reports',  label: t('students.tabs.reports'),  icon: BarChart3,     color: 'violet'  },
+    { id: 'students', label: t('students.tabs.students'), icon: GraduationCap },
+    { id: 'parents',  label: t('students.tabs.parents'),  icon: Shield        },
+    { id: 'reports',  label: t('students.tabs.reports'),  icon: BarChart3     },
   ];
 
   const currentTabLabel = () => tabs.find(tab => tab.id === activeTab)?.label ?? '';
 
   // ─────────────────────────────────────────────────────────
-  // Fetch dropdowns
+  // Fetch class levels for a given school level ID
+  // ─────────────────────────────────────────────────────────
+  const fetchClassLevelsBySchoolLevel = useCallback(async (schoolLevelId) => {
+    if (!schoolLevelId) return [];
+    try {
+      const res = await apiClient.get(`/academics/school-levels/${schoolLevelId}/class-levels/`);
+      if (res.data.success) return res.data.data?.results ?? res.data.data ?? [];
+      return [];
+    } catch (err) {
+      return [];
+    }
+  }, []);
+
+  // ─────────────────────────────────────────────────────────
+  // Fetch base dropdowns
   // ─────────────────────────────────────────────────────────
   const fetchDropdownData = useCallback(async () => {
     try {
-      const token = localStorage.getItem('access_token');
-      const h = { headers: { Authorization: `Bearer ${token}` } };
       const [yearsRes, schoolsRes, classesRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/academics/academic-years/`, h),
-        axios.get(`${API_BASE_URL}/academics/school-levels/`,  h),
-        axios.get(`${API_BASE_URL}/academics/class-levels/`,   h),
+        apiClient.get('/academics/academic-years/'),
+        apiClient.get('/academics/school-levels/'),
+        apiClient.get('/academics/class-levels/'),
       ]);
       if (yearsRes.data.success)   setAcademicYears(yearsRes.data.data?.results ?? yearsRes.data.data ?? []);
       if (schoolsRes.data.success) setSchoolLevels(schoolsRes.data.data?.results ?? schoolsRes.data.data ?? []);
       if (classesRes.data.success) {
         const all = classesRes.data.data?.results ?? classesRes.data.data ?? [];
         setAllClassLevels(all);
-        setClassLevels(all);
+        setAddClassLevels(all);
+        setEditClassLevels(all);
+        setFilterClassLevels(all);
       }
-      console.log('[Dropdowns] Loaded academic years, school levels, class levels');
-    } catch (err) {
-      console.error('[Dropdowns] Error:', err);
-    }
+    } catch (err) {}
   }, []);
 
-  // Filter class levels based on selected school level
   useEffect(() => {
-    if (newItem.current_school_level_id || editItem.current_school_level_id) {
-      const sid = newItem.current_school_level_id || editItem.current_school_level_id;
-      setClassLevels(allClassLevels.filter(c => String(c.school_level?.id) === String(sid)));
-    } else {
-      setClassLevels(allClassLevels);
-    }
-  }, [newItem.current_school_level_id, editItem.current_school_level_id, allClassLevels]);
+    const sid = newItem.current_school_level_id;
+    if (!sid) { setAddClassLevels(allClassLevels); setNewItem(prev => ({ ...prev, current_class_level_id: '' })); return; }
+    setAddClassLoading(true);
+    fetchClassLevelsBySchoolLevel(sid).then((levels) => {
+      setAddClassLevels(levels);
+      setNewItem(prev => {
+        const ok = levels.some(l => String(l.id) === String(prev.current_class_level_id));
+        return ok ? prev : { ...prev, current_class_level_id: '' };
+      });
+    }).finally(() => setAddClassLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [newItem.current_school_level_id, allClassLevels]);
+
+  useEffect(() => {
+    const sid = editItem.current_school_level_id;
+    if (!sid) { setEditClassLevels(allClassLevels); return; }
+    setEditClassLoading(true);
+    fetchClassLevelsBySchoolLevel(sid).then((levels) => {
+      setEditClassLevels(levels);
+      setEditItem(prev => {
+        const ok = levels.some(l => String(l.id) === String(prev.current_class_level_id));
+        return ok ? prev : { ...prev, current_class_level_id: '' };
+      });
+    }).finally(() => setEditClassLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editItem.current_school_level_id, allClassLevels]);
+
+  useEffect(() => {
+    const sid = filters.school_level_id;
+    if (!sid) { setFilterClassLevels(allClassLevels); setFilters(prev => ({ ...prev, class_level_id: '' })); return; }
+    setFilterClassLoading(true);
+    fetchClassLevelsBySchoolLevel(sid).then((levels) => {
+      setFilterClassLevels(levels);
+      setFilters(prev => {
+        const ok = levels.some(l => String(l.id) === String(prev.class_level_id));
+        return ok ? prev : { ...prev, class_level_id: '' };
+      });
+    }).finally(() => setFilterClassLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.school_level_id, allClassLevels]);
+
+  const openEditModal = useCallback((item) => {
+    const normalised = {
+      ...item,
+      current_school_level_id:  item.current_school_level_id  ?? item.current_school_level?.id  ?? '',
+      current_class_level_id:   item.current_class_level_id   ?? item.current_class_level?.id   ?? '',
+      current_academic_year_id: item.current_academic_year_id ?? item.current_academic_year?.id ?? '',
+    };
+    setEditItem(normalised);
+    setShowEditModal(true);
+  }, []);
 
   // ─────────────────────────────────────────────────────────
   // Fetch main data
@@ -178,15 +233,11 @@ const StudentManagement = () => {
         if (filters.relationship_type) params.append('relationship_type', filters.relationship_type);
       }
 
-      const fullUrl = `${url}?${params.toString()}`;
-      const res = await apiClient.get(fullUrl);
-      console.log(`[fetchData] Tab="${activeTab}"`, res.data);
-
+      const res = await apiClient.get(`${url}?${params.toString()}`);
       if (res.data.success) {
         const d = res.data.data;
         const results = d?.results ?? (Array.isArray(d) ? d : []);
         setServerTotal(d?.count ?? results.length);
-
         if (activeTab === 'students') {
           setStudents(results);
           setStats(prev => ({
@@ -208,7 +259,6 @@ const StudentManagement = () => {
         toast.error(res.data.message || t('students.messages.fetchError'));
       }
     } catch (err) {
-      console.error('[fetchData] Error:', err);
       toast.error(err.response?.data?.message || t('students.messages.fetchError'));
     } finally {
       setLoading(false);
@@ -226,102 +276,64 @@ const StudentManagement = () => {
     try {
       const url = activeTab === 'students' ? '/students/create/' : '/students/parents/create/';
       const res = await apiClient.post(url, newItem);
-      console.log('[handleCreate] Response:', res.data);
       if (res.data.success) {
         toast.success(res.data.message || t('students.messages.createSuccess'));
-        setShowAddModal(false);
-        setNewItem({});
-        fetchData();
+        setShowAddModal(false); setNewItem({}); fetchData();
       } else {
-        const firstError = Object.values(res.data.errors || {}).flat()[0] || res.data.message;
-        toast.error(firstError || t('students.messages.createError'));
+        toast.error(Object.values(res.data.errors || {}).flat()[0] || res.data.message || t('students.messages.createError'));
       }
     } catch (err) {
-      console.error('[handleCreate] Error:', err);
-      const msg = err.response?.data?.message
-        || Object.values(err.response?.data?.errors || {}).flat()[0]
-        || t('students.messages.createError');
-      toast.error(msg);
-    } finally {
-      setLoading(false);
-    }
+      toast.error(err.response?.data?.message || Object.values(err.response?.data?.errors || {}).flat()[0] || t('students.messages.createError'));
+    } finally { setLoading(false); }
   };
 
   const handleUpdate = async () => {
     setLoading(true);
     try {
-      const url = activeTab === 'students'
-        ? `/students/${editItem.id}/update/`
-        : `/students/parents/${editItem.id}/update/`;
-      const payload = { ...editItem };
-      delete payload.id;
+      const url = activeTab === 'students' ? `/students/${editItem.id}/update/` : `/students/parents/${editItem.id}/update/`;
+      const payload = { ...editItem }; delete payload.id;
       const res = await apiClient.patch(url, payload);
-      console.log('[handleUpdate] Response:', res.data);
       if (res.data.success) {
         toast.success(res.data.message || t('students.messages.updateSuccess'));
-        setShowEditModal(false);
-        setEditItem({});
-        fetchData();
+        setShowEditModal(false); setEditItem({}); fetchData();
       } else {
-        const firstError = Object.values(res.data.errors || {}).flat()[0] || res.data.message;
-        toast.error(firstError || t('students.messages.updateError'));
+        toast.error(Object.values(res.data.errors || {}).flat()[0] || res.data.message || t('students.messages.updateError'));
       }
     } catch (err) {
-      console.error('[handleUpdate] Error:', err);
       toast.error(err.response?.data?.message || t('students.messages.updateError'));
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   const handleDelete = async () => {
     setLoading(true);
     try {
-      const url = activeTab === 'students'
-        ? `/students/${selectedItem.id}/delete/`
-        : `/students/parents/${selectedItem.id}/delete/`;
+      const url = activeTab === 'students' ? `/students/${selectedItem.id}/delete/` : `/students/parents/${selectedItem.id}/delete/`;
       const res = await apiClient.delete(url);
-      console.log('[handleDelete] Response:', res.data);
       if (res.data.success) {
         toast.success(res.data.message || t('students.messages.deleteSuccess'));
-        setShowDeleteModal(false);
-        setSelectedItem(null);
-        fetchData();
+        setShowDeleteModal(false); setSelectedItem(null); fetchData();
       } else {
         toast.error(res.data.message || t('students.messages.deleteError'));
       }
     } catch (err) {
-      console.error('[handleDelete] Error:', err);
       toast.error(err.response?.data?.message || t('students.messages.deleteError'));
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
-  // Link additional parent to a student (admin side — always works)
   const handleLinkParent = async () => {
     if (!selectedItem) return;
     setLoading(true);
     try {
-      // Create a new parent and immediately link to this student
-      const payload = { ...newItem, student_ids: [selectedItem.id] };
-      const res = await apiClient.post('/students/parents/create/', payload);
-      console.log('[handleLinkParent] Response:', res.data);
+      const res = await apiClient.post('/students/parents/create/', { ...newItem, student_ids: [selectedItem.id] });
       if (res.data.success) {
         toast.success(res.data.message || t('students.messages.parentLinked'));
-        setShowLinkModal(false);
-        setNewItem({});
-        fetchData();
+        setShowLinkModal(false); setNewItem({}); fetchData();
       } else {
-        const firstError = Object.values(res.data.errors || {}).flat()[0] || res.data.message;
-        toast.error(firstError || t('students.messages.createError'));
+        toast.error(Object.values(res.data.errors || {}).flat()[0] || res.data.message || t('students.messages.createError'));
       }
     } catch (err) {
-      console.error('[handleLinkParent] Error:', err);
       toast.error(err.response?.data?.message || t('students.messages.createError'));
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   const handleGenerateReport = async () => {
@@ -331,13 +343,11 @@ const StudentManagement = () => {
         apiClient.get('/students/?page_size=1000'),
         apiClient.get('/students/parents/?page_size=1000'),
       ]);
-      console.log('[handleGenerateReport] Students:', studRes.data, 'Parents:', parRes.data);
       const studArr = studRes.data.data?.results ?? studRes.data.data ?? [];
       const parArr  = parRes.data.data?.results  ?? parRes.data.data  ?? [];
-      const report = {
+      setReportData({
         generated_on: new Date().toLocaleString(),
-        students: studArr,
-        parents:  parArr,
+        students: studArr, parents: parArr,
         summary: {
           total_students:    studArr.length,
           active_students:   studArr.filter(s => s.status === 'active').length,
@@ -346,47 +356,47 @@ const StudentManagement = () => {
           active_parents:    parArr.filter(p => p.status === 'active').length,
           students_with_parents: studArr.filter(s => s.parents_count > 0).length,
         },
-      };
-      setReportData(report);
+      });
       setShowReportModal(true);
       toast.success(t('students.messages.reportGenerated'));
     } catch (err) {
-      console.error('[handleGenerateReport] Error:', err);
       toast.error(t('students.messages.reportError'));
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   // ─────────────────────────────────────────────────────────
-  // Form field definitions
+  // Form fields
   // ─────────────────────────────────────────────────────────
-  const getStudentFields = () => [
-    { name: 'full_name',              label: t('students.form.fullName'),       type: 'text',     required: true,  placeholder: t('students.placeholders.fullName') },
-    { name: 'email',                  label: t('students.form.email'),          type: 'email',    required: false, placeholder: 'student@example.com' },
-    { name: 'phone_number',           label: t('students.form.phone'),          type: 'tel',      required: false, placeholder: '+250XXXXXXXXX' },
-    { name: 'birth_date',             label: t('students.form.birthDate'),      type: 'date',     required: false },
-    { name: 'current_academic_year_id', label: t('students.form.academicYear'), type: 'select',   required: false, options: academicYears.map(y => ({ value: y.id, label: y.name })) },
-    { name: 'current_school_level_id',  label: t('students.form.schoolLevel'),  type: 'select',   required: false, options: schoolLevels.map(s => ({ value: s.id, label: s.name })) },
-    { name: 'current_class_level_id',   label: t('students.form.classLevel'),   type: 'select',   required: false, options: classLevels.map(c => ({ value: c.id, label: c.name })) },
+  const getStudentFields = (classLevels, classLevelsLoading) => [
+    { name: 'full_name',              label: t('students.form.fullName'),       type: 'text',   required: true,  placeholder: t('students.placeholders.fullName') },
+    { name: 'email',                  label: t('students.form.email'),          type: 'email',  required: false, placeholder: 'student@example.com' },
+    { name: 'phone_number',           label: t('students.form.phone'),          type: 'tel',    required: false, placeholder: '+250XXXXXXXXX' },
+    { name: 'birth_date',             label: t('students.form.birthDate'),      type: 'date',   required: false },
+    { name: 'current_academic_year_id', label: t('students.form.academicYear'), type: 'select', required: false, options: academicYears.map(y => ({ value: y.id, label: y.name })) },
+    { name: 'current_school_level_id',  label: t('students.form.schoolLevel'),  type: 'select', required: false, options: schoolLevels.map(s => ({ value: s.id, label: s.name })) },
+    {
+      name: 'current_class_level_id',
+      label: t('students.form.classLevel'),
+      type: 'select', required: false,
+      loading: classLevelsLoading,
+      options: classLevels.map(c => ({ value: c.id, label: c.name })),
+      hint: classLevels.length === 0 && !classLevelsLoading ? (t('students.hints.selectSchoolLevelFirst') || 'Select a school level first') : null,
+    },
   ];
 
-  const getStudentEditFields = () => [
-    ...getStudentFields(),
+  const getStudentEditFields = (classLevels, classLevelsLoading) => [
+    ...getStudentFields(classLevels, classLevelsLoading),
     { name: 'status', label: t('students.form.status'), type: 'select', required: true,
-      options: [
-        { value: 'active',   label: t('students.status.active') },
-        { value: 'inactive', label: t('students.status.inactive') },
-      ],
+      options: [{ value: 'active', label: t('students.status.active') }, { value: 'inactive', label: t('students.status.inactive') }],
     },
   ];
 
   const getParentFields = () => [
-    { name: 'full_name',          label: t('students.form.fullName'),          type: 'text',     required: true,  placeholder: t('students.placeholders.fullName') },
-    { name: 'phone_number',       label: t('students.form.phone'),             type: 'tel',      required: true,  placeholder: '+250XXXXXXXXX' },
-    { name: 'email',              label: t('students.form.email'),             type: 'email',    required: true,  placeholder: 'parent@example.com' },
-    { name: 'physical_address',   label: t('students.form.physicalAddress'),   type: 'textarea', required: false, placeholder: t('students.placeholders.address') },
-    { name: 'relationship_type',  label: t('students.form.relationshipType'),  type: 'select',   required: true,
+    { name: 'full_name',         label: t('students.form.fullName'),         type: 'text',     required: true,  placeholder: t('students.placeholders.fullName') },
+    { name: 'phone_number',      label: t('students.form.phone'),            type: 'tel',      required: true,  placeholder: '+250XXXXXXXXX' },
+    { name: 'email',             label: t('students.form.email'),            type: 'email',    required: true,  placeholder: 'parent@example.com' },
+    { name: 'physical_address',  label: t('students.form.physicalAddress'),  type: 'textarea', required: false, placeholder: t('students.placeholders.address') },
+    { name: 'relationship_type', label: t('students.form.relationshipType'), type: 'select',   required: true,
       options: [
         { value: 'father',   label: t('students.relationship.father') },
         { value: 'mother',   label: t('students.relationship.mother') },
@@ -398,11 +408,11 @@ const StudentManagement = () => {
   ];
 
   const getParentEditFields = () => [
-    { name: 'full_name',         label: t('students.form.fullName'),        type: 'text',     required: true  },
-    { name: 'phone_number',      label: t('students.form.phone'),           type: 'tel',      required: true  },
-    { name: 'email',             label: t('students.form.email'),           type: 'email',    required: true  },
-    { name: 'physical_address',  label: t('students.form.physicalAddress'), type: 'textarea', required: false },
-    { name: 'relationship_type', label: t('students.form.relationshipType'),type: 'select',   required: true,
+    { name: 'full_name',         label: t('students.form.fullName'),         type: 'text',     required: true },
+    { name: 'phone_number',      label: t('students.form.phone'),            type: 'tel',      required: true },
+    { name: 'email',             label: t('students.form.email'),            type: 'email',    required: true },
+    { name: 'physical_address',  label: t('students.form.physicalAddress'),  type: 'textarea', required: false },
+    { name: 'relationship_type', label: t('students.form.relationshipType'), type: 'select',   required: true,
       options: [
         { value: 'father',   label: t('students.relationship.father') },
         { value: 'mother',   label: t('students.relationship.mother') },
@@ -413,53 +423,46 @@ const StudentManagement = () => {
   ];
 
   // ─────────────────────────────────────────────────────────
-  // Render form fields
+  // Shared input classes (green focus ring — matches landing page)
   // ─────────────────────────────────────────────────────────
+  const inputCls = "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 focus:border-transparent text-sm outline-none";
+  const selectCls = `${inputCls} disabled:opacity-60 disabled:cursor-not-allowed`;
+
   const renderFormFields = (fields, item, setItem) => fields.map(field => (
     <div key={field.name}>
       <label className="block text-xs font-semibold mb-1 text-gray-600 dark:text-gray-300 uppercase tracking-wide">
-        {field.label}{field.required && <span className="text-rose-500 ml-0.5">*</span>}
+        {field.label}{field.required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
 
       {field.type === 'select' ? (
-        <select
-          value={item[field.name] ?? ''}
-          onChange={(e) => setItem({ ...item, [field.name]: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 text-sm"
-        >
-          <option value="">{`— ${t('students.actions.select')} —`}</option>
-          {field.options?.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-        </select>
-
+        <div className="relative">
+          <select value={item[field.name] ?? ''} onChange={(e) => setItem({ ...item, [field.name]: e.target.value })}
+            disabled={field.loading} className={selectCls}>
+            <option value="">{field.loading ? (t('students.actions.loading') || 'Loading…') : `— ${t('students.actions.select')} —`}</option>
+            {!field.loading && field.options?.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+          </select>
+          {field.loading && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              <div className="w-3.5 h-3.5 border-2 border-green-700 border-t-transparent rounded-full animate-spin" />
+            </div>
+          )}
+          {field.hint && !field.loading && <p className="text-xs text-gray-400 mt-1 italic">{field.hint}</p>}
+        </div>
       ) : field.type === 'textarea' ? (
-        <textarea
-          value={item[field.name] ?? ''}
-          onChange={(e) => setItem({ ...item, [field.name]: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 text-sm"
-          rows={3}
-          placeholder={field.placeholder}
-        />
-
+        <textarea value={item[field.name] ?? ''} onChange={(e) => setItem({ ...item, [field.name]: e.target.value })}
+          className={inputCls} rows={3} placeholder={field.placeholder} />
       ) : field.type === 'multi-student' ? (
-        // Multi-select for student IDs when creating a parent
         <div className="space-y-1 max-h-32 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg p-2">
           {students.length === 0
             ? <p className="text-xs text-gray-400 italic">{t('students.messages.noStudentsForLink')}</p>
             : students.map(s => (
-                <label key={s.id} className="flex items-center gap-2 cursor-pointer py-1 hover:bg-gray-50 dark:hover:bg-gray-700 rounded px-1">
-                  <input
-                    type="checkbox"
-                    checked={(item.student_ids || []).includes(s.id)}
+                <label key={s.id} className="flex items-center gap-2 cursor-pointer py-1 hover:bg-green-50 dark:hover:bg-green-900/10 rounded px-1">
+                  <input type="checkbox" checked={(item.student_ids || []).includes(s.id)}
                     onChange={(e) => {
-                      const current = item.student_ids || [];
-                      setItem({
-                        ...item,
-                        student_ids: e.target.checked
-                          ? [...current, s.id]
-                          : current.filter(id => id !== s.id),
-                      });
+                      const cur = item.student_ids || [];
+                      setItem({ ...item, student_ids: e.target.checked ? [...cur, s.id] : cur.filter(id => id !== s.id) });
                     }}
-                    className="w-3.5 h-3.5 text-indigo-600 rounded"
+                    className="w-3.5 h-3.5 text-green-700 rounded accent-green-700"
                   />
                   <span className="text-xs text-gray-700 dark:text-gray-300">
                     {s.full_name} <span className="text-gray-400">({s.roll_number})</span>
@@ -468,15 +471,9 @@ const StudentManagement = () => {
               ))
           }
         </div>
-
       ) : (
-        <input
-          type={field.type}
-          value={item[field.name] ?? ''}
-          onChange={(e) => setItem({ ...item, [field.name]: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 text-sm"
-          placeholder={field.placeholder}
-        />
+        <input type={field.type} value={item[field.name] ?? ''} onChange={(e) => setItem({ ...item, [field.name]: e.target.value })}
+          className={inputCls} placeholder={field.placeholder} />
       )}
     </div>
   ));
@@ -486,17 +483,8 @@ const StudentManagement = () => {
   // ─────────────────────────────────────────────────────────
   const renderTableHeaders = () => {
     const headers = {
-      students: [
-        t('students.table.rollNumber'), t('students.table.fullName'),
-        t('students.table.email'), t('students.table.phone'),
-        t('students.table.classLevel'), t('students.table.schoolLevel'),
-        t('students.table.parents'), t('students.table.status'), t('students.table.actions'),
-      ],
-      parents: [
-        t('students.table.fullName'), t('students.table.phone'),
-        t('students.table.email'), t('students.table.relationship'),
-        t('students.table.students'), t('students.table.status'), t('students.table.actions'),
-      ],
+      students: [t('students.table.rollNumber'), t('students.table.fullName'), t('students.table.email'), t('students.table.phone'), t('students.table.classLevel'), t('students.table.schoolLevel'), t('students.table.parents'), t('students.table.status'), t('students.table.actions')],
+      parents:  [t('students.table.fullName'), t('students.table.phone'), t('students.table.email'), t('students.table.relationship'), t('students.table.students'), t('students.table.status'), t('students.table.actions')],
     };
     return (headers[activeTab] || []).map(h => (
       <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -510,9 +498,9 @@ const StudentManagement = () => {
   // ─────────────────────────────────────────────────────────
   const renderTableRow = (item) => {
     if (activeTab === 'students') return (
-      <tr key={item.id} className="hover:bg-indigo-50/40 dark:hover:bg-indigo-900/10 transition-colors">
+      <tr key={item.id} className="hover:bg-green-50/50 dark:hover:bg-green-900/10 transition-colors">
         <td className="px-4 py-3 text-sm">
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-mono text-xs font-semibold">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 font-mono text-xs font-semibold">
             <Hash className="w-3 h-3" />{item.roll_number}
           </span>
         </td>
@@ -522,7 +510,7 @@ const StudentManagement = () => {
         <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{item.current_class_level?.name || '—'}</td>
         <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{item.current_school_level?.name || '—'}</td>
         <td className="px-4 py-3 text-sm">
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 text-xs font-medium">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs font-medium">
             <Shield className="w-3 h-3" />{item.parents_count ?? 0}
           </span>
         </td>
@@ -535,16 +523,16 @@ const StudentManagement = () => {
         <td className="px-4 py-3">
           <div className="flex gap-1.5">
             <button onClick={() => { setSelectedItem(item); setShowViewModal(true); }}
-              className="p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors" title={t('students.actions.view')}>
-              <Eye className="w-3.5 h-3.5 text-blue-500" />
+              className="p-1.5 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/20 transition-colors" title={t('students.actions.view')}>
+              <Eye className="w-3.5 h-3.5 text-green-700 dark:text-green-400" />
             </button>
-            <button onClick={() => { setEditItem(item); setShowEditModal(true); }}
+            <button onClick={() => openEditModal(item)}
               className="p-1.5 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors" title={t('students.actions.edit')}>
-              <Edit className="w-3.5 h-3.5 text-amber-500" />
+              <Edit className="w-3.5 h-3.5 text-amber-600" />
             </button>
             <button onClick={() => { setSelectedItem(item); setNewItem({}); setShowLinkModal(true); }}
-              className="p-1.5 rounded-lg hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors" title={t('students.actions.addParent')}>
-              <Link2 className="w-3.5 h-3.5 text-teal-500" />
+              className="p-1.5 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors" title={t('students.actions.addParent')}>
+              <Link2 className="w-3.5 h-3.5 text-green-600" />
             </button>
             <button onClick={() => { setSelectedItem(item); setShowDeleteModal(true); }}
               className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" title={t('students.actions.delete')}>
@@ -556,17 +544,17 @@ const StudentManagement = () => {
     );
 
     if (activeTab === 'parents') return (
-      <tr key={item.id} className="hover:bg-teal-50/40 dark:hover:bg-teal-900/10 transition-colors">
+      <tr key={item.id} className="hover:bg-green-50/50 dark:hover:bg-green-900/10 transition-colors">
         <td className="px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white">{item.full_name}</td>
         <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{item.phone_number}</td>
         <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{item.email}</td>
         <td className="px-4 py-3 text-sm">
-          <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 text-xs font-medium capitalize">
+          <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs font-medium capitalize">
             {t(`students.relationship.${item.relationship_type}`) || item.relationship_type}
           </span>
         </td>
         <td className="px-4 py-3 text-sm">
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs font-medium">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs font-medium">
             <GraduationCap className="w-3 h-3" />{item.students_count ?? 0}
           </span>
         </td>
@@ -579,12 +567,12 @@ const StudentManagement = () => {
         <td className="px-4 py-3">
           <div className="flex gap-1.5">
             <button onClick={() => { setSelectedItem(item); setShowViewModal(true); }}
-              className="p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors" title={t('students.actions.view')}>
-              <Eye className="w-3.5 h-3.5 text-blue-500" />
+              className="p-1.5 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/20 transition-colors" title={t('students.actions.view')}>
+              <Eye className="w-3.5 h-3.5 text-green-700 dark:text-green-400" />
             </button>
-            <button onClick={() => { setEditItem(item); setShowEditModal(true); }}
+            <button onClick={() => openEditModal(item)}
               className="p-1.5 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors" title={t('students.actions.edit')}>
-              <Edit className="w-3.5 h-3.5 text-amber-500" />
+              <Edit className="w-3.5 h-3.5 text-amber-600" />
             </button>
             <button onClick={() => { setSelectedItem(item); setShowDeleteModal(true); }}
               className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" title={t('students.actions.delete')}>
@@ -605,20 +593,18 @@ const StudentManagement = () => {
     if (!selectedItem) return null;
     if (activeTab === 'students') return (
       <div className="space-y-4">
-        {/* Header card */}
-        <div className="flex items-center gap-3 p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl">
-          <div className="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center text-white text-lg font-bold">
+        <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-100 dark:border-green-900/30">
+          <div className="w-12 h-12 rounded-full bg-green-700 flex items-center justify-center text-white text-lg font-bold ring-2 ring-green-700/30">
             {selectedItem.full_name?.[0] ?? 'S'}
           </div>
           <div>
             <p className="font-bold text-gray-900 dark:text-white">{selectedItem.full_name}</p>
-            <p className="text-xs font-mono text-indigo-600 dark:text-indigo-400">{selectedItem.roll_number}</p>
+            <p className="text-xs font-mono text-green-700 dark:text-green-400">{selectedItem.roll_number}</p>
           </div>
           <span className={`ml-auto text-xs font-semibold px-2 py-1 rounded-full ${getStatusBadge(selectedItem.status)}`}>
             {t(`students.status.${selectedItem.status}`)}
           </span>
         </div>
-        {/* Info grid */}
         <div className="grid grid-cols-2 gap-2 text-sm">
           {[
             [t('students.table.email'),       selectedItem.email || '—'],
@@ -635,21 +621,20 @@ const StudentManagement = () => {
             </div>
           ))}
         </div>
-        {/* Parents */}
         {selectedItem.parents?.length > 0 && (
           <div>
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{t('students.tabs.parents')}</p>
             <div className="space-y-2">
               {selectedItem.parents.map(p => (
-                <div key={p.id} className="flex items-center gap-3 p-2 bg-teal-50 dark:bg-teal-900/20 rounded-lg">
-                  <div className="w-7 h-7 rounded-full bg-teal-600 flex items-center justify-center text-white text-xs font-bold">
+                <div key={p.id} className="flex items-center gap-3 p-2 bg-amber-50 dark:bg-amber-900/10 rounded-lg border border-amber-100 dark:border-amber-900/20">
+                  <div className="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center text-white text-xs font-bold">
                     {p.full_name?.[0] ?? 'P'}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-semibold text-gray-800 dark:text-white truncate">{p.full_name}</p>
                     <p className="text-xs text-gray-400">{p.phone_number}</p>
                   </div>
-                  <span className="text-xs px-1.5 py-0.5 bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 rounded capitalize">
+                  <span className="text-xs px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded capitalize">
                     {t(`students.relationship.${p.relationship_type}`) || p.relationship_type}
                   </span>
                 </div>
@@ -662,13 +647,13 @@ const StudentManagement = () => {
 
     if (activeTab === 'parents') return (
       <div className="space-y-4">
-        <div className="flex items-center gap-3 p-3 bg-teal-50 dark:bg-teal-900/20 rounded-xl">
-          <div className="w-12 h-12 rounded-full bg-teal-600 flex items-center justify-center text-white text-lg font-bold">
+        <div className="flex items-center gap-3 p-3 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-100 dark:border-amber-900/20">
+          <div className="w-12 h-12 rounded-full bg-amber-600 flex items-center justify-center text-white text-lg font-bold">
             {selectedItem.full_name?.[0] ?? 'P'}
           </div>
           <div>
             <p className="font-bold text-gray-900 dark:text-white">{selectedItem.full_name}</p>
-            <p className="text-xs text-teal-600 dark:text-teal-400 capitalize">
+            <p className="text-xs text-amber-600 dark:text-amber-400 capitalize">
               {t(`students.relationship.${selectedItem.relationship_type}`)}
             </p>
           </div>
@@ -678,9 +663,9 @@ const StudentManagement = () => {
         </div>
         <div className="grid grid-cols-2 gap-2 text-sm">
           {[
-            [t('students.table.phone'),           selectedItem.phone_number],
-            [t('students.table.email'),            selectedItem.email],
-            [t('students.form.physicalAddress'),   selectedItem.physical_address || '—'],
+            [t('students.table.phone'),         selectedItem.phone_number],
+            [t('students.table.email'),          selectedItem.email],
+            [t('students.form.physicalAddress'), selectedItem.physical_address || '—'],
           ].map(([label, value]) => (
             <div key={label} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2">
               <p className="text-xs text-gray-400 mb-0.5">{label}</p>
@@ -693,13 +678,13 @@ const StudentManagement = () => {
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{t('students.tabs.students')}</p>
             <div className="space-y-2">
               {selectedItem.students.map(s => (
-                <div key={s.id} className="flex items-center gap-3 p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-                  <div className="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs font-bold">
+                <div key={s.id} className="flex items-center gap-3 p-2 bg-green-50 dark:bg-green-900/10 rounded-lg border border-green-100 dark:border-green-900/20">
+                  <div className="w-7 h-7 rounded-full bg-green-700 flex items-center justify-center text-white text-xs font-bold">
                     {s.full_name?.[0] ?? 'S'}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-semibold text-gray-800 dark:text-white truncate">{s.full_name}</p>
-                    <p className="text-xs font-mono text-indigo-500">{s.roll_number}</p>
+                    <p className="text-xs font-mono text-green-700 dark:text-green-400">{s.roll_number}</p>
                   </div>
                   <span className={`text-xs px-1.5 py-0.5 rounded-full ${getStatusBadge(s.status)}`}>
                     {t(`students.status.${s.status}`)}
@@ -718,52 +703,57 @@ const StudentManagement = () => {
   // ─────────────────────────────────────────────────────────
   const renderReportModal = () => {
     if (!reportData) return null;
+    const summaryCards = [
+      { label: t('students.stats.totalStudents'),       value: reportData.summary.total_students,        bg: 'bg-green-50 dark:bg-green-900/20',   text: 'text-green-800 dark:text-green-300',  num: 'text-green-700 dark:text-green-400' },
+      { label: t('students.stats.activeStudents'),      value: reportData.summary.active_students,       bg: 'bg-green-100 dark:bg-green-900/30',  text: 'text-green-700 dark:text-green-300',  num: 'text-green-800 dark:text-green-300' },
+      { label: t('students.stats.inactiveStudents'),    value: reportData.summary.inactive_students,     bg: 'bg-red-50 dark:bg-red-900/20',        text: 'text-red-600 dark:text-red-400',      num: 'text-red-700 dark:text-red-400' },
+      { label: t('students.stats.totalParents'),        value: reportData.summary.total_parents,         bg: 'bg-amber-50 dark:bg-amber-900/20',    text: 'text-amber-700 dark:text-amber-400',  num: 'text-amber-800 dark:text-amber-300' },
+      { label: t('students.stats.activeParents'),       value: reportData.summary.active_parents,        bg: 'bg-amber-100 dark:bg-amber-900/30',   text: 'text-amber-700 dark:text-amber-400',  num: 'text-amber-800 dark:text-amber-300' },
+      { label: t('students.stats.studentsWithParents'), value: reportData.summary.students_with_parents, bg: 'bg-gray-50 dark:bg-gray-700/50',      text: 'text-gray-500 dark:text-gray-400',    num: 'text-gray-700 dark:text-gray-300' },
+    ];
     return (
       <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-4xl w-full mx-4 p-6 max-h-[90vh] overflow-y-auto">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-4xl w-full mx-4 p-6 max-h-[90vh] overflow-y-auto border border-green-100 dark:border-green-900/30">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-2">
-              <FileText className="w-6 h-6 text-indigo-600" />
+              <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                <FileText className="w-5 h-5 text-green-700 dark:text-green-400" />
+              </div>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('students.reports.title')}</h2>
             </div>
-            <button onClick={() => setShowReportModal(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"><X className="w-5 h-5" /></button>
+            <button onClick={() => setShowReportModal(false)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+              <X className="w-5 h-5 text-gray-500" />
+            </button>
           </div>
           <p className="text-xs text-gray-400 mb-5">{t('students.reports.generatedOn')}: {reportData.generated_on}</p>
 
-          {/* Summary cards */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
-            {[
-              { label: t('students.stats.totalStudents'),       value: reportData.summary.total_students,       color: 'indigo' },
-              { label: t('students.stats.activeStudents'),      value: reportData.summary.active_students,      color: 'emerald' },
-              { label: t('students.stats.inactiveStudents'),    value: reportData.summary.inactive_students,    color: 'rose' },
-              { label: t('students.stats.totalParents'),        value: reportData.summary.total_parents,        color: 'teal' },
-              { label: t('students.stats.activeParents'),       value: reportData.summary.active_parents,       color: 'violet' },
-              { label: t('students.stats.studentsWithParents'), value: reportData.summary.students_with_parents,color: 'amber' },
-            ].map(({ label, value, color }) => (
-              <div key={label} className={`bg-${color}-50 dark:bg-${color}-900/20 rounded-xl p-3`}>
-                <p className={`text-xs text-${color}-600 dark:text-${color}-400`}>{label}</p>
-                <p className={`text-2xl font-bold text-${color}-700 dark:text-${color}-300`}>{value}</p>
+            {summaryCards.map(({ label, value, bg, text, num }) => (
+              <div key={label} className={`${bg} rounded-xl p-3 border border-green-100/50 dark:border-white/5`}>
+                <p className={`text-xs ${text} mb-1`}>{label}</p>
+                <p className={`text-2xl font-bold ${num}`}>{value}</p>
               </div>
             ))}
           </div>
 
-          {/* Students table preview */}
           <div className="mb-5">
-            <h3 className="text-sm font-semibold mb-2 flex items-center gap-2"><GraduationCap className="w-4 h-4" /> {t('students.reports.studentsList')}</h3>
+            <h3 className="text-sm font-semibold mb-2 flex items-center gap-2 text-gray-800 dark:text-white">
+              <GraduationCap className="w-4 h-4 text-green-700" /> {t('students.reports.studentsList')}
+            </h3>
             <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
               <table className="w-full text-xs">
-                <thead className="bg-gray-50 dark:bg-gray-700/50">
+                <thead className="bg-green-50 dark:bg-green-900/20">
                   <tr>
                     {[t('students.table.rollNumber'), t('students.table.fullName'), t('students.table.classLevel'), t('students.table.status')].map(h => (
-                      <th key={h} className="px-3 py-2 text-left font-semibold text-gray-500">{h}</th>
+                      <th key={h} className="px-3 py-2 text-left font-semibold text-green-800 dark:text-green-300">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                   {reportData.students.slice(0, 8).map(s => (
                     <tr key={s.id}>
-                      <td className="px-3 py-2 font-mono text-indigo-600">{s.roll_number}</td>
-                      <td className="px-3 py-2 font-medium">{s.full_name}</td>
+                      <td className="px-3 py-2 font-mono text-green-700 dark:text-green-400">{s.roll_number}</td>
+                      <td className="px-3 py-2 font-medium text-gray-800 dark:text-white">{s.full_name}</td>
                       <td className="px-3 py-2 text-gray-500">{s.current_class_level?.name || '—'}</td>
                       <td className="px-3 py-2"><span className={`px-1.5 py-0.5 rounded-full text-xs ${getStatusBadge(s.status)}`}>{s.status}</span></td>
                     </tr>
@@ -784,10 +774,11 @@ const StudentManagement = () => {
               link.setAttribute('download', `student_report_${new Date().toISOString().split('T')[0]}.json`);
               link.click();
               toast.success(t('students.messages.exportSuccess'));
-            }} className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center justify-center gap-2 text-sm">
+            }} className="flex-1 px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors">
               <Download className="w-4 h-4" /> {t('students.actions.downloadReport')}
             </button>
-            <button onClick={() => window.print()} className="flex-1 px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 flex items-center justify-center gap-2 text-sm">
+            <button onClick={() => window.print()}
+              className="flex-1 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors">
               <Printer className="w-4 h-4" /> {t('students.actions.printReport')}
             </button>
           </div>
@@ -797,10 +788,21 @@ const StudentManagement = () => {
   };
 
   // ─────────────────────────────────────────────────────────
-  // Pagination derived values
+  // Pagination
   // ─────────────────────────────────────────────────────────
-  const currentData  = activeTab === 'students' ? students : parents;
-  const totalPages   = Math.ceil(serverTotal / itemsPerPage);
+  const currentData = activeTab === 'students' ? students : parents;
+  const totalPages  = Math.ceil(serverTotal / itemsPerPage);
+
+  // ─────────────────────────────────────────────────────────
+  // Shared modal wrapper
+  // ─────────────────────────────────────────────────────────
+  const ModalWrapper = ({ children, maxW = 'max-w-md' }) => (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className={`bg-white dark:bg-gray-900 rounded-2xl shadow-2xl ${maxW} w-full mx-4 p-5 max-h-[90vh] overflow-y-auto border border-green-100 dark:border-green-900/30`}>
+        {children}
+      </div>
+    </div>
+  );
 
   // ═══════════════════════════════════════════════════════════
   // RENDER
@@ -809,14 +811,14 @@ const StudentManagement = () => {
     <div className={`min-h-screen ${darkMode ? 'dark' : ''}`}>
       <div className="space-y-5 p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
 
-        {/* ── Stats strip ─────────────────────────────────────────── */}
+        {/* ── Stats strip — gradient fills mirroring landing page green/amber palette ── */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
           {[
-            { label: t('students.stats.totalStudents'),    value: stats.total_students,    from: 'from-indigo-500',  to: 'to-indigo-600'  },
-            { label: t('students.stats.activeStudents'),   value: stats.active_students,   from: 'from-emerald-500', to: 'to-emerald-600' },
-            { label: t('students.stats.inactiveStudents'), value: stats.inactive_students, from: 'from-rose-500',    to: 'to-rose-600'    },
-            { label: t('students.stats.totalParents'),     value: stats.total_parents,     from: 'from-teal-500',    to: 'to-teal-600'    },
-            { label: t('students.stats.activeParents'),    value: stats.active_parents,    from: 'from-violet-500',  to: 'to-violet-600'  },
+            { label: t('students.stats.totalStudents'),    value: stats.total_students,    from: 'from-green-700',  to: 'to-green-900'  },
+            { label: t('students.stats.activeStudents'),   value: stats.active_students,   from: 'from-green-500',  to: 'to-green-700'  },
+            { label: t('students.stats.inactiveStudents'), value: stats.inactive_students, from: 'from-red-500',    to: 'to-red-700'    },
+            { label: t('students.stats.totalParents'),     value: stats.total_parents,     from: 'from-amber-500',  to: 'to-amber-700'  },
+            { label: t('students.stats.activeParents'),    value: stats.active_parents,    from: 'from-amber-600',  to: 'to-green-700'  },
           ].map(({ label, value, from, to }) => (
             <div key={label} className={`bg-gradient-to-br ${from} ${to} rounded-2xl p-4 text-white shadow-lg`}>
               <p className="text-xs font-medium opacity-80 mb-1">{label}</p>
@@ -825,25 +827,26 @@ const StudentManagement = () => {
           ))}
         </div>
 
-        {/* ── Page header ──────────────────────────────────────────── */}
+        {/* ── Page header ─────────────────────────────────────────── */}
         <div className="flex justify-between items-center flex-wrap gap-3">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{t('students.title')}</h1>
             <p className="text-gray-500 dark:text-gray-400 text-sm mt-0.5">{t('students.subtitle')}</p>
           </div>
           <div className="flex gap-2 flex-wrap items-center">
-            <button onClick={() => setDarkMode(!darkMode)} className="p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm">
-              {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            <button onClick={() => setDarkMode(!darkMode)}
+              className="p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-green-50 dark:hover:bg-gray-700 transition-colors shadow-sm">
+              {darkMode ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-gray-500" />}
             </button>
             {activeTab === 'reports' && (
               <button onClick={handleGenerateReport} disabled={loading}
-                className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-xl transition-colors flex items-center gap-2 text-sm font-medium shadow-sm disabled:opacity-60">
+                className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl transition-colors flex items-center gap-2 text-sm font-medium shadow-sm disabled:opacity-60">
                 <BarChart3 className="w-4 h-4" /> {t('students.actions.generateReport')}
               </button>
             )}
             {activeTab !== 'reports' && (
               <button onClick={() => { setNewItem({}); setShowAddModal(true); }}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-colors flex items-center gap-2 text-sm font-medium shadow-sm">
+                className="px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded-xl transition-colors flex items-center gap-2 text-sm font-medium shadow-sm">
                 <Plus className="w-4 h-4" />
                 {`${t('students.actions.addNew')} ${currentTabLabel()}`}
               </button>
@@ -851,7 +854,7 @@ const StudentManagement = () => {
           </div>
         </div>
 
-        {/* ── Tabs ─────────────────────────────────────────────────── */}
+        {/* ── Tabs ────────────────────────────────────────────────── */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-1.5 flex gap-1 overflow-x-auto">
           {tabs.map(tab => {
             const Icon = tab.icon;
@@ -861,8 +864,8 @@ const StudentManagement = () => {
                 onClick={() => { setActiveTab(tab.id); setCurrentPage(1); setSearchTerm(''); setFilters({}); }}
                 className={`px-4 py-2.5 text-sm font-semibold transition-all flex items-center gap-2 rounded-xl whitespace-nowrap flex-1 justify-center
                   ${isActive
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200 dark:shadow-indigo-900/30'
-                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    ? 'bg-green-700 text-white shadow-md'
+                    : 'text-gray-500 hover:text-green-700 dark:text-gray-400 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/10'
                   }`}
               >
                 <Icon className="w-4 h-4" /> {tab.label}
@@ -871,38 +874,50 @@ const StudentManagement = () => {
           })}
         </div>
 
-        {/* ── Filters & search ─────────────────────────────────────── */}
+        {/* ── Filters & search ──────────────────────────────────── */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex flex-col md:flex-row gap-3">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input type="text" placeholder={t('students.actions.search')} value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 focus:border-transparent outline-none"
               />
             </div>
             <div className="flex gap-2 flex-wrap">
-              {/* Status filter (both tabs) */}
+              {/* Status */}
               <select value={filters.status} onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500">
+                className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 outline-none">
                 <option value="">{t('students.filters.allStatus')}</option>
                 <option value="active">{t('students.status.active')}</option>
                 <option value="inactive">{t('students.status.inactive')}</option>
               </select>
 
               {activeTab === 'students' && <>
-                <select value={filters.school_level_id} onChange={(e) => setFilters({ ...filters, school_level_id: e.target.value })}
-                  className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500">
+                <select value={filters.school_level_id}
+                  onChange={(e) => { setFilters(prev => ({ ...prev, school_level_id: e.target.value })); setCurrentPage(1); }}
+                  className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 outline-none">
                   <option value="">{t('students.filters.allSchoolLevels')}</option>
                   {schoolLevels.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
-                <select value={filters.class_level_id} onChange={(e) => setFilters({ ...filters, class_level_id: e.target.value })}
-                  className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500">
-                  <option value="">{t('students.filters.allClassLevels')}</option>
-                  {allClassLevels.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
+
+                <div className="relative">
+                  <select value={filters.class_level_id}
+                    onChange={(e) => { setFilters(prev => ({ ...prev, class_level_id: e.target.value })); setCurrentPage(1); }}
+                    disabled={filterClassLoading}
+                    className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 disabled:opacity-60 disabled:cursor-not-allowed pr-8 outline-none">
+                    <option value="">{filterClassLoading ? (t('students.actions.loading') || 'Loading…') : t('students.filters.allClassLevels')}</option>
+                    {!filterClassLoading && filterClassLevels.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                  {filterClassLoading && (
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                      <div className="w-3 h-3 border-2 border-green-700 border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  )}
+                </div>
+
                 <select value={filters.academic_year_id} onChange={(e) => setFilters({ ...filters, academic_year_id: e.target.value })}
-                  className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500">
+                  className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 outline-none">
                   <option value="">{t('students.filters.allAcademicYears')}</option>
                   {academicYears.map(y => <option key={y.id} value={y.id}>{y.name}</option>)}
                 </select>
@@ -910,7 +925,7 @@ const StudentManagement = () => {
 
               {activeTab === 'parents' && (
                 <select value={filters.relationship_type} onChange={(e) => setFilters({ ...filters, relationship_type: e.target.value })}
-                  className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500">
+                  className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 outline-none">
                   <option value="">{t('students.filters.allRelationships')}</option>
                   <option value="father">{t('students.relationship.father')}</option>
                   <option value="mother">{t('students.relationship.mother')}</option>
@@ -919,7 +934,8 @@ const StudentManagement = () => {
                 </select>
               )}
 
-              <button onClick={fetchData} className="px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl transition-colors flex items-center gap-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">
+              <button onClick={fetchData}
+                className="px-3 py-2 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 border border-green-200 dark:border-green-900/40 rounded-xl transition-colors flex items-center gap-1.5 text-sm font-medium text-green-700 dark:text-green-400">
                 <RefreshCw className="w-4 h-4" /> {t('students.actions.refresh')}
               </button>
             </div>
@@ -929,11 +945,13 @@ const StudentManagement = () => {
         {/* ── Main content ─────────────────────────────────────────── */}
         {activeTab === 'reports' ? (
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-10 text-center">
-            <BarChart3 className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <BarChart3 className="w-8 h-8 text-green-700 dark:text-green-400" />
+            </div>
             <h3 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-2">{t('students.reports.clickToGenerate')}</h3>
             <p className="text-sm text-gray-400 mb-5">{t('students.reports.description')}</p>
             <button onClick={handleGenerateReport} disabled={loading}
-              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl inline-flex items-center gap-2 text-sm font-medium disabled:opacity-60">
+              className="px-5 py-2.5 bg-green-700 hover:bg-green-800 text-white rounded-xl inline-flex items-center gap-2 text-sm font-medium disabled:opacity-60 transition-colors">
               {loading ? <Spinner /> : <><BarChart3 className="w-4 h-4" /> {t('students.actions.generateReport')}</>}
             </button>
           </div>
@@ -941,7 +959,7 @@ const StudentManagement = () => {
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
+                <thead className="bg-green-50 dark:bg-green-900/20 border-b border-green-100 dark:border-green-900/30">
                   <tr>{renderTableHeaders()}</tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700/50">
@@ -949,7 +967,7 @@ const StudentManagement = () => {
                     <tr>
                       <td colSpan="10" className="px-4 py-12 text-center">
                         <div className="flex justify-center items-center gap-3">
-                          <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                          <div className="w-6 h-6 border-2 border-green-700 border-t-transparent rounded-full animate-spin" />
                           <span className="text-sm text-gray-500">{t('students.messages.loading')}</span>
                         </div>
                       </td>
@@ -958,9 +976,11 @@ const StudentManagement = () => {
                     <tr>
                       <td colSpan="10" className="px-4 py-12 text-center">
                         <div className="flex flex-col items-center gap-3">
-                          <Info className="w-12 h-12 text-gray-200 dark:text-gray-600" />
+                          <div className="w-12 h-12 bg-green-50 dark:bg-green-900/20 rounded-2xl flex items-center justify-center">
+                            <Info className="w-6 h-6 text-green-300 dark:text-green-700" />
+                          </div>
                           <p className="text-sm text-gray-400">{t('students.messages.noData')}</p>
-                          <button onClick={() => setShowAddModal(true)} className="text-indigo-600 hover:text-indigo-700 text-sm font-semibold">
+                          <button onClick={() => setShowAddModal(true)} className="text-green-700 hover:text-green-800 dark:text-green-400 text-sm font-semibold">
                             {t('students.actions.clickToAdd')}
                           </button>
                         </div>
@@ -973,37 +993,36 @@ const StudentManagement = () => {
 
             {/* Pagination */}
             {!loading && serverTotal > 0 && (
-              <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-center gap-3">
+              <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-center gap-3 bg-gray-50 dark:bg-gray-800/50">
                 <div className="flex items-center gap-2 text-sm text-gray-500">
                   <span>{t('students.pagination.showing')}</span>
-                  <select value={itemsPerPage}
-                    onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
-                    className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm">
+                  <select value={itemsPerPage} onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+                    className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm focus:ring-2 focus:ring-green-700 outline-none">
                     {[5, 10, 30, 50].map(n => <option key={n} value={n}>{n}</option>)}
                   </select>
                   <span>{t('students.pagination.perPage')}</span>
                   <span className="ml-2">
-                    {`${t('students.pagination.total')}:`} <strong>{serverTotal}</strong> {t('students.pagination.records')}
+                    {`${t('students.pagination.total')}:`} <strong className="text-green-700 dark:text-green-400">{serverTotal}</strong> {t('students.pagination.records')}
                   </span>
                 </div>
                 <div className="flex items-center gap-1">
                   <button onClick={() => setCurrentPage(1)} disabled={currentPage === 1}
-                    className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 disabled:opacity-40 transition-colors">
+                    className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/10 hover:border-green-300 disabled:opacity-40 transition-colors">
                     {t('students.pagination.first')}
                   </button>
                   <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}
-                    className="p-1.5 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 disabled:opacity-40 transition-colors">
+                    className="p-1.5 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/10 hover:border-green-300 disabled:opacity-40 transition-colors">
                     <ChevronLeft className="w-4 h-4" />
                   </button>
                   <span className="text-sm px-3 text-gray-600 dark:text-gray-400">
-                    {`${t('students.pagination.page')} ${currentPage} ${t('students.pagination.of')} ${totalPages || 1}`}
+                    {`${t('students.pagination.page')} `}<strong className="text-green-700 dark:text-green-400">{currentPage}</strong>{` ${t('students.pagination.of')} ${totalPages || 1}`}
                   </span>
                   <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage >= totalPages}
-                    className="p-1.5 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 disabled:opacity-40 transition-colors">
+                    className="p-1.5 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/10 hover:border-green-300 disabled:opacity-40 transition-colors">
                     <ChevronRight className="w-4 h-4" />
                   </button>
                   <button onClick={() => setCurrentPage(totalPages)} disabled={currentPage >= totalPages}
-                    className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 disabled:opacity-40 transition-colors">
+                    className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/10 hover:border-green-300 disabled:opacity-40 transition-colors">
                     {t('students.pagination.last')}
                   </button>
                 </div>
@@ -1017,125 +1036,143 @@ const StudentManagement = () => {
 
         {/* ── Add modal ────────────────────────────────────────────── */}
         {showAddModal && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 p-5 max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-4">
+          <ModalWrapper>
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                  <Plus className="w-4 h-4 text-green-700 dark:text-green-400" />
+                </div>
                 <h2 className="text-base font-bold text-gray-900 dark:text-white">
                   {`${t('students.actions.add')} ${currentTabLabel()}`}
                 </h2>
-                <button onClick={() => setShowAddModal(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"><X className="w-5 h-5" /></button>
               </div>
-              <div className="space-y-3">
-                {renderFormFields(
-                  activeTab === 'students' ? getStudentFields() : getParentFields(),
-                  newItem, setNewItem
-                )}
-              </div>
-              <div className="flex gap-3 mt-5">
-                <button onClick={handleCreate} disabled={loading}
-                  className="flex-1 px-3 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl disabled:opacity-60 text-sm font-semibold">
-                  {loading ? <Spinner /> : t('students.actions.create')}
-                </button>
-                <button onClick={() => setShowAddModal(false)}
-                  className="flex-1 px-3 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  {t('students.actions.cancel')}
-                </button>
-              </div>
+              <button onClick={() => { setShowAddModal(false); setNewItem({}); }}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
             </div>
-          </div>
+            <div className="space-y-3">
+              {renderFormFields(
+                activeTab === 'students' ? getStudentFields(addClassLevels, addClassLoading) : getParentFields(),
+                newItem, setNewItem
+              )}
+            </div>
+            <div className="flex gap-3 mt-5">
+              <button onClick={handleCreate} disabled={loading}
+                className="flex-1 px-3 py-2.5 bg-green-700 hover:bg-green-800 text-white rounded-xl disabled:opacity-60 text-sm font-semibold transition-colors">
+                {loading ? <Spinner /> : t('students.actions.create')}
+              </button>
+              <button onClick={() => { setShowAddModal(false); setNewItem({}); }}
+                className="flex-1 px-3 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 transition-colors">
+                {t('students.actions.cancel')}
+              </button>
+            </div>
+          </ModalWrapper>
         )}
 
         {/* ── Edit modal ───────────────────────────────────────────── */}
         {showEditModal && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 p-5 max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-4">
+          <ModalWrapper>
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+                  <Edit className="w-4 h-4 text-amber-600" />
+                </div>
                 <h2 className="text-base font-bold text-gray-900 dark:text-white">
                   {`${t('students.actions.edit')} ${currentTabLabel()}`}
                 </h2>
-                <button onClick={() => setShowEditModal(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"><X className="w-5 h-5" /></button>
               </div>
-              <div className="space-y-3">
-                {renderFormFields(
-                  activeTab === 'students' ? getStudentEditFields() : getParentEditFields(),
-                  editItem, setEditItem
-                )}
-              </div>
-              <div className="flex gap-3 mt-5">
-                <button onClick={handleUpdate} disabled={loading}
-                  className="flex-1 px-3 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl disabled:opacity-60 text-sm font-semibold">
-                  {loading ? <Spinner /> : t('students.actions.update')}
-                </button>
-                <button onClick={() => setShowEditModal(false)}
-                  className="flex-1 px-3 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  {t('students.actions.cancel')}
-                </button>
-              </div>
+              <button onClick={() => { setShowEditModal(false); setEditItem({}); }}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
             </div>
-          </div>
+            {editClassLoading && (
+              <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-green-50 dark:bg-green-900/20 rounded-lg text-xs text-green-700 dark:text-green-400 border border-green-100 dark:border-green-900/30">
+                <div className="w-3 h-3 border-2 border-green-700 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+                {t('students.messages.loadingClassLevels') || 'Loading class levels…'}
+              </div>
+            )}
+            <div className="space-y-3">
+              {renderFormFields(
+                activeTab === 'students' ? getStudentEditFields(editClassLevels, editClassLoading) : getParentEditFields(),
+                editItem, setEditItem
+              )}
+            </div>
+            <div className="flex gap-3 mt-5">
+              <button onClick={handleUpdate} disabled={loading || editClassLoading}
+                className="flex-1 px-3 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl disabled:opacity-60 text-sm font-semibold transition-colors">
+                {loading ? <Spinner /> : t('students.actions.update')}
+              </button>
+              <button onClick={() => { setShowEditModal(false); setEditItem({}); }}
+                className="flex-1 px-3 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 transition-colors">
+                {t('students.actions.cancel')}
+              </button>
+            </div>
+          </ModalWrapper>
         )}
 
         {/* ── View modal ───────────────────────────────────────────── */}
         {showViewModal && selectedItem && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 p-5 max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg"><Eye className="w-4 h-4 text-blue-600" /></div>
-                  <h2 className="text-base font-bold">{t('students.actions.viewDetails')}</h2>
+          <ModalWrapper>
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                  <Eye className="w-4 h-4 text-green-700 dark:text-green-400" />
                 </div>
-                <button onClick={() => setShowViewModal(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"><X className="w-5 h-5" /></button>
+                <h2 className="text-base font-bold text-gray-900 dark:text-white">{t('students.actions.viewDetails')}</h2>
               </div>
-              {renderViewContent()}
-              <button onClick={() => setShowViewModal(false)}
-                className="w-full mt-4 px-3 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold">
-                {t('students.actions.close')}
+              <button onClick={() => setShowViewModal(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
-          </div>
+            {renderViewContent()}
+            <button onClick={() => setShowViewModal(false)}
+              className="w-full mt-4 px-3 py-2.5 bg-green-700 hover:bg-green-800 text-white rounded-xl text-sm font-semibold transition-colors">
+              {t('students.actions.close')}
+            </button>
+          </ModalWrapper>
         )}
 
-        {/* ── Link Parent modal (add parent to existing student) ────── */}
+        {/* ── Link Parent modal ────────────────────────────────────── */}
         {showLinkModal && selectedItem && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 p-5 max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-1">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-teal-100 dark:bg-teal-900/30 rounded-lg"><Link2 className="w-4 h-4 text-teal-600" /></div>
-                  <h2 className="text-base font-bold">{t('students.actions.addParent')}</h2>
+          <ModalWrapper>
+            <div className="flex justify-between items-center mb-1">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                  <Link2 className="w-4 h-4 text-green-700 dark:text-green-400" />
                 </div>
-                <button onClick={() => setShowLinkModal(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"><X className="w-5 h-5" /></button>
+                <h2 className="text-base font-bold text-gray-900 dark:text-white">{t('students.actions.addParent')}</h2>
               </div>
-              <p className="text-xs text-gray-400 mb-4">
-                {`${t('students.modal.linkParentFor')}: `}
-                <span className="font-semibold text-indigo-600">{selectedItem.full_name}</span>
-                <span className="ml-1 font-mono text-gray-400">({selectedItem.roll_number})</span>
-              </p>
-              <div className="space-y-3">
-                {renderFormFields(
-                  // Same parent fields minus student_ids (injected automatically)
-                  getParentFields().filter(f => f.name !== 'student_ids'),
-                  newItem, setNewItem
-                )}
-              </div>
-              <div className="flex gap-3 mt-5">
-                <button onClick={handleLinkParent} disabled={loading}
-                  className="flex-1 px-3 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl disabled:opacity-60 text-sm font-semibold">
-                  {loading ? <Spinner /> : t('students.actions.linkParent')}
-                </button>
-                <button onClick={() => setShowLinkModal(false)}
-                  className="flex-1 px-3 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  {t('students.actions.cancel')}
-                </button>
-              </div>
+              <button onClick={() => setShowLinkModal(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
             </div>
-          </div>
+            <p className="text-xs text-gray-400 mb-4">
+              {`${t('students.modal.linkParentFor')}: `}
+              <span className="font-semibold text-green-700 dark:text-green-400">{selectedItem.full_name}</span>
+              <span className="ml-1 font-mono text-gray-400">({selectedItem.roll_number})</span>
+            </p>
+            <div className="space-y-3">
+              {renderFormFields(getParentFields().filter(f => f.name !== 'student_ids'), newItem, setNewItem)}
+            </div>
+            <div className="flex gap-3 mt-5">
+              <button onClick={handleLinkParent} disabled={loading}
+                className="flex-1 px-3 py-2.5 bg-green-700 hover:bg-green-800 text-white rounded-xl disabled:opacity-60 text-sm font-semibold transition-colors">
+                {loading ? <Spinner /> : t('students.actions.linkParent')}
+              </button>
+              <button onClick={() => setShowLinkModal(false)}
+                className="flex-1 px-3 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 transition-colors">
+                {t('students.actions.cancel')}
+              </button>
+            </div>
+          </ModalWrapper>
         )}
 
         {/* ── Delete modal ─────────────────────────────────────────── */}
         {showDeleteModal && selectedItem && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6 border border-red-100 dark:border-red-900/30">
               <div className="text-center">
                 <div className="w-14 h-14 bg-red-100 dark:bg-red-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <Trash2 className="w-7 h-7 text-red-600" />
@@ -1143,24 +1180,20 @@ const StudentManagement = () => {
                 <h2 className="text-lg font-bold mb-2 text-gray-900 dark:text-white">{t('students.delete.title')}</h2>
                 <p className="text-gray-500 text-sm mb-3">{t('students.delete.confirmation')}</p>
                 {(selectedItem.full_name || selectedItem.roll_number) && (
-                  <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-3 mb-3">
-                    <p className="text-sm font-semibold text-red-700 dark:text-red-300">
-                      {selectedItem.full_name}
-                    </p>
-                    {selectedItem.roll_number && (
-                      <p className="text-xs font-mono text-red-400">{selectedItem.roll_number}</p>
-                    )}
+                  <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-3 mb-3 border border-red-100 dark:border-red-900/30">
+                    <p className="text-sm font-semibold text-red-700 dark:text-red-300">{selectedItem.full_name}</p>
+                    {selectedItem.roll_number && <p className="text-xs font-mono text-red-400">{selectedItem.roll_number}</p>}
                   </div>
                 )}
                 <p className="text-xs text-gray-400">{t('students.delete.warning')}</p>
               </div>
               <div className="flex gap-3 mt-5">
                 <button onClick={handleDelete} disabled={loading}
-                  className="flex-1 px-3 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl disabled:opacity-60 flex items-center justify-center gap-1.5 text-sm font-semibold">
+                  className="flex-1 px-3 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl disabled:opacity-60 flex items-center justify-center gap-1.5 text-sm font-semibold transition-colors">
                   {loading ? <Spinner /> : <><Trash2 className="w-4 h-4" /> {t('students.actions.delete')}</>}
                 </button>
                 <button onClick={() => setShowDeleteModal(false)}
-                  className="flex-1 px-3 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  className="flex-1 px-3 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 transition-colors">
                   {t('students.actions.cancel')}
                 </button>
               </div>

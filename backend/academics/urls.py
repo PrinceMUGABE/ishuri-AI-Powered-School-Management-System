@@ -17,7 +17,9 @@ urlpatterns = [
     path('class-levels/<int:pk>/', views.class_level_detail, name='class_level'),
     path('school-levels/<int:school_level_id>/class-levels/', 
          views.get_class_levels_by_school, name='school_level_class_levels'),
-    
+    path('school-levels/<int:school_level_id>/class-levels/', 
+         views.get_class_levels_by_school_level, name='school_level_class_levels'),
+
     # Classrooms
     path('class-rooms/', views.classroom_list_create, name='classrooms'),
     path('class-rooms/<int:pk>/', views.classroom_detail, name='classroom'),
@@ -35,6 +37,7 @@ urlpatterns = [
     # Fee Structures
     path('class-level-costs/', views.class_level_cost_list_create, name='costs'),
     path('class-level-costs/<int:pk>/', views.class_level_cost_detail, name='cost'),
+
     
     # Dashboard
     path('dashboard/stats/', views.dashboard_stats, name='dashboard_stats'),

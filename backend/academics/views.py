@@ -1133,3 +1133,20 @@ def get_subjects_by_class_level(request, class_level_id):
     except Exception as exc:
         log_error(vn, "GET", exc)
         return err('fetch_error', status_code=500, lang=lang)
+    
+    
+    
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_class_levels_by_school_level(request, school_level_id):
+    vn = "GetClassLevelsBySchoolLevel"
+    lang = get_lang(request)
+    log_request(vn, request, {'school_level_id': school_level_id})
+    
+    try:
+        qs = ClassLevel.objects.filter(school_level_id=school_level_id, is_active=True)
+        data = ClassLevelSerializer(qs, many=True, context={'request': request}).data
+        return ok('class_levels_fetched', data, 200, lang, count=len(data))
+    except Exception as exc:
+        log_error(vn, "GET", exc)
+        return err('fetch_error', status_code=500, lang=lang)
