@@ -61,6 +61,7 @@ const Sidebar = ({ role, onClose }) => {
       { path: '/app/reports',        icon: BarChart3,       label: t('nav.reports',          'Reports') },
       { path: '/app/settings',       icon: Settings,        label: t('nav.settings',         'Settings') },
       { path: '/app/student-management', icon: Users,          label: t('admin.studentManagement', 'Student Management') },
+      { path: '/app/chat',            icon: MessageSquare,   label: t('admin.chat',           'Chat') },
     ],
   };
 

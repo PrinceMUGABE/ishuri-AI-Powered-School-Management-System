@@ -1453,5 +1453,140 @@
       "first": "Iya mbere",
       "last": "Iya nyuma"
     }
-  }
+  },
+
+
+
+  
+    "chat": {
+      "title": "Gucunga Ikiganiro",
+      "subtitle": "Gucunga inzego, abagize na ubutumwa",
+      "tabs": {
+        "rooms": "Inzego",
+        "messages": "Ubutumwa",
+        "members": "Abagize"
+      },
+      "stats": {
+        "totalRooms": "Inzego Zose",
+        "activeRooms": "Inzego Zikorera",
+        "totalMessages": "Ubutumwa Bwose",
+        "members": "Abagize Bose"
+      },
+      "room": {
+        "create": "Inzego Nshya",
+        "name": "Izina ry'inzego",
+        "type": "Ubwoko bw'inzego",
+        "student": "Umunyeshuri",
+        "targetUser": "Umukoresha",
+        "active": "Ikorera",
+        "inactive": "Ntikora",
+        "types": {
+          "parent_teacher": "Umubyeyi–Umwarimu",
+          "all_parents": "Ababyeyi Bose",
+          "all_teachers": "Abarimu Bose",
+          "all_students": "Abanyeshuri Bose",
+          "students_teachers": "Abanyeshuri & Abarimu",
+          "students_parents": "Abanyeshuri & Ababyeyi",
+          "admin_parent": "Ubutegetsi–Umubyeyi",
+          "admin_teacher": "Ubutegetsi–Umwarimu",
+          "parent_teacher_direct": "Umubyeyi–Umwarimu Ruhame"
+        },
+        "noRooms": "Nta nzego zibonetse",
+        "clickCreate": "Tangira inzego ya mbere",
+        "settings": "Igenamiterere",
+        "delete": "Siba inzego",
+        "confirmDelete": "Siba iyi nzego burundu?",
+        "alreadyExists": "Iyi nzego isanzwe ihari"
+      },
+      "message": {
+        "send": "Ohereza",
+        "placeholder": "Andika ubutumwa…",
+        "upload": "Ohereza dosiye",
+        "delete": "Siba",
+        "info": "Amakuru y'ubutumwa",
+        "noMessages": "Nta butumwa buhari",
+        "startConversation": "Hitamo inzego kugira ngo ubone ubutumwa",
+        "deleted": "Ubutumwa bwasibwe",
+        "updated": "Ubutumwa bwahinduwe",
+        "seenBy": "Babonye",
+        "notSeenBy": "Batabonye",
+        "tickSent": "Byoherejwe",
+        "tickDelivered": "Byageze",
+        "tickRead": "Basomye",
+        "reply": "Subiza",
+        "replyingTo": "Usubiza",
+        "cancelReply": "Hagarika igisubizo",
+        "voiceRecord": "Amajwi",
+        "startRecording": "Tangira gufata",
+        "stopRecording": "Hagarika",
+        "previewRecording": "Reba",
+        "sendRecording": "Ohereza",
+        "cancelRecording": "Hagarika",
+        "recordingTime": "Igihe: {{seconds}}s",
+        "types": {
+          "text": "Ubutumwa",
+          "voice": "Amajwi",
+          "audio": "Amajwi",
+          "video": "Filime",
+          "pdf": "PDF",
+          "excel": "Excel",
+          "ppt": "PowerPoint",
+          "word": "Word",
+          "image": "Ifoto"
+        }
+      },
+      "member": {
+        "add": "Ongeraho umunyamuryango",
+        "remove": "Kuraho",
+        "disable": "Hagarika kohereza",
+        "enable": "Reka kohereza",
+        "admin": "Ubutegetsi",
+        "hidden": "Bihindiwe",
+        "canSend": "Ashobora kohereza",
+        "noMembers": "Nta bagize",
+        "userId": "ID y'Umukoresha",
+        "role": "Uruhare",
+        "joinedAt": "Yinjiye"
+      },
+      "actions": {
+        "create": "Gukora",
+        "cancel": "Guhagarika",
+        "save": "Bika",
+        "delete": "Siba",
+        "refresh": "Subiramo",
+        "search": "Shakisha inzego…",
+        "loading": "Gushakisha…",
+        "close": "Funga",
+        "send": "Ohereza",
+        "update": "Hindura"
+      },
+      "filters": {
+        "allTypes": "Ubwoko bwose",
+        "allStatus": "Imiterere yose"
+      },
+      "messages": {
+        "created": "Inzego yakozwe",
+        "deleted": "Inzego yasibwe",
+        "settingsUpdated": "Igenamiterere ryahinduwe",
+        "memberAdded": "Umunyamuryango yongeweho",
+        "memberRemoved": "Umunyamuryango yakuweho",
+        "memberDisabled": "Umunyamuryango yagizwe burebure",
+        "memberEnabled": "Umunyamuryango yemerewe",
+        "messageSent": "Ubutumwa bwoherejwe",
+        "messageDeleted": "Ubutumwa bwasibwe",
+        "error": "Hari ikibazo",
+        "fetchError": "Gushakisha byanze",
+        "confirmDelete": "Iyi ntavuguruzwa."
+      },
+      "theme": {
+        "light": "Urumuri",
+        "dark": "Umwijima"
+      },
+      "lang": {
+        "en": "English",
+        "fr": "Français",
+        "rw": "Kinyarwanda"
+      }
+    }
+  
 }

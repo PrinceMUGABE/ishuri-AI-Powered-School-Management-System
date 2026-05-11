@@ -1634,5 +1634,137 @@
       "first": "First",
       "last": "Last"
     }
-  }
+  },
+
+
+  "chat": {
+      "title": "Chat Management",
+      "subtitle": "Manage chatrooms, members & messages",
+      "tabs": {
+        "rooms": "Chatrooms",
+        "messages": "Messages",
+        "members": "Members"
+      },
+      "stats": {
+        "totalRooms": "Total Rooms",
+        "activeRooms": "Active Rooms",
+        "totalMessages": "Total Messages",
+        "members": "Total Members"
+      },
+      "room": {
+        "create": "New Chatroom",
+        "name": "Room Name",
+        "type": "Room Type",
+        "student": "Linked Student",
+        "targetUser": "Target User",
+        "active": "Active",
+        "inactive": "Inactive",
+        "types": {
+          "parent_teacher": "Parent–Teacher",
+          "all_parents": "All Parents",
+          "all_teachers": "All Teachers",
+          "all_students": "All Students",
+          "students_teachers": "Students & Teachers",
+          "students_parents": "Students & Parents",
+          "admin_parent": "Admin–Parent",
+          "admin_teacher": "Admin–Teacher",
+          "parent_teacher_direct": "Parent–Teacher Direct"
+        },
+        "noRooms": "No chatrooms found",
+        "clickCreate": "Create your first chatroom",
+        "settings": "Room Settings",
+        "delete": "Delete Room",
+        "confirmDelete": "Delete this chatroom permanently?",
+        "alreadyExists": "This chatroom already exists"
+      },
+      "message": {
+        "send": "Send message",
+        "placeholder": "Type a message…",
+        "upload": "Upload file",
+        "delete": "Delete message",
+        "info": "Message info",
+        "noMessages": "No messages yet",
+        "startConversation": "Select a chatroom to view messages",
+        "deleted": "Message deleted",
+        "updated": "Message updated",
+        "seenBy": "Seen by",
+        "notSeenBy": "Not seen by",
+        "tickSent": "Sent",
+        "tickDelivered": "Delivered",
+        "tickRead": "Read",
+        "reply": "Reply",
+        "replyingTo": "Replying to",
+        "cancelReply": "Cancel reply",
+        "voiceRecord": "Voice recording",
+        "startRecording": "Start recording",
+        "stopRecording": "Stop recording",
+        "previewRecording": "Preview",
+        "sendRecording": "Send recording",
+        "cancelRecording": "Cancel",
+        "recordingTime": "Recording time: {{seconds}}s",
+        "types": {
+          "text": "Text",
+          "voice": "Voice",
+          "audio": "Audio",
+          "video": "Video",
+          "pdf": "PDF",
+          "excel": "Excel",
+          "ppt": "PowerPoint",
+          "word": "Word",
+          "image": "Image"
+        }
+      },
+      "member": {
+        "add": "Add Member",
+        "remove": "Remove",
+        "disable": "Disable messaging",
+        "enable": "Enable messaging",
+        "admin": "Admin",
+        "hidden": "Hidden",
+        "canSend": "Can send",
+        "noMembers": "No members",
+        "userId": "User ID",
+        "role": "Role",
+        "joinedAt": "Joined"
+      },
+      "actions": {
+        "create": "Create",
+        "cancel": "Cancel",
+        "save": "Save",
+        "delete": "Delete",
+        "refresh": "Refresh",
+        "search": "Search rooms…",
+        "loading": "Loading…",
+        "close": "Close",
+        "send": "Send",
+        "update": "Update settings"
+      },
+      "filters": {
+        "allTypes": "All types",
+        "allStatus": "All status"
+      },
+      "messages": {
+        "created": "Chatroom created",
+        "deleted": "Chatroom deleted",
+        "settingsUpdated": "Settings updated",
+        "memberAdded": "Member added",
+        "memberRemoved": "Member removed",
+        "memberDisabled": "Member disabled",
+        "memberEnabled": "Member enabled",
+        "messageSent": "Message sent",
+        "messageDeleted": "Message deleted",
+        "error": "Something went wrong",
+        "fetchError": "Failed to load data",
+        "confirmDelete": "This action cannot be undone."
+      },
+      "theme": {
+        "light": "Light mode",
+        "dark": "Dark mode"
+      },
+      "lang": {
+        "en": "English",
+        "fr": "Français",
+        "rw": "Kinyarwanda"
+      }
+    } 
 }

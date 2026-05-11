@@ -911,3 +911,9 @@ class ChangePasswordView(APIView):
             'message': get_message('password_changed', lang),
             'language': lang
         })
+        
+        
+        
+        
+        
+        

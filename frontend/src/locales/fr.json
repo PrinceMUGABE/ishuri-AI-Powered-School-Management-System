@@ -1633,5 +1633,137 @@
       "first": "Première",
       "last": "Dernière"
     }
-  }
+  },
+
+  "chat": {
+      "title": "Gestion du Chat",
+      "subtitle": "Gérer les salles, membres et messages",
+      "tabs": {
+        "rooms": "Salles",
+        "messages": "Messages",
+        "members": "Membres"
+      },
+      "stats": {
+        "totalRooms": "Total Salles",
+        "activeRooms": "Salles Actives",
+        "totalMessages": "Total Messages",
+        "members": "Total Membres"
+      },
+      "room": {
+        "create": "Nouvelle Salle",
+        "name": "Nom de la salle",
+        "type": "Type de salle",
+        "student": "Étudiant lié",
+        "targetUser": "Utilisateur cible",
+        "active": "Actif",
+        "inactive": "Inactif",
+        "types": {
+          "parent_teacher": "Parent–Enseignant",
+          "all_parents": "Tous les Parents",
+          "all_teachers": "Tous les Enseignants",
+          "all_students": "Tous les Étudiants",
+          "students_teachers": "Étudiants & Enseignants",
+          "students_parents": "Étudiants & Parents",
+          "admin_parent": "Admin–Parent",
+          "admin_teacher": "Admin–Enseignant",
+          "parent_teacher_direct": "Parent–Enseignant Direct"
+        },
+        "noRooms": "Aucune salle trouvée",
+        "clickCreate": "Créez votre première salle",
+        "settings": "Paramètres",
+        "delete": "Supprimer la salle",
+        "confirmDelete": "Supprimer cette salle définitivement?",
+        "alreadyExists": "Cette salle existe déjà"
+      },
+      "message": {
+        "send": "Envoyer",
+        "placeholder": "Tapez un message…",
+        "upload": "Télécharger un fichier",
+        "delete": "Supprimer",
+        "info": "Infos message",
+        "noMessages": "Aucun message",
+        "startConversation": "Sélectionnez une salle pour voir les messages",
+        "deleted": "Message supprimé",
+        "updated": "Message modifié",
+        "seenBy": "Lu par",
+        "notSeenBy": "Non lu par",
+        "tickSent": "Envoyé",
+        "tickDelivered": "Livré",
+        "tickRead": "Lu",
+        "reply": "Répondre",
+        "replyingTo": "Réponse à",
+        "cancelReply": "Annuler la réponse",
+        "voiceRecord": "Enregistrement vocal",
+        "startRecording": "Commencer",
+        "stopRecording": "Arrêter",
+        "previewRecording": "Aperçu",
+        "sendRecording": "Envoyer",
+        "cancelRecording": "Annuler",
+        "recordingTime": "Durée: {{seconds}}s",
+        "types": {
+          "text": "Texte",
+          "voice": "Vocal",
+          "audio": "Audio",
+          "video": "Vidéo",
+          "pdf": "PDF",
+          "excel": "Excel",
+          "ppt": "PowerPoint",
+          "word": "Word",
+          "image": "Image"
+        }
+      },
+      "member": {
+        "add": "Ajouter un membre",
+        "remove": "Retirer",
+        "disable": "Désactiver la messagerie",
+        "enable": "Activer la messagerie",
+        "admin": "Admin",
+        "hidden": "Caché",
+        "canSend": "Peut envoyer",
+        "noMembers": "Aucun membre",
+        "userId": "ID Utilisateur",
+        "role": "Rôle",
+        "joinedAt": "Rejoint le"
+      },
+      "actions": {
+        "create": "Créer",
+        "cancel": "Annuler",
+        "save": "Enregistrer",
+        "delete": "Supprimer",
+        "refresh": "Actualiser",
+        "search": "Rechercher…",
+        "loading": "Chargement…",
+        "close": "Fermer",
+        "send": "Envoyer",
+        "update": "Mettre à jour"
+      },
+      "filters": {
+        "allTypes": "Tous types",
+        "allStatus": "Tous statuts"
+      },
+      "messages": {
+        "created": "Salle créée",
+        "deleted": "Salle supprimée",
+        "settingsUpdated": "Paramètres mis à jour",
+        "memberAdded": "Membre ajouté",
+        "memberRemoved": "Membre retiré",
+        "memberDisabled": "Membre désactivé",
+        "memberEnabled": "Membre activé",
+        "messageSent": "Message envoyé",
+        "messageDeleted": "Message supprimé",
+        "error": "Une erreur s'est produite",
+        "fetchError": "Échec du chargement",
+        "confirmDelete": "Cette action est irréversible."
+      },
+      "theme": {
+        "light": "Mode clair",
+        "dark": "Mode sombre"
+      },
+      "lang": {
+        "en": "English",
+        "fr": "Français",
+        "rw": "Kinyarwanda"
+      }
+    }
+    
 }

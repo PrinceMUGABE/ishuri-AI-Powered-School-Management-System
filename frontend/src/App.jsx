@@ -39,6 +39,7 @@ import Reports from './pages/Admin/Reports';
 import AcademicsManagement from './pages/admin/AcademicsManagement';
 import TeacherManagement from './pages/admin/TeacherManagement';
 import StudentManagement from './pages/admin/StudentsManagement';
+import AdminChatManagement from './pages/admin/ChatManagement';
 
 // Helper function to check if user is authenticated from localStorage
 const isAuthenticated = () => {
@@ -233,6 +234,13 @@ const AppRoutes = () => {
         <Route path="reports" element={
           <ProtectedRoute allowedRoles={['admin']}>
             <Reports />
+          </ProtectedRoute>
+        } />
+
+
+        <Route path="chat" element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminChatManagement />
           </ProtectedRoute>
         } />
 

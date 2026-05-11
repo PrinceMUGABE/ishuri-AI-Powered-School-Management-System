@@ -221,6 +221,70 @@ def get_all_students(request):
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsAdmin])
+def get_students(request):
+    """Admin: List all students with optional filters and pagination."""
+    print(f"\n{SEPARATOR}\n[get_all_students] Request received\n{SEPARATOR}")
+    lang = get_lang(request)
+
+    try:
+        qs = Student.objects.select_related(
+            'user', 'current_academic_year', 'current_school_level', 'current_class_level', 'created_by'
+        ).prefetch_related('parents')
+
+        # Filters
+        search = request.query_params.get('search')
+        if search:
+            qs = qs.filter(full_name__icontains=search)
+            print(f"[get_all_students] Search: {search}")
+
+        status_filter = request.query_params.get('status')
+        if status_filter:
+            qs = qs.filter(status=status_filter)
+
+        class_level_id = request.query_params.get('class_level_id')
+        if class_level_id:
+            qs = qs.filter(current_class_level_id=class_level_id)
+
+        school_level_id = request.query_params.get('school_level_id')
+        if school_level_id:
+            qs = qs.filter(current_school_level_id=school_level_id)
+
+        academic_year_id = request.query_params.get('academic_year_id')
+        if academic_year_id:
+            qs = qs.filter(current_academic_year_id=academic_year_id)
+
+        # Pagination
+        page = max(int(request.query_params.get('page', 1)), 1)
+        page_size = min(int(request.query_params.get('page_size', 10)), 100)
+        total = qs.count()
+        start = (page - 1) * page_size
+        paginated = qs[start:start + page_size]
+
+        print(f"[get_all_students] Returning {len(paginated)} of {total}")
+        return Response({
+            'success': True,
+            'language': lang,
+            'data': {
+                'count': total,
+                'page': page,
+                'page_size': page_size,
+                'total_pages': (total + page_size - 1) // page_size,
+                'results': StudentListSerializer(paginated, many=True).data,
+            },
+        })
+
+    except Exception as exc:
+        logger.error(f"[get_all_students] Error: {exc}", exc_info=True)
+        print(f"[get_all_students] ERROR: {exc}")
+        return Response({'success': False, 'message': str(exc), 'language': lang},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def get_student_by_id(request, student_id):

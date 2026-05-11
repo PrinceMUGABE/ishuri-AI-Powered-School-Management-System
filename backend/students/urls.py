@@ -10,6 +10,7 @@ urlpatterns = [
     path('<int:student_id>/', views.get_student_by_id, name='student-detail'),
     path('<int:student_id>/update/', views.update_student, name='student-update'),
     path('<int:student_id>/delete/', views.delete_student, name='student-delete'),
+    path('students/', views.get_students, name='student-list'),  # New endpoint for listing students with filters and pagination
 
     # ─── Logged-in student (self) ──────────────────────────────────
     path('me/', views.get_my_student_profile, name='student-me'),
