@@ -191,3 +191,7 @@ class NotificationPreference(models.Model):
     
     def __str__(self):
         return f"Preferences for {self.user.username}"
+    
+    
+    
+    

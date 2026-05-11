@@ -1,6 +1,7 @@
 
 
 from pathlib import Path
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -29,6 +30,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "corsheaders",
     'channels',
+    'background_task',
     
     'rest_framework',
     'rest_framework_simplejwt',
@@ -39,7 +41,8 @@ INSTALLED_APPS = [
     'academics',
     'teachers',
     'students',
-        'chat',
+    'chat',
+    'payments',
 ]
 
 MIDDLEWARE = [
@@ -250,3 +253,37 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Max upload size = 50 MB (also enforced in views.py)
 DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800   # 50 MB
 FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800   # 50 MB
+
+
+
+
+
+# # backend/settings.py - Add these Celery configurations
+
+# # Celery Configuration
+# CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Redis as message broker
+# CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+# CELERY_ACCEPT_CONTENT = ['application/json']
+# CELERY_TASK_SERIALIZER = 'json'
+# CELERY_RESULT_SERIALIZER = 'json'
+# CELERY_TIMEZONE = TIME_ZONE
+# CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
+# # Celery Beat Schedule (for periodic tasks)
+# CELERY_BEAT_SCHEDULE = {
+#     'send-weekly-payment-reminders': {
+#         'task': 'payments.tasks.send_weekly_payment_reminders',
+#         'schedule': crontab(day_of_week='friday', hour=9, minute=0),  # Every Friday at 9 AM
+#         'args': (),
+#     },
+#     'check-overdue-payments-daily': {
+#         'task': 'payments.tasks.check_overdue_payments',
+#         'schedule': crontab(hour=0, minute=0),  # Every day at midnight
+#         'args': (),
+#     },
+# }
+
+# # If you want to use django-celery-beat for dynamic scheduling
+# INSTALLED_APPS += [
+#     'django_celery_beat',  # For database-backed periodic tasks
+# ]

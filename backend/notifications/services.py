@@ -317,3 +317,10 @@ class NotificationService:
     def get_recent_notifications(cls, user, limit=10):
         """Get recent notifications for a user"""
         return Notification.objects.filter(recipient=user)[:limit]
+  
+    
+   
+    
+    
+    
+    
