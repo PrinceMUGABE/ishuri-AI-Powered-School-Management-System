@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     "corsheaders",
+    'channels',
     
     'rest_framework',
     'rest_framework_simplejwt',
@@ -38,6 +39,7 @@ INSTALLED_APPS = [
     'academics',
     'teachers',
     'students',
+        'chat',
 ]
 
 MIDDLEWARE = [
@@ -97,6 +99,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'backend.wsgi.application'
+ASGI_APPLICATION = 'backend.asgi.application'
 
 
 # Database
@@ -227,3 +230,23 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'princemugabe567@gmail.com'
 EMAIL_HOST_PASSWORD = 'ooke lknm zzst pmvu'
 DEFAULT_FROM_EMAIL = 'Les Hirondelles de Don Bosco<princemugabe567@gmail.com>'
+
+
+
+# --- Channel Layers using Redis ---
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('127.0.0.1', 6379)],
+        },
+    },
+}
+ 
+# --- File upload settings ---
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+ 
+# Max upload size = 50 MB (also enforced in views.py)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800   # 50 MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800   # 50 MB
