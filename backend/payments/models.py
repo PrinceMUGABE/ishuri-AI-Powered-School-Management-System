@@ -120,14 +120,41 @@ class StudentPaymentAssignment(models.Model):
     
     def clean(self):
         """Validate payment assignment data"""
+        # Ensure dates are date objects, not strings
         if self.payment_due_date and self.payment_start_date:
-            if self.payment_due_date <= self.payment_start_date:
+            # Convert to date if they're strings (though Django should handle this)
+            from datetime import date
+            
+            due_date = self.payment_due_date
+            start_date = self.payment_start_date
+            
+            if isinstance(due_date, str):
+                from datetime import datetime
+                due_date = datetime.strptime(due_date, '%Y-%m-%d').date()
+            if isinstance(start_date, str):
+                from datetime import datetime
+                start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+            
+            if due_date <= start_date:
                 raise ValidationError({
                     'payment_due_date': _('Due date must be after start date')
                 })
         
         if self.payment_extended_until and self.payment_start_date:
-            if self.payment_extended_until <= self.payment_start_date:
+            # Convert to date if they're strings
+            from datetime import date
+            
+            extended_until = self.payment_extended_until
+            start_date = self.payment_start_date
+            
+            if isinstance(extended_until, str):
+                from datetime import datetime
+                extended_until = datetime.strptime(extended_until, '%Y-%m-%d').date()
+            if isinstance(start_date, str):
+                from datetime import datetime
+                start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+            
+            if extended_until <= start_date:
                 raise ValidationError({
                     'payment_extended_until': _('Extended date must be after start date')
                 })

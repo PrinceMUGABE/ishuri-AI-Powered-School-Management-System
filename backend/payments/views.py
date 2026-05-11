@@ -48,6 +48,7 @@ def get_user_language(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_payment_assignments(request):
+    print(f"Creating payment assignments for student: {request.data.get('student_id')} \n and data: {request.data}\n")
     """
     Create payment assignments for a student
     """
@@ -66,8 +67,8 @@ def create_payment_assignments(request):
             }, status=status.HTTP_400_BAD_REQUEST)
         
         validated_data = serializer.validated_data
-        student = validated_data['student_id']
-        costs = validated_data['class_level_cost_ids']
+        student = validated_data['student_id']  # This is now a Student object
+        costs = validated_data['class_level_cost_ids']  # This is a list of ClassLevelCost objects
         academic_year_id = validated_data['academic_year_id']
         payment_due_date = validated_data['payment_due_date']
         payment_start_date = validated_data.get('payment_start_date', timezone.now().date())
@@ -113,7 +114,6 @@ def create_payment_assignments(request):
             'message': 'An unexpected error occurred',
             'error': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
@@ -296,6 +296,7 @@ def get_all_payments(request):
         serializer = StudentPaymentAssignmentSerializer(payments, many=True)
         
         print(f"\n✅ SUCCESS: Retrieved {payments.count()} payment assignments")
+        print(f"Retrived Payments data:\n{serializer.data}\n")
         
         return Response({
             'success': True,
@@ -806,6 +807,7 @@ def get_payment_transactions(request, assignment_id):
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def extend_payment_deadline(request, assignment_id):
@@ -830,14 +832,33 @@ def extend_payment_deadline(request, assignment_id):
                 'message': 'new_due_date is required'
             }, status=status.HTTP_400_BAD_REQUEST)
         
+        # Convert string to date object
+        from datetime import datetime
+        if isinstance(new_due_date, str):
+            try:
+                new_due_date_obj = datetime.strptime(new_due_date, '%Y-%m-%d').date()
+            except ValueError:
+                return Response({
+                    'success': False,
+                    'message': 'Invalid date format. Use YYYY-MM-DD'
+                }, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            new_due_date_obj = new_due_date
+        
         old_due_date = payment.payment_due_date
-        payment.payment_extended_until = new_due_date
+        
+        # Update the extended until date
+        payment.payment_extended_until = new_due_date_obj
+        
+        # Also update the due date if you want to extend the original due date
+        # payment.payment_due_date = new_due_date_obj
+        
         payment.save()
         
         print(f"\n📅 DEADLINE EXTENDED:")
         print(f"   Assignment ID: {assignment_id}")
         print(f"   Old Due Date: {old_due_date}")
-        print(f"   New Due Date: {new_due_date}")
+        print(f"   New Due Date: {new_due_date_obj}")
         
         # Create notification
         user = payment.student.user if payment.student.user else None
@@ -846,7 +867,7 @@ def extend_payment_deadline(request, assignment_id):
             
             print(f"\n🔔 DEADLINE EXTENSION NOTIFICATION:")
             print(f"   Recipient: {user.username}")
-            print(f"   Message: Payment deadline extended to {new_due_date}")
+            print(f"   Message: Payment deadline extended to {new_due_date_obj}")
             print(f"   Language: {language}\n")
             
             from notifications.services import NotificationService
@@ -854,11 +875,11 @@ def extend_payment_deadline(request, assignment_id):
                 user=user,
                 notification_type='deadline_reminder',
                 title='Payment Deadline Extended',
-                message=f'Your payment deadline for {payment.class_level_cost.name} has been extended to {new_due_date}',
+                message=f'Your payment deadline for {payment.class_level_cost.name} has been extended to {new_due_date_obj}',
                 created_by=request.user,
                 extra_data={
                     'assignment_id': assignment_id,
-                    'new_due_date': str(new_due_date),
+                    'new_due_date': str(new_due_date_obj),
                     'old_due_date': str(old_due_date)
                 },
                 priority='high'
@@ -868,7 +889,7 @@ def extend_payment_deadline(request, assignment_id):
         
         return Response({
             'success': True,
-            'message': f'Payment deadline extended to {new_due_date}',
+            'message': f'Payment deadline extended to {new_due_date_obj}',
             'data': serializer.data
         }, status=status.HTTP_200_OK)
         
@@ -880,7 +901,6 @@ def extend_payment_deadline(request, assignment_id):
             'message': 'An unexpected error occurred',
             'error': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

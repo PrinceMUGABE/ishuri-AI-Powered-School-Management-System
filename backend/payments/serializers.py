@@ -132,8 +132,8 @@ class CreatePaymentAssignmentSerializer(serializers.Serializer):
     def validate_student_id(self, value):
         try:
             student = Student.objects.get(id=value)
-            if student.status != 'active':
-                raise serializers.ValidationError('Student is not active')
+            # if student.status != 'active':
+            #     raise serializers.ValidationError('Student is not active')
             return student
         except Student.DoesNotExist:
             raise serializers.ValidationError('Student not found')

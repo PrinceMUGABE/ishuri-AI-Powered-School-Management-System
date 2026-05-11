@@ -1764,6 +1764,168 @@
         "fr": "Français",
         "rw": "Kinyarwanda"
       }
-    }
+    },
+
+
     
+  "payments": {
+    "title": "Gestion des Paiements",
+    "subtitle": "Gérer les paiements des étudiants, les affectations et les transactions",
+    "tabs": {
+      "assignments": "Affectations de Paiement",
+      "overview": "Aperçu"
+    },
+    "table": {
+      "student": "Étudiant",
+      "feeName": "Nom des Frais",
+      "totalAmount": "Montant Total",
+      "paidAmount": "Montant Payé",
+      "remaining": "Restant",
+      "dueDate": "Date d'Échéance",
+      "status": "Statut",
+      "actions": "Actions"
+    },
+    "status": {
+      "waiting": "En Attente",
+      "started": "Commencé",
+      "partially_paid": "Partiellement Payé",
+      "completed": "Complété",
+      "failed": "Échoué",
+      "overdue": "En Retard"
+    },
+    "filters": {
+      "allStatus": "Tous les Statuts",
+      "searchStudent": "Rechercher un Étudiant...",
+      "allAcademicYears": "Toutes les Années Académiques",
+      "allSchoolLevels": "Tous les Niveaux Scolaires",
+      "allClassLevels": "Toutes les Classes"
+    },
+    "actions": {
+      "newAssignment": "Nouvelle Affectation",
+      "search": "Rechercher...",
+      "refresh": "Actualiser",
+      "clearFilters": "Effacer les Filtres",
+      "viewDetails": "Voir les Détails",
+      "makePayment": "Effectuer le Paiement",
+      "extendDeadline": "Prolonger la Date Limite",
+      "delete": "Supprimer",
+      "create": "Créer",
+      "update": "Mettre à Jour",
+      "cancel": "Annuler",
+      "close": "Fermer",
+      "processPayment": "Traiter le Paiement",
+      "extend": "Prolonger",
+      "createFirst": "Créez votre première affectation de paiement",
+      "downloadReport": "Télécharger le Rapport",
+      "printReport": "Imprimer le Rapport",
+      "generateReport": "Générer le Rapport",
+      "addNew": "Ajouter Nouveau",
+      "clickToAdd": "Cliquez ici pour ajouter"
+    },
+    "form": {
+      "student": "Étudiant",
+      "selectStudent": "Sélectionner un étudiant",
+      "feeStructures": "Structures de Frais",
+      "academicYear": "Année Académique",
+      "startDate": "Date de Début",
+      "dueDate": "Date d'Échéance",
+      "amount": "Montant",
+      "paymentMethod": "Mode de Paiement",
+      "phoneNumber": "Numéro de Téléphone",
+      "provider": "Fournisseur Mobile Money",
+      "bankName": "Nom de la Banque",
+      "bankReceiptNumber": "Numéro de Reçu Bancaire",
+      "notes": "Notes",
+      "notesPlaceholder": "Notes supplémentaires sur ce paiement...",
+      "newDueDate": "Nouvelle Date d'Échéance"
+    },
+    "modal": {
+      "newAssignment": "Créer une Affectation de Paiement",
+      "makePayment": "Traiter le Paiement",
+      "paymentDetails": "Détails du Paiement",
+      "extendDeadline": "Prolonger la Date Limite",
+      "currentDueDate": "Date d'Échéance Actuelle",
+      "paymentFor": "Paiement Pour"
+    },
+    "details": {
+      "student": "Étudiant",
+      "feeName": "Nom des Frais",
+      "academicYear": "Année Académique",
+      "paymentProgress": "Progression du Paiement",
+      "progress": "Progression",
+      "total": "Total",
+      "paid": "Payé",
+      "remaining": "Restant",
+      "dateInfo": "Informations de Date",
+      "startDate": "Date de Début",
+      "dueDate": "Date d'Échéance",
+      "extendedUntil": "Prolongé Jusqu'au",
+      "transactionHistory": "Historique des Transactions"
+    },
+    "overview": {
+      "selectStudent": "Sélectionner un Étudiant",
+      "selectStudentHint": "Sélectionnez un étudiant pour voir son résumé de paiement",
+      "searchStudentPlaceholder": "Rechercher par nom ou numéro de matricule...",
+      "studentInfo": "Informations de l'Étudiant",
+      "classLevel": "Niveau de Classe",
+      "recentAssignments": "Affectations de Paiement Récentes"
+    },
+    "summary": {
+      "totalAssigned": "Total Attribué",
+      "totalPaid": "Total Payé",
+      "totalRemaining": "Total Restant",
+      "totalOverdue": "Total en Retard",
+      "completedCount": "Complétés",
+      "pendingCount": "En Attente",
+      "overdueCount": "En Retard",
+      "paymentPercentage": "Progression des Paiements"
+    },
+    "methods": {
+      "mobileMoney": "Mobile Money",
+      "bankTransfer": "Virement Bancaire",
+      "cash": "Espèces",
+      "cheque": "Chèque"
+    },
+    "delete": {
+      "title": "Supprimer l'Affectation de Paiement",
+      "confirmation": "Êtes-vous sûr de vouloir supprimer cette affectation de paiement ?",
+      "warning": "Cette action est irréversible. Cela supprimera définitivement l'affectation et toutes les transactions associées."
+    },
+    "messages": {
+      "loading": "Chargement...",
+      "noData": "Aucune affectation de paiement trouvée",
+      "noFeeStructures": "Aucune structure de frais disponible pour le niveau de classe de cet étudiant",
+      "noMatchingFeeStructures": "Aucune structure de frais disponible pour le niveau de classe de cet étudiant",
+      "dataLoaded": "données chargées avec succès",
+      "fetchError": "Échec de la récupération des données",
+      "createError": "Échec de la création de l'affectation de paiement",
+      "updateError": "Échec de la mise à jour de l'affectation de paiement",
+      "deleteError": "Échec de la suppression de l'affectation de paiement",
+      "paymentError": "Échec du traitement du paiement",
+      "extendError": "Échec de la prolongation de la date limite",
+      "fillAllFields": "Veuillez remplir tous les champs obligatoires",
+      "validAmount": "Veuillez entrer un montant valide",
+      "amountExceeds": "Le montant dépasse le solde restant de",
+      "paymentSuccess": "Paiement traité avec succès ! Référence :",
+      "selectNewDate": "Veuillez sélectionner une nouvelle date d'échéance",
+      "reportGenerated": "Rapport généré avec succès",
+      "reportError": "Échec de la génération du rapport",
+      "exportSuccess": "Rapport exporté avec succès"
+    },
+    "pagination": {
+      "showing": "Affichage de",
+      "perPage": "par page",
+      "total": "Total",
+      "records": "enregistrements",
+      "page": "Page",
+      "of": "de",
+      "first": "Premier",
+      "last": "Dernier"
+    },
+    "frequency": {
+      "termly": "Par Trimestre",
+      "yearly": "Par Année",
+      "monthly": "Par Mois"
+    }
+  }
 }

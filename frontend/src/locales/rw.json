@@ -654,11 +654,8 @@
       "duplicateError": "Ikintu gifite iri zina kirabaho"
     }
   },
-
-  
   "title": "Gestioni y'Amashuri",
   "subtitle": "Gena imyaka y'amashuri, amasomo, ibyumba, amasomo n'ibiciro",
-  
   "tabs": {
     "academicYears": "Imyaka y'Amashuri",
     "academicYearsDesc": "Gena kalendari y'umwaka w'amashuri",
@@ -675,7 +672,6 @@
     "feeStructures": "Ibiciro",
     "feeStructuresDesc": "Gena ibiciro by'amashuri"
   },
-  
   "stats": {
     "schoolLevels": "Urwego rw'Amashuri",
     "classLevels": "Urwego rw'Ishuri",
@@ -684,7 +680,6 @@
     "assignments": "Ibyashyizweho",
     "feeStructures": "Ibiciro"
   },
-  
   "table": {
     "yearName": "Izina ry'Umwaka",
     "startDate": "Itariki Itangira",
@@ -713,7 +708,6 @@
     "amount": "Igiciro",
     "mandatory": "Nshingano"
   },
-  
   "form": {
     "yearName": "Izina ry'Umwaka",
     "startDate": "Itariki Itangira",
@@ -744,7 +738,6 @@
     "subject": "Isomo",
     "select": "Hitamo"
   },
-  
   "placeholders": {
     "yearName": "Urugero: 2024-2025",
     "levelName": "Urugero: Incuke, Abanza, Ayisumbuye",
@@ -761,20 +754,17 @@
     "feeName": "Urugero: Amafaranga y'ishuri",
     "amount": "0"
   },
-  
   "roomTypes": {
     "standard": "Gasanzwe",
     "laboratory": "Laboratoire",
     "workshop": "Ahabaga",
     "auditorium": "Inzu nini"
   },
-  
   "status": {
     "active": "Gikora",
     "inactive": "Ntigikora",
     "current": "Kiriho"
   },
-  
   "frequency": {
     "daily": "Buri munsi",
     "weekly": "Buri cyumweru",
@@ -782,7 +772,6 @@
     "yearly": "Buri mwaka",
     "monthly": "Buri kwezi"
   },
-  
   "actions": {
     "view": "Reba",
     "edit": "Hindura",
@@ -793,7 +782,6 @@
     "toggleDarkMode": "Hindura Imiterere y'Amabara",
     "clickToAdd": "Kanda hano kongeramo"
   },
-  
   "pagination": {
     "showing": "Urigaragaza",
     "perPage": "ku rupapuro",
@@ -802,7 +790,6 @@
     "last": "Icya Nyuma",
     "page": "Urupapuro"
   },
-  
   "messages": {
     "loading": "Birakoresha amakuru...",
     "noData": "Nta makuru yabonetse",
@@ -818,8 +805,6 @@
     "statusError": "Guhindura imiterere byananiwe",
     "dataLoaded": "Amakuru yatwaye neza byanditswe)"
   },
-
-  
   "actions": {
     "create": "Kora",
     "update": "Vugurura",
@@ -835,14 +820,12 @@
     "toggleDarkMode": "Hindura Imiterere y'Amabara",
     "view": "Reba"
   },
-  
   "view": {
     "basicInfo": "Amakuru y'ibanze",
     "timestamps": "Igihe",
     "createdAt": "Byakozwe ku",
     "updatedAt": "Byahinduwe ku"
   },
-  
   "delete": {
     "title": "Gusiba ikintu",
     "confirmation": "Uri gushaka ko ukuraho iki kintu?",
@@ -850,7 +833,6 @@
     "currentYearWarning": "Uyu ni umwaka w'amashuri uriho. Kuwukuraho bishobora guhagarika sisitemu.",
     "warning": "Iki gikorwa ntigishobora gusubirwaho."
   },
-  
   "status": {
     "yes": "Yego",
     "no": "Oya",
@@ -859,18 +841,14 @@
     "inactive": "Ntigikora",
     "suspended": "Guhagarikwa"
   },
-  
   "messages": {
     "creating": "Biragikorwa...",
     "updating": "Biragihinduka...",
     "deleting": "Biragisibwa..."
   },
-
-  
   "title": "Imicungire y'Amashuri",
   "subtitle": "Gucunga inzego z'amashuri, amasomo n'imitangirwa y'amafaranga",
   "subtitleWithYear": "Umwaka w'Ishuri: {{year}} — Gucunga inzego, amasomo n'amafaranga",
-
   "tabs": {
     "academicYears": "Imyaka y'Amashuri",
     "schoolLevels": "Amategeko y'Amashuri",
@@ -880,7 +858,6 @@
     "assignments": "Gushyiraho Amasomo",
     "feeStructures": "Inzego z'Amafaranga"
   },
-
   "stats": {
     "schoolLevels": "Amategeko y'Amashuri",
     "classLevels": "Amategeko y'Amasomo",
@@ -889,7 +866,6 @@
     "assignments": "Gushyiraho",
     "feeStructures": "Amafaranga"
   },
-
   "status": {
     "active": "Bikorera",
     "inactive": "Bitikorera",
@@ -897,20 +873,17 @@
     "yes": "Yego",
     "no": "Oya"
   },
-
   "labels": {
     "required": "Ngombwa",
     "optional": "Ntibisabwa",
     "mandatory": "Ngombwa"
   },
-
   "roomTypes": {
     "standard": "Isanzwe",
     "laboratory": "Laboratoire",
     "workshop": "Aho Bakorera",
     "auditorium": "Ingoro y'Ibiganiro"
   },
-
   "frequency": {
     "daily": "Buri Munsi",
     "weekly": "Buri Cyumweru",
@@ -918,7 +891,6 @@
     "yearly": "Buri Mwaka",
     "monthly": "Buri Kwezi"
   },
-
   "actions": {
     "add": "Ongeraho ",
     "edit": "Hindura",
@@ -937,7 +909,6 @@
     "toggleDarkMode": "Hindura ibara ry'inyuma",
     "toggleStatus": "Kanda guhindura imimerere"
   },
-
   "table": {
     "yearName": "Izina ry'Umwaka",
     "startDate": "Itariki yo Gutangira",
@@ -969,7 +940,6 @@
     "mandatory": "Ngombwa",
     "username": "Izina ry'Abakoresha"
   },
-
   "form": {
     "yearName": "Izina ry'Umwaka",
     "startDate": "Itariki yo Gutangira",
@@ -1001,7 +971,6 @@
     "username": "Izina ry'Abakoresha",
     "selectOption": "Hitamo"
   },
-
   "placeholders": {
     "yearName": "urugero: 2024–2025",
     "levelName": "urugero: Amashuri Abanza, Ayisumbuye",
@@ -1018,7 +987,6 @@
     "feeName": "urugero: Amafaranga y'Ishuri",
     "amount": "urugero: 150000"
   },
-
   "filters": {
     "status": "Imimerere",
     "allStatus": "Imimerere Yose",
@@ -1039,20 +1007,17 @@
     "currentOnly": "Umwaka Ubu Gusa",
     "pastOnly": "Imyaka Ishize Gusa"
   },
-
   "modal": {
     "fillDetails": "Uzuza amakuru hepfo kugira ngo ushireho irekodi rishya.",
     "updateDetails": "Hindura amakuru hepfo maze ubike impinduka zawe.",
     "idLabel": "Inomero y'Irekodi: #{{id}}"
   },
-
   "view": {
     "basicInfo": "Amakuru Makuru",
     "timestamps": "Igihe",
     "createdAt": "Itariki yo Gushyiraho",
     "updatedAt": "Iheruka Guhindurwa"
   },
-
   "delete": {
     "title": "Emeza Gusiba",
     "confirmation": "Urizeye ko ushaka gusiba iyi makuru? Ibi ntibishobora gusubizwa inyuma.",
@@ -1060,7 +1025,6 @@
     "currentYearWarning": "Iburira: Uyu ni umwaka w'ishuri ubu. Gusiba bishobora kugira ingaruka ku makuru andi.",
     "warning": "Ibi bikorwa bihoraho kandi ntibishobora gusubizwa inyuma."
   },
-
   "messages": {
     "loading": "Gufungura amakuru...",
     "noData": "Nta makuru abonetse.",
@@ -1079,7 +1043,6 @@
     "updating": "Guvugurura...",
     "deleting": "Gusiba..."
   },
-
   "pagination": {
     "show": "Erekana",
     "ofTotal": "muri {{count}} irekodi",
@@ -1088,11 +1051,9 @@
     "first": "Rya Mbere",
     "last": "Rya Nyuma"
   },
-
   "teachers": {
     "title": "Gestioni y'Abarezi",
     "subtitle": "Genca abarezi, imirimo, igihe cy'amasomo n'iminsi y'amashuri",
-    
     "tabs": {
       "teachers": "Abarezi",
       "assignments": "Imirimo",
@@ -1101,7 +1062,6 @@
       "holidays": "Iminsi mikuru",
       "reports": "Raporuzi"
     },
-    
     "stats": {
       "totalTeachers": "Abarezi bose",
       "activeTeachers": "Bakora",
@@ -1111,7 +1071,6 @@
       "timetableEntries": "Igihe cy'amasomo",
       "totalHolidays": "Iminsi mikuru"
     },
-    
     "table": {
       "fullName": "Izina ryuzuye",
       "username": "Izina rya konti",
@@ -1133,7 +1092,6 @@
       "academicYear": "Umwaka w'amashuri",
       "recurring": "Buri mwaka"
     },
-    
     "form": {
       "fullName": "Izina ryuzuye",
       "email": "Imeli",
@@ -1170,7 +1128,6 @@
       "selectOption": "Hitamo {label}",
       "allLevels": "Urwego rwose"
     },
-    
     "placeholders": {
       "fullName": "Urugero: Mukasine Jean",
       "address": "Umuhanda, Umujyi, Igihugu",
@@ -1180,13 +1137,11 @@
       "notes": "Ibisobanuro birambuye...",
       "holidayName": "Urugero: Noheri"
     },
-    
     "gender": {
       "male": "Gabo",
       "female": "Gore",
       "other": "Ibindi"
     },
-    
     "education": {
       "diploma": "Impamyabumenyi",
       "bachelor": "Impamyabumenyi ya mbere",
@@ -1194,7 +1149,6 @@
       "doctorate": "Ubugoroba",
       "certificate": "Icyemezo"
     },
-    
     "status": {
       "active": "Gikora",
       "inactive": "Ntigikora",
@@ -1206,7 +1160,6 @@
       "yes": "Yego",
       "no": "Oya"
     },
-    
     "days": {
       "monday": "Kuwa mbere",
       "tuesday": "Kuwa kabiri",
@@ -1216,7 +1169,6 @@
       "saturday": "Kuwa gatandatu",
       "sunday": "Ku cyumweru"
     },
-    
     "actions": {
       "view": "Reba",
       "edit": "Hindura",
@@ -1238,7 +1190,6 @@
       "addNew": "Ongeraho",
       "select": "Hitamo"
     },
-    
     "filters": {
       "allStatus": "Imiterere yose",
       "allTeachers": "Abarezi bose",
@@ -1248,7 +1199,6 @@
       "allAcademicYears": "Imyaka yose",
       "allSchoolLevels": "Urwego rwose"
     },
-    
     "pagination": {
       "showing": "Yerekana",
       "perPage": "ku rupapuro",
@@ -1259,7 +1209,6 @@
       "records": "irekodi",
       "of": "ku"
     },
-    
     "timetable": {
       "noData": "Nta gihe cy'amasomo. Kanda Kora.",
       "noEntries": "Ntabusobanuro buboneka.",
@@ -1277,7 +1226,6 @@
       "entries": "ibinyabugenewe",
       "noClasses": "Nta masomo"
     },
-    
     "reports": {
       "title": "Raporu y'Abarezi",
       "generatedOn": "Yakozwe ku",
@@ -1287,18 +1235,15 @@
       "showingFirst": "Yerekana za mbere",
       "of": "muri"
     },
-    
     "holidays": {
       "upcoming": "Iminsi mikuru iri imbere"
     },
-    
     "delete": {
       "title": "Gusiba",
       "confirmation": "Uri gushaka ko ukuraho?",
       "itemName": "Ikintu",
       "warning": "Ntigishobora gusubirwaho"
     },
-    
     "messages": {
       "loading": "Birakoresha...",
       "noData": "Nta makuru",
@@ -1321,9 +1266,6 @@
       "reportError": "Gukora raporu byananiwe"
     }
   },
-
-
-  
   "students": {
     "title": "Gestion y’Abanyeshuli n’Ababyeyi",
     "subtitle": "Kuyobora abanyeshuli, ababyeyi n’imibanire",
@@ -1454,139 +1396,296 @@
       "last": "Iya nyuma"
     }
   },
-
-
-
-  
-    "chat": {
-      "title": "Gucunga Ikiganiro",
-      "subtitle": "Gucunga inzego, abagize na ubutumwa",
-      "tabs": {
-        "rooms": "Inzego",
-        "messages": "Ubutumwa",
-        "members": "Abagize"
+  "chat": {
+    "title": "Gucunga Ikiganiro",
+    "subtitle": "Gucunga inzego, abagize na ubutumwa",
+    "tabs": {
+      "rooms": "Inzego",
+      "messages": "Ubutumwa",
+      "members": "Abagize"
+    },
+    "stats": {
+      "totalRooms": "Inzego Zose",
+      "activeRooms": "Inzego Zikorera",
+      "totalMessages": "Ubutumwa Bwose",
+      "members": "Abagize Bose"
+    },
+    "room": {
+      "create": "Inzego Nshya",
+      "name": "Izina ry'inzego",
+      "type": "Ubwoko bw'inzego",
+      "student": "Umunyeshuri",
+      "targetUser": "Umukoresha",
+      "active": "Ikorera",
+      "inactive": "Ntikora",
+      "types": {
+        "parent_teacher": "Umubyeyi–Umwarimu",
+        "all_parents": "Ababyeyi Bose",
+        "all_teachers": "Abarimu Bose",
+        "all_students": "Abanyeshuri Bose",
+        "students_teachers": "Abanyeshuri & Abarimu",
+        "students_parents": "Abanyeshuri & Ababyeyi",
+        "admin_parent": "Ubutegetsi–Umubyeyi",
+        "admin_teacher": "Ubutegetsi–Umwarimu",
+        "parent_teacher_direct": "Umubyeyi–Umwarimu Ruhame"
       },
-      "stats": {
-        "totalRooms": "Inzego Zose",
-        "activeRooms": "Inzego Zikorera",
-        "totalMessages": "Ubutumwa Bwose",
-        "members": "Abagize Bose"
-      },
-      "room": {
-        "create": "Inzego Nshya",
-        "name": "Izina ry'inzego",
-        "type": "Ubwoko bw'inzego",
-        "student": "Umunyeshuri",
-        "targetUser": "Umukoresha",
-        "active": "Ikorera",
-        "inactive": "Ntikora",
-        "types": {
-          "parent_teacher": "Umubyeyi–Umwarimu",
-          "all_parents": "Ababyeyi Bose",
-          "all_teachers": "Abarimu Bose",
-          "all_students": "Abanyeshuri Bose",
-          "students_teachers": "Abanyeshuri & Abarimu",
-          "students_parents": "Abanyeshuri & Ababyeyi",
-          "admin_parent": "Ubutegetsi–Umubyeyi",
-          "admin_teacher": "Ubutegetsi–Umwarimu",
-          "parent_teacher_direct": "Umubyeyi–Umwarimu Ruhame"
-        },
-        "noRooms": "Nta nzego zibonetse",
-        "clickCreate": "Tangira inzego ya mbere",
-        "settings": "Igenamiterere",
-        "delete": "Siba inzego",
-        "confirmDelete": "Siba iyi nzego burundu?",
-        "alreadyExists": "Iyi nzego isanzwe ihari"
-      },
-      "message": {
-        "send": "Ohereza",
-        "placeholder": "Andika ubutumwa…",
-        "upload": "Ohereza dosiye",
-        "delete": "Siba",
-        "info": "Amakuru y'ubutumwa",
-        "noMessages": "Nta butumwa buhari",
-        "startConversation": "Hitamo inzego kugira ngo ubone ubutumwa",
-        "deleted": "Ubutumwa bwasibwe",
-        "updated": "Ubutumwa bwahinduwe",
-        "seenBy": "Babonye",
-        "notSeenBy": "Batabonye",
-        "tickSent": "Byoherejwe",
-        "tickDelivered": "Byageze",
-        "tickRead": "Basomye",
-        "reply": "Subiza",
-        "replyingTo": "Usubiza",
-        "cancelReply": "Hagarika igisubizo",
-        "voiceRecord": "Amajwi",
-        "startRecording": "Tangira gufata",
-        "stopRecording": "Hagarika",
-        "previewRecording": "Reba",
-        "sendRecording": "Ohereza",
-        "cancelRecording": "Hagarika",
-        "recordingTime": "Igihe: {{seconds}}s",
-        "types": {
-          "text": "Ubutumwa",
-          "voice": "Amajwi",
-          "audio": "Amajwi",
-          "video": "Filime",
-          "pdf": "PDF",
-          "excel": "Excel",
-          "ppt": "PowerPoint",
-          "word": "Word",
-          "image": "Ifoto"
-        }
-      },
-      "member": {
-        "add": "Ongeraho umunyamuryango",
-        "remove": "Kuraho",
-        "disable": "Hagarika kohereza",
-        "enable": "Reka kohereza",
-        "admin": "Ubutegetsi",
-        "hidden": "Bihindiwe",
-        "canSend": "Ashobora kohereza",
-        "noMembers": "Nta bagize",
-        "userId": "ID y'Umukoresha",
-        "role": "Uruhare",
-        "joinedAt": "Yinjiye"
-      },
-      "actions": {
-        "create": "Gukora",
-        "cancel": "Guhagarika",
-        "save": "Bika",
-        "delete": "Siba",
-        "refresh": "Subiramo",
-        "search": "Shakisha inzego…",
-        "loading": "Gushakisha…",
-        "close": "Funga",
-        "send": "Ohereza",
-        "update": "Hindura"
-      },
-      "filters": {
-        "allTypes": "Ubwoko bwose",
-        "allStatus": "Imiterere yose"
-      },
-      "messages": {
-        "created": "Inzego yakozwe",
-        "deleted": "Inzego yasibwe",
-        "settingsUpdated": "Igenamiterere ryahinduwe",
-        "memberAdded": "Umunyamuryango yongeweho",
-        "memberRemoved": "Umunyamuryango yakuweho",
-        "memberDisabled": "Umunyamuryango yagizwe burebure",
-        "memberEnabled": "Umunyamuryango yemerewe",
-        "messageSent": "Ubutumwa bwoherejwe",
-        "messageDeleted": "Ubutumwa bwasibwe",
-        "error": "Hari ikibazo",
-        "fetchError": "Gushakisha byanze",
-        "confirmDelete": "Iyi ntavuguruzwa."
-      },
-      "theme": {
-        "light": "Urumuri",
-        "dark": "Umwijima"
-      },
-      "lang": {
-        "en": "English",
-        "fr": "Français",
-        "rw": "Kinyarwanda"
+      "noRooms": "Nta nzego zibonetse",
+      "clickCreate": "Tangira inzego ya mbere",
+      "settings": "Igenamiterere",
+      "delete": "Siba inzego",
+      "confirmDelete": "Siba iyi nzego burundu?",
+      "alreadyExists": "Iyi nzego isanzwe ihari"
+    },
+    "message": {
+      "send": "Ohereza",
+      "placeholder": "Andika ubutumwa…",
+      "upload": "Ohereza dosiye",
+      "delete": "Siba",
+      "info": "Amakuru y'ubutumwa",
+      "noMessages": "Nta butumwa buhari",
+      "startConversation": "Hitamo inzego kugira ngo ubone ubutumwa",
+      "deleted": "Ubutumwa bwasibwe",
+      "updated": "Ubutumwa bwahinduwe",
+      "seenBy": "Babonye",
+      "notSeenBy": "Batabonye",
+      "tickSent": "Byoherejwe",
+      "tickDelivered": "Byageze",
+      "tickRead": "Basomye",
+      "reply": "Subiza",
+      "replyingTo": "Usubiza",
+      "cancelReply": "Hagarika igisubizo",
+      "voiceRecord": "Amajwi",
+      "startRecording": "Tangira gufata",
+      "stopRecording": "Hagarika",
+      "previewRecording": "Reba",
+      "sendRecording": "Ohereza",
+      "cancelRecording": "Hagarika",
+      "recordingTime": "Igihe: {{seconds}}s",
+      "types": {
+        "text": "Ubutumwa",
+        "voice": "Amajwi",
+        "audio": "Amajwi",
+        "video": "Filime",
+        "pdf": "PDF",
+        "excel": "Excel",
+        "ppt": "PowerPoint",
+        "word": "Word",
+        "image": "Ifoto"
       }
+    },
+    "member": {
+      "add": "Ongeraho umunyamuryango",
+      "remove": "Kuraho",
+      "disable": "Hagarika kohereza",
+      "enable": "Reka kohereza",
+      "admin": "Ubutegetsi",
+      "hidden": "Bihindiwe",
+      "canSend": "Ashobora kohereza",
+      "noMembers": "Nta bagize",
+      "userId": "ID y'Umukoresha",
+      "role": "Uruhare",
+      "joinedAt": "Yinjiye"
+    },
+    "actions": {
+      "create": "Gukora",
+      "cancel": "Guhagarika",
+      "save": "Bika",
+      "delete": "Siba",
+      "refresh": "Subiramo",
+      "search": "Shakisha inzego…",
+      "loading": "Gushakisha…",
+      "close": "Funga",
+      "send": "Ohereza",
+      "update": "Hindura"
+    },
+    "filters": {
+      "allTypes": "Ubwoko bwose",
+      "allStatus": "Imiterere yose"
+    },
+    "messages": {
+      "created": "Inzego yakozwe",
+      "deleted": "Inzego yasibwe",
+      "settingsUpdated": "Igenamiterere ryahinduwe",
+      "memberAdded": "Umunyamuryango yongeweho",
+      "memberRemoved": "Umunyamuryango yakuweho",
+      "memberDisabled": "Umunyamuryango yagizwe burebure",
+      "memberEnabled": "Umunyamuryango yemerewe",
+      "messageSent": "Ubutumwa bwoherejwe",
+      "messageDeleted": "Ubutumwa bwasibwe",
+      "error": "Hari ikibazo",
+      "fetchError": "Gushakisha byanze",
+      "confirmDelete": "Iyi ntavuguruzwa."
+    },
+    "theme": {
+      "light": "Urumuri",
+      "dark": "Umwijima"
+    },
+    "lang": {
+      "en": "English",
+      "fr": "Français",
+      "rw": "Kinyarwanda"
     }
-  
+  },
+  "payments": {
+    "title": "Imicungire y'Ishyurwa",
+    "subtitle": "Kugenzura ishyurwa ry'abanyeshuri, imishinga, n'amakoperative",
+    "tabs": {
+      "assignments": "Imishinga y'Ishyurwa",
+      "overview": "Incamake"
+    },
+    "table": {
+      "student": "Umunyeshuri",
+      "feeName": "Izina ry'Ishyurwa",
+      "totalAmount": "Igiteranyo",
+      "paidAmount": "Cyishyuwe",
+      "remaining": "Gisigaye",
+      "dueDate": "Itariki yo kurangiza",
+      "status": "Ihame",
+      "actions": "Ibikorwa"
+    },
+    "status": {
+      "waiting": "Gutegereza",
+      "started": "Byatangiye",
+      "partially_paid": "Cyishyuwe igice",
+      "completed": "Byarangiye",
+      "failed": "Byananiranye",
+      "overdue": "Cyarengeje igihe"
+    },
+    "filters": {
+      "allStatus": "Ihame ryose",
+      "searchStudent": "Shakisha umunyeshuri...",
+      "allAcademicYears": "Imyaka y'amashuri yose",
+      "allSchoolLevels": "Amabanga yose",
+      "allClassLevels": "Ibyiciro byose"
+    },
+    "actions": {
+      "newAssignment": "Umushinga mushya",
+      "search": "Shakisha...",
+      "refresh": "Vugurura",
+      "clearFilters": "Kuraho itunguranyo",
+      "viewDetails": "Reba ibyangombwa",
+      "makePayment": "Kora ishyurwa",
+      "extendDeadline": "Gutimbarura igihe",
+      "delete": "Gusiba",
+      "create": "Kurema",
+      "update": "Guhindura",
+      "cancel": "Guhagarika",
+      "close": "Gufunga",
+      "processPayment": "Gutunganya ishyurwa",
+      "extend": "Gutimbarura igihe",
+      "createFirst": "Kurema umushinga wa mbere w'ishyurwa",
+      "downloadReport": "Kurura raporo",
+      "printReport": "Icapa raporo",
+      "generateReport": "Kora raporo",
+      "addNew": "Ongeramo",
+      "clickToAdd": "Kanda hano wongeramo"
+    },
+    "form": {
+      "student": "Umunyeshuri",
+      "selectStudent": "Hitamo umunyeshuri",
+      "feeStructures": "Imiterere y'ishyurwa",
+      "academicYear": "Umwaka w'amashuri",
+      "startDate": "Itariki y'itangiriro",
+      "dueDate": "Itariki yo kurangiza",
+      "amount": "Igiciro",
+      "paymentMethod": "Uburyo bw'ishyurwa",
+      "phoneNumber": "Inomero ya terefone",
+      "provider": "Ubutumaji bwa Mobile Money",
+      "bankName": "Izina ry'ibanki",
+      "bankReceiptNumber": "Inomero y'ikirizwa cy'ibanki",
+      "notes": "Inyandiko",
+      "notesPlaceholder": "Inyandiko z'inyongera kuri iri shyurwa...",
+      "newDueDate": "Itariki nshya yo kurangiza"
+    },
+    "modal": {
+      "newAssignment": "Kurema umushinga w'ishyurwa",
+      "makePayment": "Gutunganya ishyurwa",
+      "paymentDetails": "Ibyangombwa by'ishyurwa",
+      "extendDeadline": "Gutimbarura igihe cy'ishyurwa",
+      "currentDueDate": "Itariki y'ubu yo kurangiza",
+      "paymentFor": "Ishyurwa rya"
+    },
+    "details": {
+      "student": "Umunyeshuri",
+      "feeName": "Izina ry'ishyurwa",
+      "academicYear": "Umwaka w'amashuri",
+      "paymentProgress": "Iterambere ry'ishyurwa",
+      "progress": "Iterambere",
+      "total": "Igiteranyo",
+      "paid": "Cyishyuwe",
+      "remaining": "Gisigaye",
+      "dateInfo": "Amakuru y'itariki",
+      "startDate": "Itariki y'itangiriro",
+      "dueDate": "Itariki yo kurangiza",
+      "extendedUntil": "Yatimbaruye kugeza",
+      "transactionHistory": "Amateka y'ishyurwa"
+    },
+    "overview": {
+      "selectStudent": "Hitamo umunyeshuri",
+      "selectStudentHint": "Hitamo umunyeshuri kugira ngo urebe incamake y'ishyurwa rye",
+      "searchStudentPlaceholder": "Shakisha ku izina cyangwa numero y'umunyeshuri...",
+      "studentInfo": "Amakuru y'umunyeshuri",
+      "classLevel": "Ibiciro",
+      "recentAssignments": "Imishinga ya vuba y'ishyurwa"
+    },
+    "summary": {
+      "totalAssigned": "Igiteranyo cyashyizwe",
+      "totalPaid": "Igiteranyo cyishyuwe",
+      "totalRemaining": "Igisigaye cyose",
+      "totalOverdue": "Icyarengeje igihe cyose",
+      "completedCount": "Byarangiye",
+      "pendingCount": "Bitegereje",
+      "overdueCount": "Byarengeje igihe",
+      "paymentPercentage": "Iterambere ry'ishyurwa"
+    },
+    "methods": {
+      "mobileMoney": "Mobile Money",
+      "bankTransfer": "Kohereza muri banki",
+      "cash": "Amafaranga y'ikibiriti",
+      "cheque": "Cheque"
+    },
+    "delete": {
+      "title": "Gusiba umushinga w'ishyurwa",
+      "confirmation": "Urabyizeye ko ushaka gusiba uyu mushinga w'ishyurwa?",
+      "warning": "Iki gikorwa ntigishobora gusubirwaho. Bizasiba burundu umushinga n'amakoperative yose afitanye isano."
+    },
+    "messages": {
+      "loading": "Biracyakora...",
+      "noData": "Nta mushinga w'ishyurwa wabonetse",
+      "noFeeStructures": "Nta miterere y'ishyurwa iboneka kuri uru rwego rw'umunyeshuri",
+      "noMatchingFeeStructures": "Nta miterere y'ishyurwa iboneka kuri uru rwego rw'umunyeshuri",
+      "dataLoaded": "amakuru yatwarwa neza",
+      "fetchError": "Kutagereranya amakuru byananiranye",
+      "createError": "Kurema umushinga w'ishyurwa byananiranye",
+      "updateError": "Guhindura umushinga w'ishyurwa byananiranye",
+      "deleteError": "Gusiba umushinga w'ishyurwa byananiranye",
+      "paymentError": "Gutunganya ishyurwa byananiranye",
+      "extendError": "Gutimbarura igihe byananiranye",
+      "fillAllFields": "Nyamuneka uzuze ibyangombwa byose bisabwa",
+      "validAmount": "Nyamuneka shyiramo igiciro gikwiye",
+      "amountExceeds": "Igiciro kirenze igisigaye kiri kuri",
+      "paymentSuccess": "Ishyurwa ryakozwe neza! Referansi:",
+      "selectNewDate": "Nyamuneka hitamo itariki nshya yo kurangiza",
+      "reportGenerated": "Raporo yakozwe neza",
+      "reportError": "Gukora raporo byananiranye",
+      "exportSuccess": "Raporo yakuwe neza"
+    },
+    "pagination": {
+      "showing": "Urugaragariza",
+      "perPage": "ku rupapuro",
+      "total": "Igiteranyo",
+      "records": "ibyanditswe",
+      "page": "Urupapuro",
+      "of": "ruva",
+      "first": "Uwa mbere",
+      "last": "Uwa nyuma"
+    },
+
+    "frequency": {
+      "termly": "Ku gihembwe",
+      "yearly": "Ku mwaka",
+      "monthly": "Ku Kwezi",
+      "weekly": "Ku cyumweru"
+    }
+  }
 }

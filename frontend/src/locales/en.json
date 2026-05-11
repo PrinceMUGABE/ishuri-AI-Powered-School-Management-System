@@ -1766,5 +1766,169 @@
         "fr": "Français",
         "rw": "Kinyarwanda"
       }
-    } 
+    },
+
+
+    
+  "payments": {
+    "title": "Payment Management",
+    "subtitle": "Manage student payments, assignments, and transactions",
+    "tabs": {
+      "assignments": "Payment Assignments",
+      "overview": "Overview"
+    },
+    "table": {
+      "student": "Student",
+      "feeName": "Fee Name",
+      "totalAmount": "Total Amount",
+      "paidAmount": "Paid Amount",
+      "remaining": "Remaining",
+      "dueDate": "Due Date",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "waiting": "Waiting",
+      "started": "Started",
+      "partially_paid": "Partially Paid",
+      "completed": "Completed",
+      "failed": "Failed",
+      "overdue": "Overdue"
+    },
+    "filters": {
+      "allStatus": "All Status",
+      "searchStudent": "Search Student...",
+      "allAcademicYears": "All Academic Years",
+      "allSchoolLevels": "All School Levels",
+      "allClassLevels": "All Class Levels"
+    },
+    "actions": {
+      "newAssignment": "New Assignment",
+      "search": "Search...",
+      "refresh": "Refresh",
+      "clearFilters": "Clear Filters",
+      "viewDetails": "View Details",
+      "makePayment": "Make Payment",
+      "extendDeadline": "Extend Deadline",
+      "delete": "Delete",
+      "create": "Create",
+      "update": "Update",
+      "cancel": "Cancel",
+      "close": "Close",
+      "processPayment": "Process Payment",
+      "extend": "Extend Deadline",
+      "createFirst": "Create your first payment assignment",
+      "downloadReport": "Download Report",
+      "printReport": "Print Report",
+      "generateReport": "Generate Report",
+      "addNew": "Add New",
+      "clickToAdd": "Click here to add"
+    },
+    "form": {
+      "student": "Student",
+      "selectStudent": "Select a student",
+      "feeStructures": "Fee Structures",
+      "academicYear": "Academic Year",
+      "startDate": "Start Date",
+      "dueDate": "Due Date",
+      "amount": "Amount",
+      "paymentMethod": "Payment Method",
+      "phoneNumber": "Phone Number",
+      "provider": "Mobile Money Provider",
+      "bankName": "Bank Name",
+      "bankReceiptNumber": "Bank Receipt Number",
+      "notes": "Notes",
+      "notesPlaceholder": "Additional notes about this payment...",
+      "newDueDate": "New Due Date"
+    },
+    "modal": {
+      "newAssignment": "Create Payment Assignment",
+      "makePayment": "Process Payment",
+      "paymentDetails": "Payment Details",
+      "extendDeadline": "Extend Payment Deadline",
+      "currentDueDate": "Current Due Date",
+      "paymentFor": "Payment For"
+    },
+    "details": {
+      "student": "Student",
+      "feeName": "Fee Name",
+      "academicYear": "Academic Year",
+      "paymentProgress": "Payment Progress",
+      "progress": "Progress",
+      "total": "Total",
+      "paid": "Paid",
+      "remaining": "Remaining",
+      "dateInfo": "Date Information",
+      "startDate": "Start Date",
+      "dueDate": "Due Date",
+      "extendedUntil": "Extended Until",
+      "transactionHistory": "Transaction History"
+    },
+    "overview": {
+      "selectStudent": "Select a Student",
+      "selectStudentHint": "Select a student to view their payment summary",
+      "searchStudentPlaceholder": "Search by name or roll number...",
+      "studentInfo": "Student Information",
+      "classLevel": "Class Level",
+      "recentAssignments": "Recent Payment Assignments"
+    },
+    "summary": {
+      "totalAssigned": "Total Assigned",
+      "totalPaid": "Total Paid",
+      "totalRemaining": "Total Remaining",
+      "totalOverdue": "Total Overdue",
+      "completedCount": "Completed",
+      "pendingCount": "Pending",
+      "overdueCount": "Overdue",
+      "paymentPercentage": "Payment Progress"
+    },
+    "methods": {
+      "mobileMoney": "Mobile Money",
+      "bankTransfer": "Bank Transfer",
+      "cash": "Cash",
+      "cheque": "Cheque"
+    },
+    "delete": {
+      "title": "Delete Payment Assignment",
+      "confirmation": "Are you sure you want to delete this payment assignment?",
+      "warning": "This action cannot be undone. This will permanently delete the assignment and all associated transactions."
+    },
+    "messages": {
+      "loading": "Loading...",
+      "noData": "No payment assignments found",
+      "noFeeStructures": "No fee structures available for this student's class level",
+      "noMatchingFeeStructures": "No fee structures available for this student's class level",
+      "dataLoaded": "data loaded successfully",
+      "fetchError": "Failed to fetch data",
+      "createError": "Failed to create payment assignment",
+      "updateError": "Failed to update payment assignment",
+      "deleteError": "Failed to delete payment assignment",
+      "paymentError": "Failed to process payment",
+      "extendError": "Failed to extend deadline",
+      "fillAllFields": "Please fill in all required fields",
+      "validAmount": "Please enter a valid amount",
+      "amountExceeds": "Amount exceeds remaining balance of",
+      "paymentSuccess": "Payment processed successfully! Reference:",
+      "selectNewDate": "Please select a new due date",
+      "reportGenerated": "Report generated successfully",
+      "reportError": "Failed to generate report",
+      "exportSuccess": "Report exported successfully"
+    },
+    "pagination": {
+      "showing": "Showing",
+      "perPage": "per page",
+      "total": "Total",
+      "records": "records",
+      "page": "Page",
+      "of": "of",
+      "first": "First",
+      "last": "Last"
+    },
+
+    "frequency": {
+      "termly": "Per Term",
+      "yearly": "Per Year",
+      "monthly": "Per Month"
+    }
+  }
 }

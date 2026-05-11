@@ -1,189 +1,1658 @@
-import React, { useState } from 'react';
+// PaymentManagement.jsx
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import axios from 'axios';
 import { useTranslation } from 'react-i18next';
-import { DollarSign, Search, Filter, CheckCircle, Clock, AlertCircle, TrendingUp, Download } from 'lucide-react';
+import {
+  CreditCard, DollarSign, Plus, Edit, Trash2, Search, Eye, X,
+  ChevronLeft, ChevronRight, RefreshCw, CheckCircle, AlertCircle,
+  Sun, Moon, Download, Printer, FileText, Calendar, Clock,
+  Wallet, Phone, Building, Receipt, TrendingUp, TrendingDown,
+  User, GraduationCap, BookOpen, Shield, Link, Filter,
+  Send, Ban, CheckSquare, AlertTriangle, Info, Loader
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 
+// ─────────────────────────────────────────────────────────────
+// API Configuration
+// ─────────────────────────────────────────────────────────────
+const API_BASE_URL = 'http://127.0.0.1:8000/api';
+
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: { 'Content-Type': 'application/json' },
+});
+
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('access_token');
+  const language = localStorage.getItem('user_language') || 'en';
+  if (token) config.headers['Authorization'] = `Bearer ${token}`;
+  config.headers['X-Language'] = language;
+  return config;
+}, (error) => Promise.reject(error));
+
+// ─────────────────────────────────────────────────────────────
+// Helper Components
+// ─────────────────────────────────────────────────────────────
+const Spinner = ({ size = 'sm' }) => (
+  <div className={`border-2 border-white border-t-transparent rounded-full animate-spin ${size === 'sm' ? 'w-4 h-4' : 'w-6 h-6'}`} />
+);
+
+const StatusBadge = ({ status }) => {
+  const colors = {
+    completed: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+    waiting: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
+    started: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+    partially_paid: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+    failed: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
+    overdue: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
+  };
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${colors[status] || colors.waiting}`}>
+      {status === 'completed' && <CheckCircle className="w-3 h-3" />}
+      {status === 'overdue' && <AlertCircle className="w-3 h-3" />}
+      {status === 'waiting' && <Clock className="w-3 h-3" />}
+      {status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')}
+    </span>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────
+// Main Component
+// ─────────────────────────────────────────────────────────────
 const FeeManagement = () => {
   const { t } = useTranslation();
+
+  // ── UI State ──────────────────────────────────────────────
+  const [loading, setLoading] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  const [activeTab, setActiveTab] = useState('assignments');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('all');
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [selectedAssignment, setSelectedAssignment] = useState(null);
 
-  const [students, setStudents] = useState([
-    { id: 1, name: 'John Doe', class: 'S5 Science', registration: '2024-001', feeStatus: 'paid', amount: 150000, paidDate: '2024-01-10' },
-    { id: 2, name: 'Jane Smith', class: 'S5 Science', registration: '2024-002', feeStatus: 'partial', amount: 150000, paidAmount: 75000, paidDate: '2024-01-05' },
-    { id: 3, name: 'Peter Gitonga', class: 'S4 Arts', registration: '2024-003', feeStatus: 'unpaid', amount: 150000, paidAmount: 0, paidDate: null },
-    { id: 4, name: 'Alice Uwase', class: 'S4 Science', registration: '2024-004', feeStatus: 'paid', amount: 150000, paidDate: '2024-01-08' },
-    { id: 5, name: 'Eric Niyonshuti', class: 'S3 Science', registration: '2024-005', feeStatus: 'partial', amount: 150000, paidAmount: 50000, paidDate: '2024-01-12' },
-    { id: 6, name: 'Grace Mukamana', class: 'S5 Arts', registration: '2024-006', feeStatus: 'unpaid', amount: 150000, paidAmount: 0, paidDate: null },
-  ]);
+  // ── Modal State ───────────────────────────────────────────
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showExtendModal, setShowExtendModal] = useState(false);
+  const [showStudentSelector, setShowStudentSelector] = useState(false);
 
-  const stats = {
-    totalStudents: students.length,
-    fullyPaid: students.filter(s => s.feeStatus === 'paid').length,
-    partiallyPaid: students.filter(s => s.feeStatus === 'partial').length,
-    unpaid: students.filter(s => s.feeStatus === 'unpaid').length,
-    totalCollected: students.reduce((sum, s) => sum + (s.paidAmount || 0), 0),
-    expectedTotal: students.reduce((sum, s) => sum + s.amount, 0),
-  };
+  // ── Data State ────────────────────────────────────────────
+  const [assignments, setAssignments] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [academicYears, setAcademicYears] = useState([]);
+  const [feeStructures, setFeeStructures] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+  const [paymentSummary, setPaymentSummary] = useState(null);
 
-  const filteredStudents = students.filter(student => {
-    const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          student.registration.includes(searchTerm);
-    const matchesStatus = selectedStatus === 'all' || student.feeStatus === selectedStatus;
-    return matchesSearch && matchesStatus;
+  // ── Pagination ────────────────────────────────────────────
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+
+  // ── Filters ───────────────────────────────────────────────
+  const [filters, setFilters] = useState({
+    status: '',
+    student_id: '',
+    academic_year_id: '',
   });
 
-  const updateFeeStatus = (studentId, newStatus, paidAmount = null) => {
-    setStudents(students.map(student => {
-      if (student.id === studentId) {
-        const updates = { feeStatus: newStatus };
-        if (paidAmount !== null) updates.paidAmount = paidAmount;
-        if (newStatus === 'paid') updates.paidDate = new Date().toISOString().split('T')[0];
-        toast.success(`Fee status updated to ${newStatus} for ${student.name}`);
-        return { ...student, ...updates };
-      }
-      return student;
-    }));
-  };
+  // ── Form State ────────────────────────────────────────────
+  const [createForm, setCreateForm] = useState({
+    student_id: '',
+    class_level_cost_ids: [],
+    academic_year_id: '',
+    payment_due_date: '',
+    payment_start_date: new Date().toISOString().split('T')[0],
+  });
 
-  const getStatusBadge = (status) => {
-    switch(status) {
-      case 'paid':
-        return <span className="px-2 py-1 rounded-full text-xs bg-success/10 text-success flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Fully Paid</span>;
-      case 'partial':
-        return <span className="px-2 py-1 rounded-full text-xs bg-warning/10 text-warning flex items-center gap-1"><Clock className="w-3 h-3" /> Partially Paid</span>;
-      case 'unpaid':
-        return <span className="px-2 py-1 rounded-full text-xs bg-danger/10 text-danger flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Unpaid</span>;
-      default:
-        return null;
+  const [paymentForm, setPaymentForm] = useState({
+    amount: '',
+    payment_method: 'mobile_money',
+    phone_number: '',
+    mobile_money_provider: 'mtn',
+    bank_name: '',
+    bank_account_number: '',
+    bank_receipt_number: '',
+    notes: '',
+  });
+
+  const [extendForm, setExtendForm] = useState({
+    new_due_date: '',
+  });
+
+  // ── Student Selection for Filter ──────────────────────────
+  const [studentSearchTerm, setStudentSearchTerm] = useState('');
+  const [filteredStudents, setFilteredStudents] = useState([]);
+  const [showStudentDropdown, setShowStudentDropdown] = useState(false);
+
+  // ─────────────────────────────────────────────────────────
+  // Fetch Data
+  // ─────────────────────────────────────────────────────────
+  const fetchStudents = useCallback(async () => {
+    try {
+      const res = await apiClient.get('/students/?page_size=1000');
+      if (res.data.success) {
+        const studentsData = res.data.data?.results ?? res.data.data ?? [];
+        setStudents(studentsData);
+      }
+    } catch (err) {
+      console.error('Error fetching students:', err);
+    }
+  }, []);
+
+  const fetchAcademicYears = useCallback(async () => {
+    try {
+      const res = await apiClient.get('/academics/academic-years/');
+      if (res.data.success) {
+        const years = res.data.data?.results ?? res.data.data ?? [];
+        setAcademicYears(years);
+        if (years.length > 0 && !createForm.academic_year_id) {
+          const currentYear = years.find(y => y.is_current);
+          setCreateForm(prev => ({ ...prev, academic_year_id: currentYear?.id || years[0]?.id || '' }));
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching academic years:', err);
+    }
+  }, [createForm.academic_year_id]);
+
+  const fetchFeeStructures = useCallback(async () => {
+    try {
+      const res = await apiClient.get('/academics/class-level-costs/');
+      if (res.data.success) {
+        const fees = res.data.data?.results ?? res.data.data ?? [];
+        setFeeStructures(fees);
+      }
+    } catch (err) {
+      console.error('Error fetching fee structures:', err);
+    }
+  }, []);
+
+  const fetchAssignments = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (searchTerm) params.append('search', searchTerm);
+      if (filters.status) params.append('status', filters.status);
+      if (filters.student_id) params.append('student_id', filters.student_id);
+      if (filters.academic_year_id) params.append('academic_year_id', filters.academic_year_id);
+      params.append('page', currentPage);
+      params.append('page_size', itemsPerPage);
+
+      const res = await apiClient.get(`/payments/all/?${params.toString()}`);
+
+      // Log response to console
+      console.log('📊 Fetch Assignments Response:', {
+        status: res.status,
+        success: res.data.success,
+        count: res.data.count,
+        data: res.data.data,
+      });
+
+      if (res.data.success) {
+        const assignmentsData = res.data.data?.results ?? res.data.data ?? [];
+        setAssignments(assignmentsData);
+        setTotalItems(res.data.count || assignmentsData.length);
+        toast.success(t('payments.messages.dataLoaded'));
+      } else {
+        toast.error(res.data.message || t('payments.messages.fetchError'));
+      }
+    } catch (err) {
+      console.error('❌ Error fetching assignments:', err.response?.data || err.message);
+      toast.error(err.response?.data?.message || t('payments.messages.fetchError'));
+    } finally {
+      setLoading(false);
+    }
+  }, [searchTerm, filters, currentPage, itemsPerPage, t]);
+
+  const fetchStudentPaymentSummary = useCallback(async (studentId) => {
+    if (!studentId) return;
+    try {
+      const res = await apiClient.get(`/payments/student/${studentId}/summary/`);
+      console.log('💰 Payment Summary Response:', res.data);
+      if (res.data.success) {
+        setPaymentSummary(res.data.data);
+      }
+    } catch (err) {
+      console.error('Error fetching payment summary:', err);
+    }
+  }, []);
+
+  const fetchTransactions = useCallback(async (assignmentId) => {
+    try {
+      const res = await apiClient.get(`/payments/assignments/${assignmentId}/transactions/`);
+      console.log('💳 Transactions Response:', res.data);
+      if (res.data.success) {
+        setTransactions(res.data.data);
+      }
+    } catch (err) {
+      console.error('Error fetching transactions:', err);
+    }
+  }, []);
+
+  // ─────────────────────────────────────────────────────────
+  // Initial Data Load
+  // ─────────────────────────────────────────────────────────
+  useEffect(() => {
+    fetchStudents();
+    fetchAcademicYears();
+    fetchFeeStructures();
+  }, [fetchStudents, fetchAcademicYears, fetchFeeStructures]);
+
+  useEffect(() => {
+    fetchAssignments();
+  }, [fetchAssignments]);
+
+  // ─────────────────────────────────────────────────────────
+  // Student Filtering
+  // ─────────────────────────────────────────────────────────
+  useEffect(() => {
+    const filtered = students.filter(student =>
+      student.full_name?.toLowerCase().includes(studentSearchTerm.toLowerCase()) ||
+      student.roll_number?.toLowerCase().includes(studentSearchTerm.toLowerCase())
+    );
+    setFilteredStudents(filtered.slice(0, 10));
+  }, [studentSearchTerm, students]);
+
+  // ─────────────────────────────────────────────────────────
+  // Create Payment Assignment
+  // ─────────────────────────────────────────────────────────
+  const handleCreateAssignment = async () => {
+    if (!createForm.student_id || createForm.class_level_cost_ids.length === 0 || !createForm.academic_year_id || !createForm.payment_due_date) {
+      toast.error(t('payments.messages.fillAllFields'));
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const payload = {
+        student_id: createForm.student_id,
+        class_level_cost_ids: createForm.class_level_cost_ids,
+        academic_year_id: createForm.academic_year_id,
+        payment_due_date: createForm.payment_due_date,
+        payment_start_date: createForm.payment_start_date,
+      };
+
+      console.log('📝 Creating Payment Assignment:', payload);
+      const res = await apiClient.post('/payments/assignments/create/', payload);
+      console.log('✅ Create Assignment Response:', res.data);
+
+      if (res.data.success) {
+        toast.success(res.data.message);
+        setShowCreateModal(false);
+        setCreateForm({
+          student_id: '',
+          class_level_cost_ids: [],
+          academic_year_id: academicYears.find(y => y.is_current)?.id || academicYears[0]?.id || '',
+          payment_due_date: '',
+          payment_start_date: new Date().toISOString().split('T')[0],
+        });
+        fetchAssignments();
+      } else {
+        toast.error(res.data.message || t('payments.messages.createError'));
+      }
+    } catch (err) {
+      console.error('❌ Error creating assignment:', err.response?.data);
+      const errorMsg = err.response?.data?.errors || err.response?.data?.message || t('payments.messages.createError');
+      toast.error(typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const collectionRate = ((stats.totalCollected / stats.expectedTotal) * 100).toFixed(1);
+  // ─────────────────────────────────────────────────────────
+  // Process Payment
+  // ─────────────────────────────────────────────────────────
+  const handleProcessPayment = async () => {
+    if (!selectedAssignment) {
+      toast.error(t('payments.messages.noAssignmentSelected'));
+      return;
+    }
 
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    if (!paymentForm.amount || parseFloat(paymentForm.amount) <= 0) {
+      toast.error(t('payments.messages.validAmount'));
+      return;
+    }
+
+    if (parseFloat(paymentForm.amount) > selectedAssignment.remaining_amount) {
+      toast.error(`${t('payments.messages.amountExceeds')} ${selectedAssignment.remaining_amount}`);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const payload = {
+        payment_assignment_id: selectedAssignment.id,
+        amount: parseFloat(paymentForm.amount),
+        payment_method: paymentForm.payment_method,
+        phone_number: paymentForm.phone_number,
+        mobile_money_provider: paymentForm.mobile_money_provider,
+        bank_name: paymentForm.bank_name,
+        bank_account_number: paymentForm.bank_account_number,
+        bank_receipt_number: paymentForm.bank_receipt_number,
+        notes: paymentForm.notes,
+      };
+
+      console.log('💰 Processing Payment:', payload);
+      const res = await apiClient.post('/payments/make-payment/', payload);
+      console.log('✅ Payment Response:', res.data);
+
+      if (res.data.success) {
+        toast.success(`${t('payments.messages.paymentSuccess')} ${res.data.data.transaction_reference}`);
+        setShowPaymentModal(false);
+        setPaymentForm({
+          amount: '',
+          payment_method: 'mobile_money',
+          phone_number: '',
+          mobile_money_provider: 'mtn',
+          bank_name: '',
+          bank_account_number: '',
+          bank_receipt_number: '',
+          notes: '',
+        });
+        fetchAssignments();
+        if (selectedAssignment.student_id) {
+          fetchStudentPaymentSummary(selectedAssignment.student_id);
+        }
+      } else {
+        toast.error(res.data.message || t('payments.messages.paymentError'));
+      }
+    } catch (err) {
+      console.error('❌ Error processing payment:', err.response?.data);
+      toast.error(err.response?.data?.message || t('payments.messages.paymentError'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────
+  // Extend Payment Deadline
+  // ─────────────────────────────────────────────────────────
+  const handleExtendDeadline = async () => {
+    if (!selectedAssignment || !extendForm.new_due_date) {
+      toast.error(t('payments.messages.selectNewDate'));
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const payload = { new_due_date: extendForm.new_due_date };
+      console.log('📅 Extending Deadline:', { assignmentId: selectedAssignment.id, ...payload });
+      const res = await apiClient.post(`/payments/assignments/${selectedAssignment.id}/extend-deadline/`, payload);
+      console.log('✅ Extend Deadline Response:', res.data);
+
+      if (res.data.success) {
+        toast.success(res.data.message);
+        setShowExtendModal(false);
+        setExtendForm({ new_due_date: '' });
+        fetchAssignments();
+      } else {
+        toast.error(res.data.message || t('payments.messages.extendError'));
+      }
+    } catch (err) {
+      console.error('❌ Error extending deadline:', err.response?.data);
+      toast.error(err.response?.data?.message || t('payments.messages.extendError'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────
+  // Delete Assignment
+  // ─────────────────────────────────────────────────────────
+  const handleDeleteAssignment = async () => {
+    if (!selectedAssignment) return;
+
+    setLoading(true);
+    try {
+      console.log('🗑️ Deleting Assignment:', selectedAssignment.id);
+      const res = await apiClient.delete(`/payments/assignments/${selectedAssignment.id}/delete/`);
+      console.log('✅ Delete Response:', res.data);
+
+      if (res.data.success) {
+        toast.success(res.data.message);
+        setShowDeleteModal(false);
+        setSelectedAssignment(null);
+        fetchAssignments();
+      } else {
+        toast.error(res.data.message || t('payments.messages.deleteError'));
+      }
+    } catch (err) {
+      console.error('❌ Error deleting assignment:', err.response?.data);
+      toast.error(err.response?.data?.message || t('payments.messages.deleteError'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────
+  // View Assignment Details
+  // ─────────────────────────────────────────────────────────
+  const handleViewDetails = async (assignment) => {
+    setSelectedAssignment(assignment);
+    await fetchTransactions(assignment.id);
+    setShowDetailsModal(true);
+  };
+
+  // ─────────────────────────────────────────────────────────
+  // Handle Student Selection
+  // ─────────────────────────────────────────────────────────
+  const handleStudentSelect = (student) => {
+    setSelectedStudent(student);
+    setFilters(prev => ({ ...prev, student_id: student.id }));
+    setStudentSearchTerm('');
+    setShowStudentDropdown(false);
+    fetchStudentPaymentSummary(student.id);
+  };
+
+  // ─────────────────────────────────────────────────────────
+  // Reset Filters
+  // ─────────────────────────────────────────────────────────
+  const resetFilters = () => {
+    setFilters({ status: '', student_id: '', academic_year_id: '' });
+    setSelectedStudent(null);
+    setSearchTerm('');
+    setCurrentPage(1);
+  };
+
+  // ─────────────────────────────────────────────────────────
+  // Tabs Configuration
+  // ─────────────────────────────────────────────────────────
+  const tabs = [
+    { id: 'assignments', label: t('payments.tabs.assignments'), icon: CreditCard },
+    { id: 'overview', label: t('payments.tabs.overview'), icon: TrendingUp },
+  ];
+
+  // ─────────────────────────────────────────────────────────
+  // Payment Method Options
+  // ─────────────────────────────────────────────────────────
+  const paymentMethods = [
+    { value: 'mobile_money', label: t('payments.methods.mobileMoney'), icon: Phone },
+    { value: 'bank_transfer', label: t('payments.methods.bankTransfer'), icon: Building },
+    { value: 'cash', label: t('payments.methods.cash'), icon: Wallet },
+    { value: 'cheque', label: t('payments.methods.cheque'), icon: Receipt },
+  ];
+
+  // ─────────────────────────────────────────────────────────
+  // Render Table Headers
+  // ─────────────────────────────────────────────────────────
+  const renderTableHeaders = () => (
+    <>
+      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+        {t('payments.table.student')}
+      </th>
+      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+        {t('payments.table.feeName')}
+      </th>
+      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+        {t('payments.table.totalAmount')}
+      </th>
+      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+        {t('payments.table.paidAmount')}
+      </th>
+      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+        {t('payments.table.remaining')}
+      </th>
+      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+        {t('payments.table.dueDate')}
+      </th>
+      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+        {t('payments.table.status')}
+      </th>
+      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+        {t('payments.table.actions')}
+      </th>
+    </>
+  );
+
+  // ─────────────────────────────────────────────────────────
+  // Render Table Row
+  // ─────────────────────────────────────────────────────────
+  const renderTableRow = (assignment) => (
+    <tr key={assignment.id} className="hover:bg-green-50/50 dark:hover:bg-green-900/10 transition-colors">
+      <td className="px-4 py-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Fee Management</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">Manage student fee payments and report access</p>
+          <p className="text-sm font-semibold text-gray-900 dark:text-white">
+            {assignment.student_details?.full_name || '—'}
+          </p>
+          <p className="text-xs text-gray-400 font-mono">
+            {assignment.student_details?.roll_number || ''}
+          </p>
         </div>
-        <button className="btn-primary flex items-center gap-2">
-          <Download className="w-4 h-4" />
-          Export Report
-        </button>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-        <div className="card">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Total Students</p>
-          <p className="text-2xl font-bold mt-1">{stats.totalStudents}</p>
+      </td>
+      <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
+        {assignment.class_level_cost_details?.name || '—'}
+      </td>
+      <td className="px-4 py-3">
+        <span className="text-sm font-semibold text-gray-900 dark:text-white">
+          ${parseFloat(assignment.total_amount).toLocaleString()}
+        </span>
+      </td>
+      <td className="px-4 py-3">
+        <span className="text-sm text-green-600 dark:text-green-400 font-semibold">
+          ${parseFloat(assignment.paid_amount).toLocaleString()}
+        </span>
+      </td>
+      <td className="px-4 py-3">
+        <span className={`text-sm font-semibold ${assignment.remaining_amount > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+          ${parseFloat(assignment.remaining_amount).toLocaleString()}
+        </span>
+      </td>
+      <td className="px-4 py-3 text-sm text-gray-500">
+        <div className="flex items-center gap-1">
+          <Calendar className="w-3 h-3" />
+          {new Date(assignment.payment_due_date).toLocaleDateString()}
         </div>
-        <div className="card">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Fully Paid</p>
-          <p className="text-2xl font-bold text-success mt-1">{stats.fullyPaid}</p>
-        </div>
-        <div className="card">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Partially Paid</p>
-          <p className="text-2xl font-bold text-warning mt-1">{stats.partiallyPaid}</p>
-        </div>
-        <div className="card">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Unpaid</p>
-          <p className="text-2xl font-bold text-danger mt-1">{stats.unpaid}</p>
-        </div>
-        <div className="card bg-gradient-to-r from-primary-500 to-primary-600 text-white">
-          <p className="text-sm opacity-90">Collection Rate</p>
-          <p className="text-2xl font-bold mt-1">{collectionRate}%</p>
-          <TrendingUp className="w-4 h-4 mt-2 opacity-80" />
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="card">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search by name or registration number..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg"
-            />
-          </div>
-          <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg"
+        {assignment.is_overdue && (
+          <span className="text-xs text-red-500 flex items-center gap-1 mt-1">
+            <AlertCircle className="w-3 h-3" /> {t('payments.status.overdue')}
+          </span>
+        )}
+      </td>
+      <td className="px-4 py-3">
+        <StatusBadge status={assignment.status} />
+      </td>
+      <td className="px-4 py-3">
+        <div className="flex gap-1.5">
+          <button
+            onClick={() => handleViewDetails(assignment)}
+            className="p-1.5 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/20 transition-colors"
+            title={t('payments.actions.viewDetails')}
           >
-            <option value="all">All Status</option>
-            <option value="paid">Fully Paid</option>
-            <option value="partial">Partially Paid</option>
-            <option value="unpaid">Unpaid</option>
-          </select>
+            <Eye className="w-3.5 h-3.5 text-green-700 dark:text-green-400" />
+          </button>
+          <button
+            onClick={() => {
+              setSelectedAssignment(assignment);
+              setPaymentForm({ ...paymentForm, amount: '' });
+              setShowPaymentModal(true);
+            }}
+            disabled={assignment.status === 'completed'}
+            className="p-1.5 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            title={t('payments.actions.makePayment')}
+          >
+            <DollarSign className="w-3.5 h-3.5 text-blue-600" />
+          </button>
+          <button
+            onClick={() => {
+              setSelectedAssignment(assignment);
+              setExtendForm({ new_due_date: '' });
+              setShowExtendModal(true);
+            }}
+            className="p-1.5 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/20 transition-colors"
+            title={t('payments.actions.extendDeadline')}
+          >
+            <Calendar className="w-3.5 h-3.5 text-amber-600" />
+          </button>
+          <button
+            onClick={() => {
+              setSelectedAssignment(assignment);
+              setShowDeleteModal(true);
+            }}
+            className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors"
+            title={t('payments.actions.delete')}
+          >
+            <Trash2 className="w-3.5 h-3.5 text-red-500" />
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+
+  // ─────────────────────────────────────────────────────────
+  // Payment Summary Cards
+  // ─────────────────────────────────────────────────────────
+  const renderPaymentSummary = () => {
+    if (!selectedStudent) {
+      return (
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 text-center border border-gray-200 dark:border-gray-700">
+          <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <User className="w-8 h-8 text-green-700 dark:text-green-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            {t('payments.overview.selectStudent')}
+          </h3>
+          <p className="text-sm text-gray-400">
+            {t('payments.overview.selectStudentHint')}
+          </p>
+        </div>
+      );
+    }
+
+    if (!paymentSummary) {
+      return (
+        <div className="flex justify-center items-center py-12">
+          <Loader className="w-8 h-8 animate-spin text-green-700" />
+        </div>
+      );
+    }
+
+    const summaryCards = [
+      {
+        label: t('payments.summary.totalAssigned'),
+        value: `$${parseFloat(paymentSummary.total_assigned).toLocaleString()}`,
+        icon: CreditCard,
+        color: 'blue',
+      },
+      {
+        label: t('payments.summary.totalPaid'),
+        value: `$${parseFloat(paymentSummary.total_paid).toLocaleString()}`,
+        icon: CheckCircle,
+        color: 'green',
+      },
+      {
+        label: t('payments.summary.totalRemaining'),
+        value: `$${parseFloat(paymentSummary.total_remaining).toLocaleString()}`,
+        icon: AlertCircle,
+        color: 'red',
+      },
+      {
+        label: t('payments.summary.totalOverdue'),
+        value: `$${parseFloat(paymentSummary.total_overdue).toLocaleString()}`,
+        icon: AlertTriangle,
+        color: 'orange',
+      },
+      {
+        label: t('payments.summary.completedCount'),
+        value: paymentSummary.completed_count,
+        icon: CheckSquare,
+        color: 'green',
+      },
+      {
+        label: t('payments.summary.pendingCount'),
+        value: paymentSummary.pending_count,
+        icon: Clock,
+        color: 'yellow',
+      },
+      {
+        label: t('payments.summary.overdueCount'),
+        value: paymentSummary.overdue_count,
+        icon: AlertTriangle,
+        color: 'red',
+      },
+      {
+        label: t('payments.summary.paymentPercentage'),
+        value: `${paymentSummary.payment_percentage.toFixed(1)}%`,
+        icon: TrendingUp,
+        color: 'purple',
+      },
+    ];
+
+    const colorClasses = {
+      blue: 'from-blue-500 to-blue-700',
+      green: 'from-green-500 to-green-700',
+      red: 'from-red-500 to-red-700',
+      orange: 'from-orange-500 to-orange-700',
+      yellow: 'from-yellow-500 to-yellow-700',
+      purple: 'from-purple-500 to-purple-700',
+    };
+
+    return (
+      <div className="space-y-4">
+        <div className="bg-gradient-to-r from-green-700 to-green-900 rounded-2xl p-4 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm opacity-80">{t('payments.overview.studentInfo')}</p>
+              <h3 className="text-xl font-bold">{selectedStudent.full_name}</h3>
+              <p className="text-sm opacity-80 font-mono">{selectedStudent.roll_number}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm opacity-80">{t('payments.overview.classLevel')}</p>
+              <p className="font-semibold">{selectedStudent.current_class_level?.name || '—'}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {summaryCards.map((card, idx) => {
+            const Icon = card.icon;
+            return (
+              <div key={idx} className={`bg-gradient-to-br ${colorClasses[card.color]} rounded-xl p-3 text-white shadow-lg`}>
+                <div className="flex items-center justify-between mb-2">
+                  <Icon className="w-5 h-5 opacity-80" />
+                  <span className="text-xs opacity-80">{card.label}</span>
+                </div>
+                <p className="text-xl font-bold">{card.value}</p>
+              </div>
+            );
+          })}
         </div>
       </div>
+    );
+  };
 
-      {/* Students Table */}
-      <div className="card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-gray-700/50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium">Reg No.</th>
-                <th className="px-4 py-3 text-left text-xs font-medium">Student Name</th>
-                <th className="px-4 py-3 text-left text-xs font-medium">Class</th>
-                <th className="px-4 py-3 text-left text-xs font-medium">Total Fees</th>
-                <th className="px-4 py-3 text-left text-xs font-medium">Paid Amount</th>
-                <th className="px-4 py-3 text-left text-xs font-medium">Balance</th>
-                <th className="px-4 py-3 text-left text-xs font-medium">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {filteredStudents.map((student) => {
-                const balance = student.amount - (student.paidAmount || 0);
-                return (
-                  <tr key={student.id}>
-                    <td className="px-4 py-3 text-sm text-gray-600">{student.registration}</td>
-                    <td className="px-4 py-3 text-sm font-medium">{student.name}</td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{student.class}</td>
-                    <td className="px-4 py-3 text-sm">RWF {student.amount.toLocaleString()}</td>
-                    <td className="px-4 py-3 text-sm">RWF {(student.paidAmount || 0).toLocaleString()}</td>
-                    <td className="px-4 py-3 text-sm font-medium text-danger">RWF {balance.toLocaleString()}</td>
-                    <td className="px-4 py-3">{getStatusBadge(student.feeStatus)}</td>
-                    <td className="px-4 py-3">
-                      <select
-                        value={student.feeStatus}
-                        onChange={(e) => updateFeeStatus(student.id, e.target.value)}
-                        className="px-2 py-1 text-sm border border-gray-300 rounded-lg"
-                      >
-                        <option value="unpaid">Mark Unpaid</option>
-                        <option value="partial">Mark Partial</option>
-                        <option value="paid">Mark Paid</option>
-                      </select>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+  // ─────────────────────────────────────────────────────────
+  // Render Details Modal Content
+  // ─────────────────────────────────────────────────────────
+  const renderDetailsModal = () => {
+    if (!selectedAssignment) return null;
+
+    const paidPercentage = (selectedAssignment.paid_amount / selectedAssignment.total_amount) * 100;
+
+    return (
+      <div className="space-y-4">
+        {/* Assignment Info */}
+        <div className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-900/10 rounded-xl p-4">
+          <div className="flex justify-between items-start mb-3">
+            <div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{t('payments.details.student')}</p>
+              <p className="font-semibold text-gray-900 dark:text-white">{selectedAssignment.student_details?.full_name}</p>
+              <p className="text-xs text-gray-500 font-mono">{selectedAssignment.student_details?.roll_number}</p>
+            </div>
+            <StatusBadge status={selectedAssignment.status} />
+          </div>
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div>
+              <p className="text-xs text-gray-500">{t('payments.details.feeName')}</p>
+              <p className="font-medium">{selectedAssignment.class_level_cost_details?.name}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">{t('payments.details.academicYear')}</p>
+              <p className="font-medium">{selectedAssignment.academic_year?.name || '—'}</p>
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* Report Access Note */}
-      <div className="card bg-info/10">
-        <div className="flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-info mt-0.5" />
+        {/* Amount Progress */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+          <p className="text-sm font-semibold mb-3 text-gray-700 dark:text-gray-300">
+            {t('payments.details.paymentProgress')}
+          </p>
+          <div className="mb-3">
+            <div className="flex justify-between text-xs text-gray-500 mb-1">
+              <span>{t('payments.details.progress')}</span>
+              <span>{paidPercentage.toFixed(1)}%</span>
+            </div>
+            <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-green-600 rounded-full transition-all"
+                style={{ width: `${paidPercentage}%` }}
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-3 text-center pt-2">
+            <div>
+              <p className="text-xs text-gray-500">{t('payments.details.total')}</p>
+              <p className="text-sm font-bold text-gray-900 dark:text-white">
+                ${parseFloat(selectedAssignment.total_amount).toLocaleString()}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">{t('payments.details.paid')}</p>
+              <p className="text-sm font-bold text-green-600 dark:text-green-400">
+                ${parseFloat(selectedAssignment.paid_amount).toLocaleString()}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">{t('payments.details.remaining')}</p>
+              <p className="text-sm font-bold text-red-600 dark:text-red-400">
+                ${parseFloat(selectedAssignment.remaining_amount).toLocaleString()}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Date Information */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+          <p className="text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+            {t('payments.details.dateInfo')}
+          </p>
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div>
+              <p className="text-xs text-gray-500">{t('payments.details.startDate')}</p>
+              <p className="font-medium">{new Date(selectedAssignment.payment_start_date).toLocaleDateString()}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">{t('payments.details.dueDate')}</p>
+              <p className={`font-medium ${selectedAssignment.is_overdue ? 'text-red-600' : ''}`}>
+                {new Date(selectedAssignment.payment_due_date).toLocaleDateString()}
+              </p>
+            </div>
+            {selectedAssignment.payment_extended_until && (
+              <div className="col-span-2">
+                <p className="text-xs text-gray-500">{t('payments.details.extendedUntil')}</p>
+                <p className="font-medium text-amber-600">
+                  {new Date(selectedAssignment.payment_extended_until).toLocaleDateString()}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Transactions */}
+        {transactions.length > 0 && (
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+            <p className="text-sm font-semibold mb-3 text-gray-700 dark:text-gray-300">
+              {t('payments.details.transactionHistory')}
+            </p>
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {transactions.map((tx, idx) => (
+                <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${tx.transaction_status === 'completed'
+                        ? 'bg-green-100 dark:bg-green-900/30'
+                        : 'bg-yellow-100 dark:bg-yellow-900/30'
+                      }`}>
+                      {tx.transaction_status === 'completed'
+                        ? <CheckCircle className="w-4 h-4 text-green-600" />
+                        : <Clock className="w-4 h-4 text-yellow-600" />
+                      }
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">${parseFloat(tx.amount).toLocaleString()}</p>
+                      <p className="text-xs text-gray-400">{tx.payment_method_display}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-gray-400">{new Date(tx.paid_at || tx.created_at).toLocaleDateString()}</p>
+                    <p className="text-xs font-mono text-gray-500">{tx.transaction_reference}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // ─────────────────────────────────────────────────────────
+  // Main Render
+  // ─────────────────────────────────────────────────────────
+  return (
+    <div className={`min-h-screen ${darkMode ? 'dark' : ''}`}>
+      <div className="space-y-5 p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
+        {/* Page Header */}
+        <div className="flex justify-between items-center flex-wrap gap-3">
           <div>
-            <h3 className="font-semibold mb-1">Report Access Policy</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Only students with "Fully Paid" fee status can view their academic reports. 
-              This restriction helps ensure timely fee collection.
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+              {t('payments.title')}
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-0.5">
+              {t('payments.subtitle')}
             </p>
           </div>
+          <div className="flex gap-2 flex-wrap items-center">
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-green-50 dark:hover:bg-gray-700 transition-colors shadow-sm"
+            >
+              {darkMode ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-gray-500" />}
+            </button>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded-xl transition-colors flex items-center gap-2 text-sm font-medium shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+              {t('payments.actions.newAssignment')}
+            </button>
+          </div>
         </div>
+
+        {/* Tabs */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-1.5 flex gap-1">
+          {tabs.map(tab => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-4 py-2.5 text-sm font-semibold transition-all flex items-center gap-2 rounded-xl flex-1 justify-center
+                  ${isActive
+                    ? 'bg-green-700 text-white shadow-md'
+                    : 'text-gray-500 hover:text-green-700 dark:text-gray-400 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/10'
+                  }`}
+              >
+                <Icon className="w-4 h-4" /> {tab.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Content */}
+        {activeTab === 'assignments' ? (
+          <>
+            {/* Filters */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+              <div className="flex flex-col md:flex-row gap-3">
+
+                <div className="flex gap-2 flex-wrap">
+                  <select
+                    value={filters.status}
+                    onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                    className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 outline-none"
+                  >
+                    <option value="">{t('payments.filters.allStatus')}</option>
+                    <option value="waiting">{t('payments.status.waiting')}</option>
+                    <option value="started">{t('payments.status.started')}</option>
+                    <option value="partially_paid">{t('payments.status.partiallyPaid')}</option>
+                    <option value="completed">{t('payments.status.completed')}</option>
+                    <option value="overdue">{t('payments.status.overdue')}</option>
+                  </select>
+
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder={t('payments.filters.searchStudent')}
+                      value={filters.student_id ? students.find(s => s.id === filters.student_id)?.full_name || '' : ''}
+                      onFocus={() => setShowStudentDropdown(true)}
+                      onChange={(e) => {
+                        setFilters({ ...filters, student_id: '' });
+                        setStudentSearchTerm(e.target.value);
+                        setShowStudentDropdown(true);
+                      }}
+                      className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 outline-none w-64"
+                    />
+                    {showStudentDropdown && filteredStudents.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-10 max-h-60 overflow-y-auto">
+                        {filteredStudents.map(student => (
+                          <button
+                            key={student.id}
+                            onClick={() => handleStudentSelect(student)}
+                            className="w-full text-left px-3 py-2 hover:bg-green-50 dark:hover:bg-green-900/20 text-sm"
+                          >
+                            <p className="font-semibold">{student.full_name}</p>
+                            <p className="text-xs text-gray-400">{student.roll_number}</p>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <select
+                    value={filters.academic_year_id}
+                    onChange={(e) => setFilters({ ...filters, academic_year_id: e.target.value })}
+                    className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 outline-none"
+                  >
+                    <option value="">{t('payments.filters.allAcademicYears')}</option>
+                    {academicYears.map(y => (
+                      <option key={y.id} value={y.id}>{y.name}</option>
+                    ))}
+                  </select>
+
+                  <button
+                    onClick={resetFilters}
+                    className="px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl transition-colors text-sm font-medium"
+                  >
+                    {t('payments.actions.clearFilters')}
+                  </button>
+
+                  <button
+                    onClick={fetchAssignments}
+                    className="px-3 py-2 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 border border-green-200 dark:border-green-900/40 rounded-xl transition-colors flex items-center gap-1.5 text-sm font-medium text-green-700 dark:text-green-400"
+                  >
+                    <RefreshCw className="w-4 h-4" /> {t('payments.actions.refresh')}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Table */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-green-50 dark:bg-green-900/20 border-b border-green-100 dark:border-green-900/30">
+                    <tr>{renderTableHeaders()}</tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700/50">
+                    {loading ? (
+                      <tr>
+                        <td colSpan="8" className="px-4 py-12 text-center">
+                          <div className="flex justify-center items-center gap-3">
+                            <div className="w-6 h-6 border-2 border-green-700 border-t-transparent rounded-full animate-spin" />
+                            <span className="text-sm text-gray-500">{t('payments.messages.loading')}</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : assignments.length === 0 ? (
+                      <tr>
+                        <td colSpan="8" className="px-4 py-12 text-center">
+                          <div className="flex flex-col items-center gap-3">
+                            <div className="w-12 h-12 bg-green-50 dark:bg-green-900/20 rounded-2xl flex items-center justify-center">
+                              <CreditCard className="w-6 h-6 text-green-300 dark:text-green-700" />
+                            </div>
+                            <p className="text-sm text-gray-400">{t('payments.messages.noData')}</p>
+                            <button
+                              onClick={() => setShowCreateModal(true)}
+                              className="text-green-700 hover:text-green-800 dark:text-green-400 text-sm font-semibold"
+                            >
+                              {t('payments.actions.createFirst')}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : (
+                      assignments.map(renderTableRow)
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination */}
+              {!loading && totalItems > 0 && (
+                <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-center gap-3 bg-gray-50 dark:bg-gray-800/50">
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <span>{t('payments.pagination.showing')}</span>
+                    <select
+                      value={itemsPerPage}
+                      onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+                      className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm focus:ring-2 focus:ring-green-700 outline-none"
+                    >
+                      {[5, 10, 30, 50].map(n => <option key={n} value={n}>{n}</option>)}
+                    </select>
+                    <span>{t('payments.pagination.perPage')}</span>
+                    <span className="ml-2">
+                      {`${t('payments.pagination.total')}:`} <strong className="text-green-700 dark:text-green-400">{totalItems}</strong>
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setCurrentPage(1)}
+                      disabled={currentPage === 1}
+                      className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/10 disabled:opacity-40 transition-colors"
+                    >
+                      {t('payments.pagination.first')}
+                    </button>
+                    <button
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="p-1.5 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/10 disabled:opacity-40 transition-colors"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    <span className="text-sm px-3 text-gray-600 dark:text-gray-400">
+                      {`${t('payments.pagination.page')} `}
+                      <strong className="text-green-700 dark:text-green-400">{currentPage}</strong>
+                      {` ${t('payments.pagination.of')} ${Math.ceil(totalItems / itemsPerPage)}`}
+                    </span>
+                    <button
+                      onClick={() => setCurrentPage(p => Math.min(Math.ceil(totalItems / itemsPerPage), p + 1))}
+                      disabled={currentPage >= Math.ceil(totalItems / itemsPerPage)}
+                      className="p-1.5 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/10 disabled:opacity-40 transition-colors"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => setCurrentPage(Math.ceil(totalItems / itemsPerPage))}
+                      disabled={currentPage >= Math.ceil(totalItems / itemsPerPage)}
+                      className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/10 disabled:opacity-40 transition-colors"
+                    >
+                      {t('payments.pagination.last')}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        ) : (
+          // Overview Tab
+          <div className="space-y-4">
+            {/* Student Selector */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+              <div className="flex gap-3 flex-wrap items-end">
+                <div className="flex-1">
+                  <label className="block text-xs font-semibold mb-1 text-gray-600 dark:text-gray-400">
+                    {t('payments.overview.selectStudent')}
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder={t('payments.overview.searchStudentPlaceholder')}
+                      value={studentSearchTerm}
+                      onChange={(e) => setStudentSearchTerm(e.target.value)}
+                      onFocus={() => setShowStudentDropdown(true)}
+                      className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 outline-none"
+                    />
+                    {showStudentDropdown && filteredStudents.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg z-10 max-h-60 overflow-y-auto">
+                        {filteredStudents.map(student => (
+                          <button
+                            key={student.id}
+                            onClick={() => handleStudentSelect(student)}
+                            className="w-full text-left px-3 py-2 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
+                          >
+                            <p className="font-semibold text-sm">{student.full_name}</p>
+                            <p className="text-xs text-gray-400 font-mono">{student.roll_number}</p>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {selectedStudent && (
+                  <button
+                    onClick={() => {
+                      setSelectedStudent(null);
+                      setFilters(prev => ({ ...prev, student_id: '' }));
+                      setPaymentSummary(null);
+                    }}
+                    className="px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl text-sm"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Payment Summary */}
+            {renderPaymentSummary()}
+
+            {/* Student's Assignments List */}
+            {selectedStudent && assignments.filter(a => a.student_id === selectedStudent.id).length > 0 && (
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+                  <h3 className="font-semibold text-gray-900 dark:text-white">
+                    {t('payments.overview.recentAssignments')}
+                  </h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-green-50 dark:bg-green-900/20">
+                      <tr>
+                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-500">{t('payments.table.feeName')}</th>
+                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-500">{t('payments.table.totalAmount')}</th>
+                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-500">{t('payments.table.paidAmount')}</th>
+                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-500">{t('payments.table.remaining')}</th>
+                        <th className="px-4 py-2 text-left text-xs font-semibold text-gray-500">{t('payments.table.status')}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {assignments.filter(a => a.student_id === selectedStudent.id).map(assignment => (
+                        <tr key={assignment.id} className="hover:bg-green-50/50">
+                          <td className="px-4 py-2 text-sm">{assignment.class_level_cost_details?.name}</td>
+                          <td className="px-4 py-2 text-sm">${parseFloat(assignment.total_amount).toLocaleString()}</td>
+                          <td className="px-4 py-2 text-sm text-green-600">${parseFloat(assignment.paid_amount).toLocaleString()}</td>
+                          <td className="px-4 py-2 text-sm text-red-600">${parseFloat(assignment.remaining_amount).toLocaleString()}</td>
+                          <td className="px-4 py-2"><StatusBadge status={assignment.status} /></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Create Assignment Modal */}
+        {showCreateModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full mx-4 p-6 max-h-[90vh] overflow-y-auto border border-green-100 dark:border-green-900/30">
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                    <Plus className="w-5 h-5 text-green-700 dark:text-green-400" />
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                    {t('payments.modal.newAssignment')}
+                  </h2>
+                </div>
+                <button
+                  onClick={() => { setShowCreateModal(false); setCreateForm({ ...createForm, class_level_cost_ids: [] }); }}
+                  className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {/* Student Select */}
+                <div>
+                  <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                    {t('payments.form.student')} <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={createForm.student_id}
+                    onChange={(e) => setCreateForm({ ...createForm, student_id: parseInt(e.target.value) })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 outline-none"
+                  >
+                    <option value="">{t('payments.form.selectStudent')}</option>
+                    {students.map(s => (
+                      <option key={s.id} value={s.id}>
+                        {s.full_name} ({s.roll_number}) - {s.current_class_level?.name || 'No class'}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Fee Structures Selection */}
+                <div>
+                  <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                    {t('payments.form.feeStructures')} <span className="text-red-500">*</span>
+                  </label>
+                  <div className="max-h-48 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg p-3 space-y-2">
+                    {feeStructures.length === 0 ? (
+                      <p className="text-sm text-gray-400 text-center py-4">
+                        {t('payments.messages.noFeeStructures')}
+                      </p>
+                    ) : (
+                      feeStructures
+                        .filter(feeStructure => {
+                          const selectedStudent = students.find(s => s.id === createForm.student_id);
+                          if (!selectedStudent) return true;
+                          // Check if the fee structure belongs to the selected student's class level
+                          return feeStructure.class_level === selectedStudent.current_class_level?.id;
+                        })
+                        .map(feeStructure => (
+                          <label
+                            key={feeStructure.id}
+                            className="flex items-center gap-2 cursor-pointer p-2 hover:bg-green-50 dark:hover:bg-green-900/10 rounded-lg transition-colors"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={createForm.class_level_cost_ids.includes(feeStructure.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setCreateForm({
+                                    ...createForm,
+                                    class_level_cost_ids: [...createForm.class_level_cost_ids, feeStructure.id]
+                                  });
+                                } else {
+                                  setCreateForm({
+                                    ...createForm,
+                                    class_level_cost_ids: createForm.class_level_cost_ids.filter(id => id !== feeStructure.id)
+                                  });
+                                }
+                              }}
+                              className="w-4 h-4 text-green-700 rounded accent-green-700 focus:ring-green-500"
+                            />
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                                {feeStructure.name}
+                              </p>
+                              <div className="flex gap-3 mt-0.5">
+                                <p className="text-xs text-green-600 dark:text-green-400 font-semibold">
+                                  ${parseFloat(feeStructure.amount).toLocaleString()}
+                                </p>
+                                <p className="text-xs text-gray-400">
+                                  {feeStructure.frequency === 'termly' ? t('payments.frequency.termly') :
+                                    feeStructure.frequency === 'yearly' ? t('payments.frequency.yearly') :
+                                      t('payments.frequency.monthly')}
+                                </p>
+                              </div>
+                            </div>
+                          </label>
+                        ))
+                    )}
+                    {feeStructures.filter(fs => {
+                      const selectedStudent = students.find(s => s.id === createForm.student_id);
+                      if (!selectedStudent) return true;
+                      return fs.class_level === selectedStudent.current_class_level?.id;
+                    }).length === 0 && feeStructures.length > 0 && (
+                        <p className="text-sm text-amber-600 dark:text-amber-400 text-center py-4">
+                          {t('payments.messages.noMatchingFeeStructures')}
+                        </p>
+                      )}
+                  </div>
+                </div>
+
+                {/* Academic Year */}
+                <div>
+                  <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                    {t('payments.form.academicYear')} <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={createForm.academic_year_id}
+                    onChange={(e) => setCreateForm({ ...createForm, academic_year_id: parseInt(e.target.value) })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 outline-none"
+                  >
+                    {academicYears.map(y => (
+                      <option key={y.id} value={y.id}>{y.name} {y.is_current ? '(Current)' : ''}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Dates */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                      {t('payments.form.startDate')}
+                    </label>
+                    <input
+                      type="date"
+                      value={createForm.payment_start_date}
+                      onChange={(e) => setCreateForm({ ...createForm, payment_start_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                      {t('payments.form.dueDate')} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={createForm.payment_due_date}
+                      onChange={(e) => setCreateForm({ ...createForm, payment_due_date: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={handleCreateAssignment}
+                  disabled={loading || createForm.class_level_cost_ids.length === 0 || !createForm.student_id || !createForm.payment_due_date}
+                  className="flex-1 px-4 py-2.5 bg-green-700 hover:bg-green-800 text-white rounded-xl disabled:opacity-60 text-sm font-semibold transition-colors"
+                >
+                  {loading ? <Spinner /> : t('payments.actions.create')}
+                </button>
+                <button
+                  onClick={() => setShowCreateModal(false)}
+                  className="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 transition-colors"
+                >
+                  {t('payments.actions.cancel')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Payment Modal */}
+        {showPaymentModal && selectedAssignment && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6 border border-blue-100 dark:border-blue-900/30">
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <DollarSign className="w-5 h-5 text-blue-700 dark:text-blue-400" />
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                    {t('payments.modal.makePayment')}
+                  </h2>
+                </div>
+                <button
+                  onClick={() => { setShowPaymentModal(false); setPaymentForm({ ...paymentForm, amount: '' }); }}
+                  className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 mb-4">
+                <p className="text-sm text-gray-600 dark:text-gray-400">{t('payments.modal.paymentFor')}</p>
+                <p className="font-semibold text-gray-900 dark:text-white">{selectedAssignment.class_level_cost_details?.name}</p>
+                <p className="text-xs text-gray-500">Student: {selectedAssignment.student_details?.full_name}</p>
+                <div className="flex justify-between mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                  <span className="text-sm">{t('payments.table.remaining')}:</span>
+                  <span className="text-lg font-bold text-red-600">
+                    ${parseFloat(selectedAssignment.remaining_amount).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                    {t('payments.form.amount')} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={paymentForm.amount}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
+                    placeholder="0.00"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                    {t('payments.form.paymentMethod')}
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {paymentMethods.map(method => {
+                      const Icon = method.icon;
+                      return (
+                        <button
+                          key={method.value}
+                          type="button"
+                          onClick={() => setPaymentForm({ ...paymentForm, payment_method: method.value })}
+                          className={`px-3 py-2 rounded-lg border text-sm font-medium transition-all flex items-center justify-center gap-2
+                            ${paymentForm.payment_method === method.value
+                              ? 'border-green-600 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
+                              : 'border-gray-300 dark:border-gray-600 hover:border-green-300 dark:hover:border-green-700'
+                            }`}
+                        >
+                          <Icon className="w-4 h-4" />
+                          {method.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {paymentForm.payment_method === 'mobile_money' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                        {t('payments.form.phoneNumber')}
+                      </label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                          type="tel"
+                          value={paymentForm.phone_number}
+                          onChange={(e) => setPaymentForm({ ...paymentForm, phone_number: e.target.value })}
+                          placeholder="+250XXXXXXXXX"
+                          className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 outline-none"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                        {t('payments.form.provider')}
+                      </label>
+                      <select
+                        value={paymentForm.mobile_money_provider}
+                        onChange={(e) => setPaymentForm({ ...paymentForm, mobile_money_provider: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 outline-none"
+                      >
+                        <option value="mtn">MTN</option>
+                        <option value="airtel">Airtel</option>
+                        <option value="tigo">Tigo</option>
+                      </select>
+                    </div>
+                  </>
+                )}
+
+                {paymentForm.payment_method === 'bank_transfer' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                        {t('payments.form.bankName')}
+                      </label>
+                      <input
+                        type="text"
+                        value={paymentForm.bank_name}
+                        onChange={(e) => setPaymentForm({ ...paymentForm, bank_name: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                        {t('payments.form.bankReceiptNumber')}
+                      </label>
+                      <input
+                        type="text"
+                        value={paymentForm.bank_receipt_number}
+                        onChange={(e) => setPaymentForm({ ...paymentForm, bank_receipt_number: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 outline-none"
+                      />
+                    </div>
+                  </>
+                )}
+
+                <div>
+                  <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                    {t('payments.form.notes')}
+                  </label>
+                  <textarea
+                    rows="2"
+                    value={paymentForm.notes}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, notes: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 outline-none"
+                    placeholder={t('payments.form.notesPlaceholder')}
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={handleProcessPayment}
+                  disabled={loading || !paymentForm.amount || parseFloat(paymentForm.amount) <= 0}
+                  className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl disabled:opacity-60 text-sm font-semibold transition-colors"
+                >
+                  {loading ? <Spinner /> : t('payments.actions.processPayment')}
+                </button>
+                <button
+                  onClick={() => setShowPaymentModal(false)}
+                  className="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 transition-colors"
+                >
+                  {t('payments.actions.cancel')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Details Modal */}
+        {showDetailsModal && selectedAssignment && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full mx-4 p-6 max-h-[90vh] overflow-y-auto border border-green-100 dark:border-green-900/30">
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                    <Eye className="w-5 h-5 text-green-700 dark:text-green-400" />
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                    {t('payments.modal.paymentDetails')}
+                  </h2>
+                </div>
+                <button
+                  onClick={() => { setShowDetailsModal(false); setTransactions([]); }}
+                  className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+
+              {renderDetailsModal()}
+
+              <button
+                onClick={() => setShowDetailsModal(false)}
+                className="w-full mt-6 px-4 py-2.5 bg-green-700 hover:bg-green-800 text-white rounded-xl text-sm font-semibold transition-colors"
+              >
+                {t('payments.actions.close')}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Extend Deadline Modal */}
+        {showExtendModal && selectedAssignment && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full mx-4 p-6 border border-amber-100 dark:border-amber-900/30">
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+                    <Calendar className="w-5 h-5 text-amber-700 dark:text-amber-400" />
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                    {t('payments.modal.extendDeadline')}
+                  </h2>
+                </div>
+                <button
+                  onClick={() => setShowExtendModal(false)}
+                  className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('payments.modal.currentDueDate')}</p>
+                  <p className="font-semibold text-gray-900 dark:text-white">
+                    {new Date(selectedAssignment.payment_due_date).toLocaleDateString()}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                    {t('payments.form.newDueDate')} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={extendForm.new_due_date}
+                    onChange={(e) => setExtendForm({ new_due_date: e.target.value })}
+                    min={new Date().toISOString().split('T')[0]}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={handleExtendDeadline}
+                  disabled={loading || !extendForm.new_due_date}
+                  className="flex-1 px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl disabled:opacity-60 text-sm font-semibold transition-colors"
+                >
+                  {loading ? <Spinner /> : t('payments.actions.extend')}
+                </button>
+                <button
+                  onClick={() => setShowExtendModal(false)}
+                  className="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 transition-colors"
+                >
+                  {t('payments.actions.cancel')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Modal */}
+        {showDeleteModal && selectedAssignment && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6 border border-red-100 dark:border-red-900/30">
+              <div className="text-center">
+                <div className="w-14 h-14 bg-red-100 dark:bg-red-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <Trash2 className="w-7 h-7 text-red-600" />
+                </div>
+                <h2 className="text-lg font-bold mb-2 text-gray-900 dark:text-white">{t('payments.delete.title')}</h2>
+                <p className="text-gray-500 text-sm mb-3">{t('payments.delete.confirmation')}</p>
+                <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-3 mb-3">
+                  <p className="text-sm font-semibold text-red-700 dark:text-red-300">
+                    {selectedAssignment.class_level_cost_details?.name}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {selectedAssignment.student_details?.full_name}
+                  </p>
+                </div>
+                <p className="text-xs text-gray-400">{t('payments.delete.warning')}</p>
+              </div>
+              <div className="flex gap-3 mt-5">
+                <button
+                  onClick={handleDeleteAssignment}
+                  disabled={loading}
+                  className="flex-1 px-3 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl disabled:opacity-60 flex items-center justify-center gap-1.5 text-sm font-semibold transition-colors"
+                >
+                  {loading ? <Spinner /> : <><Trash2 className="w-4 h-4" /> {t('payments.actions.delete')}</>}
+                </button>
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="flex-1 px-3 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 transition-colors"
+                >
+                  {t('payments.actions.cancel')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
