@@ -41,4 +41,37 @@ urlpatterns = [
     
     # Dashboard
     path('dashboard/stats/', views.dashboard_stats, name='dashboard_stats'),
+    
+    # Terms
+    path('terms/', views.term_list_create, name='terms'),
+    path('terms/<int:pk>/', views.term_detail, name='term'),
+    
+    # Payment Types
+    path('payment-types/', views.payment_type_list_create, name='payment_types'),
+    
+    # School Day Settings
+    path('day-settings/', views.school_day_setting_list_create, name='day_settings'),
+    path('day-settings/<int:pk>/', views.school_day_setting_detail, name='day_setting'),
+    
+    # Classroom Assignments
+    path('classroom-assignments/', views.classroom_assignment_list_create, name='classroom_assignments'),
+    path('classroom-assignments/<int:pk>/', views.classroom_assignment_delete, name='classroom_assignment_delete'),
+    
+    # Utility
+    path('learning-days/', views.get_learning_days, name='learning_days'),
+    
+    path('school-breaks/', views.school_break_list_create, name='school_breaks'),
+    path('school-breaks/<int:pk>/', views.school_break_detail, name='school_break'),
+    path('school-levels/<int:school_level_id>/breaks/', 
+          views.get_breaks_by_school_level, name='school_level_breaks'),
+    
+    
+    path('holidays/', views.holiday_list_create, name='holidays'),
+    path('holidays/<int:pk>/', views.holiday_detail, name='holiday'),
+    path('academic-years/<int:academic_year_id>/holidays/', 
+          views.get_holidays_by_academic_year, name='academic_year_holidays'),
+    path('holidays/by-date-range/', 
+          views.get_holidays_by_date_range, name='holidays_by_date_range'),
+    path('holidays/upcoming/', 
+          views.get_upcoming_holidays, name='upcoming_holidays'),
 ]

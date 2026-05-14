@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'students',
     'chat',
     'payments',
+    'academics_records',
 ]
 
 MIDDLEWARE = [

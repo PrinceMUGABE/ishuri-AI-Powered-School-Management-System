@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
-import Header from './Header';
-import Sidebar from './Sidebar';
+import AdminHeader from './AdminHeader';
+import AdminSidebar from './AdminSidebar';
 
 // Helper to check authentication from localStorage
 const isAuthenticated = () => {
@@ -18,7 +17,6 @@ const isAuthenticated = () => {
     const tokenExpiry = localStorage.getItem('token_expiry');
     
     if (tokenExpiry && Date.now() > parseInt(tokenExpiry)) {
-      // Token expired, clear storage
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
       localStorage.removeItem('user');
@@ -34,7 +32,6 @@ const isAuthenticated = () => {
   }
 };
 
-// Get user from localStorage
 const getUser = () => {
   const userStr = localStorage.getItem('user');
   if (!userStr) return null;
@@ -47,14 +44,13 @@ const getUser = () => {
   }
 };
 
-const Layout = () => {
+const AdminLayout = () => {
   const navigate = useNavigate();
   const [isAuth, setIsAuth] = useState(null);
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    // Check authentication on mount and when storage changes
     const checkAuth = () => {
       const auth = isAuthenticated();
       const currentUser = getUser();
@@ -63,14 +59,19 @@ const Layout = () => {
       setUser(currentUser);
       
       if (!auth) {
-        console.log('[Layout] Not authenticated, redirecting to /');
+        console.log('[AdminLayout] Not authenticated, redirecting to /');
         navigate('/', { replace: true });
+      }
+      
+      // Check if user has admin role
+      if (auth && currentUser?.role !== 'admin') {
+        console.log('[AdminLayout] Not admin, redirecting to /app/dashboard');
+        navigate('/app/dashboard', { replace: true });
       }
     };
     
     checkAuth();
     
-    // Listen for storage events (in case token changes in another tab)
     window.addEventListener('storage', checkAuth);
     
     return () => {
@@ -78,7 +79,6 @@ const Layout = () => {
     };
   }, [navigate]);
 
-  // Close sidebar on route change on mobile
   useEffect(() => {
     const handleRouteChange = () => {
       if (window.innerWidth < 1024) {
@@ -90,7 +90,6 @@ const Layout = () => {
     return () => window.removeEventListener('popstate', handleRouteChange);
   }, []);
 
-  // Show loading while checking authentication
   if (isAuth === null) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -102,17 +101,14 @@ const Layout = () => {
     );
   }
 
-  // If not authenticated, don't render anything
   if (!isAuth) {
     return null;
   }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Fixed top header */}
-      <Header user={user} onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+      <AdminHeader user={user} onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
 
-      {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div 
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -120,17 +116,15 @@ const Layout = () => {
         />
       )}
 
-      {/* Sidebar - hidden on mobile by default, shown when sidebarOpen is true */}
       <div className={`
         fixed left-0 top-16 h-[calc(100vh-4rem)] z-50
         transition-transform duration-300 ease-in-out
         lg:translate-x-0
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
-        <Sidebar role={user?.role} onClose={() => setSidebarOpen(false)} />
+        <AdminSidebar onClose={() => setSidebarOpen(false)} />
       </div>
 
-      {/* Main content - adjusts margin based on sidebar visibility */}
       <div className="flex pt-16 h-screen">
         <main
           className={`
@@ -157,4 +151,4 @@ const Layout = () => {
   );
 };
 
-export default Layout;
+export default AdminLayout;

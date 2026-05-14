@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next';
 import {
   GraduationCap, Brain, MessageSquare, BarChart3, Users, Shield,
   ChevronRight, CheckCircle, ArrowRight, Star, FileText, CreditCard,
-  Heart, X, User, Lock, LogIn, ArrowLeft, Mail
+  Heart, X, User, Lock, LogIn, ArrowLeft, Mail, Eye, EyeOff,
+  AlertCircle, Check, Phone, MapPin, Home, UserPlus
 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import ThemeToggle from '../../components/Common/ThemeToggle';
@@ -19,9 +20,8 @@ import { useAuth } from '../../contexts/AuthContext';
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 // API Configuration
-const API_BASE_URL = 'http://127.0.0.1:8000/api/account';
+const API_BASE_URL = 'http://127.0.0.1:8000/api';
 
-// Create axios instance with interceptors
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -29,53 +29,36 @@ const apiClient = axios.create({
   },
 });
 
-// Request interceptor - Add language header to EVERY request
+// Request interceptor
 apiClient.interceptors.request.use(
   (config) => {
-    // IMPORTANT: Get current language from i18n (not just localStorage)
-    // This ensures we get the language that the user actually selected
     let currentLanguage = 'en';
 
-    // Method 1: Get from i18n (most reliable)
     const { i18n } = window;
     if (i18n && i18n.language) {
       currentLanguage = i18n.language;
-      console.log(`[Interceptor] Language from i18n: ${currentLanguage}`);
     }
 
-    // Method 2: Get from localStorage as fallback
     const storedLang = localStorage.getItem('user_language');
     if (storedLang && ['en', 'fr', 'rw'].includes(storedLang)) {
       currentLanguage = storedLang;
-      console.log(`[Interceptor] Language from localStorage: ${currentLanguage}`);
     }
 
-    // Method 3: Get from sessionStorage
     const sessionLang = sessionStorage.getItem('selected_language');
     if (sessionLang && ['en', 'fr', 'rw'].includes(sessionLang)) {
       currentLanguage = sessionLang;
-      console.log(`[Interceptor] Language from sessionStorage: ${currentLanguage}`);
     }
 
-    // Validate language
     if (!['en', 'fr', 'rw'].includes(currentLanguage)) {
       currentLanguage = 'en';
     }
 
-    // Add language header
     config.headers['X-Language'] = currentLanguage;
 
-    // Add authorization token if exists
     const token = localStorage.getItem('access_token');
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
-
-    console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`);
-    console.log(`[API Request] Headers:`, {
-      'X-Language': config.headers['X-Language'],
-      'Authorization': config.headers['Authorization'] ? 'Bearer ***' : 'None'
-    });
 
     return config;
   },
@@ -85,36 +68,55 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor - Capture language from response
+// Response interceptor
 apiClient.interceptors.response.use(
   (response) => {
-    console.log(`[API Response] ${response.config.url} - Status: ${response.status}`);
-
-    // If response has language field, update localStorage and i18n
     if (response.data && response.data.language) {
       const responseLang = response.data.language;
       const currentLang = localStorage.getItem('user_language');
-
       if (currentLang !== responseLang) {
         localStorage.setItem('user_language', responseLang);
         sessionStorage.setItem('selected_language', responseLang);
-
-        // Update i18n if available
         const { i18n } = window;
         if (i18n && i18n.language !== responseLang) {
           i18n.changeLanguage(responseLang);
-          console.log(`[API Response] Language updated to: ${responseLang}`);
         }
       }
     }
-
     return response;
   },
   (error) => {
-    console.error('[API Response Error]', error.response?.data || error.message);
+    if (error.response?.status === 401) {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('user');
+    }
     return Promise.reject(error);
   }
 );
+
+// Password validation function
+const validatePassword = (password, t) => {
+  const errors = [];
+  
+  if (password.length < 6) {
+    errors.push(t('landingPage.passwordValidation.minLength'));
+  }
+  if (!/[A-Z]/.test(password)) {
+    errors.push(t('landingPage.passwordValidation.uppercase'));
+  }
+  if (!/[a-z]/.test(password)) {
+    errors.push(t('landingPage.passwordValidation.lowercase'));
+  }
+  if (!/[0-9]/.test(password)) {
+    errors.push(t('landingPage.passwordValidation.number'));
+  }
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+    errors.push(t('landingPage.passwordValidation.specialChar'));
+  }
+  
+  return errors;
+};
 
 // Dashboard Chart Data
 export const DASHBOARD_CHART_DATA = {
@@ -168,7 +170,7 @@ export const DASHBOARD_CHART_OPTIONS = {
   },
 };
 
-// Helper: Extract error message from response
+// Helper: Extract error message
 const getErrorMessage = (error, t) => {
   console.log('[Error Debug]', error.response?.data);
 
@@ -195,10 +197,10 @@ const getErrorMessage = (error, t) => {
     }
   }
 
-  if (error.message === 'Network Error') return t('errors.networkError');
+  if (error.message === 'Network Error') return t('landingPage.errors.networkError');
   if (error.message) return error.message;
 
-  return t('errors.somethingWentWrong');
+  return t('landingPage.errors.somethingWentWrong');
 };
 
 // Login Modal
@@ -206,36 +208,31 @@ const LoginModal = ({ onClose, onForgotPassword, onLoginSuccess }) => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({ username: '', password: '' });
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.username.trim()) {
-      toast.error(t('login.usernameRequired'));
+      toast.error(t('landingPage.login.usernameRequired') || t('landingPage.errors.invalidCredentials'));
       return;
     }
     if (!formData.password) {
-      toast.error(t('login.passwordRequired'));
+      toast.error(t('landingPage.login.passwordRequired') || t('landingPage.errors.invalidCredentials'));
       return;
     }
 
     setLoading(true);
 
     const currentLanguage = i18n.language || localStorage.getItem('user_language') || 'en';
-    console.log(`[LoginModal] Submitting login with language: ${currentLanguage}`);
 
     try {
-      // REMOVED the 'role' field from the request
-      const response = await apiClient.post('/login/', {
+      const response = await apiClient.post('/account/login/', {
         username: formData.username,
         password: formData.password
-        // role field is removed - backend will determine role from user record
       }, {
-        headers: {
-          'X-Language': currentLanguage
-        }
+        headers: { 'X-Language': currentLanguage }
       });
 
       console.log('[Login Response]', response.data);
@@ -256,12 +253,12 @@ const LoginModal = ({ onClose, onForgotPassword, onLoginSuccess }) => {
         apiClient.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
         apiClient.defaults.headers.common['X-Language'] = userLanguage;
 
-        toast.success(response.data.message || t('login.welcome'));
+        toast.success(response.data.message || t('landingPage.login.welcome'));
 
         if (onLoginSuccess) onLoginSuccess(user);
         onClose();
 
-        // Navigate based on role from backend
+        // Navigate based on role
         const routes = {
           admin: '/app/admin/dashboard',
           teacher: '/app/teacher/dashboard',
@@ -270,7 +267,7 @@ const LoginModal = ({ onClose, onForgotPassword, onLoginSuccess }) => {
         };
         navigate(routes[user.role] || '/app/dashboard');
       } else {
-        toast.error(response.data.message || 'Login failed');
+        toast.error(response.data.message || t('landingPage.login.invalidCredentials'));
       }
     } catch (error) {
       console.error('[Login Error]', error);
@@ -296,17 +293,17 @@ const LoginModal = ({ onClose, onForgotPassword, onLoginSuccess }) => {
           className="w-16 h-16 mx-auto mb-3 rounded-full object-contain"
         />
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-          {t('login.title')}
+          {t('landingPage.login.title')}
         </h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          {t('login.subtitle')}
+          {t('landingPage.login.subtitle')}
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-            {t('login.username')}
+            {t('landingPage.login.username')}
           </label>
           <div className="relative">
             <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -315,7 +312,7 @@ const LoginModal = ({ onClose, onForgotPassword, onLoginSuccess }) => {
               value={formData.username}
               onChange={(e) => setFormData({ ...formData, username: e.target.value })}
               className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
-              placeholder={t('login.usernamePlaceholder')}
+              placeholder={t('landingPage.login.usernamePlaceholder')}
               disabled={loading}
               autoFocus
             />
@@ -324,18 +321,25 @@ const LoginModal = ({ onClose, onForgotPassword, onLoginSuccess }) => {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-            {t('login.password')}
+            {t('landingPage.login.password')}
           </label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
-              placeholder={t('login.passwordPlaceholder')}
+              className="w-full pl-10 pr-10 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+              placeholder={t('landingPage.login.passwordPlaceholder')}
               disabled={loading}
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2"
+            >
+              {showPassword ? <EyeOff className="w-4 h-4 text-gray-400" /> : <Eye className="w-4 h-4 text-gray-400" />}
+            </button>
           </div>
         </div>
 
@@ -345,7 +349,7 @@ const LoginModal = ({ onClose, onForgotPassword, onLoginSuccess }) => {
             onClick={onForgotPassword}
             className="text-sm text-green-700 dark:text-green-400 hover:underline"
           >
-            {t('login.forgotPassword')}
+            {t('landingPage.login.forgotPassword')}
           </button>
         </div>
 
@@ -359,59 +363,52 @@ const LoginModal = ({ onClose, onForgotPassword, onLoginSuccess }) => {
           ) : (
             <>
               <LogIn className="w-4 h-4" />
-              {t('login.signIn')}
+              {t('landingPage.login.signIn')}
             </>
           )}
         </button>
       </form>
 
       <p className="text-xs text-center text-gray-400 mt-5">
-        {t('login.adminNote')}
+        {t('landingPage.login.adminNote')}
       </p>
     </div>
   );
 };
 
-// Forgot Password Modal
-const ForgotPasswordModal = ({ onBack, onClose }) => {
+// Check Username Modal
+const CheckUsernameModal = ({ onBack, onUsernameFound, onClose }) => {
   const { t, i18n } = useTranslation();
   const [username, setUsername] = useState('');
-  const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [resetToken, setResetToken] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    if (!username.trim()) {
+      toast.error(t('landingPage.forgotPassword.emailLabel') || 'Username required');
+      return;
+    }
 
-    // Get current language
+    setLoading(true);
     const currentLanguage = i18n.language || localStorage.getItem('user_language') || 'en';
-    console.log(`[ForgotPasswordModal] Submitting with language: ${currentLanguage}`);
 
     try {
-      const response = await apiClient.post('/password-reset/request/', {
-        username
+      const response = await apiClient.post('/account/check-username/', {
+        username: username.trim()
       }, {
-        headers: {
-          'X-Language': currentLanguage
-        }
+        headers: { 'X-Language': currentLanguage }
       });
 
-      console.log('[Password Reset Response]', response.data);
+      console.log('[Check Username Response]', response.data);
 
-      if (response.data.success) {
-        setSent(true);
-
-        if (response.data.data?.token) {
-          setResetToken(response.data.data.token);
-        }
-
-        toast.success(response.data.message || t('forgotPassword.resetSent'));
+      if (response.data.success && response.data.exists) {
+        toast.success(response.data.message);
+        onUsernameFound(username.trim(), response.data.data);
       } else {
-        toast.error(response.data.message || 'Request failed');
+        toast.error(response.data.message || t('landingPage.errors.invalidCredentials'));
       }
     } catch (error) {
-      console.error('[Password Reset Error]', error);
+      console.error('[Check Username Error]', error);
       toast.error(getErrorMessage(error, t));
     } finally {
       setLoading(false);
@@ -429,72 +426,496 @@ const ForgotPasswordModal = ({ onBack, onClose }) => {
 
       <div className="text-center mb-6">
         <div className="inline-flex items-center justify-center w-14 h-14 bg-amber-100 dark:bg-amber-900/30 rounded-full mb-3">
-          <Mail className="w-7 h-7 text-amber-600" />
+          <User className="w-7 h-7 text-amber-600" />
         </div>
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-          {t('forgotPassword.title')}
+          {t('landingPage.forgotPassword.title')}
         </h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          {t('forgotPassword.subtitle')}
+          {t('landingPage.forgotPassword.subtitle')}
         </p>
       </div>
 
-      {!sent ? (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-              {t('forgotPassword.usernameLabel')}
-            </label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
-                placeholder={t('forgotPassword.usernamePlaceholder')}
-                required
-                disabled={loading}
-              />
-            </div>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            {t('landingPage.forgotPassword.emailLabel')}
+          </label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+              placeholder={t('landingPage.forgotPassword.emailPlaceholder')}
+              required
+              disabled={loading}
+              autoFocus
+            />
           </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? (
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : (
-              t('forgotPassword.sendReset')
-            )}
-          </button>
-        </form>
-      ) : (
-        <div className="text-center py-4">
-          <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-3" />
-          <p className="text-gray-700 dark:text-gray-300 text-sm mb-3">
-            {t('forgotPassword.resetInstructionsSent')}
-          </p>
-          {resetToken && (
-            <div className="mt-3 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
-              <p className="text-xs text-gray-500 mb-1">{t('forgotPassword.yourToken')}</p>
-              <code className="text-sm font-mono text-green-700 dark:text-green-400 break-all">
-                {resetToken}
-              </code>
-            </div>
-          )}
         </div>
-      )}
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? (
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <>
+              <CheckCircle className="w-4 h-4" />
+              {t('landingPage.forgotPassword.sendReset')}
+            </>
+          )}
+        </button>
+      </form>
 
       <button
         onClick={onBack}
         className="mt-5 flex items-center gap-1.5 text-sm text-gray-500 hover:text-green-700 dark:hover:text-green-400 transition-colors mx-auto"
       >
         <ArrowLeft className="w-4 h-4" />
-        {t('forgotPassword.backToSignIn')}
+        {t('landingPage.forgotPassword.backToSignIn')}
       </button>
+    </div>
+  );
+};
+
+// Reset Password Modal
+const ResetPasswordModal = ({ username, userData, onBack, onClose, onPasswordReset }) => {
+  const { t, i18n } = useTranslation();
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    new_password: '',
+    confirm_password: ''
+  });
+  const [passwordErrors, setPasswordErrors] = useState([]);
+
+  const handlePasswordChange = (value) => {
+    setFormData({ ...formData, new_password: value });
+    const errors = validatePassword(value, t);
+    setPasswordErrors(errors);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Validate password
+    const errors = validatePassword(formData.new_password, t);
+    if (errors.length > 0) {
+      errors.forEach(err => toast.error(err));
+      return;
+    }
+
+    if (formData.new_password !== formData.confirm_password) {
+      toast.error(t('landingPage.forgotPassword.passwordsDoNotMatch') || 'Passwords do not match');
+      return;
+    }
+
+    setLoading(true);
+    const currentLanguage = i18n.language || localStorage.getItem('user_language') || 'en';
+
+    try {
+      const response = await apiClient.post('/account/forgot-password/', {
+        username: username,
+        new_password: formData.new_password,
+        confirm_password: formData.confirm_password
+      }, {
+        headers: { 'X-Language': currentLanguage }
+      });
+
+      console.log('[Reset Password Response]', response.data);
+
+      if (response.data.success) {
+        toast.success(response.data.message);
+        
+        // Auto-login after password reset
+        const loginResponse = await apiClient.post('/account/login/', {
+          username: username,
+          password: formData.new_password
+        }, {
+          headers: { 'X-Language': currentLanguage }
+        });
+
+        if (loginResponse.data.success) {
+          const { access_token, refresh_token, user } = loginResponse.data.data;
+          
+          localStorage.setItem('access_token', access_token);
+          localStorage.setItem('refresh_token', refresh_token);
+          localStorage.setItem('user', JSON.stringify(user));
+          
+          const userLanguage = user.language || currentLanguage;
+          localStorage.setItem('user_language', userLanguage);
+          sessionStorage.setItem('selected_language', userLanguage);
+          
+          await i18n.changeLanguage(userLanguage);
+          
+          apiClient.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+          
+          toast.success(response.data.message || t('landingPage.forgotPassword.sentMessage'));
+          onPasswordReset(user);
+          onClose();
+        }
+      } else {
+        toast.error(response.data.message || t('landingPage.forgotPassword.sendReset'));
+      }
+    } catch (error) {
+      console.error('[Reset Password Error]', error);
+      toast.error(getErrorMessage(error, t));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md mx-4 p-8">
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+      >
+        <X className="w-5 h-5 text-gray-500" />
+      </button>
+
+      <div className="text-center mb-6">
+        <div className="inline-flex items-center justify-center w-14 h-14 bg-green-100 dark:bg-green-900/30 rounded-full mb-3">
+          <Lock className="w-7 h-7 text-green-600" />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          {t('landingPage.forgotPassword.title')}
+        </h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          {t('landingPage.forgotPassword.subtitle')}
+        </p>
+        <p className="text-xs text-gray-400 mt-1">
+          {t('landingPage.forgotPassword.emailLabel')}: <span className="font-semibold text-green-700">{username}</span>
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            {t('landingPage.login.password')}
+          </label>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type={showPassword ? 'text' : 'password'}
+              value={formData.new_password}
+              onChange={(e) => handlePasswordChange(e.target.value)}
+              className="w-full pl-10 pr-10 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+              placeholder={t('landingPage.login.passwordPlaceholder')}
+              required
+              disabled={loading}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2"
+            >
+              {showPassword ? <EyeOff className="w-4 h-4 text-gray-400" /> : <Eye className="w-4 h-4 text-gray-400" />}
+            </button>
+          </div>
+          {passwordErrors.length > 0 && (
+            <div className="mt-2 text-xs text-red-600 dark:text-red-400 space-y-1">
+              <p className="font-semibold">{t('landingPage.passwordValidation.title')}</p>
+              {passwordErrors.map((err, idx) => (
+                <p key={idx} className="flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" /> {err}
+                </p>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            {t('landingPage.forgotPassword.confirmPassword') || 'Confirm Password'}
+          </label>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type={showConfirmPassword ? 'text' : 'password'}
+              value={formData.confirm_password}
+              onChange={(e) => setFormData({ ...formData, confirm_password: e.target.value })}
+              className="w-full pl-10 pr-10 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+              placeholder={t('landingPage.login.passwordPlaceholder')}
+              required
+              disabled={loading}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2"
+            >
+              {showConfirmPassword ? <EyeOff className="w-4 h-4 text-gray-400" /> : <Eye className="w-4 h-4 text-gray-400" />}
+            </button>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-green-700 hover:bg-green-800 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? (
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <>
+              <CheckCircle className="w-4 h-4" />
+              {t('landingPage.forgotPassword.sendReset')}
+            </>
+          )}
+        </button>
+      </form>
+
+      <button
+        onClick={onBack}
+        className="mt-5 flex items-center gap-1.5 text-sm text-gray-500 hover:text-green-700 dark:hover:text-green-400 transition-colors mx-auto"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        {t('landingPage.forgotPassword.backToSignIn')}
+      </button>
+    </div>
+  );
+};
+
+// Add Parent Modal for Students
+const AddParentModal = ({ onClose, onParentAdded }) => {
+  const { t, i18n } = useTranslation();
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    full_name: '',
+    phone_number: '',
+    email: '',
+    physical_address: '',
+    relationship_type: 'guardian'
+  });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!formData.full_name.trim()) {
+      toast.error(t('landingPage.addParent.fullNameRequired'));
+      return;
+    }
+    if (!formData.phone_number.trim()) {
+      toast.error(t('landingPage.addParent.phoneRequired'));
+      return;
+    }
+    if (!formData.email.trim()) {
+      toast.error(t('landingPage.addParent.emailRequired'));
+      return;
+    }
+
+    setLoading(true);
+    const currentLanguage = i18n.language || localStorage.getItem('user_language') || 'en';
+
+    try {
+      const response = await apiClient.post('/students/me/parents/add/', {
+        full_name: formData.full_name,
+        phone_number: formData.phone_number,
+        email: formData.email,
+        physical_address: formData.physical_address,
+        relationship_type: formData.relationship_type
+      }, {
+        headers: { 'X-Language': currentLanguage }
+      });
+
+      console.log('[Add Parent Response]', response.data);
+
+      if (response.data.success) {
+        toast.success(response.data.message || t('landingPage.addParent.success'));
+        onParentAdded();
+        onClose();
+      } else {
+        const errorMsg = response.data.errors 
+          ? Object.values(response.data.errors).flat()[0] 
+          : response.data.message;
+        toast.error(errorMsg || t('landingPage.addParent.error'));
+      }
+    } catch (error) {
+      console.error('[Add Parent Error]', error);
+      toast.error(getErrorMessage(error, t));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 max-h-[90vh] overflow-y-auto">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        >
+          <X className="w-5 h-5 text-gray-500" />
+        </button>
+
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center w-14 h-14 bg-green-100 dark:bg-green-900/30 rounded-full mb-3">
+            <UserPlus className="w-7 h-7 text-green-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            {t('landingPage.addParent.title')}
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            {t('landingPage.addParent.subtitle')}
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              {t('landingPage.addParent.fullName')} <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                value={formData.full_name}
+                onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                placeholder={t('landingPage.addParent.fullNamePlaceholder')}
+                required
+                disabled={loading}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              {t('landingPage.addParent.phoneNumber')} <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="tel"
+                value={formData.phone_number}
+                onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                placeholder="+250XXXXXXXXX"
+                required
+                disabled={loading}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              {t('landingPage.addParent.email')} <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                placeholder="parent@example.com"
+                required
+                disabled={loading}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              {t('landingPage.addParent.physicalAddress')}
+            </label>
+            <div className="relative">
+              <Home className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+              <textarea
+                value={formData.physical_address}
+                onChange={(e) => setFormData({ ...formData, physical_address: e.target.value })}
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                placeholder={t('landingPage.addParent.addressPlaceholder')}
+                rows="2"
+                disabled={loading}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              {t('landingPage.addParent.relationshipType')} <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <select
+                value={formData.relationship_type}
+                onChange={(e) => setFormData({ ...formData, relationship_type: e.target.value })}
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                required
+                disabled={loading}
+              >
+                <option value="father">{t('landingPage.addRelationship.father')}</option>
+                <option value="mother">{t('landingPage.addRelationship.mother')}</option>
+                <option value="guardian">{t('landingPage.addRelationship.guardian')}</option>
+                <option value="other">{t('landingPage.addRelationship.other')}</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex gap-3 mt-6">
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-1 px-4 py-2.5 bg-green-700 hover:bg-green-800 text-white rounded-xl disabled:opacity-60 text-sm font-semibold transition-colors"
+            >
+              {loading ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" /> : t('landingPage.addParent.submit')}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 transition-colors"
+            >
+              {t('landingPage.addParent.cancel')}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// Forgot Password Flow Modal
+const ForgotPasswordFlow = ({ onClose, onPasswordReset }) => {
+  const [step, setStep] = useState('check'); // 'check', 'reset'
+  const [username, setUsername] = useState('');
+  const [userData, setUserData] = useState(null);
+
+  const handleUsernameFound = (foundUsername, data) => {
+    setUsername(foundUsername);
+    setUserData(data);
+    setStep('reset');
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      {step === 'check' ? (
+        <CheckUsernameModal
+          onBack={onClose}
+          onUsernameFound={handleUsernameFound}
+          onClose={onClose}
+        />
+      ) : (
+        <ResetPasswordModal
+          username={username}
+          userData={userData}
+          onBack={() => setStep('check')}
+          onClose={onClose}
+          onPasswordReset={onPasswordReset}
+        />
+      )}
     </div>
   );
 };
@@ -502,13 +923,6 @@ const ForgotPasswordModal = ({ onBack, onClose }) => {
 // Auth Modal
 const AuthModal = ({ onClose, onLoginSuccess }) => {
   const [view, setView] = useState('login');
-
-  useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, []);
 
   return (
     <div
@@ -524,9 +938,9 @@ const AuthModal = ({ onClose, onLoginSuccess }) => {
           onLoginSuccess={onLoginSuccess}
         />
       ) : (
-        <ForgotPasswordModal
-          onBack={() => setView('login')}
+        <ForgotPasswordFlow
           onClose={onClose}
+          onPasswordReset={onLoginSuccess}
         />
       )}
     </div>
@@ -539,83 +953,95 @@ const LandingPage = () => {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showAddParentModal, setShowAddParentModal] = useState(false);
+  const [checkingParent, setCheckingParent] = useState(false);
 
   // Initialize language on component mount
   useEffect(() => {
-    // Get language from various sources
     let initialLanguage = 'en';
 
-    // Priority 1: From localStorage
     const storedLang = localStorage.getItem('user_language');
     if (storedLang && ['en', 'fr', 'rw'].includes(storedLang)) {
       initialLanguage = storedLang;
-      console.log(`[LandingPage] Language from localStorage: ${initialLanguage}`);
     }
 
-    // Priority 2: From sessionStorage
     const sessionLang = sessionStorage.getItem('selected_language');
     if (sessionLang && ['en', 'fr', 'rw'].includes(sessionLang)) {
       initialLanguage = sessionLang;
-      console.log(`[LandingPage] Language from sessionStorage: ${initialLanguage}`);
     }
 
-    // Priority 3: From i18n
     if (i18n.language && ['en', 'fr', 'rw'].includes(i18n.language)) {
       initialLanguage = i18n.language;
-      console.log(`[LandingPage] Language from i18n: ${initialLanguage}`);
     }
 
-    // Set the language
     if (initialLanguage !== i18n.language) {
       i18n.changeLanguage(initialLanguage);
     }
 
-    // Store in all places for consistency
     localStorage.setItem('user_language', initialLanguage);
     sessionStorage.setItem('selected_language', initialLanguage);
-
-    // Set default header
     apiClient.defaults.headers.common['X-Language'] = initialLanguage;
-
-    console.log(`[LandingPage] Initialized with language: ${initialLanguage}`);
   }, [i18n]);
 
-  // Check existing session on mount
+  // Check existing session and student parent status
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
-    const user = localStorage.getItem('user');
+    const checkSessionAndParent = async () => {
+      const token = localStorage.getItem('access_token');
+      const userStr = localStorage.getItem('user');
 
-    if (token && user) {
-      try {
-        const userData = JSON.parse(user);
+      if (token && userStr) {
+        try {
+          const userData = JSON.parse(userStr);
+          apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
-        // Set authorization header
-        apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          if (userData.language) {
+            const userLang = userData.language;
+            i18n.changeLanguage(userLang);
+            localStorage.setItem('user_language', userLang);
+            apiClient.defaults.headers.common['X-Language'] = userLang;
+          }
 
-        // Set language from user profile
-        if (userData.language) {
-          const userLang = userData.language;
-          i18n.changeLanguage(userLang);
-          localStorage.setItem('user_language', userLang);
-          sessionStorage.setItem('selected_language', userLang);
-          apiClient.defaults.headers.common['X-Language'] = userLang;
+          // If user is a student, check if they have parents
+          if (userData.role === 'student') {
+            setCheckingParent(true);
+            try {
+              const response = await apiClient.get('/students/me/');
+              console.log('[Student Profile]', response.data);
+              
+              const studentData = response.data.data;
+              const hasParents = studentData.parents && studentData.parents.length > 0;
+              
+              if (!hasParents) {
+                setShowAddParentModal(true);
+              } else {
+                // Navigate to student dashboard
+                navigate('/app/student/dashboard');
+              }
+            } catch (err) {
+              console.error('[Check Parent Error]', err);
+              navigate('/app/student/dashboard');
+            } finally {
+              setCheckingParent(false);
+            }
+          } else {
+            // Navigate to role-based dashboard
+            const routes = {
+              admin: '/app/admin/dashboard',
+              teacher: '/app/teacher/dashboard',
+              parent: '/app/parent/dashboard',
+            };
+            navigate(routes[userData.role] || '/app/dashboard');
+          }
+        } catch (err) {
+          console.error('[Session Error]', err);
+          localStorage.removeItem('user');
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
         }
-
-        // Navigate to role-based dashboard
-        const routes = {
-          admin: '/app/admin/dashboard',
-          teacher: '/app/teacher/dashboard',
-          student: '/app/student/dashboard',
-          parent: '/app/parent/dashboard',
-        };
-        navigate(routes[userData.role] || '/app/dashboard');
-      } catch (err) {
-        console.error('[Session Error] Error parsing user data:', err);
-        localStorage.removeItem('user');
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
       }
-    }
+    };
+
+    checkSessionAndParent();
   }, [navigate, i18n]);
 
   // Handle scroll for navbar
@@ -632,72 +1058,83 @@ const LandingPage = () => {
     if (user.language && user.language !== i18n.language) {
       i18n.changeLanguage(user.language);
       localStorage.setItem('user_language', user.language);
-      sessionStorage.setItem('selected_language', user.language);
       apiClient.defaults.headers.common['X-Language'] = user.language;
+    }
+    
+    // If user is a student, check for parents after login
+    if (user.role === 'student') {
+      setTimeout(() => {
+        window.location.reload(); // Reload to trigger parent check
+      }, 500);
     }
   };
 
-  // Listen for language changes from LanguageSwitcher
+  const handleParentAdded = () => {
+    toast.success(t('landingPage.addParent.success'));
+    // Navigate to student dashboard after parent is added
+    navigate('/app/student/dashboard');
+  };
+
+  // Listen for language changes
   useEffect(() => {
     const handleLanguageChange = () => {
       const newLang = i18n.language;
-      console.log(`[LandingPage] Language changed to: ${newLang}`);
-
-      // Update all storage locations
       localStorage.setItem('user_language', newLang);
       sessionStorage.setItem('selected_language', newLang);
-
-      // Update axios default header
       apiClient.defaults.headers.common['X-Language'] = newLang;
 
-      // Also update user profile if authenticated
       const token = localStorage.getItem('access_token');
       if (token) {
-        // Optionally update user's language preference in backend
-        apiClient.put('/me/update/', { language: newLang }).catch(err => {
+        apiClient.put('/account/me/update/', { language: newLang }).catch(err => {
           console.error('Failed to update user language preference:', err);
         });
       }
     };
 
-    // Subscribe to i18n language changes
     i18n.on('languageChanged', handleLanguageChange);
-
     return () => {
       i18n.off('languageChanged', handleLanguageChange);
     };
   }, [i18n]);
 
   const features = [
-    { icon: Brain, title: t('features.ai.title'), description: t('features.ai.desc') },
-    { icon: BarChart3, title: t('features.dashboard.title'), description: t('features.dashboard.desc') },
-    { icon: MessageSquare, title: t('features.communication.title'), description: t('features.communication.desc') },
-    { icon: Shield, title: t('features.security.title'), description: t('features.security.desc') },
-    { icon: FileText, title: t('features.reports.title'), description: t('features.reports.desc') },
-    { icon: CreditCard, title: t('features.fees.title'), description: t('features.fees.desc') },
+    { icon: Brain, title: t('landingPage.features.ai.title'), description: t('landingPage.features.ai.desc') },
+    { icon: BarChart3, title: t('landingPage.features.dashboard.title'), description: t('landingPage.features.dashboard.desc') },
+    { icon: MessageSquare, title: t('landingPage.features.communication.title'), description: t('landingPage.features.communication.desc') },
+    { icon: Shield, title: t('landingPage.features.security.title'), description: t('landingPage.features.security.desc') },
+    { icon: FileText, title: t('landingPage.features.reports.title'), description: t('landingPage.features.reports.desc') },
+    { icon: CreditCard, title: t('landingPage.features.fees.title'), description: t('landingPage.features.fees.desc') },
   ];
 
   const stats = [
-    { value: '486', label: t('stats.students'), icon: Users },
-    { value: '32', label: t('stats.teachers'), icon: GraduationCap },
-    { value: '98%', label: t('stats.satisfaction'), icon: Heart },
-    { value: '0', label: t('stats.paperForms'), icon: FileText },
+    { value: '486', label: t('landingPage.stats.students'), icon: Users },
+    { value: '32', label: t('landingPage.stats.teachers'), icon: GraduationCap },
+    { value: '98%', label: t('landingPage.stats.satisfaction'), icon: Heart },
+    { value: '0', label: t('landingPage.stats.paperForms'), icon: FileText },
   ];
 
   const testimonials = [
-    { name: 'Jean Paul Uwimana', role: t('roles.parent'), content: t('testimonials.parent'), avatar: '👨' },
-    { name: 'Marie Claire Uwase', role: t('roles.teacher'), content: t('testimonials.teacher'), avatar: '👩‍🏫' },
-    { name: 'Fr. Jean Bosco', role: t('testimonials.directorRole'), content: t('testimonials.director'), avatar: '👨‍💼' },
+    { name: 'Jean Paul Uwimana', role: t('landingPage.roles.parent'), content: t('landingPage.testimonials.parent'), avatar: '👨' },
+    { name: 'Marie Claire Uwase', role: t('landingPage.roles.teacher'), content: t('landingPage.testimonials.teacher'), avatar: '👩‍🏫' },
+    { name: 'Fr. Jean Bosco', role: t('landingPage.testimonials.directorRole'), content: t('landingPage.testimonials.director'), avatar: '👨‍💼' },
   ];
 
   const chartLegend = [
-    { color: '#2e7d32', label: t('chart.classAverage') },
-    { color: '#f9a825', label: t('chart.atRisk') },
-    { color: '#283593', label: t('chart.attendance') },
+    { color: '#2e7d32', label: t('landingPage.chart.classAverage') },
+    { color: '#f9a825', label: t('landingPage.chart.atRisk') },
+    { color: '#283593', label: t('landingPage.chart.attendance') },
   ];
 
-  // Debug: Log current language on every render
-  console.log(`[LandingPage Render] Current language: ${i18n.language}`);
+  if (checkingParent) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-green-700 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">{t('landingPage.common.loading')}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
@@ -708,6 +1145,16 @@ const LandingPage = () => {
         />
       )}
 
+      {showAddParentModal && (
+        <AddParentModal
+          onClose={() => {
+            setShowAddParentModal(false);
+            navigate('/app/student/dashboard');
+          }}
+          onParentAdded={handleParentAdded}
+        />
+      )}
+
       {/* Navbar */}
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
           ? 'bg-white/95 dark:bg-gray-900/95 shadow-lg backdrop-blur-sm border-b border-green-100 dark:border-green-900/30'
@@ -715,7 +1162,6 @@ const LandingPage = () => {
         }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            {/* Logo */}
             <div className="flex items-center gap-2.5">
               <img
                 src={schoolLogo}
@@ -732,7 +1178,6 @@ const LandingPage = () => {
               </div>
             </div>
 
-            {/* Nav Links */}
             <div className="hidden md:flex items-center gap-6">
               {['features', 'about', 'testimonials', 'contact'].map((section) => (
                 <a
@@ -740,12 +1185,11 @@ const LandingPage = () => {
                   href={`#${section}`}
                   className="text-sm text-gray-700 dark:text-gray-300 hover:text-green-700 dark:hover:text-green-400 transition-colors capitalize"
                 >
-                  {t(`nav.${section}`)}
+                  {t(`landingPage.nav.${section}`)}
                 </a>
               ))}
             </div>
 
-            {/* Actions */}
             <div className="flex items-center gap-2 sm:gap-3">
               <LanguageSwitcher />
               <ThemeToggle />
@@ -753,7 +1197,7 @@ const LandingPage = () => {
                 onClick={() => setShowAuthModal(true)}
                 className="px-3 py-1.5 sm:px-4 sm:py-2 bg-green-700 hover:bg-green-800 text-white rounded-lg transition-colors font-medium text-sm whitespace-nowrap"
               >
-                {t('nav.signIn')}
+                {t('landingPage.nav.signIn')}
               </button>
             </div>
           </div>
@@ -771,29 +1215,29 @@ const LandingPage = () => {
             <div className="inline-flex items-center gap-2 bg-green-100 dark:bg-green-900/30 px-4 py-2 rounded-full mb-6">
               <Brain className="w-4 h-4 text-green-700" />
               <span className="text-sm font-medium text-green-700 dark:text-green-400">
-                {t('hero.badge')}
+                {t('landingPage.hero.badge')}
               </span>
             </div>
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
-              {t('hero.title')}
+              {t('landingPage.hero.title')}
               <span className="text-green-700 dark:text-green-400"> Les Hirondelles de Don Bosco</span>
             </h1>
             <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-8">
-              {t('hero.description')}
+              {t('landingPage.hero.description')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={() => setShowAuthModal(true)}
                 className="inline-flex items-center gap-2 px-6 py-3 bg-green-700 text-white rounded-lg hover:bg-green-800 transition-colors font-medium text-lg"
               >
-                {t('hero.getStarted')}
+                {t('landingPage.hero.getStarted')}
                 <ArrowRight className="w-5 h-5" />
               </button>
               <a
                 href="#features"
                 className="inline-flex items-center gap-2 px-6 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:border-green-700 transition-colors font-medium text-lg text-gray-700 dark:text-gray-300"
               >
-                {t('hero.learnMore')}
+                {t('landingPage.hero.learnMore')}
                 <ChevronRight className="w-5 h-5" />
               </a>
             </div>
@@ -823,7 +1267,7 @@ const LandingPage = () => {
                   <Bar data={DASHBOARD_CHART_DATA} options={DASHBOARD_CHART_OPTIONS} />
                 </div>
                 <p className="text-xs text-gray-500 text-center mt-3">
-                  {t('chart.title')}
+                  {t('landingPage.chart.title')}
                 </p>
               </div>
             </div>
@@ -859,10 +1303,10 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              {t('featuresSection.title')}
+              {t('landingPage.featuresSection.title')}
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-              {t('featuresSection.subtitle')}
+              {t('landingPage.featuresSection.subtitle')}
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -886,15 +1330,124 @@ const LandingPage = () => {
         </div>
       </section>
 
+      {/* Roles Section */}
+      <section className="py-20 px-4 bg-gray-50 dark:bg-gray-800/50">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              {t('landingPage.rolesSection.title')}
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-400">
+              {t('landingPage.rolesSection.subtitle')}
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {['student', 'parent', 'teacher', 'admin'].map((role) => (
+              <div key={role} className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-green-100 dark:border-green-900/30 shadow-sm">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                    {role === 'student' && <GraduationCap className="w-5 h-5 text-green-700" />}
+                    {role === 'parent' && <Users className="w-5 h-5 text-green-700" />}
+                    {role === 'teacher' && <Shield className="w-5 h-5 text-green-700" />}
+                    {role === 'admin' && <User className="w-5 h-5 text-green-700" />}
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white capitalize">
+                    {t(`landingPage.roles.${role}`)}
+                  </h3>
+                </div>
+                <ul className="space-y-2">
+                  {[0, 1, 2, 3].map((idx) => (
+                    <li key={idx} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                      <CheckCircle className="w-3.5 h-3.5 text-green-600" />
+                      {t(`landingPage.roleFeatures.${role}.${idx}`)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* AI Section */}
+      <section className="py-20 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-full mb-4">
+                <Brain className="w-4 h-4 text-green-700" />
+                <span className="text-xs font-medium text-green-700 dark:text-green-400">
+                  {t('landingPage.aiSection.badge')}
+                </span>
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                {t('landingPage.aiSection.title')}
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                {t('landingPage.aiSection.description')}
+              </p>
+              <div className="space-y-4">
+                {['green', 'yellow', 'red'].map((zone) => (
+                  <div key={zone} className="flex items-start gap-3">
+                    <div className={`w-3 h-3 rounded-full mt-1.5 ${
+                      zone === 'green' ? 'bg-green-500' : zone === 'yellow' ? 'bg-yellow-500' : 'bg-red-500'
+                    }`} />
+                    <div>
+                      <p className="font-semibold text-gray-900 dark:text-white text-sm">
+                        {t(`landingPage.zones.${zone}.title`)}
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {t(`landingPage.zones.${zone}.desc`)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="bg-gradient-to-br from-green-50 to-amber-50 dark:from-gray-800 dark:to-gray-800 rounded-2xl p-6 border border-green-100 dark:border-green-900/30">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-gray-900 dark:text-white">
+                  {t('landingPage.aiSection.cardTitle')}
+                </h3>
+                <Brain className="w-5 h-5 text-green-600" />
+              </div>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                {t('landingPage.aiSection.cardDesc')}
+              </p>
+              <div className="space-y-3">
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>{t('landingPage.aiSection.classAvg')}</span>
+                    <span className="font-semibold">78%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div className="bg-green-600 h-2 rounded-full" style={{ width: '78%' }} />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>{t('landingPage.aiSection.atRisk')}</span>
+                    <span className="font-semibold">18%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div className="bg-yellow-500 h-2 rounded-full" style={{ width: '18%' }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Testimonials Section */}
       <section id="testimonials" className="py-20 px-4 bg-gray-50 dark:bg-gray-800/50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              {t('testimonialsSection.title')}
+              {t('landingPage.testimonialsSection.title')}
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-400">
-              {t('testimonialsSection.subtitle')}
+              {t('landingPage.testimonialsSection.subtitle')}
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
@@ -935,27 +1488,27 @@ const LandingPage = () => {
         <div className="max-w-4xl mx-auto text-center">
           <div className="bg-gradient-to-r from-green-700 to-green-900 rounded-2xl text-white p-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              {t('cta.title')}
+              {t('landingPage.cta.title')}
             </h2>
             <p className="text-lg text-green-100 mb-8">
-              {t('cta.subtitle')}
+              {t('landingPage.cta.subtitle')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={() => setShowAuthModal(true)}
                 className="px-6 py-3 bg-white text-green-700 rounded-lg hover:bg-gray-100 transition-colors font-medium"
               >
-                {t('cta.signIn')}
+                {t('landingPage.cta.signIn')}
               </button>
               <a
                 href="#contact"
                 className="px-6 py-3 border-2 border-white/30 rounded-lg hover:bg-white/10 transition-colors font-medium"
               >
-                {t('cta.contact')}
+                {t('landingPage.cta.contact')}
               </a>
             </div>
             <p className="text-sm text-green-200 mt-6">
-              {t('cta.note')}
+              {t('landingPage.cta.note')}
             </p>
           </div>
         </div>
@@ -974,18 +1527,18 @@ const LandingPage = () => {
                 />
                 <span className="text-xl font-bold text-white">Ishuri</span>
               </div>
-              <p className="text-sm">{t('footer.description')}</p>
+              <p className="text-sm">{t('landingPage.footer.description')}</p>
             </div>
             <div>
-              <h3 className="text-white font-semibold mb-3">{t('footer.quickLinks')}</h3>
+              <h3 className="text-white font-semibold mb-3">{t('landingPage.footer.quickLinks')}</h3>
               <ul className="space-y-2 text-sm">
-                <li><a href="#features" className="hover:text-green-400 transition-colors">{t('nav.features')}</a></li>
-                <li><a href="#testimonials" className="hover:text-green-400 transition-colors">{t('nav.testimonials')}</a></li>
-                <li><button onClick={() => setShowAuthModal(true)} className="hover:text-green-400 transition-colors">{t('nav.signIn')}</button></li>
+                <li><a href="#features" className="hover:text-green-400 transition-colors">{t('landingPage.nav.features')}</a></li>
+                <li><a href="#testimonials" className="hover:text-green-400 transition-colors">{t('landingPage.nav.testimonials')}</a></li>
+                <li><button onClick={() => setShowAuthModal(true)} className="hover:text-green-400 transition-colors">{t('landingPage.nav.signIn')}</button></li>
               </ul>
             </div>
             <div>
-              <h3 className="text-white font-semibold mb-3">{t('footer.contact')}</h3>
+              <h3 className="text-white font-semibold mb-3">{t('landingPage.footer.contact')}</h3>
               <ul className="space-y-2 text-sm">
                 <li>Les Hirondelles de Don Bosco</li>
                 <li>Ndera, Rwanda</li>
@@ -994,21 +1547,21 @@ const LandingPage = () => {
               </ul>
             </div>
             <div>
-              <h3 className="text-white font-semibold mb-3">{t('footer.resources')}</h3>
+              <h3 className="text-white font-semibold mb-3">{t('landingPage.footer.resources')}</h3>
               <ul className="space-y-2 text-sm">
                 <li>
                   <a href="https://hdb.rw" target="_blank" rel="noopener noreferrer" className="hover:text-green-400 transition-colors">
-                    {t('footer.schoolWebsite')}
+                    {t('landingPage.footer.schoolWebsite')}
                   </a>
                 </li>
-                <li><a href="#" className="hover:text-green-400 transition-colors">{t('footer.documentation')}</a></li>
-                <li><a href="#" className="hover:text-green-400 transition-colors">{t('footer.support')}</a></li>
+                <li><a href="#" className="hover:text-green-400 transition-colors">{t('landingPage.footer.documentation')}</a></li>
+                <li><a href="#" className="hover:text-green-400 transition-colors">{t('landingPage.footer.support')}</a></li>
               </ul>
             </div>
           </div>
           <div className="border-t border-gray-800 pt-8 text-center text-sm">
-            <p>&copy; 2024 Ishuri — Les Hirondelles de Don Bosco. {t('footer.rights')}</p>
-            <p className="mt-1">{t('footer.tagline')}</p>
+            <p>&copy; 2024 Ishuri — Les Hirondelles de Don Bosco. {t('landingPage.footer.rights')}</p>
+            <p className="mt-1">{t('landingPage.footer.tagline')}</p>
           </div>
         </div>
       </footer>

@@ -231,10 +231,10 @@ class Assignment(models.Model):
         INACTIVE = 'inactive', _('Inactive')
         EXPIRED  = 'expired',  _('Expired')
 
-    teacher       = models.ForeignKey(Teacher,      on_delete=models.CASCADE, related_name='assignments',  verbose_name=_('teacher'))
-    class_level   = models.ForeignKey(ClassLevel,   on_delete=models.CASCADE, related_name='assignments',  verbose_name=_('class level'))
-    subject       = models.ForeignKey(Subject,      on_delete=models.CASCADE, related_name='assignments',  verbose_name=_('subject'))
-    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name='assignments',  verbose_name=_('academic year'))
+    teacher       = models.ForeignKey(Teacher,      on_delete=models.CASCADE, related_name='teacher_uploaded_assignments',  verbose_name=_('teacher'))
+    class_level   = models.ForeignKey(ClassLevel,   on_delete=models.CASCADE, related_name='assignment_class_levels',  verbose_name=_('class level'))
+    subject       = models.ForeignKey(Subject,      on_delete=models.CASCADE, related_name='assignment_class_subjects',  verbose_name=_('subject'))
+    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name='assignment_academic_years',  verbose_name=_('academic year'))
 
     title         = models.CharField(_('title'), max_length=300)
     description   = models.TextField(_('description'), blank=True)

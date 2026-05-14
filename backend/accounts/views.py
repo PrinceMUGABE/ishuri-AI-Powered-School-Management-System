@@ -11,7 +11,7 @@ from accounts.models import User
 from accounts.serializers import (
     LoginSerializer, RefreshTokenSerializer, UserListSerializer, UserDetailSerializer,
     UserCreateSerializer, UserUpdateSerializer, ProfileUpdateSerializer,
-    PasswordResetRequestSerializer, PasswordResetConfirmSerializer
+    CheckUsernameSerializer, ForgotPasswordSerializer, ChangePasswordSerializer
 )
 from accounts.permissions import IsAdmin, IsAdminOrSelf
 from accounts.utils import generate_reset_token
@@ -713,124 +713,200 @@ class UserActivationToggleView(APIView):
 
 # ==================== PASSWORD RESET VIEWS ====================
 
-class PasswordResetRequestView(APIView):
-    """Request password reset"""
+# accounts/views.py - Replace the password reset sections
+
+# ==================== PASSWORD RESET VIEWS (MODIFIED) ====================
+
+class CheckUsernameView(APIView):
+    """Check if username exists"""
     permission_classes = [AllowAny]
     
     def post(self, request):
         print('\n' + '='*60)
-        print('[PasswordResetRequestView] Request received')
+        print('[CheckUsernameView] Request received')
         print('='*60)
         
         lang = get_request_language(request)
-        print(f'[PasswordResetRequestView] Using language: {lang}')
-        print(f'[PasswordResetRequestView] Request data: {request.data}')
+        print(f'[CheckUsernameView] Using language: {lang}')
+        print(f'[CheckUsernameView] Username to check: {request.data.get("username")}')
         
-        serializer = PasswordResetRequestSerializer(
+        serializer = CheckUsernameSerializer(
             data=request.data,
             context={'request': request, 'language': lang}
         )
         
         if not serializer.is_valid():
-            print(f'[PasswordResetRequestView] Validation failed: {serializer.errors}')
+            print(f'[CheckUsernameView] Username not found')
             print('='*60 + '\n')
             
             return Response({
-                'success': False,
-                'errors': serializer.errors,
+                'success': True,
+                'exists': False,
+                'message': get_message('username_exists_false', lang),
                 'language': lang
-            }, status=status.HTTP_400_BAD_REQUEST)
+            })
         
         user = serializer.context['user']
-        token = generate_reset_token(user.id)
-        
-        print(f'[PasswordResetRequestView] Reset token generated for user: {user.username}')
-        
-        # Create in-app notification about password reset request
-        try:
-            NotificationService.create_user_notification(
-                user=user,
-                notification_type='password_reset_request',
-                created_by=user,
-                extra_data={'reset_method': 'token'},
-                title='Password Reset Requested',
-                message='A password reset has been requested for your account. If you did not request this, please contact support immediately.',
-                priority='high',
-                action_url='/reset-password'
-            )
-            print(f'[PasswordResetRequestView] Reset request notification created for {user.username}')
-        except Exception as e:
-            print(f'[PasswordResetRequestView] Failed to create notification: {str(e)}')
-        
-        print(f'[PasswordResetRequestView] Token (for development): {token}')
+        print(f'[CheckUsernameView] Username exists: {user.username}')
         print('='*60 + '\n')
         
-        # Return token for development (remove in production)
         return Response({
             'success': True,
-            'message': get_message('password_reset_sent', lang),
+            'exists': True,
+            'message': get_message('username_exists_true', lang),
             'language': lang,
-            'data': {'token': token}  # Remove in production
+            'data': {
+                'username': user.username,
+                'role': user.role,
+                'role_display': get_role_display(user.role, lang)
+            }
         })
 
 
-class PasswordResetConfirmView(APIView):
-    """Confirm password reset with token"""
+class ForgotPasswordView(APIView):
+    """Reset password using username (no email required)"""
     permission_classes = [AllowAny]
     
     def post(self, request):
         print('\n' + '='*60)
-        print('[PasswordResetConfirmView] Request received')
+        print('[ForgotPasswordView] Request received')
         print('='*60)
         
         lang = get_request_language(request)
-        print(f'[PasswordResetConfirmView] Using language: {lang}')
+        print(f'[ForgotPasswordView] Using language: {lang}')
+        print(f'[ForgotPasswordView] Request data: username={request.data.get("username")}')
         
-        serializer = PasswordResetConfirmSerializer(
+        serializer = ForgotPasswordSerializer(
             data=request.data,
             context={'request': request, 'language': lang}
         )
         
         if not serializer.is_valid():
-            print(f'[PasswordResetConfirmView] Validation failed: {serializer.errors}')
+            errors = serializer.errors
+            print(f'[ForgotPasswordView] Validation failed: {errors}')
             print('='*60 + '\n')
+            
+            # Format error messages
+            error_messages = []
+            for field, msgs in errors.items():
+                if isinstance(msgs, list):
+                    error_messages.extend(msgs)
+                else:
+                    error_messages.append(str(msgs))
             
             return Response({
                 'success': False,
-                'errors': serializer.errors,
+                'message': error_messages[0] if error_messages else 'Validation error',
+                'errors': errors,
                 'language': lang
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        user = serializer.context['user']
-        user.set_password(serializer.validated_data['new_password'])
-        user.save()
+        # Save the new password
+        user = serializer.save()
         
-        print(f'[PasswordResetConfirmView] Password reset successful for user: {user.username}')
+        print(f'[ForgotPasswordView] Password reset successfully for user: {user.username}')
         
-        # Create in-app notification about successful password reset
+        # Create in-app notification about password reset
         try:
+            from notifications.services import NotificationService
             NotificationService.create_user_notification(
                 user=user,
                 notification_type='password_reset',
                 created_by=user,
-                extra_data={'reset_method': 'token'},
+                extra_data={'reset_method': 'username_based'},
                 title='Password Reset Successful',
                 message='Your password has been reset successfully. You can now login with your new password.',
                 priority='high',
                 action_url='/login'
             )
-            print(f'[PasswordResetConfirmView] Password reset confirmation notification created for {user.username}')
+            print(f'[ForgotPasswordView] Password reset notification created for {user.username}')
         except Exception as e:
-            print(f'[PasswordResetConfirmView] Failed to create notification: {str(e)}')
+            print(f'[ForgotPasswordView] Failed to create notification: {str(e)}')
         
         print('='*60 + '\n')
         
         return Response({
             'success': True,
             'message': get_message('password_reset_success', lang),
-            'language': lang
+            'language': lang,
+            'data': {
+                'username': user.username,
+                'message': 'Password has been reset successfully. You can now login.'
+            }
         })
 
+
+class ChangePasswordView(APIView):
+    """Change password for authenticated user (with current password verification)"""
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        print('\n' + '='*60)
+        print('[ChangePasswordView] Request received')
+        print('='*60)
+        
+        lang = get_request_language(request)
+        print(f'[ChangePasswordView] Using language: {lang}')
+        print(f'[ChangePasswordView] User: {request.user.username}')
+        
+        serializer = ChangePasswordSerializer(
+            data=request.data,
+            context={'user': request.user, 'language': lang}
+        )
+        
+        if not serializer.is_valid():
+            errors = serializer.errors
+            print(f'[ChangePasswordView] Validation failed: {errors}')
+            print('='*60 + '\n')
+            
+            # Format error messages
+            error_messages = []
+            for field, msgs in errors.items():
+                if isinstance(msgs, list):
+                    error_messages.extend(msgs)
+                else:
+                    error_messages.append(str(msgs))
+            
+            return Response({
+                'success': False,
+                'message': error_messages[0] if error_messages else 'Validation error',
+                'errors': errors,
+                'language': lang
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Save the new password
+        user = serializer.save()
+        
+        print(f'[ChangePasswordView] Password changed successfully for user: {user.username}')
+        
+        # Create in-app notification about password change
+        try:
+            from notifications.services import NotificationService
+            NotificationService.create_user_notification(
+                user=user,
+                notification_type='password_changed',
+                created_by=user,
+                extra_data={'change_method': 'authenticated_with_current'},
+                title='Password Changed',
+                message='Your password has been changed successfully. If you did not change it, please contact support immediately.',
+                priority='high',
+                action_url='/login'
+            )
+            print(f'[ChangePasswordView] Password change notification created for {user.username}')
+        except Exception as e:
+            print(f'[ChangePasswordView] Failed to create notification: {str(e)}')
+        
+        print('='*60 + '\n')
+        
+        return Response({
+            'success': True,
+            'message': get_message('password_changed', lang),
+            'language': lang,
+            'data': {
+                'username': user.username,
+                'message': 'Password has been changed successfully.'
+            }
+        })
 
 class ChangePasswordView(APIView):
     """Change password for authenticated user"""

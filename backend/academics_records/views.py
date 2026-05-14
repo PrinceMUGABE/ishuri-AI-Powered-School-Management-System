@@ -37,6 +37,10 @@ from .serializers import (
     StudentAttendanceSerializer, StudentAttendanceUpdateSerializer,
     StudentGradeSerializer, StudentGradeUpdateSerializer,
 )
+from .template_views import(
+    upload_grade_template_file, upload_attendance_template_file,
+    process_grade_template_upload, process_attendance_template_upload
+) 
 from .translations import get_lang, t
 
 # ── Required Excel columns ────────────────────────────────────────────────────
@@ -1738,3 +1742,226 @@ def get_teacher_attendance_report(request):
         msg = t("unexpected_error", lang, error=str(exc))
         print(f"[get_teacher_attendance_report] ✗ {msg}\n{traceback.format_exc()}")
         return _err(msg, status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    
+    
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser, FormParser])
+def upload_grade_template_file(request):
+    """
+    Enhanced grade upload that processes the filled template file.
+    
+    Required form fields:
+      - excel_file: the filled template file
+      - academic_year_id: FK to AcademicYear
+      - class_level_id: FK to ClassLevel  
+      - subject_id: FK to Subject
+      - term: term/trimester (T1, T2, T3)
+    
+    Optional:
+      - classroom_id: FK to ClassRoom
+    """
+    lang = get_lang(request)
+    
+    # Get teacher
+    try:
+        teacher = Teacher.objects.get(user=request.user)
+    except Teacher.DoesNotExist:
+        return _err(t("teacher_profile_not_found", lang), status.HTTP_403_FORBIDDEN)
+    
+    # Validate required fields
+    excel_file = request.FILES.get('excel_file')
+    academic_year_id = request.data.get('academic_year_id')
+    class_level_id = request.data.get('class_level_id')
+    subject_id = request.data.get('subject_id')
+    term = request.data.get('term', '').upper()
+    
+    if not all([excel_file, academic_year_id, class_level_id, subject_id, term]):
+        return _err(t("invalid_data", lang) + " (excel_file, academic_year_id, class_level_id, subject_id, term required)")
+    
+    # Validate term
+    valid_trimesters = ['T1', 'T2', 'T3']
+    if term not in valid_trimesters:
+        return _err(f"Invalid term. Choose from: {', '.join(valid_trimesters)}")
+    
+    # Validate file extension
+    ext = os.path.splitext(excel_file.name)[1].lower()
+    if ext not in ['.xlsx', '.xls']:
+        return _err(t("grade_upload_invalid_ext", lang))
+    
+    # Process the template
+    success, message, grade_upload, errors = process_grade_template_upload(
+        uploaded_file=excel_file,
+        academic_year_id=academic_year_id,
+        class_level_id=class_level_id,
+        subject_id=subject_id,
+        term=term,
+        teacher=teacher,
+        request_user=request.user,
+        lang=lang
+    )
+    
+    if not success:
+        return _err(message, errors=errors[:10] if errors else None)
+    
+    # Notify admins
+    try:
+        from .views import _notify_admins
+        notif_title = t("notif_grade_upload_title", lang)
+        notif_msg = t("notif_grade_upload_msg", lang,
+                      teacher=teacher.full_name,
+                      subject=grade_upload.subject.name,
+                      class_level=grade_upload.class_level.name,
+                      term=term)
+        _notify_admins("grade_uploaded", notif_title, notif_msg,
+                       created_by=request.user, content_object=grade_upload,
+                       extra_data={"grade_upload_id": grade_upload.id})
+    except Exception as e:
+        print(f"Notification error: {e}")
+    
+    return _ok(
+        data={
+            "grade_upload_id": grade_upload.id,
+            "status": grade_upload.status,
+            "message": message,
+            "warnings": errors[:5] if errors else []
+        },
+        message=message,
+        status_code=status.HTTP_201_CREATED
+    )
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser, FormParser])
+def upload_attendance_template_file(request):
+    """
+    Enhanced attendance upload that processes the filled template file.
+    
+    Required form fields:
+      - excel_file: the filled template file
+      - academic_year_id: FK to AcademicYear
+      - class_level_id: FK to ClassLevel
+      - subject_id: FK to Subject
+      - session_date: YYYY-MM-DD (optional, defaults to today)
+    
+    Optional:
+      - classroom_id: FK to ClassRoom
+    """
+    lang = get_lang(request)
+    
+    # Get teacher
+    try:
+        teacher = Teacher.objects.get(user=request.user)
+    except Teacher.DoesNotExist:
+        return _err(t("teacher_profile_not_found", lang), status.HTTP_403_FORBIDDEN)
+    
+    # Validate required fields
+    excel_file = request.FILES.get('excel_file')
+    academic_year_id = request.data.get('academic_year_id')
+    class_level_id = request.data.get('class_level_id')
+    subject_id = request.data.get('subject_id')
+    session_date_str = request.data.get('session_date', str(date.today()))
+    
+    if not all([excel_file, academic_year_id, class_level_id, subject_id]):
+        return _err(t("invalid_data", lang) + " (excel_file, academic_year_id, class_level_id, subject_id required)")
+    
+    # Validate file extension
+    ext = os.path.splitext(excel_file.name)[1].lower()
+    if ext not in ['.xlsx', '.xls']:
+        return _err(t("grade_upload_invalid_ext", lang))
+    
+    # Process the template
+    success, message, session, errors = process_attendance_template_upload(
+        uploaded_file=excel_file,
+        academic_year_id=academic_year_id,
+        class_level_id=class_level_id,
+        subject_id=subject_id,
+        session_date_str=session_date_str,
+        teacher=teacher,
+        request_user=request.user,
+        lang=lang
+    )
+    
+    if not success:
+        return _err(message, errors=errors[:10] if errors else None)
+    
+    # Notify admins
+    try:
+        from .views import _notify_admins
+        notif_title = t("notif_attendance_submitted_title", lang)
+        notif_msg = t("notif_attendance_submitted_msg", lang,
+                      teacher=teacher.full_name,
+                      subject=session.subject.name,
+                      class_level=session.class_level.name,
+                      date=str(session.date))
+        _notify_admins("attendance_marked", notif_title, notif_msg,
+                       created_by=request.user, content_object=session,
+                       extra_data={"session_id": session.id})
+    except Exception as e:
+        print(f"Notification error: {e}")
+    
+    return _ok(
+        data={
+            "session_id": session.id,
+            "date": str(session.date),
+            "message": message,
+            "warnings": errors[:5] if errors else []
+        },
+        message=message,
+        status_code=status.HTTP_201_CREATED
+    )
+    
+    
+    
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_teacher_current_students(request, class_level_id=None):
+    """
+    Get current students for the teacher's assigned classes.
+    Used for attendance form to pre-populate student list.
+    """
+    lang = get_lang(request)
+    
+    teacher, err = _get_teacher(request.user, lang)
+    if err:
+        return err
+    
+    try:
+        # Get all class levels assigned to this teacher
+        if class_level_id:
+            class_levels = ClassLevel.objects.filter(
+                id=class_level_id,
+                teacher_assignments__teacher=teacher,
+                teacher_assignments__status='active'
+            )
+        else:
+            class_levels = ClassLevel.objects.filter(
+                teacher_assignments__teacher=teacher,
+                teacher_assignments__status='active'
+            ).distinct()
+        
+        result = []
+        for class_level in class_levels:
+            students = Student.objects.filter(
+                current_class_level=class_level,
+                current_academic_year__is_current=True,
+                status='active'
+            ).values('id', 'roll_number', 'full_name')
+            
+            result.append({
+                'class_level_id': class_level.id,
+                'class_level_name': class_level.name,
+                'class_level_code': class_level.code,
+                'students': list(students)
+            })
+        
+        return _ok(data=result, message=t("students_fetched", lang))
+        
+    except Exception as exc:
+        return _err(t("unexpected_error", lang, error=str(exc)), status.HTTP_500_INTERNAL_SERVER_ERROR)

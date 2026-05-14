@@ -4,7 +4,7 @@ academics_records/urls.py
 All URL patterns for the grades, attendance, and assignments app.
 """
 from django.urls import path
-from . import views
+from . import views, template_views
 
 app_name = 'academics_records'
 
@@ -189,4 +189,17 @@ urlpatterns = [
         views.get_class_assignments,
         name='get_class_assignments',
     ),
+    
+    # Template download endpoints
+    path('templates/grades/', template_views.download_grade_template, name='download_grade_template'),
+    path('templates/attendance/', template_views.download_attendance_template, name='download_attendance_template'),
+    path('templates/trimesters/', template_views.list_trimesters, name='list_trimesters'),
+    
+    # Template upload endpoints
+    path('grades/upload-template/', views.upload_grade_template_file, name='upload_grade_template'),
+    path('attendance/upload-template/', views.upload_attendance_template_file, name='upload_attendance_template'),
+    
+    # Teacher student fetch
+    path('teacher/students/', views.get_teacher_current_students, name='get_teacher_students'),
+    path('teacher/students/<int:class_level_id>/', views.get_teacher_current_students, name='get_teacher_students_by_class'),
 ]

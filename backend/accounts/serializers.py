@@ -174,10 +174,8 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         
         return super().update(instance, validated_data)
 
-
-# ==================== PASSWORD RESET SERIALIZERS ====================
-
-class PasswordResetRequestSerializer(serializers.Serializer):
+class CheckUsernameSerializer(serializers.Serializer):
+    """Serializer to check if username exists"""
     username = serializers.CharField()
     
     def validate_username(self, value):
@@ -185,30 +183,92 @@ class PasswordResetRequestSerializer(serializers.Serializer):
             user = User.objects.get(username=value)
             self.context['user'] = user
         except User.DoesNotExist:
-            raise serializers.ValidationError('No user found with this username')
+            raise serializers.ValidationError('Username not found')
         return value
 
 
-class PasswordResetConfirmSerializer(serializers.Serializer):
-    token = serializers.CharField()
-    new_password = serializers.CharField()
-    confirm_password = serializers.CharField()
+class ForgotPasswordSerializer(serializers.Serializer):
+    """Serializer for forgot password - reset password using username"""
+    username = serializers.CharField()
+    new_password = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField(write_only=True)
     
-    def validate(self, data):
-        if data['new_password'] != data['confirm_password']:
-            raise serializers.ValidationError({'confirm_password': 'Passwords do not match'})
-        
-        if len(data['new_password']) < 6:
-            raise serializers.ValidationError({'new_password': 'Password must be at least 6 characters'})
-        
-        user_id = validate_reset_token(data['token'])
-        if not user_id:
-            raise serializers.ValidationError({'token': 'Invalid or expired token'})
-        
+    def validate_username(self, value):
         try:
-            user = User.objects.get(id=user_id)
+            user = User.objects.get(username=value)
             self.context['user'] = user
         except User.DoesNotExist:
-            raise serializers.ValidationError({'token': 'User not found'})
+            lang = self.context.get('language', 'en')
+            raise serializers.ValidationError(get_message('username_not_found', lang))
+        return value
+    
+    def validate(self, data):
+        lang = self.context.get('language', 'en')
+        
+        new_password = data.get('new_password')
+        confirm_password = data.get('confirm_password')
+        
+        # Check if passwords match
+        if new_password != confirm_password:
+            raise serializers.ValidationError({
+                'confirm_password': get_message('passwords_do_not_match', lang)
+            })
+        
+        # Check password length
+        if len(new_password) < 6:
+            raise serializers.ValidationError({
+                'new_password': get_message('password_too_short', lang)
+            })
         
         return data
+    
+    def save(self):
+        user = self.context['user']
+        new_password = self.validated_data['new_password']
+        user.set_password(new_password)
+        user.save()
+        return user
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    """Serializer for changing password (authenticated user)"""
+    current_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField(write_only=True)
+    
+    def validate_current_password(self, value):
+        user = self.context['user']
+        if not user.check_password(value):
+            lang = self.context.get('language', 'en')
+            raise serializers.ValidationError(get_message('invalid_current_password', lang))
+        return value
+    
+    def validate(self, data):
+        lang = self.context.get('language', 'en')
+        
+        new_password = data.get('new_password')
+        confirm_password = data.get('confirm_password')
+        
+        # Check if passwords match
+        if new_password != confirm_password:
+            raise serializers.ValidationError({
+                'confirm_password': get_message('passwords_do_not_match', lang)
+            })
+        
+        # Check password length
+        if len(new_password) < 6:
+            raise serializers.ValidationError({
+                'new_password': get_message('password_too_short', lang)
+            })
+        
+        return data
+    
+    def save(self):
+        user = self.context['user']
+        new_password = self.validated_data['new_password']
+        user.set_password(new_password)
+        user.save()
+        return user
+    
+    
+    

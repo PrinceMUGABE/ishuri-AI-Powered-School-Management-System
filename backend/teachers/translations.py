@@ -9,11 +9,10 @@ TRANSLATIONS = {
         'admin_access_required': 'Admin access required',
         'teacher_access_required': 'Teacher access required',
         'validation_failed': 'Validation failed',
-        'create_success': 'created successfully',
-        'update_success': 'updated successfully',
-        'delete_success': 'deleted successfully',
+        'operation_success': 'Operation completed successfully',
+        'operation_failed': 'Operation failed',
         
-        # Teacher
+        # Teacher CRUD
         'teacher_created': 'Teacher Created',
         'teacher_updated': 'Teacher Updated',
         'teacher_deleted': 'Teacher Deleted',
@@ -21,81 +20,77 @@ TRANSLATIONS = {
         'teacher_update_success': 'Teacher "{name}" updated successfully',
         'teacher_delete_success': 'Teacher "{name}" deleted successfully',
         'teacher_not_found': 'Teacher not found',
+        'teacher_already_exists': 'A teacher with this email or phone number already exists',
         'email_already_exists': 'A teacher with this email already exists',
         'phone_already_exists': 'A teacher with this phone number already exists',
-        'teacher_username_generated': 'Username generated: {username}',
-        'teacher_password_generated': 'Password sent to email: {email}',
+        'cannot_delete_has_assignments': 'Cannot delete teacher because they have active assignments',
+        'teacher_inactive': 'Teacher is not active',
         
-        # Teacher Notifications
-        'teacher_welcome_notification': 'Teacher account "{name}" has been created successfully',
-        'teacher_updated_notification': 'Teacher account "{name}" has been updated',
-        'teacher_deleted_notification': 'Teacher account "{name}" has been deleted',
-        'teacher_profile_updated_notification': 'Your profile has been updated successfully',
+        # Teacher Profile
+        'profile_retrieved': 'Profile retrieved successfully',
+        'profile_updated': 'Profile Updated',
+        'profile_update_success': 'Your profile has been updated successfully',
+        'profile_update_failed': 'Failed to update profile',
         
-        # Assignment
+        # Password Change
+        'password_changed': 'Password Changed',
+        'password_change_success': 'Your password has been changed successfully',
+        'password_change_failed': 'Failed to change password',
+        'current_password_incorrect': 'Current password is incorrect',
+        'new_password_mismatch': 'New passwords do not match',
+        'password_too_weak': 'Password is too weak. It must be at least 8 characters',
+        
+        # Teacher Documents
+        'document_uploaded': 'Document Uploaded',
+        'document_upload_success': 'Document "{title}" uploaded successfully',
+        'document_deleted': 'Document Deleted',
+        'document_delete_success': 'Document deleted successfully',
+        'document_not_found': 'Document not found',
+        'invalid_file_type': 'Invalid file type. Allowed types: PDF, DOC, DOCX, JPG, PNG',
+        
+        # Teacher Assignments
         'assignment_created': 'Teacher Assignment Created',
+        'assignment_updated': 'Teacher Assignment Updated',
         'assignment_deleted': 'Teacher Assignment Deleted',
         'assignment_create_success': 'Assignment for teacher "{teacher}" created successfully',
+        'assignment_update_success': 'Assignment for teacher "{teacher}" updated successfully',
         'assignment_delete_success': 'Assignment deleted successfully',
         'assignment_not_found': 'Assignment not found',
-        'duplicate_assignment': 'This assignment already exists for the teacher',
-        'class_level_mismatch': 'Class level "{class_level}" does not belong to school level "{school_level}"',
-        
-        # Assignment Notifications
-        'assignment_created_notification': 'Teacher "{teacher}" assigned to teach "{subject}" for {class_level}',
-        'assignment_deleted_notification': 'Assignment for teacher "{teacher}" has been removed',
+        'assignment_already_exists': 'This assignment already exists for the teacher in this term',
+        'classroom_already_assigned': 'Classroom is already assigned to another teacher for this term',
+        'teacher_not_specialized': 'Teacher is not specialized in this subject',
+        'class_level_mismatch': 'Class level does not belong to the selected school level',
+        'total_hours_exceeded': 'Teacher\'s total weekly hours would exceed their capacity',
         
         # Timetable
         'timetable_generated': 'Timetable Generated',
-        'timetable_generate_success': 'Timetable generated successfully',
-        'timetable_generate_error': 'Failed to generate timetable',
+        'timetable_generate_success': 'Timetable generated successfully for week {week}',
+        'timetable_generate_failed': 'Failed to generate timetable',
+        'timetable_retrieved': 'Timetable retrieved successfully',
+        'timetable_exported': 'Timetable exported successfully',
+        'no_assignments_found': 'No active assignments found for this academic year and term',
+        'no_school_days_found': 'No school day settings found for this academic year',
         'teacher_conflict': 'Teacher already has a class scheduled at this time',
         'classroom_conflict': 'Classroom is already occupied at this time',
+        'break_time_conflict': 'This time slot overlaps with a break period',
+        'outside_school_hours': 'This time slot is outside school operating hours',
+        'day_off': 'Day Off - No classes scheduled',
         
-        # Timetable Notifications
-        'timetable_generated_notification': 'Weekly timetable generated successfully for week {week}',
-        'timetable_entry_created_notification': 'New timetable entry added for {teacher} on {day} at {time}',
-        'timetable_entry_updated_notification': 'Timetable entry updated for {teacher}',
-        'timetable_conflict_notification': 'Timetable conflict detected for {teacher} on {day} at {time}',
+        # Notifications
+        'teacher_welcome_subject': 'Welcome to the School Management System',
+        'teacher_welcome_body': """,
         
-        # Day Settings
-        'day_setting_created': 'Day Setting Created',
-        'day_setting_updated': 'Day Setting Updated',
-        'day_setting_deleted': 'Day Setting Deleted',
-        'day_setting_create_success': 'Day setting for {school_level} on {day} created successfully',
-        
-        # Day Settings Notifications
-        'day_setting_created_notification': 'School day settings for {school_level} on {day} have been configured',
-        'day_setting_updated_notification': 'School day settings for {school_level} on {day} have been updated',
-        'day_setting_deleted_notification': 'School day settings for {school_level} on {day} have been removed',
-        
-        # Holiday
-        'holiday_created': 'Holiday Created',
-        'holiday_deleted': 'Holiday Deleted',
         'holiday_create_success': 'Holiday "{name}" created successfully',
+        'holiday_update_success': 'Holiday "{name}" updated successfully',
         'holiday_delete_success': 'Holiday "{name}" deleted successfully',
-        
-        # Holiday Notifications
-        'holiday_created_notification': 'Holiday "{name}" has been added to the calendar',
-        'holiday_deleted_notification': 'Holiday "{name}" has been removed from the calendar',
-        
-        # Profile
-        'profile_updated': 'Profile Updated',
-        'profile_update_success': 'Your profile has been updated successfully',
-        
-        # Error Messages
-        'cannot_delete_has_assignments': 'Cannot delete teacher because they have active assignments',
-        'cannot_delete_has_timetable': 'Cannot delete because it has timetable entries',
-        'invalid_email': 'Please provide a valid email address',
-        'invalid_phone': 'Please provide a valid phone number',
-        'teacher_inactive': 'Cannot assign to an inactive teacher',
-        'class_level_inactive': 'Cannot assign to an inactive class level',
-        'subject_inactive': 'Cannot assign an inactive subject',
-        'academic_year_required': 'Academic year is required for this operation',
-        
-        # Email
-        'email_subject_welcome': 'Welcome to the School Management System',
-        'email_body_welcome': """
+        'holiday_not_found': 'Holiday not found',
+        'day_setting_create_success': 'School day setting created successfully',
+        'day_setting_update_success': 'School day setting updated successfully',
+        'day_setting_delete_success': 'School day setting deleted successfully',
+        'day_setting_not_found': 'School day setting not found',
+        'document_upload_success': 'Document "{title}" uploaded successfully',
+        'document_delete_success': 'Document deleted successfully',
+        'document_not_found': 'Document not found',
 Dear {name},
 
 Your teacher account has been created successfully.
@@ -109,6 +104,21 @@ Please change your password after your first login.
 Best regards,
 School Management Team
 """,
+        'teacher_welcome_notification': 'Teacher account "{name}" has been created successfully',
+        'teacher_updated_notification': 'Teacher account "{name}" has been updated',
+        'teacher_deleted_notification': 'Teacher account "{name}" has been deleted',
+        'teacher_profile_updated_notification': 'Your profile has been updated successfully',
+        'assignment_created_notification': 'You have been assigned to teach "{subject}" for {class_level}',
+        'assignment_deleted_notification': 'Your assignment to teach "{subject}" for {class_level} has been removed',
+        'timetable_generated_notification': 'Your weekly timetable has been generated. Please check your schedule.',
+        
+        # Error Messages
+        'database_error': 'Database error occurred. Please try again later.',
+        'integrity_error': 'Data integrity error. Please check your input.',
+        'permission_denied': 'You do not have permission to perform this action',
+        'invalid_data': 'Invalid data provided. Please check your input.',
+        'server_error': 'Server error occurred. Please contact support.',
+        'file_too_large': 'File is too large. Maximum size is 10MB.',
     },
     
     'fr': {
@@ -116,11 +126,10 @@ School Management Team
         'admin_access_required': 'Accès administrateur requis',
         'teacher_access_required': 'Accès enseignant requis',
         'validation_failed': 'Échec de la validation',
-        'create_success': 'créé avec succès',
-        'update_success': 'mis à jour avec succès',
-        'delete_success': 'supprimé avec succès',
+        'operation_success': 'Opération réussie',
+        'operation_failed': 'Échec de l\'opération',
         
-        # Teacher
+        # Teacher CRUD
         'teacher_created': 'Enseignant Créé',
         'teacher_updated': 'Enseignant Mis à Jour',
         'teacher_deleted': 'Enseignant Supprimé',
@@ -128,81 +137,78 @@ School Management Team
         'teacher_update_success': 'Enseignant "{name}" mis à jour avec succès',
         'teacher_delete_success': 'Enseignant "{name}" supprimé avec succès',
         'teacher_not_found': 'Enseignant non trouvé',
+        'teacher_already_exists': 'Un enseignant avec cet email ou numéro de téléphone existe déjà',
         'email_already_exists': 'Un enseignant avec cet email existe déjà',
         'phone_already_exists': 'Un enseignant avec ce numéro de téléphone existe déjà',
-        'teacher_username_generated': 'Nom d\'utilisateur généré: {username}',
-        'teacher_password_generated': 'Mot de passe envoyé à: {email}',
+        'cannot_delete_has_assignments': 'Impossible de supprimer l\'enseignant car il a des affectations actives',
+        'teacher_inactive': 'L\'enseignant n\'est pas actif',
         
-        # Teacher Notifications
-        'teacher_welcome_notification': 'Le compte enseignant "{name}" a été créé avec succès',
-        'teacher_updated_notification': 'Le compte enseignant "{name}" a été mis à jour',
-        'teacher_deleted_notification': 'Le compte enseignant "{name}" a été supprimé',
-        'teacher_profile_updated_notification': 'Votre profil a été mis à jour avec succès',
+        # Teacher Profile
+        'profile_retrieved': 'Profil récupéré avec succès',
+        'profile_updated': 'Profil Mis à Jour',
+        'profile_update_success': 'Votre profil a été mis à jour avec succès',
+        'profile_update_failed': 'Échec de la mise à jour du profil',
         
-        # Assignment
+        # Password Change
+        'password_changed': 'Mot de passe Changé',
+        'password_change_success': 'Votre mot de passe a été changé avec succès',
+        'password_change_failed': 'Échec du changement de mot de passe',
+        'current_password_incorrect': 'Le mot de passe actuel est incorrect',
+        'new_password_mismatch': 'Les nouveaux mots de passe ne correspondent pas',
+        'password_too_weak': 'Le mot de passe est trop faible. Il doit comporter au moins 8 caractères',
+        
+        # Teacher Documents
+        'document_uploaded': 'Document Téléchargé',
+        'document_upload_success': 'Document "{title}" téléchargé avec succès',
+        'document_deleted': 'Document Supprimé',
+        'document_delete_success': 'Document supprimé avec succès',
+        'document_not_found': 'Document non trouvé',
+        'invalid_file_type': 'Type de fichier invalide. Types autorisés: PDF, DOC, DOCX, JPG, PNG',
+        
+        # Teacher Assignments
         'assignment_created': 'Affectation d\'Enseignant Créée',
+        'assignment_updated': 'Affectation d\'Enseignant Mise à Jour',
         'assignment_deleted': 'Affectation d\'Enseignant Supprimée',
         'assignment_create_success': 'Affectation pour l\'enseignant "{teacher}" créée avec succès',
+        'assignment_update_success': 'Affectation pour l\'enseignant "{teacher}" mise à jour avec succès',
         'assignment_delete_success': 'Affectation supprimée avec succès',
         'assignment_not_found': 'Affectation non trouvée',
-        'duplicate_assignment': 'Cette affectation existe déjà pour l\'enseignant',
-        'class_level_mismatch': 'Le niveau de classe "{class_level}" n\'appartient pas au niveau scolaire "{school_level}"',
-        
-        # Assignment Notifications
-        'assignment_created_notification': 'L\'enseignant "{teacher}" a été assigné à enseigner "{subject}" pour {class_level}',
-        'assignment_deleted_notification': 'L\'affectation pour l\'enseignant "{teacher}" a été supprimée',
+        'assignment_already_exists': 'Cette affectation existe déjà pour l\'enseignant dans ce trimestre',
+        'classroom_already_assigned': 'La salle de classe est déjà attribuée à un autre enseignant pour ce trimestre',
+        'teacher_not_specialized': 'L\'enseignant n\'est pas spécialisé dans cette matière',
+        'class_level_mismatch': 'Le niveau de classe n\'appartient pas au niveau scolaire sélectionné',
+        'total_hours_exceeded': 'Les heures hebdomadaires totales de l\'enseignant dépasseraient sa capacité',
         
         # Timetable
         'timetable_generated': 'Emploi du Temps Généré',
-        'timetable_generate_success': 'Emploi du temps généré avec succès',
-        'timetable_generate_error': 'Échec de la génération de l\'emploi du temps',
+        'timetable_generate_success': 'Emploi du temps généré avec succès pour la semaine {week}',
+        'timetable_generate_failed': 'Échec de la génération de l\'emploi du temps',
+        'timetable_retrieved': 'Emploi du temps récupéré avec succès',
+        'timetable_exported': 'Emploi du temps exporté avec succès',
+        'no_assignments_found': 'Aucune affectation active trouvée pour cette année académique et ce trimestre',
+        'no_school_days_found': 'Aucun paramètre de jour scolaire trouvé pour cette année académique',
         'teacher_conflict': 'L\'enseignant a déjà un cours programmé à cette heure',
         'classroom_conflict': 'La salle de classe est déjà occupée à cette heure',
+        'break_time_conflict': 'Ce créneau horaire chevauche une période de pause',
+        'outside_school_hours': 'Ce créneau horaire est en dehors des heures de fonctionnement de l\'école',
+        'day_off': 'Jour de congé - Aucun cours programmé',
         
-        # Timetable Notifications
-        'timetable_generated_notification': 'Emploi du temps hebdomadaire généré avec succès pour la semaine {week}',
-        'timetable_entry_created_notification': 'Nouvelle entrée d\'emploi du temps ajoutée pour {teacher} le {day} à {time}',
-        'timetable_entry_updated_notification': 'Entrée d\'emploi du temps mise à jour pour {teacher}',
-        'timetable_conflict_notification': 'Conflit d\'emploi du temps détecté pour {teacher} le {day} à {time}',
+        # Notifications
+        'teacher_welcome_subject': 'Bienvenue dans le Système de Gestion Scolaire',
+        'teacher_welcome_body': """,
         
-        # Day Settings
-        'day_setting_created': 'Paramètre de Jour Créé',
-        'day_setting_updated': 'Paramètre de Jour Mis à Jour',
-        'day_setting_deleted': 'Paramètre de Jour Supprimé',
-        'day_setting_create_success': 'Paramètre de jour pour {school_level} le {day} créé avec succès',
-        
-        # Day Settings Notifications
-        'day_setting_created_notification': 'Paramètres de journée scolaire pour {school_level} le {day} ont été configurés',
-        'day_setting_updated_notification': 'Paramètres de journée scolaire pour {school_level} le {day} ont été mis à jour',
-        'day_setting_deleted_notification': 'Paramètres de journée scolaire pour {school_level} le {day} ont été supprimés',
-        
-        # Holiday
-        'holiday_created': 'Jour Férié Créé',
-        'holiday_deleted': 'Jour Férié Supprimé',
         'holiday_create_success': 'Jour férié "{name}" créé avec succès',
+        'holiday_update_success': 'Jour férié "{name}" mis à jour avec succès',
         'holiday_delete_success': 'Jour férié "{name}" supprimé avec succès',
+        'holiday_not_found': 'Jour férié non trouvé',
+        'day_setting_create_success': 'Paramètre de jour scolaire créé avec succès',
+        'day_setting_update_success': 'Paramètre de jour scolaire mis à jour avec succès',
+        'day_setting_delete_success': 'Paramètre de jour scolaire supprimé avec succès',
+        'day_setting_not_found': 'Paramètre de jour scolaire non trouvé',
+        'document_upload_success': 'Document "{title}" téléchargé avec succès',
+        'document_delete_success': 'Document supprimé avec succès',
+        'document_not_found': 'Document non trouvé',
         
-        # Holiday Notifications
-        'holiday_created_notification': 'Le jour férié "{name}" a été ajouté au calendrier',
-        'holiday_deleted_notification': 'Le jour férié "{name}" a été supprimé du calendrier',
-        
-        # Profile
-        'profile_updated': 'Profil Mis à Jour',
-        'profile_update_success': 'Votre profil a été mis à jour avec succès',
-        
-        # Error Messages
-        'cannot_delete_has_assignments': 'Impossible de supprimer l\'enseignant car il a des affectations actives',
-        'cannot_delete_has_timetable': 'Impossible de supprimer car il a des entrées d\'emploi du temps',
-        'invalid_email': 'Veuillez fournir une adresse email valide',
-        'invalid_phone': 'Veuillez fournir un numéro de téléphone valide',
-        'teacher_inactive': 'Impossible d\'affecter à un enseignant inactif',
-        'class_level_inactive': 'Impossible d\'affecter à un niveau de classe inactif',
-        'subject_inactive': 'Impossible d\'affecter une matière inactive',
-        'academic_year_required': 'L\'année académique est requise pour cette opération',
-        
-        # Email
-        'email_subject_welcome': 'Bienvenue dans le Système de Gestion Scolaire',
-        'email_body_welcome': """
 Cher/Chère {name},
 
 Votre compte enseignant a été créé avec succès.
@@ -216,6 +222,21 @@ Veuillez changer votre mot de passe après votre première connexion.
 Cordialement,
 L'équipe de gestion scolaire
 """,
+        'teacher_welcome_notification': 'Le compte enseignant "{name}" a été créé avec succès',
+        'teacher_updated_notification': 'Le compte enseignant "{name}" a été mis à jour',
+        'teacher_deleted_notification': 'Le compte enseignant "{name}" a été supprimé',
+        'teacher_profile_updated_notification': 'Votre profil a été mis à jour avec succès',
+        'assignment_created_notification': 'Vous avez été assigné à enseigner "{subject}" pour {class_level}',
+        'assignment_deleted_notification': 'Votre affectation pour enseigner "{subject}" pour {class_level} a été supprimée',
+        'timetable_generated_notification': 'Votre emploi du temps hebdomadaire a été généré. Veuillez consulter votre horaire.',
+        
+        # Error Messages
+        'database_error': 'Une erreur de base de données s\'est produite. Veuillez réessayer plus tard.',
+        'integrity_error': 'Erreur d\'intégrité des données. Veuillez vérifier votre saisie.',
+        'permission_denied': 'Vous n\'avez pas la permission d\'effectuer cette action',
+        'invalid_data': 'Données invalides fournies. Veuillez vérifier votre saisie.',
+        'server_error': 'Une erreur serveur s\'est produite. Veuillez contacter le support.',
+        'file_too_large': 'Le fichier est trop volumineux. Taille maximale: 10 Mo.',
     },
     
     'rw': {
@@ -223,11 +244,10 @@ L'équipe de gestion scolaire
         'admin_access_required': 'Uruhushya rw\'ubuyobozi rurakenewe',
         'teacher_access_required': 'Uruhushya rw\'umwarimu rurakenewe',
         'validation_failed': 'Igenzura ryananiwe',
-        'create_success': 'byakozwe neza',
-        'update_success': 'byahinduwe neza',
-        'delete_success': 'byakuvwe neza',
+        'operation_success': 'Igikorwa cyakozwe neza',
+        'operation_failed': 'Igikorwa cyananiwe',
         
-        # Teacher
+        # Teacher CRUD
         'teacher_created': 'Umwarimu Yakojwe',
         'teacher_updated': 'Umwarimu Yahinduwe',
         'teacher_deleted': 'Umwarimu Yakuvwe',
@@ -235,81 +255,77 @@ L'équipe de gestion scolaire
         'teacher_update_success': 'Umwarimu "{name}" yahinduwe neza',
         'teacher_delete_success': 'Umwarimu "{name}" yakuvwe neza',
         'teacher_not_found': 'Umwarimu ntaboneka',
+        'teacher_already_exists': 'Umwarimu ufiyi email cyangwa numero ya telefone aboneka',
         'email_already_exists': 'Umwarimu ufite iyi email aboneka',
-        'phone_already_exists': 'Umwarimu ufite iyi nimero ya terefone aboneka',
-        'teacher_username_generated': 'Izina ryakozwe: {username}',
-        'teacher_password_generated': 'Ijambo ryibanga ryoherejwe kuri: {email}',
+        'phone_already_exists': 'Umwarimu ufite iyi numero ya terefone aboneka',
+        'cannot_delete_has_assignments': 'Ntushobora gusiba umwarimu kuko afite akazi',
+        'teacher_inactive': 'Umwarimu ntagikora',
         
-        # Teacher Notifications
-        'teacher_welcome_notification': 'Konti y\'umwarimu "{name}" yakojwe neza',
-        'teacher_updated_notification': 'Konti y\'umwarimu "{name}" yahinduwe',
-        'teacher_deleted_notification': 'Konti y\'umwarimu "{name}" yakuvwe',
-        'teacher_profile_updated_notification': 'Ibwirizwa ryawe ryahinduwe neza',
-        
-        # Assignment
-        'assignment_created': 'Akazi k\'Umwarimu Kashyizweho',
-        'assignment_deleted': 'Akazi k\'Umwarimu Kakuvwe',
-        'assignment_create_success': 'Akazi k\'umwarimu "{teacher}" kashyizweho neza',
-        'assignment_delete_success': 'Akazi kakuvwe neza',
-        'assignment_not_found': 'Akazi ntaboneka',
-        'duplicate_assignment': 'Uyu mwarimu amaze guhabwa iri somo',
-        'class_level_mismatch': 'Urwego rw\'ishuri "{class_level}" ntiruri ku rwego rw\'amashuri "{school_level}"',
-        
-        # Assignment Notifications
-        'assignment_created_notification': 'Umwarimu "{teacher}" yahawe akazi yo kwigisha "{subject}" muri {class_level}',
-        'assignment_deleted_notification': 'Akazi k\'umwarimu "{teacher}" kakuvwe',
-        
-        # Timetable
-        'timetable_generated': 'Igihe cy\'Amasomo Cyakozwe',
-        'timetable_generate_success': 'Igihe cy\'amasomo cyakozwe neza',
-        'timetable_generate_error': 'Gukora igihe cy\'amasomo byananiwe',
-        'teacher_conflict': 'Umwarimu afite isomo riri kuri iri gihe',
-        'classroom_conflict': 'Icyumba gikoreshwa kuri iri gihe',
-        
-        # Timetable Notifications
-        'timetable_generated_notification': 'Igihe cy\'amasomo cya cyumweru {week} cyakozwe neza',
-        'timetable_entry_created_notification': 'Igihe gishya cy\'amasomo cyongewe kuri {teacher} kuri {day} saa {time}',
-        'timetable_entry_updated_notification': 'Igihe cy\'amasomo cyahinduwe kuri {teacher}',
-        'timetable_conflict_notification': 'Hari ikibazo mu gihe cy\'amasomo cya {teacher} kuri {day} saa {time}',
-        
-        # Day Settings
-        'day_setting_created': 'Igenamiterere ry\'Umunsi Ryakozwe',
-        'day_setting_updated': 'Igenamiterere ry\'Umunsi Ryahinduwe',
-        'day_setting_deleted': 'Igenamiterere ry\'Umunsi Ryakuvwe',
-        'day_setting_create_success': 'Igenamiterere ry\'umunsi wa {school_level} kuri {day} ryakozwe neza',
-        
-        # Day Settings Notifications
-        'day_setting_created_notification': 'Igenamiterere ry\'umunsi wa {school_level} kuri {day} ryashyizweho',
-        'day_setting_updated_notification': 'Igenamiterere ry\'umunsi wa {school_level} kuri {day} ryahinduwe',
-        'day_setting_deleted_notification': 'Igenamiterere ry\'umunsi wa {school_level} kuri {day} ryakuvwe',
-        
-        # Holiday
-        'holiday_created': 'Umunsi mukuru Wakozwe',
-        'holiday_deleted': 'Umunsi mukuru Wakuvwe',
-        'holiday_create_success': 'Umunsi mukuru "{name}" wakozwe neza',
-        'holiday_delete_success': 'Umunsi mukuru "{name}" wakuvwe neza',
-        
-        # Holiday Notifications
-        'holiday_created_notification': 'Umunsi mukuru "{name}" wongewe ku kalendari',
-        'holiday_deleted_notification': 'Umunsi mukuru "{name}" wakuvwe ku kalendari',
-        
-        # Profile
+        # Teacher Profile
+        'profile_retrieved': 'Ibwirizwa ryakuwe neza',
         'profile_updated': 'Ibwirizwa Ryahinduwe',
         'profile_update_success': 'Ibwirizwa ryawe ryahinduwe neza',
+        'profile_update_failed': 'Guhindura ibwirizwa byananiwe',
         
-        # Error Messages
-        'cannot_delete_has_assignments': 'Ntushobora gusiba umwarimu kuko afite akazi',
-        'cannot_delete_has_timetable': 'Ntushobora gusiba kuko hari igihe cy\'amasomo',
-        'invalid_email': 'Andika email ikora',
-        'invalid_phone': 'Andika nimero ya terefone ikora',
-        'teacher_inactive': 'Ntushobora guha akazi umwarimu utakora',
-        'class_level_inactive': 'Ntushobora guha ikiciro cy\'ishuri kitakora',
-        'subject_inactive': 'Ntushobora guha isomo ritakora',
-        'academic_year_required': 'Umwaka w\'amashuri urasabwa kuri iyi gikorwa',
+        # Password Change
+        'password_changed': 'Ijambo ryibinga Ryahinduwe',
+        'password_change_success': 'Ijambo ryibinga ryawe ryahinduwe neza',
+        'password_change_failed': 'Guhindura ijambo ryibinga byananiwe',
+        'current_password_incorrect': 'Ijambo ryibinga uri gukoresha ntabwo ari ryo',
+        'new_password_mismatch': 'Ijambo ryibinga rishya ntabwo rirengana',
+        'password_too_weak': 'Ijambo ryibinga ni rike. Rikwiye kugira byibura inyuguti 8',
         
-        # Email
-        'email_subject_welcome': 'Murakaza neza muri Sisitemu yo Gucunga Amashuri',
-        'email_body_welcome': """
+        # Teacher Documents
+        'document_uploaded': 'Inyandiko Yashyizwe',
+        'document_upload_success': 'Inyandiko "{title}" yashyizwe neza',
+        'document_deleted': 'Inyandiko Yakuvwe',
+        'document_delete_success': 'Inyandiko yakuvwe neza',
+        'document_not_found': 'Inyandiko ntaboneka',
+        'invalid_file_type': 'Ubwoko bwa dosiye ntabwo bwemewe. Zemewe: PDF, DOC, DOCX, JPG, PNG',
+        
+        # Teacher Assignments
+        'assignment_created': 'Akazi k\'Umwarimu Kashyizweho',
+        'assignment_updated': 'Akazi k\'Umwarimu Kahinduwe',
+        'assignment_deleted': 'Akazi k\'Umwarimu Kakuvwe',
+        'assignment_create_success': 'Akazi k\'umwarimu "{teacher}" kashyizweho neza',
+        'assignment_update_success': 'Akazi k\'umwarimu "{teacher}" kahinduwe neza',
+        'assignment_delete_success': 'Akazi kakuvwe neza',
+        'assignment_not_found': 'Akazi ntaboneka',
+        'assignment_already_exists': 'Uyu mwarimu amaze guhabwa iri somo muriki gihembwe',
+        'classroom_already_assigned': 'Icyumba gisanzwe gihererejwe undi mwarimu muriki gihembwe',
+        'teacher_not_specialized': 'Umwarimu ntabwo yizeye muri iri somo',
+        'class_level_mismatch': 'Urwego rw\'ishuri ntiruri kurwego rw\'amashuri wahisemo',
+        'total_hours_exceeded': 'Amasaha y\'umwarimu yarenze uko akwiriye',
+        
+        # Timetable
+        'timetable_generated': 'Igihe cy\'Amasomo Gyakozwe',
+        'timetable_generate_success': 'Igihe cy\'amasomo cyakozwe neza ku cyumweru {week}',
+        'timetable_generate_failed': 'Gukora igihe cy\'amasomo byananiwe',
+        'timetable_retrieved': 'Igihe cy\'amasomo cyakuwe neza',
+        'timetable_exported': 'Igihe cy\'amasomo cyoherejwe neza',
+        'no_assignments_found': 'Nta kazi kaboneka muri uyu mwaka n\'iki gihembwe',
+        'no_school_days_found': 'Ntabikorwa by\'ishuri byashyizweho muri uyu mwaka w\'amashuri',
+        'teacher_conflict': 'Umwarimu afite isomo riri kuri iri gihe',
+        'classroom_conflict': 'Icyumba gikoreshwa kuri iri gihe',
+        'break_time_conflict': 'Iri gihe rirahurika n\'igihe cy\'ikiruhuko',
+        'outside_school_hours': 'Iri gihe ritari mu masaha y\'ishuri',
+        'day_off': 'Umunsi w\'ikiruhuko - Nta isomo',
+        
+        # Notifications
+        'teacher_welcome_subject': 'Murakaza neza muri Sisitemu yo Gucunga Amashuri',
+        'teacher_welcome_body': """,
+        
+        'holiday_create_success': 'Umunsi mukuru "{name}" wakozwe neza',
+        'holiday_update_success': 'Umunsi mukuru "{name}" wahinduwe neza',
+        'holiday_delete_success': 'Umunsi mukuru "{name}" wakuvwe neza',
+        'holiday_not_found': 'Umunsi mukuru ntaboneka',
+        'day_setting_create_success': 'Igenamiterere ry\'umunsi ryakozwe neza',
+        'day_setting_update_success': 'Igenamiterere ry\'umunsi ryahinduwe neza',
+        'day_setting_delete_success': 'Igenamiterere ry\'umunsi ryakuvwe neza',
+        'day_setting_not_found': 'Igenamiterere ry\'umunsi ntaboneka',
+        'document_upload_success': 'Inyandiko "{title}" yashyizwe neza',
+        'document_delete_success': 'Inyandiko yakuvwe neza',
+        'document_not_found': 'Inyandiko ntaboneka',
 Mwiriwe {name},
 
 Konti yawe y'umwarimu yakojwe neza.
@@ -323,6 +339,21 @@ Nyamuneka uhindure ijambo ryibanga nyuma yo kwinjira bwa mbere.
 Twifuje amahoro,
 Itsinda rya Sisitemu y'Amashuri
 """,
+        'teacher_welcome_notification': 'Konti y\'umwarimu "{name}" yakojwe neza',
+        'teacher_updated_notification': 'Konti y\'umwarimu "{name}" yahinduwe',
+        'teacher_deleted_notification': 'Konti y\'umwarimu "{name}" yakuvwe',
+        'teacher_profile_updated_notification': 'Ibwirizwa ryawe ryahinduwe neza',
+        'assignment_created_notification': 'Wahawe akazi wo kwigisha "{subject}" muri {class_level}',
+        'assignment_deleted_notification': 'Akazi kawe ko kwigisha "{subject}" muri {class_level} gakuvwe',
+        'timetable_generated_notification': 'Igihe cyawe cy\'amasomo cyakozwe. Reba gahunda yawe.',
+        
+        # Error Messages
+        'database_error': 'Habaye ikibazo muri database. Gerageza nyuma.',
+        'integrity_error': 'Habaye ikibazo mu makuru. Gerageza ugerageze.',
+        'permission_denied': 'Ntabwo uremewe gukora iki gikorwa',
+        'invalid_data': 'Amakuru utanze si yo. Gerageza ugerageze.',
+        'server_error': 'Habaye ikibazo muri sisitemu. Vugana n\'ubuyobozi.',
+        'file_too_large': 'Dosiye ni nini cyane. Ubunini ntiburenze 10MB.',
     }
 }
 
@@ -355,10 +386,30 @@ def get_translation(key, lang='en', **kwargs):
 
 
 def get_notification_title(key, lang='en'):
-    """Get notification title translation."""
-    return get_translation(key, lang)
+    """Get notification title translation"""
+    titles = {
+        'teacher_created': get_translation('teacher_created', lang),
+        'teacher_updated': get_translation('teacher_updated', lang),
+        'teacher_deleted': get_translation('teacher_deleted', lang),
+        'assignment_created': get_translation('assignment_created', lang),
+        'assignment_deleted': get_translation('assignment_deleted', lang),
+        'timetable_generated': get_translation('timetable_generated', lang),
+        'profile_updated': get_translation('profile_updated', lang),
+        'password_changed': get_translation('password_changed', lang),
+        'document_uploaded': get_translation('document_uploaded', lang),
+    }
+    return titles.get(key, get_translation(key, lang))
 
 
 def get_notification_message(key, lang='en', **kwargs):
-    """Get notification message translation with formatting."""
-    return get_translation(key, lang, **kwargs)
+    """Get notification message translation with formatting"""
+    messages = {
+        'teacher_created_notification': get_translation('teacher_welcome_notification', lang, **kwargs),
+        'teacher_updated_notification': get_translation('teacher_updated_notification', lang, **kwargs),
+        'teacher_deleted_notification': get_translation('teacher_deleted_notification', lang, **kwargs),
+        'teacher_profile_updated_notification': get_translation('teacher_profile_updated_notification', lang, **kwargs),
+        'assignment_created_notification': get_translation('assignment_created_notification', lang, **kwargs),
+        'assignment_deleted_notification': get_translation('assignment_deleted_notification', lang, **kwargs),
+        'timetable_generated_notification': get_translation('timetable_generated_notification', lang, **kwargs),
+    }
+    return messages.get(key, get_translation(key, lang, **kwargs))

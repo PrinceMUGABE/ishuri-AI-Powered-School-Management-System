@@ -9,13 +9,15 @@ from django.shortcuts import get_object_or_404
 from django.db import IntegrityError, transaction
 from django.core.exceptions import ValidationError as DjangoValidationError
 from .models import (
-    AcademicYear, SchoolLevel, ClassLevel, ClassRoom, Subject,
-    ClassLevelSubject, ClassLevelCost
+    AcademicYear, SchoolBreak, SchoolLevel, ClassLevel, ClassRoom, Subject,
+    ClassLevelSubject, ClassLevelCost, Term, PaymentType, SchoolDaySetting, ClassroomAssignment,
+    Holiday
 )
 from .serializers import (
-    AcademicYearSerializer, SchoolLevelSerializer, ClassLevelSerializer,
+    AcademicYearSerializer, SchoolBreakSerializer, SchoolLevelSerializer, ClassLevelSerializer,
     ClassRoomSerializer, SubjectSerializer, ClassLevelSubjectSerializer,
-    ClassLevelCostSerializer
+    ClassLevelCostSerializer, TermSerializer, PaymentTypeSerializer, SchoolDaySettingSerializer, ClassroomAssignmentSerializer,
+    HolidaySerializer
 )
 from .translations import get_translation, get_notification_title, get_notification_message
 from notifications.services import NotificationService
@@ -530,8 +532,7 @@ def class_level_detail(request, pk):
             return err('update_error', status_code=500, lang=lang)
 
     if request.method == 'DELETE':
-        if obj.classrooms.filter(status='active').exists():
-            return err('cannot_delete_has_children', status_code=400, lang=lang)
+
         if obj.subjects.exists():
             return err('cannot_delete_has_children', status_code=400, lang=lang)
         if obj.costs.exists():
@@ -567,8 +568,7 @@ def classroom_list_create(request):
     if request.method == 'GET':
         try:
             qs = ClassRoom.objects.all()
-            if cl := request.query_params.get('class_level'):
-                qs = qs.filter(class_level_id=cl)
+
             if st := request.query_params.get('status'):
                 qs = qs.filter(status=st)
             if rt := request.query_params.get('room_type'):
@@ -1147,6 +1147,770 @@ def get_class_levels_by_school_level(request, school_level_id):
         qs = ClassLevel.objects.filter(school_level_id=school_level_id, is_active=True)
         data = ClassLevelSerializer(qs, many=True, context={'request': request}).data
         return ok('class_levels_fetched', data, 200, lang, count=len(data))
+    except Exception as exc:
+        log_error(vn, "GET", exc)
+        return err('fetch_error', status_code=500, lang=lang)
+    
+    
+
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  TERMS
+# ══════════════════════════════════════════════════════════════════════════════
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def term_list_create(request):
+    vn = "TermListCreate"
+    lang = get_lang(request)
+    log_request(vn, request)
+
+    if request.method == 'GET':
+        try:
+            qs = Term.objects.select_related('academic_year').all()
+            if ay := request.query_params.get('academic_year'):
+                qs = qs.filter(academic_year_id=ay)
+            if curr := request.query_params.get('is_current'):
+                qs = qs.filter(is_current=(curr.lower() == 'true'))
+            data = TermSerializer(qs, many=True, context={'request': request}).data
+            return ok('terms_fetched', data, 200, lang, count=len(data))
+        except Exception as exc:
+            log_error(vn, 'GET', exc)
+            return err('fetch_error', status_code=500, lang=lang)
+
+    if not is_admin(request.user):
+        return err('admin_access_required', status_code=403, lang=lang)
+
+    serializer = TermSerializer(data=request.data, context={'request': request})
+    if not serializer.is_valid():
+        msg_key = _first_error(serializer.errors)
+        return err(msg_key, errors=serializer.errors, status_code=400, lang=lang)
+
+    try:
+        with transaction.atomic():
+            obj = serializer.save()
+        
+        _notify(request.user, 'term_created',
+                'term_created_title',
+                'term_create_msg', lang,
+                {'term_id': obj.id, 'name': obj.name},
+                f'/app/academics/terms/{obj.id}')
+        
+        return ok('term_create_msg', serializer.data, 201, lang, name=obj.name)
+    except IntegrityError as exc:
+        error_key = handle_integrity_error(exc, lang)
+        return err(error_key, status_code=400, lang=lang)
+    except Exception as exc:
+        log_error(vn, 'POST', exc)
+        return err('create_error', status_code=500, lang=lang)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def term_detail(request, pk):
+    vn = "TermDetail"
+    lang = get_lang(request)
+    log_request(vn, request, {'pk': pk})
+
+    try:
+        obj = get_object_or_404(Term, id=pk)
+    except Exception as exc:
+        log_error(vn, 'lookup', exc)
+        return err('not_found', status_code=404, lang=lang)
+
+    if request.method == 'GET':
+        return ok('term_fetched', TermSerializer(obj, context={'request': request}).data, 200, lang, name=obj.name)
+
+    if not is_admin(request.user):
+        return err('admin_access_required', status_code=403, lang=lang)
+
+    if request.method == 'PUT':
+        serializer = TermSerializer(obj, data=request.data, partial=True, context={'request': request})
+        if not serializer.is_valid():
+            msg_key = _first_error(serializer.errors)
+            return err(msg_key, errors=serializer.errors, status_code=400, lang=lang)
+        try:
+            old_name = obj.name
+            with transaction.atomic():
+                serializer.save()
+            
+            _notify(request.user, 'term_updated',
+                    'term_updated_title',
+                    'term_update_msg', lang,
+                    {'term_id': obj.id},
+                    f'/app/academics/terms/{obj.id}', priority='low')
+            
+            return ok('term_update_msg', serializer.data, 200, lang, name=old_name)
+        except Exception as exc:
+            log_error(vn, 'PUT', exc)
+            return err('update_error', status_code=500, lang=lang)
+
+    if request.method == 'DELETE':
+        try:
+            name = obj.name
+            with transaction.atomic():
+                obj.delete()
+            
+            _notify(request.user, 'term_deleted',
+                    'term_deleted_title',
+                    'term_delete_msg', lang,
+                    {'name': name},
+                    '/app/academics/terms')
+            
+            return ok('term_delete_msg', None, 200, lang, name=name)
+        except Exception as exc:
+            log_error(vn, 'DELETE', exc)
+            return err('delete_error', status_code=500, lang=lang)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  PAYMENT TYPES
+# ══════════════════════════════════════════════════════════════════════════════
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def payment_type_list_create(request):
+    vn = "PaymentTypeListCreate"
+    lang = get_lang(request)
+    log_request(vn, request)
+
+    if request.method == 'GET':
+        try:
+            qs = PaymentType.objects.filter(is_active=True)
+            data = PaymentTypeSerializer(qs, many=True, context={'request': request}).data
+            return ok('payment_types_fetched', data, 200, lang, count=len(data))
+        except Exception as exc:
+            log_error(vn, 'GET', exc)
+            return err('fetch_error', status_code=500, lang=lang)
+
+    if not is_admin(request.user):
+        return err('admin_access_required', status_code=403, lang=lang)
+
+    serializer = PaymentTypeSerializer(data=request.data, context={'request': request})
+    if not serializer.is_valid():
+        msg_key = _first_error(serializer.errors)
+        return err(msg_key, errors=serializer.errors, status_code=400, lang=lang)
+
+    try:
+        with transaction.atomic():
+            obj = serializer.save()
+        
+        return ok('payment_type_create_msg', serializer.data, 201, lang, name=obj.name)
+    except IntegrityError as exc:
+        error_key = handle_integrity_error(exc, lang)
+        return err(error_key, status_code=400, lang=lang)
+    except Exception as exc:
+        log_error(vn, 'POST', exc)
+        return err('create_error', status_code=500, lang=lang)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  SCHOOL DAY SETTINGS
+# ══════════════════════════════════════════════════════════════════════════════
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def school_day_setting_list_create(request):
+    vn = "SchoolDaySettingListCreate"
+    lang = get_lang(request)
+    log_request(vn, request)
+
+    if request.method == 'GET':
+        try:
+            qs = SchoolDaySetting.objects.select_related('academic_year').all()
+            if ay := request.query_params.get('academic_year'):
+                qs = qs.filter(academic_year_id=ay)
+            if dt := request.query_params.get('day_type'):
+                qs = qs.filter(day_type=dt)
+            if active := request.query_params.get('is_active'):
+                qs = qs.filter(is_active=(active.lower() == 'true'))
+            data = SchoolDaySettingSerializer(qs, many=True, context={'request': request}).data
+            return ok('day_settings_fetched', data, 200, lang, count=len(data))
+        except Exception as exc:
+            log_error(vn, 'GET', exc)
+            return err('fetch_error', status_code=500, lang=lang)
+
+    if not is_admin(request.user):
+        return err('admin_access_required', status_code=403, lang=lang)
+
+    serializer = SchoolDaySettingSerializer(data=request.data, context={'request': request})
+    if not serializer.is_valid():
+        msg_key = _first_error(serializer.errors)
+        return err(msg_key, errors=serializer.errors, status_code=400, lang=lang)
+
+    try:
+        with transaction.atomic():
+            obj = serializer.save()
+        
+        _notify(request.user, 'day_setting_created',
+                'day_setting_created_title',
+                'day_setting_create_msg', lang,
+                {'setting_id': obj.id},
+                f'/app/academics/day-settings/{obj.id}')
+        
+        return ok('day_setting_create_msg', serializer.data, 201, lang)
+    except Exception as exc:
+        log_error(vn, 'POST', exc)
+        return err('create_error', status_code=500, lang=lang)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def school_day_setting_detail(request, pk):
+    vn = "SchoolDaySettingDetail"
+    lang = get_lang(request)
+    log_request(vn, request, {'pk': pk})
+
+    try:
+        obj = get_object_or_404(SchoolDaySetting, id=pk)
+    except Exception as exc:
+        log_error(vn, 'lookup', exc)
+        return err('not_found', status_code=404, lang=lang)
+
+    if request.method == 'GET':
+        return ok('day_setting_fetched', SchoolDaySettingSerializer(obj, context={'request': request}).data, 200, lang)
+
+    if not is_admin(request.user):
+        return err('admin_access_required', status_code=403, lang=lang)
+
+    if request.method == 'PUT':
+        serializer = SchoolDaySettingSerializer(obj, data=request.data, partial=True, context={'request': request})
+        if not serializer.is_valid():
+            msg_key = _first_error(serializer.errors)
+            return err(msg_key, errors=serializer.errors, status_code=400, lang=lang)
+        try:
+            with transaction.atomic():
+                serializer.save()
+            
+            return ok('day_setting_update_msg', serializer.data, 200, lang)
+        except Exception as exc:
+            log_error(vn, 'PUT', exc)
+            return err('update_error', status_code=500, lang=lang)
+
+    if request.method == 'DELETE':
+        try:
+            with transaction.atomic():
+                obj.delete()
+            
+            return ok('day_setting_delete_msg', None, 200, lang)
+        except Exception as exc:
+            log_error(vn, 'DELETE', exc)
+            return err('delete_error', status_code=500, lang=lang)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  CLASSROOM ASSIGNMENTS
+# ══════════════════════════════════════════════════════════════════════════════
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def classroom_assignment_list_create(request):
+    vn = "ClassroomAssignmentListCreate"
+    lang = get_lang(request)
+    log_request(vn, request)
+
+    if request.method == 'GET':
+        try:
+            qs = ClassroomAssignment.objects.select_related('classroom', 'class_level', 'term', 'academic_year').all()
+            if cl := request.query_params.get('class_level'):
+                qs = qs.filter(class_level_id=cl)
+            if cr := request.query_params.get('classroom'):
+                qs = qs.filter(classroom_id=cr)
+            if tm := request.query_params.get('term'):
+                qs = qs.filter(term_id=tm)
+            if ay := request.query_params.get('academic_year'):
+                qs = qs.filter(academic_year_id=ay)
+            data = ClassroomAssignmentSerializer(qs, many=True, context={'request': request}).data
+            return ok('assignments_fetched', data, 200, lang, count=len(data))
+        except Exception as exc:
+            log_error(vn, 'GET', exc)
+            return err('fetch_error', status_code=500, lang=lang)
+
+    if not is_admin(request.user):
+        return err('admin_access_required', status_code=403, lang=lang)
+
+    serializer = ClassroomAssignmentSerializer(data=request.data, context={'request': request})
+    if not serializer.is_valid():
+        msg_key = _first_error(serializer.errors)
+        return err(msg_key, errors=serializer.errors, status_code=400, lang=lang)
+
+    try:
+        with transaction.atomic():
+            obj = serializer.save()
+        
+        _notify(request.user, 'classroom_assigned',
+                'classroom_assigned_title',
+                'classroom_assign_msg', lang,
+                {'assignment_id': obj.id,
+                 'classroom': obj.classroom.name,
+                 'class_level': obj.class_level.name},
+                f'/app/academics/classroom-assignments/{obj.id}')
+        
+        return ok('classroom_assign_msg', serializer.data, 201, lang, 
+                 classroom=obj.classroom.name, class_level=obj.class_level.name)
+    except IntegrityError as exc:
+        error_key = handle_integrity_error(exc, lang)
+        return err(error_key, status_code=400, lang=lang)
+    except Exception as exc:
+        log_error(vn, 'POST', exc)
+        return err('create_error', status_code=500, lang=lang)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def classroom_assignment_delete(request, pk):
+    vn = "ClassroomAssignmentDelete"
+    lang = get_lang(request)
+    log_request(vn, request, {'pk': pk})
+
+    if not is_admin(request.user):
+        return err('admin_access_required', status_code=403, lang=lang)
+
+    try:
+        obj = get_object_or_404(ClassroomAssignment, id=pk)
+        classroom_name, class_level_name = obj.classroom.name, obj.class_level.name
+        with transaction.atomic():
+            obj.delete()
+        
+        _notify(request.user, 'classroom_unassigned',
+                'classroom_unassigned_title',
+                'classroom_unassign_msg', lang,
+                {'classroom': classroom_name, 'class_level': class_level_name},
+                '/app/academics/classroom-assignments')
+        
+        return ok('classroom_unassign_msg', None, 200, lang, 
+                 classroom=classroom_name, class_level=class_level_name)
+    except Exception as exc:
+        log_error(vn, 'DELETE', exc)
+        return err('delete_error', status_code=500, lang=lang)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  UTILITY: GET LEARNING DAYS FOR DATE RANGE
+# ══════════════════════════════════════════════════════════════════════════════
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_learning_days(request):
+    """
+    Get learning days for a given date range, accounting for day-offs and special days.
+    """
+    vn = "GetLearningDays"
+    lang = get_lang(request)
+    log_request(vn, request)
+    
+    try:
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        academic_year_id = request.query_params.get('academic_year')
+        
+        if not start_date or not end_date:
+            return err('missing_dates', status_code=400, lang=lang)
+        
+        from datetime import datetime, timedelta
+        start = datetime.strptime(start_date, '%Y-%m-%d').date()
+        end = datetime.strptime(end_date, '%Y-%m-%d').date()
+        
+        # Get settings for the academic year
+        settings = SchoolDaySetting.objects.filter(academic_year_id=academic_year_id, is_active=True)
+        
+        # Get regular learning days (weekdays)
+        learning_weekdays = settings.filter(day_type='learning').values_list('weekday', flat=True)
+        
+        # Get day-offs (specific dates)
+        day_off_dates = set(settings.filter(day_type='day_off', specific_date__isnull=False).values_list('specific_date', flat=True))
+        
+        # Get special learning days
+        special_dates = set(settings.filter(day_type='special', specific_date__isnull=False).values_list('specific_date', flat=True))
+        
+        # Get recurring day-offs (weekdays)
+        day_off_weekdays = set(settings.filter(day_type='day_off', weekday__isnull=False).values_list('weekday', flat=True))
+        
+        # Generate all dates in range
+        learning_days = []
+        current = start
+        while current <= end:
+            is_learning = False
+            description = None
+            
+            # Check if it's a special learning day
+            if current in special_dates:
+                is_learning = True
+                setting = settings.filter(specific_date=current, day_type='special').first()
+                description = setting.description if setting else None
+            # Check if it's a day-off
+            elif current in day_off_dates or current.weekday() in day_off_weekdays:
+                is_learning = False
+            # Check if it's a learning day based on weekday
+            elif current.weekday() in learning_weekdays:
+                is_learning = True
+            
+            if is_learning:
+                learning_days.append({
+                    'date': current.isoformat(),
+                    'weekday': current.strftime('%A'),
+                    'description': description
+                })
+            
+            current += timedelta(days=1)
+        
+        return ok('learning_days_fetched', {
+            'start_date': start_date,
+            'end_date': end_date,
+            'learning_days': learning_days,
+            'total_learning_days': len(learning_days)
+        }, 200, lang)
+        
+    except Exception as exc:
+        log_error(vn, 'GET', exc)
+        return err('fetch_error', status_code=500, lang=lang)
+    
+    
+    
+    
+# ══════════════════════════════════════════════════════════════════════════════
+#  SCHOOL BREAKS
+# ══════════════════════════════════════════════════════════════════════════════
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def school_break_list_create(request):
+    vn = "SchoolBreakListCreate"
+    lang = get_lang(request)
+    log_request(vn, request)
+
+    if request.method == 'GET':
+        try:
+            qs = SchoolBreak.objects.select_related('school_level').all()
+            
+            if sl := request.query_params.get('school_level'):
+                qs = qs.filter(school_level_id=sl)
+            if bt := request.query_params.get('break_type'):
+                qs = qs.filter(break_type=bt)
+            if active := request.query_params.get('is_active'):
+                qs = qs.filter(is_active=(active.lower() == 'true'))
+            
+            data = SchoolBreakSerializer(qs, many=True, context={'request': request}).data
+            return ok('breaks_fetched', data, 200, lang, count=len(data))
+        except Exception as exc:
+            log_error(vn, 'GET', exc)
+            return err('fetch_error', status_code=500, lang=lang)
+
+    if not is_admin(request.user):
+        return err('admin_access_required', status_code=403, lang=lang)
+
+    serializer = SchoolBreakSerializer(data=request.data, context={'request': request})
+    if not serializer.is_valid():
+        msg_key = _first_error(serializer.errors)
+        return err(msg_key, errors=serializer.errors, status_code=400, lang=lang)
+
+    try:
+        with transaction.atomic():
+            obj = serializer.save()
+        
+        _notify(request.user, 'break_created',
+                'break_created_title',
+                'break_create_msg', lang,
+                {'break_id': obj.id, 'name': obj.name, 'school_level': obj.school_level.name},
+                f'/app/academics/school-breaks/{obj.id}')
+        
+        return ok('break_create_msg', serializer.data, 201, lang, 
+                  name=obj.name, school_level=obj.school_level.name)
+    except IntegrityError as exc:
+        error_key = handle_integrity_error(exc, lang)
+        return err(error_key, status_code=400, lang=lang)
+    except Exception as exc:
+        log_error(vn, 'POST', exc)
+        return err('create_error', status_code=500, lang=lang)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def school_break_detail(request, pk):
+    vn = "SchoolBreakDetail"
+    lang = get_lang(request)
+    log_request(vn, request, {'pk': pk})
+
+    try:
+        obj = get_object_or_404(SchoolBreak, id=pk)
+    except Exception as exc:
+        log_error(vn, 'lookup', exc)
+        return err('not_found', status_code=404, lang=lang)
+
+    if request.method == 'GET':
+        return ok('break_fetched', SchoolBreakSerializer(obj, context={'request': request}).data, 
+                  200, lang, name=obj.name)
+
+    if not is_admin(request.user):
+        return err('admin_access_required', status_code=403, lang=lang)
+
+    if request.method == 'PUT':
+        serializer = SchoolBreakSerializer(obj, data=request.data, partial=True, 
+                                           context={'request': request})
+        if not serializer.is_valid():
+            msg_key = _first_error(serializer.errors)
+            return err(msg_key, errors=serializer.errors, status_code=400, lang=lang)
+        
+        try:
+            old_name = obj.name
+            with transaction.atomic():
+                serializer.save()
+            
+            _notify(request.user, 'break_updated',
+                    'break_updated_title',
+                    'break_update_msg', lang,
+                    {'break_id': obj.id},
+                    f'/app/academics/school-breaks/{obj.id}', priority='low')
+            
+            return ok('break_update_msg', serializer.data, 200, lang, name=old_name)
+        except Exception as exc:
+            log_error(vn, 'PUT', exc)
+            return err('update_error', status_code=500, lang=lang)
+
+    if request.method == 'DELETE':
+        try:
+            name, sl_name = obj.name, obj.school_level.name
+            with transaction.atomic():
+                obj.delete()
+            
+            _notify(request.user, 'break_deleted',
+                    'break_deleted_title',
+                    'break_delete_msg', lang,
+                    {'name': name, 'school_level': sl_name},
+                    '/app/academics/school-breaks')
+            
+            return ok('break_delete_msg', None, 200, lang, name=name, school_level=sl_name)
+        except Exception as exc:
+            log_error(vn, 'DELETE', exc)
+            return err('delete_error', status_code=500, lang=lang)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_breaks_by_school_level(request, school_level_id):
+    """Get all breaks for a specific school level."""
+    vn = "GetBreaksBySchoolLevel"
+    lang = get_lang(request)
+    log_request(vn, request, {'school_level_id': school_level_id})
+    
+    try:
+        qs = SchoolBreak.objects.filter(
+            school_level_id=school_level_id, 
+            is_active=True
+        ).order_by('start_time')
+        
+        data = SchoolBreakSerializer(qs, many=True, context={'request': request}).data
+        return ok('breaks_fetched', data, 200, lang, count=len(data))
+    except Exception as exc:
+        log_error(vn, "GET", exc)
+        return err('fetch_error', status_code=500, lang=lang)
+    
+    
+    
+# ══════════════════════════════════════════════════════════════════════════════
+#  HOLIDAYS
+# ══════════════════════════════════════════════════════════════════════════════
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def holiday_list_create(request):
+    vn = "HolidayListCreate"
+    lang = get_lang(request)
+    log_request(vn, request)
+
+    if request.method == 'GET':
+        try:
+            qs = Holiday.objects.select_related('school_level', 'academic_year').all()
+            
+            if ay := request.query_params.get('academic_year'):
+                qs = qs.filter(academic_year_id=ay)
+            if sl := request.query_params.get('school_level'):
+                qs = qs.filter(school_level_id=sl)
+            if recurring := request.query_params.get('is_recurring'):
+                qs = qs.filter(is_recurring=(recurring.lower() == 'true'))
+            if start_date := request.query_params.get('start_date'):
+                qs = qs.filter(date__gte=start_date)
+            if end_date := request.query_params.get('end_date'):
+                qs = qs.filter(date__lte=end_date)
+            
+            data = HolidaySerializer(qs, many=True, context={'request': request}).data
+            return ok('holidays_fetched', data, 200, lang, count=len(data))
+        except Exception as exc:
+            log_error(vn, 'GET', exc)
+            return err('fetch_error', status_code=500, lang=lang)
+
+    if not is_admin(request.user):
+        return err('admin_access_required', status_code=403, lang=lang)
+
+    serializer = HolidaySerializer(data=request.data, context={'request': request})
+    if not serializer.is_valid():
+        msg_key = _first_error(serializer.errors)
+        return err(msg_key, errors=serializer.errors, status_code=400, lang=lang)
+
+    try:
+        with transaction.atomic():
+            obj = serializer.save()
+        
+        _notify(request.user, 'holiday_created',
+                'holiday_created_title',
+                'holiday_create_msg', lang,
+                {'holiday_id': obj.id, 'name': obj.name, 'date': str(obj.date)},
+                f'/app/academics/holidays/{obj.id}')
+        
+        return ok('holiday_create_msg', serializer.data, 201, lang, 
+                  name=obj.name, date=obj.date.isoformat())
+    except IntegrityError as exc:
+        error_key = handle_integrity_error(exc, lang)
+        return err(error_key, status_code=400, lang=lang)
+    except Exception as exc:
+        log_error(vn, 'POST', exc)
+        return err('create_error', status_code=500, lang=lang)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def holiday_detail(request, pk):
+    vn = "HolidayDetail"
+    lang = get_lang(request)
+    log_request(vn, request, {'pk': pk})
+
+    try:
+        obj = get_object_or_404(Holiday, id=pk)
+    except Exception as exc:
+        log_error(vn, 'lookup', exc)
+        return err('not_found', status_code=404, lang=lang)
+
+    if request.method == 'GET':
+        return ok('holiday_fetched', HolidaySerializer(obj, context={'request': request}).data, 
+                  200, lang, name=obj.name)
+
+    if not is_admin(request.user):
+        return err('admin_access_required', status_code=403, lang=lang)
+
+    if request.method == 'PUT':
+        serializer = HolidaySerializer(obj, data=request.data, partial=True, 
+                                       context={'request': request})
+        if not serializer.is_valid():
+            msg_key = _first_error(serializer.errors)
+            return err(msg_key, errors=serializer.errors, status_code=400, lang=lang)
+        
+        try:
+            old_name = obj.name
+            with transaction.atomic():
+                serializer.save()
+            
+            _notify(request.user, 'holiday_updated',
+                    'holiday_updated_title',
+                    'holiday_update_msg', lang,
+                    {'holiday_id': obj.id},
+                    f'/app/academics/holidays/{obj.id}', priority='low')
+            
+            return ok('holiday_update_msg', serializer.data, 200, lang, name=old_name)
+        except Exception as exc:
+            log_error(vn, 'PUT', exc)
+            return err('update_error', status_code=500, lang=lang)
+
+    if request.method == 'DELETE':
+        try:
+            name, holiday_date = obj.name, obj.date
+            with transaction.atomic():
+                obj.delete()
+            
+            _notify(request.user, 'holiday_deleted',
+                    'holiday_deleted_title',
+                    'holiday_delete_msg', lang,
+                    {'name': name, 'date': str(holiday_date)},
+                    '/app/academics/holidays')
+            
+            return ok('holiday_delete_msg', None, 200, lang, name=name, date=holiday_date.isoformat())
+        except Exception as exc:
+            log_error(vn, 'DELETE', exc)
+            return err('delete_error', status_code=500, lang=lang)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_holidays_by_academic_year(request, academic_year_id):
+    """Get all holidays for a specific academic year."""
+    vn = "GetHolidaysByAcademicYear"
+    lang = get_lang(request)
+    log_request(vn, request, {'academic_year_id': academic_year_id})
+    
+    try:
+        qs = Holiday.objects.filter(
+            academic_year_id=academic_year_id
+        ).select_related('school_level').order_by('date')
+        
+        data = HolidaySerializer(qs, many=True, context={'request': request}).data
+        return ok('holidays_fetched', data, 200, lang, count=len(data))
+    except Exception as exc:
+        log_error(vn, "GET", exc)
+        return err('fetch_error', status_code=500, lang=lang)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_holidays_by_date_range(request):
+    """Get holidays within a date range."""
+    vn = "GetHolidaysByDateRange"
+    lang = get_lang(request)
+    log_request(vn, request)
+    
+    try:
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        academic_year_id = request.query_params.get('academic_year')
+        
+        if not start_date or not end_date:
+            return err('missing_dates', status_code=400, lang=lang)
+        
+        from datetime import datetime
+        start = datetime.strptime(start_date, '%Y-%m-%d').date()
+        end = datetime.strptime(end_date, '%Y-%m-%d').date()
+        
+        qs = Holiday.objects.filter(
+            date__gte=start,
+            date__lte=end
+        ).select_related('school_level', 'academic_year')
+        
+        if academic_year_id:
+            qs = qs.filter(academic_year_id=academic_year_id)
+        
+        data = HolidaySerializer(qs, many=True, context={'request': request}).data
+        return ok('holidays_fetched', data, 200, lang, count=len(data))
+    except Exception as exc:
+        log_error(vn, "GET", exc)
+        return err('fetch_error', status_code=500, lang=lang)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_upcoming_holidays(request):
+    """Get upcoming holidays from today onwards."""
+    vn = "GetUpcomingHolidays"
+    lang = get_lang(request)
+    log_request(vn, request)
+    
+    try:
+        from datetime import date
+        today = date.today()
+        
+        qs = Holiday.objects.filter(
+            date__gte=today,
+            is_recurring=False
+        ).select_related('school_level', 'academic_year').order_by('date')
+        
+        # If a specific academic year is provided
+        if ay := request.query_params.get('academic_year'):
+            qs = qs.filter(academic_year_id=ay)
+        
+        # If a specific school level is provided
+        if sl := request.query_params.get('school_level'):
+            qs = qs.filter(school_level_id=sl)
+        
+        data = HolidaySerializer(qs, many=True, context={'request': request}).data
+        return ok('holidays_fetched', data, 200, lang, count=len(data))
     except Exception as exc:
         log_error(vn, "GET", exc)
         return err('fetch_error', status_code=500, lang=lang)

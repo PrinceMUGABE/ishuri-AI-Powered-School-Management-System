@@ -1,7 +1,6 @@
-# teachers/services.py
-
 import random
 import string
+import re
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth.hashers import make_password
@@ -13,7 +12,7 @@ def generate_username(full_name):
     # Convert to lowercase and replace spaces with dots
     base = full_name.lower().replace(' ', '.')
     # Remove any special characters
-    base = ''.join(c for c in base if c.isalnum() or c == '.')
+    base = re.sub(r'[^a-z0-9.]', '', base)
     username = base
     counter = 1
     
@@ -35,8 +34,8 @@ def send_teacher_welcome_email(teacher, password, lang='en'):
     """Send welcome email to teacher with login credentials."""
     from .translations import get_translation
     
-    subject = get_translation('email_subject_welcome', lang)
-    body = get_translation('email_body_welcome', lang, 
+    subject = get_translation('teacher_welcome_subject', lang)
+    body = get_translation('teacher_welcome_body', lang, 
                           name=teacher.full_name,
                           username=teacher.user.username,
                           password=password)
@@ -49,6 +48,7 @@ def send_teacher_welcome_email(teacher, password, lang='en'):
             recipient_list=[teacher.email],
             fail_silently=False,
         )
+        print(f"Welcome email sent successfully to {teacher.email}")
         return True
     except Exception as e:
         print(f"Failed to send email to {teacher.email}: {str(e)}")
@@ -56,7 +56,7 @@ def send_teacher_welcome_email(teacher, password, lang='en'):
 
 
 def create_teacher_user_account(teacher, password):
-    """Create user account for teacher (legacy function - kept for compatibility)."""
+    """Create user account for teacher."""
     username = generate_username(teacher.full_name)
     
     user = User.objects.create(

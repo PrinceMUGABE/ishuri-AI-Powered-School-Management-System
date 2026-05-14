@@ -8,12 +8,18 @@ import {
   BookOpen, Calendar, Settings, Sun, Moon,
   Calendar as CalendarIcon, Clock as ClockIcon,
   Plus, Info, Filter, Mail, Phone, MapPin, Award,
-  Download, Printer, FileText, BarChart3, PieChart
+  Download, Printer, FileText, BarChart3, PieChart,
+  User, Briefcase, FolderOpen, List, Grid, Upload,
+  Image as ImageIcon, File, ChevronDown, ChevronUp,
+  ExternalLink, UserCheck, UserX, DollarSign, Star,
+  TrendingUp, TrendingDown, Activity, Shield, Home,
+  PhoneCall, MailOpen, Map, Cake, Calendar as BirthDay,
+  BookMarked, School, ClipboardList, Target, Award as AwardIcon
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // ─────────────────────────────────────────────────────────────
-// API
+// API Configuration
 // ─────────────────────────────────────────────────────────────
 const API_BASE_URL = 'http://127.0.0.1:8000/api/teachers';
 
@@ -23,11 +29,10 @@ const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config) => {
-  const token    = localStorage.getItem('access_token');
+  const token = localStorage.getItem('access_token');
   const language = localStorage.getItem('user_language') || 'en';
   if (token) config.headers['Authorization'] = `Bearer ${token}`;
   config.headers['X-Language'] = language;
-  console.log(`[API Request] ${config.method.toUpperCase()} ${config.url}`);
   return config;
 }, (error) => {
   console.error('[API Request Error]', error);
@@ -35,10 +40,7 @@ apiClient.interceptors.request.use((config) => {
 });
 
 apiClient.interceptors.response.use(
-  (response) => {
-    console.log(`[API Response] ${response.config.method.toUpperCase()} ${response.config.url} - Status: ${response.status}`);
-    return response;
-  },
+  (response) => response,
   (error) => {
     console.error('[API Response Error]', error.response?.data || error.message);
     return Promise.reject(error);
@@ -46,716 +48,1000 @@ apiClient.interceptors.response.use(
 );
 
 // ─────────────────────────────────────────────────────────────
-// Helpers
+// Helper Components
 // ─────────────────────────────────────────────────────────────
-const Spinner = () => (
-  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
-);
+const Spinner = ({ size = 'md' }) => {
+  const sizeClass = size === 'sm' ? 'w-4 h-4' : size === 'lg' ? 'w-8 h-8' : 'w-6 h-6';
+  return (
+    <div className={`${sizeClass} border-2 border-current border-t-transparent rounded-full animate-spin`} />
+  );
+};
 
 const getStatusBadge = (status) => {
   const colors = {
-    active:    'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+    active:    'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
     inactive:  'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
-    suspended: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
-    on_leave:  'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
-    completed: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+    suspended: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
+    on_leave:  'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300',
+    completed: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
   };
   return colors[status] || colors.inactive;
 };
 
+const formatDate = (dateString) => {
+  if (!dateString) return '—';
+  return new Date(dateString).toLocaleDateString();
+};
+
+const formatCurrency = (amount) => {
+  if (!amount) return '—';
+  return new Intl.NumberFormat().format(amount);
+};
+
 // ─────────────────────────────────────────────────────────────
-// Component
+// Main Component
 // ─────────────────────────────────────────────────────────────
 const TeacherManagement = () => {
   const { t } = useTranslation();
 
-  // ── UI state ──────────────────────────────────────────────
-  const [loading,         setLoading]         = useState(false);
-  const [activeTab,       setActiveTab]       = useState('teachers');
-  const [searchTerm,      setSearchTerm]      = useState('');
-  const [darkMode,        setDarkMode]        = useState(false);
-  const [showReportModal, setShowReportModal] = useState(false);
-  const [reportData,      setReportData]      = useState(null);
-
-  // ── Modal state ───────────────────────────────────────────
-  const [showAddModal,    setShowAddModal]    = useState(false);
-  const [showEditModal,   setShowEditModal]   = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showViewModal,   setShowViewModal]   = useState(false);
-  const [selectedItem,    setSelectedItem]    = useState(null);
-
-  // ── Pagination ────────────────────────────────────────────
-  const [currentPage,  setCurrentPage]  = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-
-  // ── Data ──────────────────────────────────────────────────
-  const [teachers,      setTeachers]      = useState([]);
-  const [assignments,   setAssignments]   = useState([]);
-  const [timetableData, setTimetableData] = useState(null);
-  const [daySettings,   setDaySettings]   = useState([]);
-  const [holidays,      setHolidays]      = useState([]);
-
-  // ── Forms ─────────────────────────────────────────────────
-  const [newItem,  setNewItem]  = useState({});
-  const [editItem, setEditItem] = useState({});
-
-  // ── Filters ───────────────────────────────────────────────
+  // ── UI State ──────────────────────────────────────────────
+  const [loading, setLoading] = useState(false);
+  const [activeView, setActiveView] = useState('teachers'); // teachers, assignments, timetable, reports
+  const [darkMode, setDarkMode] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
-    status: '', teacher: '', school_level: '', class_level: '',
-    academic_year: '', week: '', day: ''
+    status: '',
+    schoolLevel: '',
+    classLevel: '',
+    academicYear: '',
+    term: '',
+    day: ''
   });
 
-  // ── Dropdowns ─────────────────────────────────────────────
-  const [schoolLevels,  setSchoolLevels]  = useState([]);
-  const [classLevels,   setClassLevels]   = useState([]);
-  const [subjects,      setSubjects]      = useState([]);
+  // ── Modal State ───────────────────────────────────────────
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [selectedTeacher, setSelectedTeacher] = useState(null);
+  const [selectedAssignment, setSelectedAssignment] = useState(null);
+  const [activeTeacherTab, setActiveTeacherTab] = useState('profile'); // profile, documents, assignments, timetable
+
+  // ── Pagination ────────────────────────────────────────────
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  // ── Data State ────────────────────────────────────────────
+  const [teachers, setTeachers] = useState([]);
+  const [assignments, setAssignments] = useState([]);
+  const [timetableData, setTimetableData] = useState(null);
+  const [holidays, setHolidays] = useState([]);
+  const [teacherDocuments, setTeacherDocuments] = useState([]);
+  const [reportData, setReportData] = useState(null);
+
+  // ── Form State ────────────────────────────────────────────
+  const [newTeacher, setNewTeacher] = useState({
+    first_name: '', last_name: '', middle_name: '', email: '', phone_number: '',
+    address: '', gender: 'male', salary: '', work_hours_per_week: 40,
+    education_level: 'bachelor', qualifications: '', birth_date: '', hire_date: '',
+    status: 'active', bio: '', specialization_ids: []
+  });
+  const [editTeacher, setEditTeacher] = useState({});
+  const [newAssignment, setNewAssignment] = useState({});
+  const [editAssignment, setEditAssignment] = useState({});
+
+  // ── Dropdown Data ─────────────────────────────────────────
+  const [schoolLevels, setSchoolLevels] = useState([]);
+  const [classLevels, setClassLevels] = useState([]);
+  const [subjects, setSubjects] = useState([]);
   const [academicYears, setAcademicYears] = useState([]);
+  const [terms, setTerms] = useState([]);
+  const [classrooms, setClassrooms] = useState([]);
 
   // ── Stats ─────────────────────────────────────────────────
   const [stats, setStats] = useState({
     total_teachers: 0, active_teachers: 0, inactive_teachers: 0, on_leave_teachers: 0,
-    total_assignments: 0, active_assignments: 0, total_timetable_entries: 0, total_holidays: 0
+    total_assignments: 0, active_assignments: 0, total_timetable_entries: 0
   });
 
   // ─────────────────────────────────────────────────────────
-  // Tabs
+  // View Configuration
   // ─────────────────────────────────────────────────────────
-  const tabs = [
-    { id: 'teachers',     label: t('teachers.tabs.teachers'),    icon: Users        },
-    { id: 'assignments',  label: t('teachers.tabs.assignments'), icon: BookOpen     },
-    { id: 'timetable',    label: t('teachers.tabs.timetable'),   icon: Calendar     },
-    { id: 'day-settings', label: t('teachers.tabs.daySettings'), icon: Settings     },
-    { id: 'holidays',     label: t('teachers.tabs.holidays'),    icon: CalendarIcon },
-    { id: 'reports',      label: t('teachers.tabs.reports'),     icon: BarChart3    },
+  const views = [
+    { id: 'teachers', label: t('teachers.tabs.teachers'), icon: Users, color: 'emerald' },
+    { id: 'assignments', label: t('teachers.tabs.assignments'), icon: BookOpen, color: 'amber' },
+    { id: 'timetable', label: t('teachers.tabs.timetable'), icon: Calendar, color: 'blue' },
+    { id: 'reports', label: t('teachers.tabs.reports'), icon: BarChart3, color: 'purple' },
   ];
 
-  const currentTabLabel = () => tabs.find(tab => tab.id === activeTab)?.label ?? '';
-
   // ─────────────────────────────────────────────────────────
-  // Fetch dropdowns
+  // Fetch Dropdown Data
   // ─────────────────────────────────────────────────────────
   const fetchDropdownData = async () => {
     try {
       const token = localStorage.getItem('access_token');
-      const [schoolsRes, classesRes, subjectsRes, yearsRes] = await Promise.all([
-        axios.get('http://127.0.0.1:8000/api/academics/school-levels/',  { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get('http://127.0.0.1:8000/api/academics/class-levels/',   { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get('http://127.0.0.1:8000/api/academics/subjects/',       { headers: { Authorization: `Bearer ${token}` } }),
+      const [
+        schoolsRes, classesRes, subjectsRes, yearsRes, termsRes, classroomsRes
+      ] = await Promise.all([
+        axios.get('http://127.0.0.1:8000/api/academics/school-levels/', { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get('http://127.0.0.1:8000/api/academics/class-levels/', { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get('http://127.0.0.1:8000/api/academics/subjects/', { headers: { Authorization: `Bearer ${token}` } }),
         axios.get('http://127.0.0.1:8000/api/academics/academic-years/', { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get('http://127.0.0.1:8000/api/academics/terms/', { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get('http://127.0.0.1:8000/api/academics/class-rooms/', { headers: { Authorization: `Bearer ${token}` } }),
       ]);
-      if (schoolsRes.data.success)  setSchoolLevels(schoolsRes.data.data);
-      if (classesRes.data.success)  setClassLevels(classesRes.data.data);
+
+      if (schoolsRes.data.success) setSchoolLevels(schoolsRes.data.data);
+      if (classesRes.data.success) setClassLevels(classesRes.data.data);
       if (subjectsRes.data.success) setSubjects(subjectsRes.data.data);
-      if (yearsRes.data.success)    setAcademicYears(yearsRes.data.data);
+      if (yearsRes.data.success) setAcademicYears(yearsRes.data.data);
+      if (termsRes.data.success) setTerms(termsRes.data.data);
+      if (classroomsRes.data.success) setClassrooms(classroomsRes.data.data);
     } catch (error) {
       console.error('Error fetching dropdown data:', error);
+      toast.error(t('teachers.errors.fetchDropdownFailed'));
     }
   };
 
   // ─────────────────────────────────────────────────────────
-  // Fetch main data
+  // Fetch Main Data
   // ─────────────────────────────────────────────────────────
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchTeachers = async () => {
     try {
-      let url = '';
-      const params = new URLSearchParams();
-      if (searchTerm) params.append('search', searchTerm);
-
-      switch (activeTab) {
-        case 'teachers':
-          url = '/teachers/';
-          if (filters.status) params.append('status', filters.status);
-          break;
-        case 'assignments':
-          url = '/assignments/';
-          if (filters.teacher) params.append('teacher', filters.teacher);
-          if (filters.status)  params.append('status',  filters.status);
-          break;
-        case 'timetable':
-          url = `/timetable/${filters.teacher || ''}`;
-          if (filters.academic_year) params.append('academic_year', filters.academic_year);
-          if (filters.week)          params.append('week_number',   filters.week);
-          if (filters.day)           params.append('day',           filters.day);
-          break;
-        case 'day-settings':
-          url = '/day-settings/';
-          if (filters.school_level)  params.append('school_level',  filters.school_level);
-          if (filters.academic_year) params.append('academic_year', filters.academic_year);
-          break;
-        case 'holidays':
-          url = '/holidays/';
-          if (filters.academic_year) params.append('academic_year', filters.academic_year);
-          break;
-        default: return;
-      }
-
-      if (params.toString()) url += (url.includes('?') ? '&' : '?') + params.toString();
-
-      const response = await apiClient.get(url);
-
+      const response = await apiClient.get('/teachers/');
       if (response.data.success) {
-        const data = response.data.data;
-        switch (activeTab) {
-          case 'teachers': {
-            const arr = Array.isArray(data) ? data : (data.results ?? data ?? []);
-            setTeachers(arr);
-            setStats(prev => ({
-              ...prev,
-              total_teachers:    arr.length,
-              active_teachers:   arr.filter(t => t.status === 'active').length,
-              inactive_teachers: arr.filter(t => t.status === 'inactive').length,
-              on_leave_teachers: arr.filter(t => t.status === 'on_leave').length,
-            }));
-            break;
-          }
-          case 'assignments': {
-            const arr = Array.isArray(data) ? data : (data.results ?? data ?? []);
-            setAssignments(arr);
-            setStats(prev => ({
-              ...prev,
-              total_assignments:  arr.length,
-              active_assignments: arr.filter(a => a.status === 'active').length,
-            }));
-            break;
-          }
-          case 'timetable':
-            setTimetableData(data);
-            if (data?.summary) setStats(prev => ({ ...prev, total_timetable_entries: data.summary.total_timetable_entries || 0 }));
-            break;
-          case 'day-settings': {
-            const arr = Array.isArray(data) ? data : (data.results ?? data ?? []);
-            setDaySettings(arr);
-            break;
-          }
-          case 'holidays': {
-            const arr = Array.isArray(data) ? data : (data.results ?? data ?? []);
-            setHolidays(arr);
-            setStats(prev => ({ ...prev, total_holidays: arr.length }));
-            break;
-          }
-          default: break;
-        }
-        const count = Array.isArray(data) ? data.length : (data?.timetables?.length ?? data?.length ?? 0);
-        toast.success(`${count} ${t('teachers.messages.dataLoaded', { count })}`);
-      } else {
-        toast.error(response.data.message || t('teachers.messages.fetchError'));
+        const teacherList = response.data.data;
+        setTeachers(teacherList);
+        setStats(prev => ({
+          ...prev,
+          total_teachers: teacherList.length,
+          active_teachers: teacherList.filter(t => t.status === 'active').length,
+          inactive_teachers: teacherList.filter(t => t.status === 'inactive').length,
+          on_leave_teachers: teacherList.filter(t => t.status === 'on_leave').length,
+        }));
       }
     } catch (error) {
-      console.error('Fetch data error:', error);
-      toast.error(error.response?.data?.message || t('teachers.messages.fetchError'));
+      toast.error(error.response?.data?.message || t('teachers.errors.fetchTeachersFailed'));
+    }
+  };
+
+  const fetchAssignments = async () => {
+    try {
+      const response = await apiClient.get('/assignments/');
+      if (response.data.success) {
+        setAssignments(response.data.data);
+        setStats(prev => ({
+          ...prev,
+          total_assignments: response.data.data.length,
+          active_assignments: response.data.data.filter(a => a.status === 'active').length,
+        }));
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || t('teachers.errors.fetchAssignmentsFailed'));
+    }
+  };
+
+  const fetchTimetable = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (filters.academicYear) params.append('academic_year', filters.academicYear);
+      if (filters.term) params.append('term', filters.term);
+      const url = `/timetable/${params.toString() ? `?${params.toString()}` : ''}`;
+      const response = await apiClient.get(url);
+      if (response.data.success) {
+        setTimetableData(response.data.data);
+        if (response.data.data?.summary) {
+          setStats(prev => ({
+            ...prev,
+            total_timetable_entries: response.data.data.summary.total_timetable_entries || 0
+          }));
+        }
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || t('teachers.errors.fetchTimetableFailed'));
+    }
+  };
+
+  const fetchHolidays = async () => {
+    try {
+      const response = await apiClient.get('/holidays/');
+      if (response.data.success) setHolidays(response.data.data);
+    } catch (error) {
+      console.error('Error fetching holidays:', error);
+    }
+  };
+
+  const fetchTeacherDocuments = async (teacherId) => {
+    try {
+      const response = await apiClient.get(`/teachers/${teacherId}/documents/`);
+      if (response.data.success) setTeacherDocuments(response.data.data);
+    } catch (error) {
+      console.error('Error fetching documents:', error);
+    }
+  };
+
+  const fetchAllData = async () => {
+    setLoading(true);
+    await Promise.all([
+      fetchTeachers(),
+      fetchAssignments(),
+      fetchTimetable(),
+      fetchHolidays()
+    ]);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchDropdownData();
+    fetchAllData();
+  }, []);
+
+  // ─────────────────────────────────────────────────────────
+  // Filtered Data (Client-side)
+  // ─────────────────────────────────────────────────────────
+  const getFilteredTeachers = () => {
+    let filtered = [...teachers];
+    
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(t => 
+        t.full_name?.toLowerCase().includes(term) ||
+        t.email?.toLowerCase().includes(term) ||
+        t.phone_number?.includes(term) ||
+        t.first_name?.toLowerCase().includes(term) ||
+        t.last_name?.toLowerCase().includes(term)
+      );
+    }
+    
+    if (filters.status) {
+      filtered = filtered.filter(t => t.status === filters.status);
+    }
+    
+    return filtered;
+  };
+
+  const getFilteredAssignments = () => {
+    let filtered = [...assignments];
+    
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(a => 
+        a.teacher_name?.toLowerCase().includes(term) ||
+        a.subject_name?.toLowerCase().includes(term) ||
+        a.class_level_name?.toLowerCase().includes(term)
+      );
+    }
+    
+    if (filters.status) {
+      filtered = filtered.filter(a => a.status === filters.status);
+    }
+    
+    if (filters.schoolLevel) {
+      filtered = filtered.filter(a => a.school_level === parseInt(filters.schoolLevel));
+    }
+    
+    return filtered;
+  };
+
+  const getTeacherAssignments = (teacherId) => {
+    return assignments.filter(a => a.teacher === teacherId);
+  };
+
+  const getTeacherTimetable = (teacherId) => {
+    if (!timetableData?.timetables) return [];
+    const teacherTimetable = timetableData.timetables.find(tt => tt.teacher?.id === teacherId);
+    return teacherTimetable?.timetable || {};
+  };
+
+  // ─────────────────────────────────────────────────────────
+  // CRUD Operations
+  // ─────────────────────────────────────────────────────────
+  const handleCreateTeacher = async () => {
+    setLoading(true);
+    try {
+      const response = await apiClient.post('/teachers/', newTeacher);
+      if (response.data.success) {
+        toast.success(response.data.message || t('teachers.messages.createSuccess'));
+        setShowAddModal(false);
+        setNewTeacher({
+          first_name: '', last_name: '', middle_name: '', email: '', phone_number: '',
+          address: '', gender: 'male', salary: '', work_hours_per_week: 40,
+          education_level: 'bachelor', qualifications: '', birth_date: '', hire_date: '',
+          status: 'active', bio: '', specialization_ids: []
+        });
+        fetchTeachers();
+      } else {
+        const errors = response.data.errors;
+        const errorMessage = errors ? Object.values(errors).flat()[0] : response.data.message;
+        toast.error(errorMessage || t('teachers.errors.createFailed'));
+      }
+    } catch (error) {
+      const message = error.response?.data?.message || error.response?.data?.error || t('teachers.errors.createFailed');
+      toast.error(message);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchDropdownData();
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, searchTerm, filters, currentPage, itemsPerPage]);
-
-  // ─────────────────────────────────────────────────────────
-  // CRUD
-  // ─────────────────────────────────────────────────────────
-  const handleCreate = async () => {
+  const handleUpdateTeacher = async () => {
     setLoading(true);
     try {
-      const urlMap = { teachers: '/teachers/', assignments: '/assignments/', 'day-settings': '/day-settings/', holidays: '/holidays/' };
-      const url = urlMap[activeTab];
-      if (!url) { toast.error(t('teachers.messages.createError')); setLoading(false); return; }
-      const response = await apiClient.post(url, { ...newItem });
-      if (response.data.success) {
-        toast.success(response.data.message || t('teachers.messages.createSuccess'));
-        setShowAddModal(false); setNewItem({}); fetchData();
-      } else {
-        toast.error(Object.values(response.data.errors || {}).flat()[0] || response.data.message || t('teachers.messages.createError'));
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || t('teachers.messages.createError'));
-    } finally { setLoading(false); }
-  };
-
-  const handleUpdate = async () => {
-    setLoading(true);
-    try {
-      const urlMap = { teachers: `/teachers/${editItem.id}/`, 'day-settings': `/day-settings/${editItem.id}/` };
-      const url = urlMap[activeTab];
-      if (!url) { toast.error(t('teachers.messages.updateNotSupported')); setLoading(false); return; }
-      const payload = { ...editItem }; delete payload.id;
-      const response = await apiClient.put(url, payload);
+      const response = await apiClient.put(`/teachers/${editTeacher.id}/`, editTeacher);
       if (response.data.success) {
         toast.success(response.data.message || t('teachers.messages.updateSuccess'));
-        setShowEditModal(false); setEditItem({}); fetchData();
+        setShowEditModal(false);
+        setEditTeacher({});
+        fetchTeachers();
+        if (selectedTeacher?.id === editTeacher.id) {
+          setSelectedTeacher(response.data.data);
+        }
       } else {
-        toast.error(Object.values(response.data.errors || {}).flat()[0] || response.data.message || t('teachers.messages.updateError'));
+        toast.error(response.data.message || t('teachers.errors.updateFailed'));
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || t('teachers.messages.updateError'));
-    } finally { setLoading(false); }
+      toast.error(error.response?.data?.message || t('teachers.errors.updateFailed'));
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDelete = async () => {
+  const handleDeleteTeacher = async () => {
     setLoading(true);
     try {
-      const urlMap = {
-        teachers: `/teachers/${selectedItem.id}/`, assignments: `/assignments/${selectedItem.id}/`,
-        'day-settings': `/day-settings/${selectedItem.id}/`, holidays: `/holidays/${selectedItem.id}/`,
-      };
-      const url = urlMap[activeTab];
-      if (!url) { setLoading(false); return; }
-      const response = await apiClient.delete(url);
+      const response = await apiClient.delete(`/teachers/${selectedTeacher.id}/`);
       if (response.data.success) {
         toast.success(response.data.message || t('teachers.messages.deleteSuccess'));
-        setShowDeleteModal(false); setSelectedItem(null); fetchData();
+        setShowDeleteModal(false);
+        setSelectedTeacher(null);
+        fetchTeachers();
+        fetchAssignments();
       } else {
-        toast.error(response.data.message || t('teachers.messages.deleteError'));
+        toast.error(response.data.message || t('teachers.errors.deleteFailed'));
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || t('teachers.messages.deleteError'));
-    } finally { setLoading(false); }
+      toast.error(error.response?.data?.message || t('teachers.errors.deleteFailed'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateAssignment = async () => {
+    setLoading(true);
+    try {
+      const response = await apiClient.post('/assignments/', newAssignment);
+      if (response.data.success) {
+        toast.success(response.data.message || t('teachers.messages.assignmentCreateSuccess'));
+        setShowAddModal(false);
+        setNewAssignment({});
+        fetchAssignments();
+      } else {
+        toast.error(response.data.message || t('teachers.errors.assignmentCreateFailed'));
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || t('teachers.errors.assignmentCreateFailed'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteAssignment = async () => {
+    setLoading(true);
+    try {
+      const response = await apiClient.delete(`/assignments/${selectedAssignment.id}/`);
+      if (response.data.success) {
+        toast.success(response.data.message || t('teachers.messages.assignmentDeleteSuccess'));
+        setShowDeleteModal(false);
+        setSelectedAssignment(null);
+        fetchAssignments();
+      } else {
+        toast.error(response.data.message || t('teachers.errors.assignmentDeleteFailed'));
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || t('teachers.errors.assignmentDeleteFailed'));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleGenerateTimetable = async () => {
     setLoading(true);
     try {
-      const academicYearId = filters.academic_year || (academicYears.find(y => y.is_current)?.id);
-      const weekNumber     = filters.week || 1;
-      const teacherId      = filters.teacher || null;
-      const payload        = { academic_year: academicYearId, week_number: parseInt(weekNumber) };
-      if (teacherId) payload.teacher_id = parseInt(teacherId);
+      const payload = {
+        academic_year: filters.academicYear || academicYears.find(y => y.is_current)?.id,
+        term: filters.term || terms.find(t => t.is_current)?.id
+      };
       const response = await apiClient.post('/timetable/generate/', payload);
       if (response.data.success) {
-        const result = response.data.data;
-        toast.success(`${t('teachers.messages.timetableGenerated')} - ${result.entries_created} ${t('teachers.messages.entriesCreated')}`);
-        if (result.conflicts_count > 0) toast.warning(`${result.conflicts_count} ${t('teachers.messages.conflictsDetected')}`);
-        fetchData();
+        toast.success(response.data.message || t('teachers.messages.timetableGenerated'));
+        fetchTimetable();
       } else {
-        toast.error(response.data.message || t('teachers.messages.timetableGenerateError'));
+        toast.error(response.data.message || t('teachers.errors.timetableGenerateFailed'));
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || t('teachers.messages.timetableGenerateError'));
-    } finally { setLoading(false); }
-  };
-
-  const handleExportTimetable = async () => {
-    setLoading(true);
-    try {
-      const teacherId = filters.teacher;
-      let url = teacherId ? `/timetable/export/${teacherId}/` : '/timetable/export/';
-      const params = new URLSearchParams();
-      if (filters.academic_year) params.append('academic_year', filters.academic_year);
-      if (filters.week)          params.append('week_number',   filters.week);
-      if (params.toString())     url += `?${params.toString()}`;
-      const response = await apiClient.get(url);
-      if (response.data.success) {
-        const exportData = response.data.data;
-        const link = document.createElement('a');
-        link.setAttribute('href', 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(exportData, null, 2)));
-        link.setAttribute('download', `timetable_${exportData.teacher?.full_name || 'all'}_week_${exportData.week_number}.json`);
-        link.click();
-        toast.success(t('teachers.messages.exportSuccess'));
-      } else {
-        toast.error(response.data.message || t('teachers.messages.exportError'));
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || t('teachers.messages.exportError'));
-    } finally { setLoading(false); }
-  };
-
-  const handleGenerateReport = async () => {
-    setLoading(true);
-    try {
-      const [teachersRes, assignmentsRes, timetableRes, holidaysRes] = await Promise.all([
-        apiClient.get('/teachers/'), apiClient.get('/assignments/'),
-        apiClient.get('/timetable/'), apiClient.get('/holidays/'),
-      ]);
-      setReportData({
-        generated_on: new Date().toLocaleString(),
-        teachers:    teachersRes.data.data,
-        assignments: assignmentsRes.data.data,
-        timetable:   timetableRes.data.data,
-        holidays:    holidaysRes.data.data,
-        summary: {
-          total_teachers:          teachersRes.data.data.length,
-          active_teachers:         teachersRes.data.data.filter(t => t.status === 'active').length,
-          total_assignments:       assignmentsRes.data.data.length,
-          total_timetable_entries: timetableRes.data.data?.summary?.total_timetable_entries || 0,
-          total_holidays:          holidaysRes.data.data.length,
-        },
-      });
-      setShowReportModal(true);
-      toast.success(t('teachers.messages.reportGenerated'));
-    } catch (error) {
-      toast.error(t('teachers.messages.reportError'));
-    } finally { setLoading(false); }
-  };
-
-  // ─────────────────────────────────────────────────────────
-  // Shared input classes
-  // ─────────────────────────────────────────────────────────
-  const inputCls  = "w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 focus:border-transparent text-sm outline-none";
-  const selectCls = `${inputCls}`;
-
-  // ─────────────────────────────────────────────────────────
-  // Form fields
-  // ─────────────────────────────────────────────────────────
-  const renderFormFields = (item, setItem) => {
-    const getFieldSets = () => {
-      switch (activeTab) {
-        case 'teachers':
-          return [
-            { name: 'full_name',        label: t('teachers.form.fullName'),       type: 'text',     required: true,  placeholder: t('teachers.placeholders.fullName') },
-            { name: 'email',            label: t('teachers.form.email'),           type: 'email',    required: true,  placeholder: 'teacher@example.com' },
-            { name: 'phone_number',     label: t('teachers.form.phone'),           type: 'tel',      required: true,  placeholder: '+250XXXXXXXXX' },
-            { name: 'address',          label: t('teachers.form.address'),         type: 'textarea', required: false, placeholder: t('teachers.placeholders.address') },
-            { name: 'gender',           label: t('teachers.form.gender'),          type: 'select',   required: true,
-              options: [{ value: 'male', label: t('teachers.gender.male') }, { value: 'female', label: t('teachers.gender.female') }, { value: 'other', label: t('teachers.gender.other') }]
-            },
-            { name: 'education_level',  label: t('teachers.form.educationLevel'), type: 'select',   required: true,
-              options: [
-                { value: 'diploma',     label: t('teachers.education.diploma') },
-                { value: 'bachelor',    label: t('teachers.education.bachelor') },
-                { value: 'master',      label: t('teachers.education.master') },
-                { value: 'doctorate',   label: t('teachers.education.doctorate') },
-                { value: 'certificate', label: t('teachers.education.certificate') },
-              ]
-            },
-            { name: 'qualification',    label: t('teachers.form.qualification'),  type: 'textarea', required: false, placeholder: t('teachers.placeholders.qualification') },
-            { name: 'specialization',   label: t('teachers.form.specialization'), type: 'text',     required: false, placeholder: t('teachers.placeholders.specialization') },
-            { name: 'experience_years', label: t('teachers.form.experience'),     type: 'number',   required: false, placeholder: '0' },
-            { name: 'birth_date',       label: t('teachers.form.birthDate'),      type: 'date',     required: false },
-            { name: 'hire_date',        label: t('teachers.form.hireDate'),       type: 'date',     required: false },
-            { name: 'status',           label: t('teachers.form.status'),         type: 'select',   required: true,
-              options: [
-                { value: 'active',    label: t('teachers.status.active') },
-                { value: 'inactive',  label: t('teachers.status.inactive') },
-                { value: 'on_leave',  label: t('teachers.status.onLeave') },
-                { value: 'suspended', label: t('teachers.status.suspended') },
-              ]
-            },
-            { name: 'bio', label: t('teachers.form.bio'), type: 'textarea', required: false, placeholder: t('teachers.placeholders.bio') },
-          ];
-
-        case 'assignments':
-          return [
-            { name: 'teacher',        label: t('teachers.form.teacher'),      type: 'select', required: true, options: teachers.map(t => ({ value: t.id, label: t.full_name })) },
-            { name: 'school_level',   label: t('teachers.form.schoolLevel'),  type: 'select', required: true, options: schoolLevels.map(s => ({ value: s.id, label: s.name })) },
-            { name: 'class_level',    label: t('teachers.form.classLevel'),   type: 'select', required: true, options: classLevels.map(c => ({ value: c.id, label: c.name })) },
-            { name: 'subject',        label: t('teachers.form.subject'),      type: 'select', required: true, options: subjects.map(s => ({ value: s.id, label: s.name })) },
-            { name: 'academic_year',  label: t('teachers.form.academicYear'), type: 'select', required: true, options: academicYears.map(y => ({ value: y.id, label: y.name })) },
-            { name: 'hours_per_week', label: t('teachers.form.hoursPerWeek'),type: 'number',  required: true, placeholder: '4' },
-            { name: 'status',         label: t('teachers.form.status'),       type: 'select', required: true,
-              options: [
-                { value: 'active',    label: t('teachers.status.active') },
-                { value: 'inactive',  label: t('teachers.status.inactive') },
-                { value: 'completed', label: t('teachers.status.completed') },
-              ]
-            },
-            { name: 'notes', label: t('teachers.form.notes'), type: 'textarea', required: false, placeholder: t('teachers.placeholders.notes') },
-          ];
-
-        case 'day-settings':
-          return [
-            { name: 'school_level',  label: t('teachers.form.schoolLevel'),  type: 'select', required: true, options: schoolLevels.map(s => ({ value: s.id, label: s.name })) },
-            { name: 'academic_year', label: t('teachers.form.academicYear'), type: 'select', required: true, options: academicYears.map(y => ({ value: y.id, label: y.name })) },
-            { name: 'day_of_week',   label: t('teachers.form.dayOfWeek'),    type: 'select', required: true,
-              options: [
-                { value: 0, label: t('teachers.days.monday') }, { value: 1, label: t('teachers.days.tuesday') },
-                { value: 2, label: t('teachers.days.wednesday') }, { value: 3, label: t('teachers.days.thursday') },
-                { value: 4, label: t('teachers.days.friday') }, { value: 5, label: t('teachers.days.saturday') },
-                { value: 6, label: t('teachers.days.sunday') },
-              ]
-            },
-            { name: 'is_school_day',      label: t('teachers.form.isSchoolDay'),      type: 'checkbox' },
-            { name: 'start_time',          label: t('teachers.form.startTime'),         type: 'time', required: false },
-            { name: 'end_time',            label: t('teachers.form.endTime'),           type: 'time', required: false },
-            { name: 'morning_break_start', label: t('teachers.form.morningBreakStart'), type: 'time', required: false },
-            { name: 'morning_break_end',   label: t('teachers.form.morningBreakEnd'),   type: 'time', required: false },
-            { name: 'lunch_break_start',   label: t('teachers.form.lunchBreakStart'),   type: 'time', required: false },
-            { name: 'lunch_break_end',     label: t('teachers.form.lunchBreakEnd'),     type: 'time', required: false },
-          ];
-
-        case 'holidays':
-          return [
-            { name: 'name',          label: t('teachers.form.holidayName'),  type: 'text',     required: true, placeholder: t('teachers.placeholders.holidayName') },
-            { name: 'date',          label: t('teachers.form.date'),         type: 'date',     required: true },
-            { name: 'academic_year', label: t('teachers.form.academicYear'), type: 'select',   required: true, options: academicYears.map(y => ({ value: y.id, label: y.name })) },
-            { name: 'school_level',  label: t('teachers.form.schoolLevel'),  type: 'select',   required: false,
-              options: [{ value: '', label: t('teachers.form.allLevels') }, ...schoolLevels.map(s => ({ value: s.id, label: s.name }))]
-            },
-            { name: 'is_recurring',  label: t('teachers.form.isRecurring'),  type: 'checkbox' },
-            { name: 'description',   label: t('teachers.form.description'),  type: 'textarea', required: false, placeholder: t('teachers.placeholders.description') },
-          ];
-
-        default: return [];
-      }
-    };
-
-    return getFieldSets().map(field => (
-      <div key={field.name}>
-        <label className="block text-xs font-semibold mb-1 text-gray-600 dark:text-gray-300 uppercase tracking-wide">
-          {field.label}{field.required && <span className="text-red-500 ml-0.5">*</span>}
-        </label>
-
-        {field.type === 'select' ? (
-          <select value={item[field.name] ?? ''} onChange={(e) => setItem({ ...item, [field.name]: e.target.value })}
-            className={selectCls}>
-            <option value="">{`— ${t('teachers.actions.select') || 'Select'} ${field.label} —`}</option>
-            {field.options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-          </select>
-
-        ) : field.type === 'textarea' ? (
-          <textarea value={item[field.name] ?? ''} onChange={(e) => setItem({ ...item, [field.name]: e.target.value })}
-            className={inputCls} rows={3} placeholder={field.placeholder} />
-
-        ) : field.type === 'checkbox' ? (
-          <label className="flex items-center gap-2 cursor-pointer mt-1">
-            <input type="checkbox" checked={item[field.name] ?? false}
-              onChange={(e) => setItem({ ...item, [field.name]: e.target.checked })}
-              className="w-4 h-4 rounded accent-green-700" />
-            <span className="text-sm text-gray-700 dark:text-gray-300">{field.label}</span>
-          </label>
-
-        ) : (
-          <input type={field.type} value={item[field.name] ?? ''}
-            onChange={(e) => setItem({ ...item, [field.name]: e.target.value })}
-            className={inputCls} placeholder={field.placeholder} />
-        )}
-      </div>
-    ));
-  };
-
-  // ─────────────────────────────────────────────────────────
-  // Table headers
-  // ─────────────────────────────────────────────────────────
-  const renderTableHeaders = () => {
-    const headers = {
-      teachers:       [t('teachers.table.fullName'), t('teachers.table.username'), t('teachers.table.email'), t('teachers.table.phone'), t('teachers.table.specialization'), t('teachers.table.status'), t('teachers.table.actions')],
-      assignments:    [t('teachers.table.teacher'), t('teachers.table.subject'), t('teachers.table.classLevel'), t('teachers.table.hoursPerWeek'), t('teachers.table.status'), t('teachers.table.actions')],
-      'day-settings': [t('teachers.table.schoolLevel'), t('teachers.table.day'), t('teachers.table.schedule'), t('teachers.table.actions')],
-      holidays:       [t('teachers.table.holidayName'), t('teachers.table.date'), t('teachers.table.academicYear'), t('teachers.table.schoolLevel'), t('teachers.table.recurring'), t('teachers.table.actions')],
-    };
-    return headers[activeTab]?.map(header => (
-      <th key={header} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-        {header}
-      </th>
-    ));
-  };
-
-  // ─────────────────────────────────────────────────────────
-  // Table rows
-  // ─────────────────────────────────────────────────────────
-  const renderTableRow = (item) => {
-    switch (activeTab) {
-      case 'teachers':
-        return (
-          <tr key={item.id} className="hover:bg-green-50/40 dark:hover:bg-green-900/10 transition-colors">
-            <td className="px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white">{item.full_name}</td>
-            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{item.username}</td>
-            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{item.email}</td>
-            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{item.phone_number}</td>
-            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{item.specialization || '—'}</td>
-            <td className="px-4 py-3">
-              <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${getStatusBadge(item.status)}`}>
-                {item.status === 'active'    && <CheckCircle className="w-3 h-3" />}
-                {item.status === 'inactive'  && <AlertCircle className="w-3 h-3" />}
-                {item.status === 'on_leave'  && <Clock className="w-3 h-3" />}
-                {item.status === 'suspended' && <AlertCircle className="w-3 h-3" />}
-                {t(`teachers.status.${item.status}`)}
-              </span>
-            </td>
-            <td className="px-4 py-3">
-              <div className="flex gap-1.5">
-                <button onClick={() => { setSelectedItem(item); setShowViewModal(true); }}
-                  className="p-1.5 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/20 transition-colors" title={t('teachers.actions.view')}>
-                  <Eye className="w-3.5 h-3.5 text-green-700 dark:text-green-400" />
-                </button>
-                <button onClick={() => { setEditItem(item); setShowEditModal(true); }}
-                  className="p-1.5 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors" title={t('teachers.actions.edit')}>
-                  <Edit className="w-3.5 h-3.5 text-amber-600" />
-                </button>
-                <button onClick={() => { setSelectedItem(item); setShowDeleteModal(true); }}
-                  className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" title={t('teachers.actions.delete')}>
-                  <Trash2 className="w-3.5 h-3.5 text-red-500" />
-                </button>
-              </div>
-            </td>
-          </tr>
-        );
-
-      case 'assignments':
-        return (
-          <tr key={item.id} className="hover:bg-green-50/40 dark:hover:bg-green-900/10 transition-colors">
-            <td className="px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white">{item.teacher_name}</td>
-            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{item.subject_name}</td>
-            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{item.class_level_name}</td>
-            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
-              {item.hours_per_week || '—'} {t('teachers.table.hoursPerWeekSuffix')}
-            </td>
-            <td className="px-4 py-3">
-              <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${getStatusBadge(item.status)}`}>
-                {t(`teachers.status.${item.status}`)}
-              </span>
-            </td>
-            <td className="px-4 py-3">
-              <button onClick={() => { setSelectedItem(item); setShowDeleteModal(true); }}
-                className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" title={t('teachers.actions.delete')}>
-                <Trash2 className="w-3.5 h-3.5 text-red-500" />
-              </button>
-            </td>
-          </tr>
-        );
-
-      case 'day-settings': {
-        const dayNames = [
-          t('teachers.days.monday'), t('teachers.days.tuesday'), t('teachers.days.wednesday'),
-          t('teachers.days.thursday'), t('teachers.days.friday'), t('teachers.days.saturday'), t('teachers.days.sunday')
-        ];
-        return (
-          <tr key={item.id} className="hover:bg-green-50/40 dark:hover:bg-green-900/10 transition-colors">
-            <td className="px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white">{item.school_level_name}</td>
-            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{dayNames[item.day_of_week]}</td>
-            <td className="px-4 py-3 text-sm">
-              {item.is_school_day
-                ? <span className="text-green-700 dark:text-green-400 font-medium">{item.start_time} — {item.end_time}</span>
-                : <span className="text-red-500">{t('teachers.status.notSchoolDay')}</span>
-              }
-            </td>
-            <td className="px-4 py-3">
-              <div className="flex gap-1.5">
-                <button onClick={() => { setEditItem(item); setShowEditModal(true); }}
-                  className="p-1.5 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors" title={t('teachers.actions.edit')}>
-                  <Edit className="w-3.5 h-3.5 text-amber-600" />
-                </button>
-                <button onClick={() => { setSelectedItem(item); setShowDeleteModal(true); }}
-                  className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" title={t('teachers.actions.delete')}>
-                  <Trash2 className="w-3.5 h-3.5 text-red-500" />
-                </button>
-              </div>
-            </td>
-          </tr>
-        );
-      }
-
-      case 'holidays':
-        return (
-          <tr key={item.id} className="hover:bg-green-50/40 dark:hover:bg-green-900/10 transition-colors">
-            <td className="px-4 py-3 text-sm font-semibold text-gray-900 dark:text-white">{item.name}</td>
-            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{item.date}</td>
-            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{item.academic_year_name || '—'}</td>
-            <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{item.school_level_name || t('teachers.form.allLevels')}</td>
-            <td className="px-4 py-3">
-              {item.is_recurring && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300">
-                  {t('teachers.status.recurring')}
-                </span>
-              )}
-            </td>
-            <td className="px-4 py-3">
-              <button onClick={() => { setSelectedItem(item); setShowDeleteModal(true); }}
-                className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" title={t('teachers.actions.delete')}>
-                <Trash2 className="w-3.5 h-3.5 text-red-500" />
-              </button>
-            </td>
-          </tr>
-        );
-
-      default: return null;
+      toast.error(error.response?.data?.message || t('teachers.errors.timetableGenerateFailed'));
+    } finally {
+      setLoading(false);
     }
   };
 
   // ─────────────────────────────────────────────────────────
-  // Timetable view — updated to green/amber palette
+  // Pagination
+  // ─────────────────────────────────────────────────────────
+  const getCurrentData = () => {
+    switch (activeView) {
+      case 'teachers': return getFilteredTeachers();
+      case 'assignments': return getFilteredAssignments();
+      default: return [];
+    }
+  };
+
+  const currentData = getCurrentData();
+  const totalPages = Math.ceil(currentData.length / itemsPerPage);
+  const paginatedData = currentData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  // ─────────────────────────────────────────────────────────
+  // Teacher Detail Modal
+  // ─────────────────────────────────────────────────────────
+  const TeacherDetailModal = () => {
+    if (!selectedTeacher) return null;
+    
+    const teacherAssignments = getTeacherAssignments(selectedTeacher.id);
+    const teacherTimetable = getTeacherTimetable(selectedTeacher.id);
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    
+    const tabs = [
+      { id: 'profile', label: t('teachers.detail.profile'), icon: User },
+      { id: 'documents', label: t('teachers.detail.documents'), icon: FileText },
+      { id: 'assignments', label: t('teachers.detail.assignments'), icon: BookOpen },
+      { id: 'timetable', label: t('teachers.detail.timetable'), icon: Calendar },
+    ];
+
+    return (
+      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
+          {/* Header */}
+          <div className="relative bg-gradient-to-r from-emerald-700 to-teal-800 p-6 text-white">
+            <button 
+              onClick={() => setShowViewModal(false)}
+              className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-white/20 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            
+            <div className="flex items-center gap-4">
+              {/* Profile Picture */}
+              <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center overflow-hidden">
+                {selectedTeacher.profile_picture_url ? (
+                  <img src={selectedTeacher.profile_picture_url} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-10 h-10 text-white/70" />
+                )}
+              </div>
+              
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold">{selectedTeacher.full_name}</h2>
+                <div className="flex items-center gap-3 mt-1 flex-wrap">
+                  <span className="flex items-center gap-1 text-sm text-white/80">
+                    <Mail className="w-3.5 h-3.5" /> {selectedTeacher.email}
+                  </span>
+                  <span className="flex items-center gap-1 text-sm text-white/80">
+                    <Phone className="w-3.5 h-3.5" /> {selectedTeacher.phone_number}
+                  </span>
+                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(selectedTeacher.status)}`}>
+                    {t(`teachers.status.${selectedTeacher.status}`)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <div className="flex border-b border-gray-200 dark:border-gray-700 px-4">
+            {tabs.map(tab => {
+              const TabIcon = tab.icon;
+              const isActive = activeTeacherTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTeacherTab(tab.id)}
+                  className={`px-4 py-3 text-sm font-medium transition-all flex items-center gap-2 border-b-2 ${
+                    isActive 
+                      ? 'border-emerald-600 text-emerald-700 dark:text-emerald-400' 
+                      : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                  }`}
+                >
+                  <TabIcon className="w-4 h-4" />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto p-6">
+            {/* Profile Tab */}
+            {activeTeacherTab === 'profile' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Personal Information */}
+                <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4">
+                  <h3 className="font-semibold text-gray-800 dark:text-white mb-3 flex items-center gap-2">
+                    <User className="w-4 h-4 text-emerald-600" />
+                    {t('teachers.detail.personalInfo')}
+                  </h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">{t('teachers.form.firstName')}:</span>
+                      <span className="font-medium">{selectedTeacher.first_name || '—'}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">{t('teachers.form.lastName')}:</span>
+                      <span className="font-medium">{selectedTeacher.last_name || '—'}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">{t('teachers.form.gender')}:</span>
+                      <span className="font-medium capitalize">{selectedTeacher.gender || '—'}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">{t('teachers.form.birthDate')}:</span>
+                      <span className="font-medium">{formatDate(selectedTeacher.birth_date)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">{t('teachers.form.age')}:</span>
+                      <span className="font-medium">{selectedTeacher.age || '—'}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">{t('teachers.form.address')}:</span>
+                      <span className="font-medium text-right">{selectedTeacher.address || '—'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Professional Information */}
+                <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4">
+                  <h3 className="font-semibold text-gray-800 dark:text-white mb-3 flex items-center gap-2">
+                    <Briefcase className="w-4 h-4 text-emerald-600" />
+                    {t('teachers.detail.professionalInfo')}
+                  </h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">{t('teachers.form.educationLevel')}:</span>
+                      <span className="font-medium capitalize">{selectedTeacher.education_level || '—'}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">{t('teachers.form.salary')}:</span>
+                      <span className="font-medium">{formatCurrency(selectedTeacher.salary)} RWF</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">{t('teachers.form.workHoursPerWeek')}:</span>
+                      <span className="font-medium">{selectedTeacher.work_hours_per_week || '—'} hrs</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">{t('teachers.form.hireDate')}:</span>
+                      <span className="font-medium">{formatDate(selectedTeacher.hire_date)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Specializations */}
+                {selectedTeacher.specializations_detail?.length > 0 && (
+                  <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 col-span-full">
+                    <h3 className="font-semibold text-gray-800 dark:text-white mb-3 flex items-center gap-2">
+                      <Star className="w-4 h-4 text-amber-600" />
+                      {t('teachers.detail.specializations')}
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedTeacher.specializations_detail.map(spec => (
+                        <span key={spec.id} className="px-2 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-lg text-xs">
+                          {spec.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Qualifications & Bio */}
+                {selectedTeacher.qualifications && (
+                  <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 col-span-full">
+                    <h3 className="font-semibold text-gray-800 dark:text-white mb-2 flex items-center gap-2">
+                      <AwardIcon className="w-4 h-4 text-emerald-600" />
+                      {t('teachers.detail.qualifications')}
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{selectedTeacher.qualifications}</p>
+                  </div>
+                )}
+
+                {selectedTeacher.bio && (
+                  <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 col-span-full">
+                    <h3 className="font-semibold text-gray-800 dark:text-white mb-2">{t('teachers.detail.bio')}</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{selectedTeacher.bio}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Documents Tab */}
+            {activeTeacherTab === 'documents' && (
+              <div className="space-y-4">
+                <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-semibold text-gray-800 dark:text-white flex items-center gap-2">
+                      <FolderOpen className="w-4 h-4 text-emerald-600" />
+                      {t('teachers.detail.documents')}
+                    </h3>
+                    <button className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm flex items-center gap-2">
+                      <Upload className="w-3.5 h-3.5" />
+                      {t('teachers.actions.uploadDocument')}
+                    </button>
+                  </div>
+                  
+                  {teacherDocuments.length === 0 ? (
+                    <div className="text-center py-8 text-gray-400">
+                      <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p>{t('teachers.detail.noDocuments')}</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {teacherDocuments.map(doc => (
+                        <div key={doc.id} className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center">
+                              <File className="w-5 h-5 text-emerald-600" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm">{doc.title}</p>
+                              <p className="text-xs text-gray-400">{doc.document_type}</p>
+                            </div>
+                          </div>
+                          {doc.file_url && (
+                            <a href={doc.file_url} target="_blank" rel="noopener noreferrer" className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
+                              <ExternalLink className="w-4 h-4 text-emerald-600" />
+                            </a>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Qualification Document */}
+                {selectedTeacher.qualification_document_url && (
+                  <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4">
+                    <h3 className="font-semibold text-gray-800 dark:text-white mb-3">{t('teachers.detail.qualificationDocument')}</h3>
+                    <a href={selectedTeacher.qualification_document_url} target="_blank" rel="noopener noreferrer" 
+                      className="flex items-center gap-3 p-3 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
+                      <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center">
+                        <FileText className="w-5 h-5 text-amber-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{selectedTeacher.qualification_document_name || t('teachers.detail.qualificationDocument')}</p>
+                        <p className="text-xs text-gray-400">{t('teachers.actions.viewDocument')}</p>
+                      </div>
+                      <ExternalLink className="w-4 h-4 text-gray-400" />
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Assignments Tab */}
+            {activeTeacherTab === 'assignments' && (
+              <div className="space-y-3">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="font-semibold text-gray-800 dark:text-white">{t('teachers.detail.currentAssignments')}</h3>
+                  <span className="text-sm text-gray-500">{teacherAssignments.length} {t('teachers.detail.assignments')}</span>
+                </div>
+                
+                {teacherAssignments.length === 0 ? (
+                  <div className="text-center py-8 text-gray-400">
+                    <BookOpen className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p>{t('teachers.detail.noAssignments')}</p>
+                  </div>
+                ) : (
+                  <div className="grid gap-3">
+                    {teacherAssignments.map(assignment => (
+                      <div key={assignment.id} className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <p className="font-semibold">{assignment.subject_name}</p>
+                            <p className="text-sm text-gray-500">{assignment.class_level_name}</p>
+                          </div>
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusBadge(assignment.status)}`}>
+                            {t(`teachers.status.${assignment.status}`)}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-sm mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                          <div>
+                            <span className="text-gray-500">{t('teachers.form.schoolLevel')}:</span>
+                            <span className="ml-2 font-medium">{assignment.school_level_name}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">{t('teachers.form.classroom')}:</span>
+                            <span className="ml-2 font-medium">{assignment.classroom_name || '—'}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">{t('teachers.form.hoursPerWeek')}:</span>
+                            <span className="ml-2 font-medium">{assignment.hours_per_week} hrs</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">{t('teachers.form.term')}:</span>
+                            <span className="ml-2 font-medium">{assignment.term_name}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Timetable Tab */}
+            {activeTeacherTab === 'timetable' && (
+              <div className="space-y-4">
+                <h3 className="font-semibold text-gray-800 dark:text-white">{t('teachers.detail.weeklyTimetable')}</h3>
+                
+                {Object.keys(teacherTimetable).length === 0 ? (
+                  <div className="text-center py-8 text-gray-400">
+                    <Calendar className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p>{t('teachers.detail.noTimetable')}</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-100 dark:bg-gray-800 rounded-xl">
+                        <tr>
+                          <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">{t('teachers.timetable.day')}</th>
+                          <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">{t('teachers.timetable.startTime')}</th>
+                          <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">{t('teachers.timetable.endTime')}</th>
+                          <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">{t('teachers.timetable.subject')}</th>
+                          <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">{t('teachers.timetable.classroom')}</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                        {days.map(day => {
+                          const entries = teacherTimetable[day] || [];
+                          if (entries.length === 0) return null;
+                          return entries.map((entry, idx) => (
+                            <tr key={`${day}-${idx}`} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                              {idx === 0 && (
+                                <td className="px-3 py-2 text-sm font-medium" rowSpan={entries.length}>{day}</td>
+                              )}
+                              <td className="px-3 py-2 text-sm text-gray-600">{entry.start_time}</td>
+                              <td className="px-3 py-2 text-sm text-gray-600">{entry.end_time}</td>
+                              <td className="px-3 py-2 text-sm font-medium">{entry.subject_name}</td>
+                              <td className="px-3 py-2 text-sm text-gray-600">{entry.classroom_name}</td>
+                            </tr>
+                          ));
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Footer Actions */}
+          <div className="flex justify-end gap-3 p-4 border-t border-gray-200 dark:border-gray-700">
+            <button
+              onClick={() => {
+                setEditTeacher(selectedTeacher);
+                setShowEditModal(true);
+                setShowViewModal(false);
+              }}
+              className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-medium transition-colors flex items-center gap-2"
+            >
+              <Edit className="w-4 h-4" />
+              {t('teachers.actions.edit')}
+            </button>
+            <button
+              onClick={() => setShowViewModal(false)}
+              className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-medium transition-colors"
+            >
+              {t('teachers.actions.close')}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ─────────────────────────────────────────────────────────
+  // Render Table Rows
+  // ─────────────────────────────────────────────────────────
+  const renderTeacherRow = (teacher) => (
+    <tr key={teacher.id} className="hover:bg-emerald-50/40 dark:hover:bg-emerald-900/10 transition-colors group">
+      <td className="px-4 py-3">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-700 dark:text-emerald-400 font-semibold text-sm">
+            {teacher.first_name?.[0]}{teacher.last_name?.[0]}
+          </div>
+          <div>
+            <p className="font-semibold text-gray-900 dark:text-white">{teacher.full_name}</p>
+            <p className="text-xs text-gray-400">{teacher.username}</p>
+          </div>
+        </div>
+      </td>
+      <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{teacher.email}</td>
+      <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{teacher.phone_number}</td>
+      <td className="px-4 py-3">
+        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${getStatusBadge(teacher.status)}`}>
+          {teacher.status === 'active' && <CheckCircle className="w-3 h-3" />}
+          {teacher.status === 'inactive' && <AlertCircle className="w-3 h-3" />}
+          {teacher.status === 'on_leave' && <Clock className="w-3 h-3" />}
+          {t(`teachers.status.${teacher.status}`)}
+        </span>
+      </td>
+      <td className="px-4 py-3">
+        <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            onClick={() => {
+              setSelectedTeacher(teacher);
+              setActiveTeacherTab('profile');
+              fetchTeacherDocuments(teacher.id);
+              setShowViewModal(true);
+            }}
+            className="p-1.5 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/20 transition-colors"
+            title={t('teachers.actions.viewDetails')}
+          >
+            <Eye className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
+          </button>
+          <button
+            onClick={() => {
+              setEditTeacher(teacher);
+              setShowEditModal(true);
+            }}
+            className="p-1.5 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/20 transition-colors"
+            title={t('teachers.actions.edit')}
+          >
+            <Edit className="w-3.5 h-3.5 text-amber-600" />
+          </button>
+          <button
+            onClick={() => {
+              setSelectedTeacher(teacher);
+              setShowDeleteModal(true);
+            }}
+            className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors"
+            title={t('teachers.actions.delete')}
+          >
+            <Trash2 className="w-3.5 h-3.5 text-red-500" />
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+
+  const renderAssignmentRow = (assignment) => (
+    <tr key={assignment.id} className="hover:bg-amber-50/40 dark:hover:bg-amber-900/10 transition-colors group">
+      <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white">{assignment.teacher_name}</td>
+      <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{assignment.subject_name}</td>
+      <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{assignment.class_level_name}</td>
+      <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{assignment.school_level_name}</td>
+      <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{assignment.hours_per_week} hrs</td>
+      <td className="px-4 py-3">
+        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${getStatusBadge(assignment.status)}`}>
+          {t(`teachers.status.${assignment.status}`)}
+        </span>
+      </td>
+      <td className="px-4 py-3">
+        <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            onClick={() => {
+              setSelectedAssignment(assignment);
+              setShowDeleteModal(true);
+            }}
+            className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors"
+          >
+            <Trash2 className="w-3.5 h-3.5 text-red-500" />
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+
+  // ─────────────────────────────────────────────────────────
+  // Render Timetable View
   // ─────────────────────────────────────────────────────────
   const renderTimetableView = () => {
     if (!timetableData) {
       return (
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-10 text-center">
-          <div className="w-16 h-16 bg-green-50 dark:bg-green-900/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Calendar className="w-8 h-8 text-green-300 dark:text-green-700" />
-          </div>
+          <Calendar className="w-16 h-16 text-emerald-300 mx-auto mb-4" />
           <p className="text-gray-500 mb-4">{t('teachers.timetable.noData')}</p>
-          <button onClick={handleGenerateTimetable}
-            className="px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded-xl text-sm font-medium transition-colors">
+          <button
+            onClick={handleGenerateTimetable}
+            disabled={loading}
+            className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-60"
+          >
+            {loading ? <Spinner /> : t('teachers.actions.generateTimetable')}
+          </button>
+        </div>
+      );
+    }
+
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const timetables = timetableData.timetables || [];
+
+    if (timetables.length === 0) {
+      return (
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-10 text-center">
+          <Calendar className="w-16 h-16 text-emerald-300 mx-auto mb-4" />
+          <p className="text-gray-500">{t('teachers.timetable.noEntries')}</p>
+          <button
+            onClick={handleGenerateTimetable}
+            className="mt-4 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-sm font-medium"
+          >
             {t('teachers.actions.generateTimetable')}
           </button>
         </div>
       );
     }
 
-    const dayNames = [
-      t('teachers.days.monday'), t('teachers.days.tuesday'), t('teachers.days.wednesday'),
-      t('teachers.days.thursday'), t('teachers.days.friday'), t('teachers.days.saturday'), t('teachers.days.sunday')
-    ];
-    const dayKeys    = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
-    const timetables = timetableData.timetables || [];
-
-    if (timetables.length === 0) {
-      return (
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-10 text-center">
-          <div className="w-16 h-16 bg-green-50 dark:bg-green-900/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Calendar className="w-8 h-8 text-green-300 dark:text-green-700" />
-          </div>
-          <p className="text-gray-500">{t('teachers.timetable.noEntries')}</p>
-        </div>
-      );
-    }
-
     return (
       <div className="space-y-6">
+        {/* Summary Cards */}
         {timetableData.summary && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             {[
-              { label: t('teachers.timetable.totalTeachers'),   value: timetableData.summary.total_teachers,              bg: 'bg-green-50 dark:bg-green-900/20',  text: 'text-green-600 dark:text-green-400',  num: 'text-green-700 dark:text-green-300' },
-              { label: t('teachers.timetable.withTimetable'),   value: timetableData.summary.teachers_with_timetable,     bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-700 dark:text-green-300',  num: 'text-green-800 dark:text-green-200' },
-              { label: t('teachers.timetable.totalEntries'),    value: timetableData.summary.total_timetable_entries,     bg: 'bg-amber-50 dark:bg-amber-900/20',  text: 'text-amber-600 dark:text-amber-400',  num: 'text-amber-700 dark:text-amber-300' },
-              { label: t('teachers.timetable.avgPerTeacher'),   value: timetableData.summary.average_entries_per_teacher, bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-700 dark:text-amber-300',  num: 'text-amber-800 dark:text-amber-200' },
-            ].map(({ label, value, bg, text, num }) => (
-              <div key={label} className={`${bg} rounded-xl p-3 border border-green-100/50 dark:border-white/5`}>
-                <p className={`text-xs ${text} mb-1`}>{label}</p>
-                <p className={`text-xl font-bold ${num}`}>{value}</p>
+              { label: t('teachers.timetable.totalTeachers'), value: timetableData.summary.total_teachers, color: 'emerald' },
+              { label: t('teachers.timetable.withTimetable'), value: timetableData.summary.teachers_with_timetable, color: 'teal' },
+              { label: t('teachers.timetable.totalEntries'), value: timetableData.summary.total_timetable_entries, color: 'amber' },
+              { label: t('teachers.timetable.avgPerTeacher'), value: timetableData.summary.average_entries_per_teacher, color: 'orange' },
+            ].map(({ label, value, color }) => (
+              <div key={label} className={`bg-${color}-50 dark:bg-${color}-900/20 rounded-xl p-3 border border-${color}-100 dark:border-${color}-900/30`}>
+                <p className={`text-xs text-${color}-600 dark:text-${color}-400 mb-1`}>{label}</p>
+                <p className={`text-xl font-bold text-${color}-700 dark:text-${color}-300`}>{value}</p>
               </div>
             ))}
           </div>
         )}
 
+        {/* Teacher Timetables */}
         {timetables.map((tt, idx) => (
           <div key={idx} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div className="bg-gradient-to-r from-green-700 to-green-900 px-4 py-3">
-              <h3 className="text-white font-semibold">{tt.teacher.full_name}</h3>
-              <p className="text-green-200 text-xs">
-                {tt.total_weekly_hours} {t('teachers.timetable.hoursPerWeek')} • {tt.total_entries} {t('teachers.timetable.entries')}
-              </p>
+            <div className="bg-gradient-to-r from-emerald-700 to-teal-800 px-4 py-3 flex justify-between items-center">
+              <div>
+                <h3 className="text-white font-semibold">{tt.teacher.full_name}</h3>
+                <p className="text-emerald-200 text-xs">
+                  {tt.total_weekly_hours} {t('teachers.timetable.hoursPerWeek')} • {tt.total_entries} {t('teachers.timetable.entries')}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setSelectedTeacher(tt.teacher);
+                  setActiveTeacherTab('timetable');
+                  setShowViewModal(true);
+                }}
+                className="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white rounded-lg text-xs font-medium transition-colors"
+              >
+                {t('teachers.actions.viewFull')}
+              </button>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-green-50 dark:bg-green-900/20">
+                <thead className="bg-gray-50 dark:bg-gray-800/50">
                   <tr>
                     {[t('teachers.timetable.day'), t('teachers.timetable.startTime'), t('teachers.timetable.endTime'),
-                      t('teachers.timetable.subject'), t('teachers.timetable.classLevel'), t('teachers.timetable.classroom')
-                    ].map(h => (
-                      <th key={h} className="px-3 py-2 text-left text-xs font-semibold text-green-700 dark:text-green-400">{h}</th>
+                      t('teachers.timetable.subject'), t('teachers.timetable.classLevel'), t('teachers.timetable.classroom')].map(h => (
+                      <th key={h} className="px-3 py-2 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {dayNames.map((day, di) => {
-                    const entries = tt.timetable[dayKeys[di]] || [];
-                    if (entries.length === 0) return (
-                      <tr key={day} className="bg-gray-50/30 dark:bg-gray-700/20">
-                        <td className="px-3 py-2 text-sm font-medium text-gray-500">{day}</td>
-                        <td colSpan="5" className="px-3 py-2 text-sm text-gray-400 italic">{t('teachers.timetable.noClasses')}</td>
-                      </tr>
-                    );
+                  {days.map(day => {
+                    const entries = tt.timetable[day] || [];
+                    if (entries.length === 0) return null;
                     return entries.map((entry, ei) => (
-                      <tr key={`${day}-${ei}`} className="hover:bg-green-50/30 dark:hover:bg-green-900/10 transition-colors">
-                        {ei === 0 && <td className="px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300" rowSpan={entries.length}>{day}</td>}
-                        <td className="px-3 py-2 text-sm text-gray-500">{entry.start_time}</td>
-                        <td className="px-3 py-2 text-sm text-gray-500">{entry.end_time}</td>
+                      <tr key={`${day}-${ei}`} className="hover:bg-gray-50 dark:hover:bg-gray-800/30">
+                        {ei === 0 && (
+                          <td className="px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300" rowSpan={entries.length}>
+                            {day}
+                          </td>
+                        )}
+                        <td className="px-3 py-2 text-sm text-gray-600">{entry.start_time}</td>
+                        <td className="px-3 py-2 text-sm text-gray-600">{entry.end_time}</td>
                         <td className="px-3 py-2 text-sm font-medium text-gray-800 dark:text-white">{entry.subject_name}</td>
-                        <td className="px-3 py-2 text-sm text-gray-500">{entry.class_level_name}</td>
-                        <td className="px-3 py-2 text-sm text-gray-500">{entry.classroom_name}</td>
+                        <td className="px-3 py-2 text-sm text-gray-600">{entry.class_level_name}</td>
+                        <td className="px-3 py-2 text-sm text-gray-600">{entry.classroom_name}</td>
                       </tr>
                     ));
                   })}
@@ -769,388 +1055,387 @@ const TeacherManagement = () => {
   };
 
   // ─────────────────────────────────────────────────────────
-  // Holiday timeline
+  // Render Reports View
   // ─────────────────────────────────────────────────────────
-  const renderHolidayTimeline = () => {
-    if (holidays.length === 0) return null;
-    const sorted = [...holidays].sort((a, b) => new Date(a.date) - new Date(b.date));
+  const renderReportsView = () => {
+    const generateReport = async () => {
+      setLoading(true);
+      try {
+        const [teachersRes, assignmentsRes] = await Promise.all([
+          apiClient.get('/teachers/'),
+          apiClient.get('/assignments/')
+        ]);
+        
+        const report = {
+          generated_on: new Date().toLocaleString(),
+          teachers: teachersRes.data.data,
+          assignments: assignmentsRes.data.data,
+          summary: {
+            total_teachers: teachersRes.data.data.length,
+            active_teachers: teachersRes.data.data.filter(t => t.status === 'active').length,
+            total_assignments: assignmentsRes.data.data.length,
+            active_assignments: assignmentsRes.data.data.filter(a => a.status === 'active').length,
+          }
+        };
+        setReportData(report);
+        toast.success(t('teachers.messages.reportGenerated'));
+      } catch (error) {
+        toast.error(t('teachers.errors.reportFailed'));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (!reportData) {
+      return (
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-10 text-center">
+          <BarChart3 className="w-16 h-16 text-emerald-300 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">{t('teachers.reports.title')}</h3>
+          <p className="text-gray-500 mb-6">{t('teachers.reports.description')}</p>
+          <button
+            onClick={generateReport}
+            disabled={loading}
+            className="px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-60 inline-flex items-center gap-2"
+          >
+            {loading ? <Spinner /> : <><BarChart3 className="w-4 h-4" /> {t('teachers.actions.generateReport')}</>}
+          </button>
+        </div>
+      );
+    }
+
     return (
-      <div className="mt-4 bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-200 dark:border-gray-700">
-        <h3 className="text-sm font-semibold mb-3 flex items-center gap-2 text-gray-800 dark:text-white">
-          <CalendarIcon className="w-4 h-4 text-amber-600" /> {t('teachers.holidays.upcoming')}
-        </h3>
-        <div className="space-y-2">
-          {sorted.slice(0, 5).map(holiday => (
-            <div key={holiday.id} className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700 last:border-0">
-              <div>
-                <p className="font-medium text-sm text-gray-800 dark:text-white">{holiday.name}</p>
-                <p className="text-xs text-gray-400">{holiday.date}</p>
-              </div>
-              {holiday.school_level_name && (
-                <span className="text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full">
-                  {holiday.school_level_name}
-                </span>
-              )}
+      <div className="space-y-6">
+        {/* Summary Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[
+            { label: t('teachers.stats.totalTeachers'), value: reportData.summary.total_teachers, color: 'emerald' },
+            { label: t('teachers.stats.activeTeachers'), value: reportData.summary.active_teachers, color: 'teal' },
+            { label: t('teachers.stats.totalAssignments'), value: reportData.summary.total_assignments, color: 'amber' },
+            { label: t('teachers.stats.activeAssignments'), value: reportData.summary.active_assignments, color: 'orange' },
+          ].map(({ label, value, color }) => (
+            <div key={label} className={`bg-${color}-50 dark:bg-${color}-900/20 rounded-xl p-4`}>
+              <p className={`text-xs text-${color}-600 dark:text-${color}-400 mb-1`}>{label}</p>
+              <p className={`text-2xl font-bold text-${color}-700 dark:text-${color}-300`}>{value}</p>
             </div>
           ))}
         </div>
-      </div>
-    );
-  };
 
-  // ─────────────────────────────────────────────────────────
-  // Report modal
-  // ─────────────────────────────────────────────────────────
-  const renderReportModal = () => {
-    if (!reportData) return null;
-    const summaryCards = [
-      { label: t('teachers.stats.totalTeachers'),    value: reportData.summary.total_teachers,          bg: 'bg-green-50 dark:bg-green-900/20',   text: 'text-green-700 dark:text-green-400',  num: 'text-green-800 dark:text-green-300' },
-      { label: t('teachers.stats.activeTeachers'),   value: reportData.summary.active_teachers,         bg: 'bg-green-100 dark:bg-green-900/30',  text: 'text-green-700 dark:text-green-300',  num: 'text-green-800 dark:text-green-200' },
-      { label: t('teachers.stats.totalAssignments'), value: reportData.summary.total_assignments,       bg: 'bg-amber-50 dark:bg-amber-900/20',   text: 'text-amber-600 dark:text-amber-400',  num: 'text-amber-700 dark:text-amber-300' },
-      { label: t('teachers.stats.timetableEntries'),value: reportData.summary.total_timetable_entries,  bg: 'bg-amber-100 dark:bg-amber-900/30',  text: 'text-amber-700 dark:text-amber-300',  num: 'text-amber-800 dark:text-amber-200' },
-    ];
-    return (
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-4xl w-full mx-4 p-6 max-h-[90vh] overflow-y-auto border border-green-100 dark:border-green-900/30">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-2">
-              <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                <FileText className="w-5 h-5 text-green-700 dark:text-green-400" />
-              </div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('teachers.reports.title')}</h2>
-            </div>
-            <button onClick={() => setShowReportModal(false)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
-              <X className="w-5 h-5 text-gray-500" />
-            </button>
+        {/* Teachers List */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+            <h3 className="font-semibold text-gray-800 dark:text-white">{t('teachers.reports.teachersList')}</h3>
           </div>
-
-          <p className="text-xs text-gray-400 mb-5">{t('teachers.reports.generatedOn')}: {reportData.generated_on}</p>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-            {summaryCards.map(({ label, value, bg, text, num }) => (
-              <div key={label} className={`${bg} rounded-xl p-3 border border-green-100/50 dark:border-white/5`}>
-                <p className={`text-xs ${text} mb-1`}>{label}</p>
-                <p className={`text-2xl font-bold ${num}`}>{value}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="mb-5">
-            <h3 className="text-sm font-semibold mb-2 flex items-center gap-2 text-gray-800 dark:text-white">
-              <Users className="w-4 h-4 text-green-700" /> {t('teachers.reports.teachersList')}
-            </h3>
-            <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
-              <table className="w-full text-xs">
-                <thead className="bg-green-50 dark:bg-green-900/20">
-                  <tr>
-                    {[t('teachers.table.fullName'), t('teachers.table.email'), t('teachers.table.phone'), t('teachers.table.status')].map(h => (
-                      <th key={h} className="px-3 py-2 text-left font-semibold text-green-800 dark:text-green-300">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {reportData.teachers.slice(0, 10).map(teacher => (
-                    <tr key={teacher.id}>
-                      <td className="px-3 py-2 font-medium text-gray-800 dark:text-white">{teacher.full_name}</td>
-                      <td className="px-3 py-2 text-gray-500">{teacher.email}</td>
-                      <td className="px-3 py-2 text-gray-500">{teacher.phone_number}</td>
-                      <td className="px-3 py-2"><span className={`px-1.5 py-0.5 rounded-full text-xs ${getStatusBadge(teacher.status)}`}>{teacher.status}</span></td>
+          <div className="overflow-x-auto max-h-96">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 dark:bg-gray-800/50 sticky top-0">
+                <tr>
+                  <th className="px-4 py-2 text-left">{t('teachers.table.fullName')}</th>
+                  <th className="px-4 py-2 text-left">{t('teachers.table.email')}</th>
+                  <th className="px-4 py-2 text-left">{t('teachers.table.phone')}</th>
+                  <th className="px-4 py-2 text-left">{t('teachers.table.status')}</th>
+                  <th className="px-4 py-2 text-left">{t('teachers.table.assignments')}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                {reportData.teachers.map(teacher => {
+                  const teacherAssignments = assignments.filter(a => a.teacher === teacher.id);
+                  return (
+                    <tr key={teacher.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/30">
+                      <td className="px-4 py-2 font-medium">{teacher.full_name}</td>
+                      <td className="px-4 py-2 text-gray-500">{teacher.email}</td>
+                      <td className="px-4 py-2 text-gray-500">{teacher.phone_number}</td>
+                      <td className="px-4 py-2">
+                        <span className={`px-2 py-0.5 rounded-full text-xs ${getStatusBadge(teacher.status)}`}>
+                          {t(`teachers.status.${teacher.status}`)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2 text-gray-500">{teacherAssignments.length}</td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-              {reportData.teachers.length > 10 && (
-                <p className="text-xs text-gray-400 p-2">
-                  {t('teachers.reports.showingFirst')} 10 {t('teachers.reports.of')} {reportData.teachers.length}
-                </p>
-              )}
-            </div>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
+        </div>
 
-          <div className="flex gap-3">
-            <button onClick={() => {
+        {/* Action Buttons */}
+        <div className="flex gap-3">
+          <button
+            onClick={() => {
               const link = document.createElement('a');
               link.setAttribute('href', 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(reportData, null, 2)));
               link.setAttribute('download', `teacher_report_${new Date().toISOString().split('T')[0]}.json`);
               link.click();
               toast.success(t('teachers.messages.exportSuccess'));
-            }} className="flex-1 px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors">
-              <Download className="w-4 h-4" /> {t('teachers.actions.downloadReport')}
-            </button>
-            <button onClick={() => window.print()}
-              className="flex-1 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors">
-              <Printer className="w-4 h-4" /> {t('teachers.actions.printReport')}
-            </button>
-          </div>
+            }}
+            className="flex-1 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl flex items-center justify-center gap-2 text-sm font-medium"
+          >
+            <Download className="w-4 h-4" /> {t('teachers.actions.downloadReport')}
+          </button>
+          <button
+            onClick={() => window.print()}
+            className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl flex items-center justify-center gap-2 text-sm font-medium"
+          >
+            <Printer className="w-4 h-4" /> {t('teachers.actions.printReport')}
+          </button>
+          <button
+            onClick={() => setReportData(null)}
+            className="px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-medium"
+          >
+            {t('teachers.actions.clear')}
+          </button>
         </div>
       </div>
     );
   };
 
   // ─────────────────────────────────────────────────────────
-  // Pagination
+  // Main Render
   // ─────────────────────────────────────────────────────────
-  const getCurrentData = () => {
-    switch (activeTab) {
-      case 'teachers':     return teachers;
-      case 'assignments':  return assignments;
-      case 'day-settings': return daySettings;
-      case 'holidays':     return holidays;
-      default:             return [];
-    }
-  };
-
-  const currentData    = getCurrentData();
-  const totalPages     = Math.ceil(currentData.length / itemsPerPage);
-  const paginatedData  = currentData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
-  // Shared filter select class
-  const filterSelectCls = "px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 focus:border-transparent outline-none";
-
-  // ═══════════════════════════════════════════════════════════
-  // RENDER
-  // ═══════════════════════════════════════════════════════════
   return (
     <div className={`min-h-screen ${darkMode ? 'dark' : ''}`}>
-      <div className="space-y-5 p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
+      <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{t('teachers.title')}</h1>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{t('teachers.subtitle')}</p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="p-2.5 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              {darkMode ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5 text-gray-500" />}
+            </button>
+            <button
+              onClick={fetchAllData}
+              className="p-2.5 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              <RefreshCw className={`w-5 h-5 text-gray-500 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
+        </div>
 
-        {/* ── Stats strip ─────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-6">
           {[
-            { label: t('teachers.stats.totalTeachers'),    value: stats.total_teachers,          from: 'from-green-700',  to: 'to-green-900'  },
-            { label: t('teachers.stats.activeTeachers'),   value: stats.active_teachers,         from: 'from-green-500',  to: 'to-green-700'  },
-            { label: t('teachers.stats.inactiveTeachers'), value: stats.inactive_teachers,       from: 'from-red-500',    to: 'to-red-700'    },
-            { label: t('teachers.stats.totalAssignments'), value: stats.total_assignments,       from: 'from-amber-500',  to: 'to-amber-700'  },
-            { label: t('teachers.stats.timetableEntries'),value: stats.total_timetable_entries,  from: 'from-amber-600',  to: 'to-green-700'  },
-            { label: t('teachers.stats.totalHolidays'),    value: stats.total_holidays,          from: 'from-red-600',    to: 'to-red-800'    },
-          ].map(({ label, value, from, to }) => (
-            <div key={label} className={`bg-gradient-to-br ${from} ${to} rounded-2xl p-4 text-white shadow-lg`}>
-              <p className="text-xs font-medium opacity-80 mb-1">{label}</p>
-              <p className="text-3xl font-bold">{value}</p>
+            { label: t('teachers.stats.totalTeachers'), value: stats.total_teachers, icon: Users, color: 'emerald' },
+            { label: t('teachers.stats.activeTeachers'), value: stats.active_teachers, icon: UserCheck, color: 'green' },
+            { label: t('teachers.stats.inactiveTeachers'), value: stats.inactive_teachers, icon: UserX, color: 'red' },
+            { label: t('teachers.stats.onLeaveTeachers'), value: stats.on_leave_teachers, icon: Clock, color: 'amber' },
+            { label: t('teachers.stats.totalAssignments'), value: stats.total_assignments, icon: BookOpen, color: 'blue' },
+            { label: t('teachers.stats.timetableEntries'), value: stats.total_timetable_entries, icon: Calendar, color: 'purple' },
+          ].map(({ label, value, icon: Icon, color }) => (
+            <div key={label} className={`bg-gradient-to-br from-${color}-700 to-${color}-900 rounded-2xl p-4 text-white shadow-lg`}>
+              <div className="flex items-center justify-between">
+                <Icon className="w-5 h-5 opacity-80" />
+                <p className="text-2xl font-bold">{value}</p>
+              </div>
+              <p className="text-xs font-medium opacity-80 mt-1">{label}</p>
             </div>
           ))}
         </div>
 
-        {/* ── Page header ─────────────────────────────────────────── */}
-        <div className="flex justify-between items-center flex-wrap gap-3">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{t('teachers.title')}</h1>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mt-0.5">{t('teachers.subtitle')}</p>
-          </div>
-          <div className="flex gap-2 flex-wrap items-center">
-            <button onClick={() => setDarkMode(!darkMode)}
-              className="p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-green-50 dark:hover:bg-gray-700 transition-colors shadow-sm">
-              {darkMode ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-gray-500" />}
-            </button>
-
-            {activeTab === 'timetable' && <>
-              <button onClick={handleGenerateTimetable} disabled={loading}
-                className="px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded-xl transition-colors flex items-center gap-2 text-sm font-medium shadow-sm disabled:opacity-60">
-                <Calendar className="w-4 h-4" /> {t('teachers.actions.generateTimetable')}
-              </button>
-              <button onClick={handleExportTimetable} disabled={loading}
-                className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl transition-colors flex items-center gap-2 text-sm font-medium shadow-sm disabled:opacity-60">
-                <Download className="w-4 h-4" /> {t('teachers.actions.export')}
-              </button>
-            </>}
-
-            {activeTab === 'reports' && (
-              <button onClick={handleGenerateReport} disabled={loading}
-                className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl transition-colors flex items-center gap-2 text-sm font-medium shadow-sm disabled:opacity-60">
-                <BarChart3 className="w-4 h-4" /> {t('teachers.actions.generateReport')}
-              </button>
-            )}
-
-            {activeTab !== 'reports' && activeTab !== 'timetable' && (
-              <button onClick={() => { setNewItem({}); setShowAddModal(true); }}
-                className="px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded-xl transition-colors flex items-center gap-2 text-sm font-medium shadow-sm">
-                <Plus className="w-4 h-4" />
-                {`${t('teachers.actions.addNew') || '+'} ${currentTabLabel()}`}
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* ── Tabs ─────────────────────────────────────────────────── */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-1.5 flex gap-1 overflow-x-auto">
-          {tabs.map(tab => {
-            const Icon     = tab.icon;
-            const isActive = activeTab === tab.id;
+        {/* Navigation Tabs */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-1.5 flex gap-1 mb-6 overflow-x-auto">
+          {views.map(view => {
+            const Icon = view.icon;
+            const isActive = activeView === view.id;
             return (
-              <button key={tab.id}
-                onClick={() => { setActiveTab(tab.id); setCurrentPage(1); setSearchTerm(''); setFilters({}); }}
+              <button
+                key={view.id}
+                onClick={() => {
+                  setActiveView(view.id);
+                  setCurrentPage(1);
+                  setSearchTerm('');
+                }}
                 className={`px-4 py-2.5 text-sm font-semibold transition-all flex items-center gap-2 rounded-xl whitespace-nowrap flex-1 justify-center
                   ${isActive
-                    ? 'bg-green-700 text-white shadow-md'
-                    : 'text-gray-500 hover:text-green-700 dark:text-gray-400 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/10'
+                    ? `bg-${view.color}-700 text-white shadow-md`
+                    : `text-gray-500 hover:text-${view.color}-700 dark:text-gray-400 dark:hover:text-${view.color}-400 hover:bg-${view.color}-50 dark:hover:bg-${view.color}-900/10`
                   }`}
               >
-                <Icon className="w-4 h-4" /> <span>{tab.label}</span>
+                <Icon className="w-4 h-4" /> <span>{view.label}</span>
               </button>
             );
           })}
         </div>
 
-        {/* ── Filters & search ─────────────────────────────────────── */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-          <div className="flex flex-col md:flex-row gap-3">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input type="text" placeholder={t('teachers.actions.search')} value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 focus:border-transparent outline-none"
-              />
+        {/* Search and Filters */}
+        {activeView !== 'timetable' && activeView !== 'reports' && (
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+            <div className="flex flex-col md:flex-row gap-3">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder={t('teachers.actions.search')}
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-700 focus:border-transparent outline-none"
+                />
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                {activeView === 'teachers' && (
+                  <select
+                    value={filters.status}
+                    onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                    className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-700 focus:border-transparent outline-none"
+                  >
+                    <option value="">{t('teachers.filters.allStatus')}</option>
+                    <option value="active">{t('teachers.status.active')}</option>
+                    <option value="inactive">{t('teachers.status.inactive')}</option>
+                    <option value="on_leave">{t('teachers.status.onLeave')}</option>
+                    <option value="suspended">{t('teachers.status.suspended')}</option>
+                  </select>
+                )}
+                {activeView === 'assignments' && (
+                  <>
+                    <select
+                      value={filters.status}
+                      onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                      className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-700 outline-none"
+                    >
+                      <option value="">{t('teachers.filters.allStatus')}</option>
+                      <option value="active">{t('teachers.status.active')}</option>
+                      <option value="inactive">{t('teachers.status.inactive')}</option>
+                      <option value="completed">{t('teachers.status.completed')}</option>
+                    </select>
+                    <select
+                      value={filters.schoolLevel}
+                      onChange={(e) => setFilters({ ...filters, schoolLevel: e.target.value })}
+                      className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-700 outline-none"
+                    >
+                      <option value="">{t('teachers.filters.allSchoolLevels')}</option>
+                      {schoolLevels.map(level => (
+                        <option key={level.id} value={level.id}>{level.name}</option>
+                      ))}
+                    </select>
+                  </>
+                )}
+              </div>
             </div>
-            <div className="flex gap-2 flex-wrap">
-              {activeTab === 'teachers' && (
-                <select value={filters.status} onChange={(e) => setFilters({...filters, status: e.target.value})} className={filterSelectCls}>
-                  <option value="">{t('teachers.filters.allStatus')}</option>
-                  <option value="active">{t('teachers.status.active')}</option>
-                  <option value="inactive">{t('teachers.status.inactive')}</option>
-                  <option value="on_leave">{t('teachers.status.onLeave')}</option>
-                </select>
-              )}
+          </div>
+        )}
 
-              {activeTab === 'assignments' && <>
-                <select value={filters.teacher} onChange={(e) => setFilters({...filters, teacher: e.target.value})} className={filterSelectCls}>
-                  <option value="">{t('teachers.filters.allTeachers')}</option>
-                  {teachers.map(tc => <option key={tc.id} value={tc.id}>{tc.full_name}</option>)}
-                </select>
-                <select value={filters.status} onChange={(e) => setFilters({...filters, status: e.target.value})} className={filterSelectCls}>
-                  <option value="">{t('teachers.filters.allStatus')}</option>
-                  <option value="active">{t('teachers.status.active')}</option>
-                  <option value="inactive">{t('teachers.status.inactive')}</option>
-                  <option value="completed">{t('teachers.status.completed')}</option>
-                </select>
-              </>}
-
-              {activeTab === 'timetable' && <>
-                <select value={filters.teacher} onChange={(e) => setFilters({...filters, teacher: e.target.value})} className={filterSelectCls}>
-                  <option value="">{t('teachers.filters.allTeachers')}</option>
-                  {teachers.map(tc => <option key={tc.id} value={tc.id}>{tc.full_name}</option>)}
-                </select>
-                <select value={filters.academic_year} onChange={(e) => setFilters({...filters, academic_year: e.target.value})} className={filterSelectCls}>
-                  <option value="">{t('teachers.filters.allAcademicYears')}</option>
-                  {academicYears.map(y => <option key={y.id} value={y.id}>{y.name}</option>)}
-                </select>
-                <select value={filters.week} onChange={(e) => setFilters({...filters, week: e.target.value})} className={filterSelectCls}>
-                  <option value="">{t('teachers.filters.allWeeks')}</option>
-                  {[...Array(36)].map((_, i) => <option key={i + 1} value={i + 1}>{`${t('teachers.filters.weekPrefix') || 'Week'} ${i + 1}`}</option>)}
-                </select>
-                <select value={filters.day} onChange={(e) => setFilters({...filters, day: e.target.value})} className={filterSelectCls}>
-                  <option value="">{t('teachers.filters.allDays')}</option>
-                  {[['0',t('teachers.days.monday')],['1',t('teachers.days.tuesday')],['2',t('teachers.days.wednesday')],
-                    ['3',t('teachers.days.thursday')],['4',t('teachers.days.friday')],['5',t('teachers.days.saturday')],['6',t('teachers.days.sunday')]
-                  ].map(([val, label]) => <option key={val} value={val}>{label}</option>)}
-                </select>
-              </>}
-
-              {(activeTab === 'day-settings' || activeTab === 'holidays') && <>
-                <select value={filters.school_level} onChange={(e) => setFilters({...filters, school_level: e.target.value})} className={filterSelectCls}>
-                  <option value="">{t('teachers.filters.allSchoolLevels')}</option>
-                  {schoolLevels.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                </select>
-                <select value={filters.academic_year} onChange={(e) => setFilters({...filters, academic_year: e.target.value})} className={filterSelectCls}>
-                  <option value="">{t('teachers.filters.allAcademicYears')}</option>
-                  {academicYears.map(y => <option key={y.id} value={y.id}>{y.name}</option>)}
-                </select>
-              </>}
-
-              <button onClick={fetchData}
-                className="px-3 py-2 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 border border-green-200 dark:border-green-900/40 rounded-xl transition-colors flex items-center gap-1.5 text-sm font-medium text-green-700 dark:text-green-400">
-                <RefreshCw className="w-4 h-4" /> {t('teachers.actions.refresh')}
+        {/* Timetable Filters */}
+        {activeView === 'timetable' && (
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+            <div className="flex flex-wrap gap-3">
+              <select
+                value={filters.academicYear}
+                onChange={(e) => setFilters({ ...filters, academicYear: e.target.value })}
+                className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-700 outline-none"
+              >
+                <option value="">{t('teachers.filters.allAcademicYears')}</option>
+                {academicYears.map(year => (
+                  <option key={year.id} value={year.id}>{year.name}</option>
+                ))}
+              </select>
+              <select
+                value={filters.term}
+                onChange={(e) => setFilters({ ...filters, term: e.target.value })}
+                className="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-700 outline-none"
+              >
+                <option value="">{t('teachers.filters.allTerms')}</option>
+                {terms.map(term => (
+                  <option key={term.id} value={term.id}>{term.name}</option>
+                ))}
+              </select>
+              <button
+                onClick={handleGenerateTimetable}
+                disabled={loading}
+                className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-sm font-medium transition-colors disabled:opacity-60 flex items-center gap-2"
+              >
+                {loading ? <Spinner /> : <><Calendar className="w-4 h-4" /> {t('teachers.actions.generateTimetable')}</>}
               </button>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* ── Main content ─────────────────────────────────────────── */}
-        {activeTab === 'timetable' ? (
-          renderTimetableView()
-        ) : activeTab === 'reports' ? (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-10 text-center">
-            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <BarChart3 className="w-8 h-8 text-green-700 dark:text-green-400" />
-            </div>
-            <h3 className="text-lg font-bold text-gray-700 dark:text-gray-300 mb-2">{t('teachers.reports.clickToGenerate')}</h3>
-            <p className="text-sm text-gray-400 mb-5">{t('teachers.reports.description')}</p>
-            <button onClick={handleGenerateReport} disabled={loading}
-              className="px-5 py-2.5 bg-green-700 hover:bg-green-800 text-white rounded-xl inline-flex items-center gap-2 text-sm font-medium disabled:opacity-60 transition-colors">
-              {loading ? <Spinner /> : <><BarChart3 className="w-4 h-4" /> {t('teachers.actions.generateReport')}</>}
+        {/* Add Button */}
+        {activeView !== 'timetable' && activeView !== 'reports' && (
+          <div className="mb-4 flex justify-end">
+            <button
+              onClick={() => {
+                if (activeView === 'teachers') {
+                  setNewTeacher({
+                    first_name: '', last_name: '', middle_name: '', email: '', phone_number: '',
+                    address: '', gender: 'male', salary: '', work_hours_per_week: 40,
+                    education_level: 'bachelor', qualifications: '', birth_date: '', hire_date: '',
+                    status: 'active', bio: '', specialization_ids: []
+                  });
+                } else {
+                  setNewAssignment({});
+                }
+                setShowAddModal(true);
+              }}
+              className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl flex items-center gap-2 text-sm font-medium shadow-sm transition-colors"
+            >
+              <UserPlus className="w-4 h-4" />
+              {activeView === 'teachers' ? t('teachers.actions.addTeacher') : t('teachers.actions.addAssignment')}
             </button>
-            {renderHolidayTimeline()}
           </div>
-        ) : (
+        )}
+
+        {/* Main Content */}
+        {loading && activeView !== 'timetable' && (
+          <div className="flex justify-center items-center py-20">
+            <Spinner size="lg" />
+          </div>
+        )}
+
+        {activeView === 'teachers' && !loading && (
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-green-50 dark:bg-green-900/20 border-b border-green-100 dark:border-green-900/30">
-                  <tr>{renderTableHeaders()}</tr>
+                <thead className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('teachers.table.fullName')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('teachers.table.email')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('teachers.table.phone')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('teachers.table.status')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('teachers.table.actions')}</th>
+                  </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-700/50">
-                  {loading ? (
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                  {paginatedData.map(renderTeacherRow)}
+                  {paginatedData.length === 0 && (
                     <tr>
-                      <td colSpan="10" className="px-4 py-12 text-center">
-                        <div className="flex justify-center items-center gap-3">
-                          <div className="w-6 h-6 border-2 border-green-700 border-t-transparent rounded-full animate-spin" />
-                          <span className="text-sm text-gray-500">{t('teachers.messages.loading')}</span>
-                        </div>
+                      <td colSpan="5" className="px-4 py-12 text-center text-gray-400">
+                        {t('teachers.messages.noTeachersFound')}
                       </td>
                     </tr>
-                  ) : paginatedData.length === 0 ? (
-                    <tr>
-                      <td colSpan="10" className="px-4 py-12 text-center">
-                        <div className="flex flex-col items-center gap-3">
-                          <div className="w-12 h-12 bg-green-50 dark:bg-green-900/20 rounded-2xl flex items-center justify-center">
-                            <Info className="w-6 h-6 text-green-300 dark:text-green-700" />
-                          </div>
-                          <p className="text-sm text-gray-400">{t('teachers.messages.noData')}</p>
-                          <button onClick={() => setShowAddModal(true)} className="text-green-700 hover:text-green-800 dark:text-green-400 text-sm font-semibold">
-                            {t('teachers.actions.clickToAdd')}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ) : paginatedData.map(renderTableRow)}
+                  )}
                 </tbody>
               </table>
             </div>
 
             {/* Pagination */}
-            {!loading && currentData.length > 0 && (
-              <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-center gap-3 bg-gray-50 dark:bg-gray-800/50">
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <span>{t('teachers.pagination.showing')}</span>
-                  <select value={itemsPerPage} onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
-                    className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm focus:ring-2 focus:ring-green-700 outline-none">
-                    {[5, 10, 30, 50].map(n => <option key={n} value={n}>{n}</option>)}
-                  </select>
-                  <span>{t('teachers.pagination.perPage')}</span>
-                  <span className="ml-2">
-                    {`${t('teachers.pagination.total') || 'Total'}:`} <strong className="text-green-700 dark:text-green-400">{currentData.length}</strong> {t('teachers.pagination.records') || 'records'}
-                  </span>
+            {totalPages > 1 && (
+              <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <div className="text-sm text-gray-500">
+                  {t('teachers.pagination.showing')} {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, currentData.length)} {t('teachers.pagination.of')} {currentData.length}
                 </div>
-                <div className="flex items-center gap-1">
-                  <button onClick={() => setCurrentPage(1)} disabled={currentPage === 1}
-                    className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/10 hover:border-green-300 disabled:opacity-40 transition-colors">
-                    {t('teachers.pagination.first')}
-                  </button>
-                  <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}
-                    className="p-1.5 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/10 hover:border-green-300 disabled:opacity-40 transition-colors">
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="p-1.5 rounded-lg border border-gray-300 dark:border-gray-600 disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
-                  <span className="text-sm px-3 text-gray-600 dark:text-gray-400">
-                    {`${t('teachers.pagination.page') || 'Page'} `}
-                    <strong className="text-green-700 dark:text-green-400">{currentPage}</strong>
-                    {` ${t('teachers.pagination.of') || 'of'} ${totalPages}`}
-                  </span>
-                  <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage >= totalPages}
-                    className="p-1.5 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/10 hover:border-green-300 disabled:opacity-40 transition-colors">
+                  <span className="px-3 py-1.5 text-sm">{currentPage} / {totalPages}</span>
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="p-1.5 rounded-lg border border-gray-300 dark:border-gray-600 disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  >
                     <ChevronRight className="w-4 h-4" />
-                  </button>
-                  <button onClick={() => setCurrentPage(totalPages)} disabled={currentPage >= totalPages}
-                    className="px-2 py-1 text-xs border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/10 hover:border-green-300 disabled:opacity-40 transition-colors">
-                    {t('teachers.pagination.last')}
                   </button>
                 </div>
               </div>
@@ -1158,34 +1443,159 @@ const TeacherManagement = () => {
           </div>
         )}
 
-        {/* ── Report modal ─────────────────────────────────────────── */}
-        {showReportModal && renderReportModal()}
+        {activeView === 'assignments' && !loading && (
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('teachers.table.teacher')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('teachers.table.subject')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('teachers.table.classLevel')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('teachers.table.schoolLevel')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('teachers.table.hoursPerWeek')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('teachers.table.status')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('teachers.table.actions')}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                  {paginatedData.map(renderAssignmentRow)}
+                  {paginatedData.length === 0 && (
+                    <tr>
+                      <td colSpan="7" className="px-4 py-12 text-center text-gray-400">
+                        {t('teachers.messages.noAssignmentsFound')}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
 
-        {/* ── Add modal ────────────────────────────────────────────── */}
-        {showAddModal && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full mx-4 p-5 max-h-[90vh] overflow-y-auto border border-green-100 dark:border-green-900/30">
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                    <Plus className="w-4 h-4 text-green-700 dark:text-green-400" />
-                  </div>
-                  <h2 className="text-base font-bold text-gray-900 dark:text-white">
-                    {`${t('teachers.actions.add') || 'Add'} ${currentTabLabel()}`}
-                  </h2>
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <div className="text-sm text-gray-500">
+                  {t('teachers.pagination.showing')} {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, currentData.length)} {t('teachers.pagination.of')} {currentData.length}
                 </div>
-                <button onClick={() => setShowAddModal(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="p-1.5 rounded-lg border border-gray-300 dark:border-gray-600 disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <span className="px-3 py-1.5 text-sm">{currentPage} / {totalPages}</span>
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="p-1.5 rounded-lg border border-gray-300 dark:border-gray-600 disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeView === 'timetable' && renderTimetableView()}
+        {activeView === 'reports' && renderReportsView()}
+
+        {/* Modals */}
+        {showViewModal && <TeacherDetailModal />}
+
+        {/* Add/Edit Modals - Simplified for brevity */}
+        {showAddModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full p-5 max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                  {activeView === 'teachers' ? t('teachers.actions.addTeacher') : t('teachers.actions.addAssignment')}
+                </h2>
+                <button onClick={() => setShowAddModal(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
                   <X className="w-5 h-5 text-gray-500" />
                 </button>
               </div>
-              <div className="space-y-3">{renderFormFields(newItem, setNewItem)}</div>
+              <div className="space-y-3">
+                {activeView === 'teachers' ? (
+                  <>
+                    <input type="text" placeholder={t('teachers.form.firstName')} value={newTeacher.first_name} onChange={e => setNewTeacher({...newTeacher, first_name: e.target.value})} className="w-full px-3 py-2 border rounded-lg" />
+                    <input type="text" placeholder={t('teachers.form.lastName')} value={newTeacher.last_name} onChange={e => setNewTeacher({...newTeacher, last_name: e.target.value})} className="w-full px-3 py-2 border rounded-lg" />
+                    <input type="email" placeholder={t('teachers.form.email')} value={newTeacher.email} onChange={e => setNewTeacher({...newTeacher, email: e.target.value})} className="w-full px-3 py-2 border rounded-lg" />
+                                        <input type="tel" placeholder={t('teachers.form.phone')} value={newTeacher.phone_number} onChange={e => setNewTeacher({...newTeacher, phone_number: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                    <textarea placeholder={t('teachers.form.address')} value={newTeacher.address} onChange={e => setNewTeacher({...newTeacher, address: e.target.value})} rows="2" className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                    <select value={newTeacher.gender} onChange={e => setNewTeacher({...newTeacher, gender: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
+                      <option value="male">{t('teachers.gender.male')}</option>
+                      <option value="female">{t('teachers.gender.female')}</option>
+                      <option value="other">{t('teachers.gender.other')}</option>
+                    </select>
+                    <input type="number" placeholder={t('teachers.form.salary')} value={newTeacher.salary} onChange={e => setNewTeacher({...newTeacher, salary: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                    <input type="number" placeholder={t('teachers.form.workHoursPerWeek')} value={newTeacher.work_hours_per_week} onChange={e => setNewTeacher({...newTeacher, work_hours_per_week: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                    <select value={newTeacher.education_level} onChange={e => setNewTeacher({...newTeacher, education_level: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
+                      <option value="a2">{t('teachers.education.a2')}</option>
+                      <option value="a1">{t('teachers.education.a1')}</option>
+                      <option value="bachelor">{t('teachers.education.bachelor')}</option>
+                      <option value="master">{t('teachers.education.master')}</option>
+                      <option value="doctorate">{t('teachers.education.doctorate')}</option>
+                      <option value="certificate">{t('teachers.education.certificate')}</option>
+                    </select>
+                    <textarea placeholder={t('teachers.form.qualifications')} value={newTeacher.qualifications} onChange={e => setNewTeacher({...newTeacher, qualifications: e.target.value})} rows="2" className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                    <input type="date" placeholder={t('teachers.form.birthDate')} value={newTeacher.birth_date} onChange={e => setNewTeacher({...newTeacher, birth_date: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                    <input type="date" placeholder={t('teachers.form.hireDate')} value={newTeacher.hire_date} onChange={e => setNewTeacher({...newTeacher, hire_date: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                    <select value={newTeacher.status} onChange={e => setNewTeacher({...newTeacher, status: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
+                      <option value="active">{t('teachers.status.active')}</option>
+                      <option value="inactive">{t('teachers.status.inactive')}</option>
+                      <option value="on_leave">{t('teachers.status.onLeave')}</option>
+                      <option value="suspended">{t('teachers.status.suspended')}</option>
+                    </select>
+                    <textarea placeholder={t('teachers.form.bio')} value={newTeacher.bio} onChange={e => setNewTeacher({...newTeacher, bio: e.target.value})} rows="2" className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                  </>
+                ) : (
+                  <>
+                    <select value={newAssignment.teacher} onChange={e => setNewAssignment({...newAssignment, teacher: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
+                      <option value="">{t('teachers.form.selectTeacher')}</option>
+                      {teachers.map(t => <option key={t.id} value={t.id}>{t.full_name}</option>)}
+                    </select>
+                    <select value={newAssignment.school_level} onChange={e => setNewAssignment({...newAssignment, school_level: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
+                      <option value="">{t('teachers.form.selectSchoolLevel')}</option>
+                      {schoolLevels.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                    </select>
+                    <select value={newAssignment.class_level} onChange={e => setNewAssignment({...newAssignment, class_level: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
+                      <option value="">{t('teachers.form.selectClassLevel')}</option>
+                      {classLevels.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                    <select value={newAssignment.subject} onChange={e => setNewAssignment({...newAssignment, subject: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
+                      <option value="">{t('teachers.form.selectSubject')}</option>
+                      {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                    </select>
+                    <select value={newAssignment.classroom} onChange={e => setNewAssignment({...newAssignment, classroom: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
+                      <option value="">{t('teachers.form.selectClassroom')}</option>
+                      {classrooms.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                    <select value={newAssignment.academic_year} onChange={e => setNewAssignment({...newAssignment, academic_year: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
+                      <option value="">{t('teachers.form.selectAcademicYear')}</option>
+                      {academicYears.map(y => <option key={y.id} value={y.id}>{y.name}</option>)}
+                    </select>
+                    <select value={newAssignment.term} onChange={e => setNewAssignment({...newAssignment, term: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
+                      <option value="">{t('teachers.form.selectTerm')}</option>
+                      {terms.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                    </select>
+                    <input type="number" placeholder={t('teachers.form.hoursPerWeek')} value={newAssignment.hours_per_week} onChange={e => setNewAssignment({...newAssignment, hours_per_week: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                    <select value={newAssignment.status} onChange={e => setNewAssignment({...newAssignment, status: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
+                      <option value="active">{t('teachers.status.active')}</option>
+                      <option value="inactive">{t('teachers.status.inactive')}</option>
+                      <option value="completed">{t('teachers.status.completed')}</option>
+                    </select>
+                    <textarea placeholder={t('teachers.form.notes')} value={newAssignment.notes} onChange={e => setNewAssignment({...newAssignment, notes: e.target.value})} rows="2" className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                  </>
+                )}
+              </div>
               <div className="flex gap-3 mt-5">
-                <button onClick={handleCreate} disabled={loading}
-                  className="flex-1 px-3 py-2.5 bg-green-700 hover:bg-green-800 text-white rounded-xl disabled:opacity-60 text-sm font-semibold transition-colors">
+                <button onClick={activeView === 'teachers' ? handleCreateTeacher : handleCreateAssignment} disabled={loading} className="flex-1 px-3 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl disabled:opacity-60 text-sm font-semibold transition-colors">
                   {loading ? <Spinner /> : t('teachers.actions.create')}
                 </button>
-                <button onClick={() => setShowAddModal(false)}
-                  className="flex-1 px-3 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 transition-colors">
+                <button onClick={() => setShowAddModal(false)} className="flex-1 px-3 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 transition-colors">
                   {t('teachers.actions.cancel')}
                 </button>
               </div>
@@ -1193,31 +1603,53 @@ const TeacherManagement = () => {
           </div>
         )}
 
-        {/* ── Edit modal ───────────────────────────────────────────── */}
-        {showEditModal && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full mx-4 p-5 max-h-[90vh] overflow-y-auto border border-amber-100 dark:border-amber-900/20">
+        {/* Edit Modal */}
+        {showEditModal && editTeacher && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full p-5 max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
-                    <Edit className="w-4 h-4 text-amber-600" />
-                  </div>
-                  <h2 className="text-base font-bold text-gray-900 dark:text-white">
-                    {`${t('teachers.actions.edit') || 'Edit'} ${currentTabLabel()}`}
-                  </h2>
-                </div>
-                <button onClick={() => setShowEditModal(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">{t('teachers.actions.editTeacher')}</h2>
+                <button onClick={() => setShowEditModal(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
                   <X className="w-5 h-5 text-gray-500" />
                 </button>
               </div>
-              <div className="space-y-3">{renderFormFields(editItem, setEditItem, true)}</div>
+              <div className="space-y-3">
+                <input type="text" placeholder={t('teachers.form.firstName')} value={editTeacher.first_name || ''} onChange={e => setEditTeacher({...editTeacher, first_name: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                <input type="text" placeholder={t('teachers.form.lastName')} value={editTeacher.last_name || ''} onChange={e => setEditTeacher({...editTeacher, last_name: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                <input type="text" placeholder={t('teachers.form.middleName')} value={editTeacher.middle_name || ''} onChange={e => setEditTeacher({...editTeacher, middle_name: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                <input type="email" placeholder={t('teachers.form.email')} value={editTeacher.email || ''} onChange={e => setEditTeacher({...editTeacher, email: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                <input type="tel" placeholder={t('teachers.form.phone')} value={editTeacher.phone_number || ''} onChange={e => setEditTeacher({...editTeacher, phone_number: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                <textarea placeholder={t('teachers.form.address')} value={editTeacher.address || ''} onChange={e => setEditTeacher({...editTeacher, address: e.target.value})} rows="2" className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                <select value={editTeacher.gender || 'male'} onChange={e => setEditTeacher({...editTeacher, gender: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
+                  <option value="male">{t('teachers.gender.male')}</option>
+                  <option value="female">{t('teachers.gender.female')}</option>
+                  <option value="other">{t('teachers.gender.other')}</option>
+                </select>
+                <input type="number" placeholder={t('teachers.form.salary')} value={editTeacher.salary || ''} onChange={e => setEditTeacher({...editTeacher, salary: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                <input type="number" placeholder={t('teachers.form.workHoursPerWeek')} value={editTeacher.work_hours_per_week || 40} onChange={e => setEditTeacher({...editTeacher, work_hours_per_week: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                <select value={editTeacher.education_level || 'bachelor'} onChange={e => setEditTeacher({...editTeacher, education_level: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
+                  <option value="a2">{t('teachers.education.a2')}</option>
+                  <option value="a1">{t('teachers.education.a1')}</option>
+                  <option value="bachelor">{t('teachers.education.bachelor')}</option>
+                  <option value="master">{t('teachers.education.master')}</option>
+                  <option value="doctorate">{t('teachers.education.doctorate')}</option>
+                  <option value="certificate">{t('teachers.education.certificate')}</option>
+                </select>
+                <textarea placeholder={t('teachers.form.qualifications')} value={editTeacher.qualifications || ''} onChange={e => setEditTeacher({...editTeacher, qualifications: e.target.value})} rows="2" className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                <input type="date" placeholder={t('teachers.form.birthDate')} value={editTeacher.birth_date || ''} onChange={e => setEditTeacher({...editTeacher, birth_date: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                <select value={editTeacher.status || 'active'} onChange={e => setEditTeacher({...editTeacher, status: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
+                  <option value="active">{t('teachers.status.active')}</option>
+                  <option value="inactive">{t('teachers.status.inactive')}</option>
+                  <option value="on_leave">{t('teachers.status.onLeave')}</option>
+                  <option value="suspended">{t('teachers.status.suspended')}</option>
+                </select>
+                <textarea placeholder={t('teachers.form.bio')} value={editTeacher.bio || ''} onChange={e => setEditTeacher({...editTeacher, bio: e.target.value})} rows="2" className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+              </div>
               <div className="flex gap-3 mt-5">
-                <button onClick={handleUpdate} disabled={loading}
-                  className="flex-1 px-3 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl disabled:opacity-60 text-sm font-semibold transition-colors">
+                <button onClick={handleUpdateTeacher} disabled={loading} className="flex-1 px-3 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl disabled:opacity-60 text-sm font-semibold transition-colors">
                   {loading ? <Spinner /> : t('teachers.actions.update')}
                 </button>
-                <button onClick={() => setShowEditModal(false)}
-                  className="flex-1 px-3 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 transition-colors">
+                <button onClick={() => setShowEditModal(false)} className="flex-1 px-3 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 transition-colors">
                   {t('teachers.actions.cancel')}
                 </button>
               </div>
@@ -1225,78 +1657,32 @@ const TeacherManagement = () => {
           </div>
         )}
 
-        {/* ── View modal ───────────────────────────────────────────── */}
-        {showViewModal && selectedItem && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full mx-4 p-5 border border-green-100 dark:border-green-900/30">
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                    <Eye className="w-4 h-4 text-green-700 dark:text-green-400" />
-                  </div>
-                  <h2 className="text-base font-bold text-gray-900 dark:text-white">{t('teachers.actions.viewDetails')}</h2>
-                </div>
-                <button onClick={() => setShowViewModal(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
-                  <X className="w-5 h-5 text-gray-500" />
-                </button>
-              </div>
-              <div className="space-y-1 max-h-[60vh] overflow-y-auto">
-                {Object.entries(selectedItem).map(([key, value]) => {
-                  if (['id','created_at','updated_at','user'].includes(key) || typeof value === 'object') return null;
-                  const label   = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                  let   display = value ?? '—';
-                  if (typeof value === 'boolean') display = value ? t('teachers.status.yes') : t('teachers.status.no');
-                  if (key === 'amount' && typeof value === 'number') display = `${new Intl.NumberFormat().format(value)} RWF`;
-                  if (key === 'pass_mark' && value) display = `${value}%`;
-                  return (
-                    <div key={key} className="flex justify-between py-2 text-sm border-b border-gray-100 dark:border-gray-700 last:border-0">
-                      <span className="font-medium text-gray-500 dark:text-gray-400">{label}:</span>
-                      <span className="text-gray-900 dark:text-white text-right ml-3">{String(display)}</span>
-                    </div>
-                  );
-                })}
-              </div>
-              <button onClick={() => setShowViewModal(false)}
-                className="w-full mt-4 px-3 py-2.5 bg-green-700 hover:bg-green-800 text-white rounded-xl text-sm font-semibold transition-colors">
-                {t('teachers.actions.close')}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ── Delete modal ─────────────────────────────────────────── */}
-        {showDeleteModal && selectedItem && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6 border border-red-100 dark:border-red-900/30">
+        {/* Delete Modal */}
+        {showDeleteModal && (selectedTeacher || selectedAssignment) && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6">
               <div className="text-center">
                 <div className="w-14 h-14 bg-red-100 dark:bg-red-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <Trash2 className="w-7 h-7 text-red-600" />
                 </div>
                 <h2 className="text-lg font-bold mb-2 text-gray-900 dark:text-white">{t('teachers.delete.title')}</h2>
                 <p className="text-gray-500 text-sm mb-3">{t('teachers.delete.confirmation')}</p>
-                {(selectedItem.full_name || selectedItem.name) && (
-                  <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-3 mb-3 border border-red-100 dark:border-red-900/30">
-                    <p className="text-sm font-semibold text-red-700 dark:text-red-300">
-                      {selectedItem.full_name || selectedItem.name}
-                    </p>
-                  </div>
-                )}
+                <p className="text-sm font-semibold text-red-700 dark:text-red-300 mb-3">
+                  {selectedTeacher?.full_name || selectedAssignment?.teacher_name}
+                </p>
                 <p className="text-xs text-gray-400">{t('teachers.delete.warning')}</p>
               </div>
               <div className="flex gap-3 mt-5">
-                <button onClick={handleDelete} disabled={loading}
-                  className="flex-1 px-3 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl disabled:opacity-60 flex items-center justify-center gap-1.5 text-sm font-semibold transition-colors">
+                <button onClick={selectedTeacher ? handleDeleteTeacher : handleDeleteAssignment} disabled={loading} className="flex-1 px-3 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl disabled:opacity-60 flex items-center justify-center gap-1.5 text-sm font-semibold transition-colors">
                   {loading ? <Spinner /> : <><Trash2 className="w-4 h-4" /> {t('teachers.actions.delete')}</>}
                 </button>
-                <button onClick={() => setShowDeleteModal(false)}
-                  className="flex-1 px-3 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 transition-colors">
+                <button onClick={() => { setShowDeleteModal(false); setSelectedTeacher(null); setSelectedAssignment(null); }} className="flex-1 px-3 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 transition-colors">
                   {t('teachers.actions.cancel')}
                 </button>
               </div>
             </div>
           </div>
         )}
-
       </div>
     </div>
   );

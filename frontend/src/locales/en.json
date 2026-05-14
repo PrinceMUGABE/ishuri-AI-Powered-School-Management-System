@@ -1,1294 +1,268 @@
 {
-  "nav": {
-    "features": "Features",
-    "about": "About",
-    "testimonials": "Testimonials",
-    "contact": "Contact",
-    "signIn": "Sign In"
-  },
-  "hero": {
-    "badge": "AI-Powered School Management",
-    "title": "Welcome to",
-    "description": "Transform your school management with our intelligent platform. Streamline academics, communication, and administration all in one place.",
-    "getStarted": "Get Started",
-    "learnMore": "Learn More"
-  },
-  "stats": {
-    "students": "Students",
-    "teachers": "Teachers",
-    "satisfaction": "Satisfaction",
-    "paperForms": "Paper Forms"
-  },
-  "featuresSection": {
-    "title": "Everything You Need to Succeed",
-    "subtitle": "Powerful features designed to streamline every aspect of school management"
-  },
-  "features": {
-    "ai": {
-      "title": "AI Analytics",
-      "desc": "Predict student performance and identify at-risk students early"
-    },
-    "dashboard": {
-      "title": "Smart Dashboard",
-      "desc": "Real-time insights and comprehensive analytics at your fingertips"
-    },
-    "communication": {
-      "title": "Communication Hub",
-      "desc": "Seamless messaging between parents, teachers, and administrators"
-    },
-    "security": {
-      "title": "Enterprise Security",
-      "desc": "Bank-grade encryption and role-based access control"
-    },
-    "reports": {
-      "title": "Automated Reports",
-      "desc": "Generate detailed academic and administrative reports instantly"
-    },
-    "fees": {
-      "title": "Fee Management",
-      "desc": "Track payments, send reminders, and manage finances efficiently"
-    }
-  },
-  "rolesSection": {
-    "title": "Made for Everyone",
-    "subtitle": "Tailored experiences for every member of your school community"
-  },
-  "roles": {
-    "student": "Student",
-    "teacher": "Teacher",
-    "parent": "Parent",
-    "admin": "Admin",
-    "students": "Students",
-    "parents": "Parents",
-    "teachers": "Teachers",
-    "admins": "Administrators"
-  },
-  "roleFeatures": {
-    "student": {
-      "0": "View grades & progress",
-      "1": "Access assignments",
-      "2": "Track attendance",
-      "3": "Digital ID card"
-    },
-    "parent": {
-      "0": "Monitor child's progress",
-      "1": "Receive instant alerts",
-      "2": "Pay fees online",
-      "3": "Teacher communication"
-    },
-    "teacher": {
-      "0": "Manage classes online",
-      "1": "Record grades easily",
-      "2": "AI grading assistant",
-      "3": "Parent communication"
-    },
-    "admin": {
-      "0": "Full system control",
-      "1": "Generate reports",
-      "2": "User management",
-      "3": "Financial oversight"
-    }
-  },
-  "aiSection": {
-    "badge": "AI-Powered Insights",
-    "title": "Smart Analytics for Better Outcomes",
-    "description": "Leverage artificial intelligence to identify patterns, predict performance, and intervene before students fall behind.",
-    "cardTitle": "Class Performance Overview",
-    "cardDesc": "Real-time analytics showing current class trends and risk factors",
-    "classAvg": "Class Average",
-    "atRisk": "At-Risk Students"
-  },
-  "zones": {
-    "green": {
-      "title": "Green Zone (75-100%)",
-      "desc": "Excellent progress - On track for success"
-    },
-    "yellow": {
-      "title": "Yellow Zone (50-74%)",
-      "desc": "Moderate risk - Needs attention"
-    },
-    "red": {
-      "title": "Red Zone (0-49%)",
-      "desc": "High risk - Immediate intervention required"
-    }
-  },
-  "testimonialsSection": {
-    "title": "Trusted by Our Community",
-    "subtitle": "What parents, teachers, and staff say about Ishuri"
-  },
-  "testimonials": {
-    "parent": "I can now track my child's progress in real-time. The instant alerts keep me informed about everything happening at school.",
-    "teacher": "The AI grading assistant saves me hours of work. I can focus more on teaching and less on paperwork.",
-    "director": "This platform has transformed how we manage our school. Everything from fees to reports is now digital.",
-    "directorRole": "School Director"
-  },
-  "chart": {
-    "title": "Academic Performance Trends",
-    "classAverage": "Class Average (%)",
-    "atRisk": "At-Risk Students",
-    "attendance": "Attendance Rate (%)"
-  },
-  "cta": {
-    "title": "Ready to Transform Your School?",
-    "subtitle": "Join hundreds of schools already using Ishuri to streamline their operations.",
-    "signIn": "Sign In to Dashboard",
-    "contact": "Contact Us",
-    "note": "Free demo available for administrators"
-  },
-  "login": {
-    "title": "Welcome Back",
-    "subtitle": "Sign in to your account",
-    "username": "Username",
-    "usernamePlaceholder": "Enter your username",
-    "password": "Password",
-    "passwordPlaceholder": "Enter your password",
-    "role": "Select Role",
-    "selectRole": "Please select a role",
-    "forgotPassword": "Forgot Password?",
-    "signIn": "Sign In",
-    "welcome": "Welcome back!",
-    "invalidCredentials": "Invalid username, password, or role",
-    "adminNote": "Contact your school administrator if you need an account"
-  },
-  "forgotPassword": {
-    "title": "Reset Password",
-    "subtitle": "We'll send you a link to reset your password",
-    "emailLabel": "Email Address",
-    "emailPlaceholder": "Enter your email address",
-    "sendReset": "Send Reset Link",
-    "sentMessage": "Check your email for a password reset link.",
-    "backToSignIn": "Back to Sign In"
-  },
-  "footer": {
-    "description": "Modern school management platform for Les Hirondelles de Don Bosco, Ndera, Rwanda.",
-    "quickLinks": "Quick Links",
-    "contact": "Contact",
-    "resources": "Resources",
-    "schoolWebsite": "School Website",
-    "documentation": "Documentation",
-    "support": "Support",
-    "rights": "All rights reserved.",
-    "tagline": "Empowering education through technology"
-  },
-  "app": {
-    "tagline": "Smart School Management"
-  },
+  
   "header": {
-    "guest": "Guest User",
-    "role": "Select Role"
-  },
-  "teacher": {
-    "uploadAssignments": "Upload Assignments"
-  },
-  "parent": {
-    "childProfile": "Child Profile",
-    "feePayment": "Fee Payment"
-  },
-  "admin": {
-    "gradeApproval": "Grade Approval",
-    "feeManagement": "Fee Management"
-  },
-  "grades": {
-    "upload": "Upload Grades"
-  },
-  "attendance": {
-    "record": "Record Attendance"
-  },
-  "app": {
-    "tagline": "Smart School Management"
-  },
-  "header": {
-    "guest": "Guest User",
-    "role": "Select Role"
+    "title": "Ishuri System",
+    "admin": "Admin Portal",
+    "teacher": "Teacher Portal",
+    "student": "Student Portal",
+    "parent": "Parent Portal",
+    "user": "User",
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout"
   },
   "nav": {
     "dashboard": "Dashboard",
-    "grades": "Grades",
-    "attendance": "Attendance",
-    "assignments": "Assignments",
-    "digitalId": "Digital ID Card",
-    "academicReport": "Academic Report",
-    "communications": "Communications",
-    "timetable": "Timetable",
-    "users": "User Management",
+    "academics": "Academics",
+    "users": "Users",
     "reports": "Reports",
-    "settings": "Settings",
-    "logout": "Logout",
-    "features": "Features",
-    "about": "About",
-    "testimonials": "Testimonials",
-    "contact": "Contact",
-    "signIn": "Sign In"
-  },
-  "teacher": {
-    "uploadAssignments": "Upload Assignments"
-  },
-  "parent": {
-    "childProfile": "Child Profile",
-    "feePayment": "Fee Payment"
+    "settings": "Settings"
   },
   "admin": {
+    "teacherManagement": "Teacher Management",
+    "studentManagement": "Student Management",
     "gradeApproval": "Grade Approval",
-    "feeManagement": "Fee Management"
-  },
-  "grades": {
-    "upload": "Upload Grades"
-  },
-  "attendance": {
-    "record": "Record Attendance"
-  },
-  "hero": {
-    "badge": "AI-Powered School Management",
-    "title": "Welcome to",
-    "description": "Transform your school management with our intelligent platform. Streamline academics, communication, and administration all in one place.",
-    "getStarted": "Get Started",
-    "learnMore": "Learn More"
-  },
-  "stats": {
-    "students": "Students",
-    "teachers": "Teachers",
-    "satisfaction": "Satisfaction",
-    "paperForms": "Paper Forms"
-  },
-  "featuresSection": {
-    "title": "Everything You Need to Succeed",
-    "subtitle": "Powerful features designed to streamline every aspect of school management"
-  },
-  "features": {
-    "ai": {
-      "title": "AI Analytics",
-      "desc": "Predict student performance and identify at-risk students early"
-    },
-    "dashboard": {
-      "title": "Smart Dashboard",
-      "desc": "Real-time insights and comprehensive analytics at your fingertips"
-    },
-    "communication": {
-      "title": "Communication Hub",
-      "desc": "Seamless messaging between parents, teachers, and administrators"
-    },
-    "security": {
-      "title": "Enterprise Security",
-      "desc": "Bank-grade encryption and role-based access control"
-    },
-    "reports": {
-      "title": "Automated Reports",
-      "desc": "Generate detailed academic and administrative reports instantly"
-    },
-    "fees": {
-      "title": "Fee Management",
-      "desc": "Track payments, send reminders, and manage finances efficiently"
-    }
-  },
-  "rolesSection": {
-    "title": "Made for Everyone",
-    "subtitle": "Tailored experiences for every member of your school community"
-  },
-  "roles": {
-    "student": "Student",
-    "teacher": "Teacher",
-    "parent": "Parent",
-    "admin": "Admin",
-    "students": "Students",
-    "parents": "Parents",
-    "teachers": "Teachers",
-    "admins": "Administrators"
-  },
-  "roleFeatures": {
-    "student": {
-      "0": "View grades & progress",
-      "1": "Access assignments",
-      "2": "Track attendance",
-      "3": "Digital ID card"
-    },
-    "parent": {
-      "0": "Monitor child's progress",
-      "1": "Receive instant alerts",
-      "2": "Pay fees online",
-      "3": "Teacher communication"
-    },
-    "teacher": {
-      "0": "Manage classes online",
-      "1": "Record grades easily",
-      "2": "AI grading assistant",
-      "3": "Parent communication"
-    },
-    "admin": {
-      "0": "Full system control",
-      "1": "Generate reports",
-      "2": "User management",
-      "3": "Financial oversight"
-    }
-  },
-  "aiSection": {
-    "badge": "AI-Powered Insights",
-    "title": "Smart Analytics for Better Outcomes",
-    "description": "Leverage artificial intelligence to identify patterns, predict performance, and intervene before students fall behind.",
-    "cardTitle": "Class Performance Overview",
-    "cardDesc": "Real-time analytics showing current class trends and risk factors",
-    "classAvg": "Class Average",
-    "atRisk": "At-Risk Students"
-  },
-  "zones": {
-    "green": {
-      "title": "Green Zone (75-100%)",
-      "desc": "Excellent progress - On track for success"
-    },
-    "yellow": {
-      "title": "Yellow Zone (50-74%)",
-      "desc": "Moderate risk - Needs attention"
-    },
-    "red": {
-      "title": "Red Zone (0-49%)",
-      "desc": "High risk - Immediate intervention required"
-    }
-  },
-  "testimonialsSection": {
-    "title": "Trusted by Our Community",
-    "subtitle": "What parents, teachers, and staff say about Ishuri"
-  },
-  "testimonials": {
-    "parent": "I can now track my child's progress in real-time. The instant alerts keep me informed about everything happening at school.",
-    "teacher": "The AI grading assistant saves me hours of work. I can focus more on teaching and less on paperwork.",
-    "director": "This platform has transformed how we manage our school. Everything from fees to reports is now digital.",
-    "directorRole": "School Director"
-  },
-  "chart": {
-    "title": "Academic Performance Trends",
-    "classAverage": "Class Average (%)",
-    "atRisk": "At-Risk Students",
-    "attendance": "Attendance Rate (%)"
-  },
-  "cta": {
-    "title": "Ready to Transform Your School?",
-    "subtitle": "Join hundreds of schools already using Ishuri to streamline their operations.",
-    "signIn": "Sign In to Dashboard",
-    "contact": "Contact Us",
-    "note": "Free demo available for administrators"
-  },
-  "login": {
-    "title": "Welcome Back",
-    "subtitle": "Sign in to your account",
-    "username": "Username",
-    "usernamePlaceholder": "Enter your username",
-    "password": "Password",
-    "passwordPlaceholder": "Enter your password",
-    "role": "Select Role",
-    "selectRole": "Please select a role",
-    "forgotPassword": "Forgot Password?",
-    "signIn": "Sign In",
-    "welcome": "Welcome back!",
-    "invalidCredentials": "Invalid username, password, or role",
-    "adminNote": "Contact your school administrator if you need an account"
-  },
-  "forgotPassword": {
-    "title": "Reset Password",
-    "subtitle": "We'll send you a link to reset your password",
-    "emailLabel": "Email Address",
-    "emailPlaceholder": "Enter your email address",
-    "sendReset": "Send Reset Link",
-    "sentMessage": "Check your email for a password reset link.",
-    "backToSignIn": "Back to Sign In"
-  },
-  "footer": {
-    "description": "Modern school management platform for Les Hirondelles de Don Bosco, Ndera, Rwanda.",
-    "quickLinks": "Quick Links",
-    "contact": "Contact",
-    "resources": "Resources",
-    "schoolWebsite": "School Website",
-    "documentation": "Documentation",
-    "support": "Support",
-    "rights": "All rights reserved.",
-    "tagline": "Empowering education through technology"
-  },
-  "admin": {
-    "dashboard": {
-      "title": "Admin Dashboard",
-      "subtitle": "System overview and management"
-    },
-    "stats": {
-      "totalStudents": "Total Students",
-      "totalTeachers": "Total Teachers",
-      "feeCollection": "Fee Collection",
-      "riskZoneStudents": "Risk Zone Students"
-    },
-    "approvals": {
-      "title": "Pending Approvals",
-      "gradeUploads": "Grade Uploads",
-      "leaveRequests": "Leave Requests",
-      "parentMessages": "Parent Messages",
-      "sciences": "Sciences",
-      "various": "Various",
-      "communications": "Communications",
-      "pending": "pending",
-      "review": "Review"
-    },
-    "riskZone": {
-      "title": "Students in Risk Zone",
-      "academic": "Academic",
-      "attendance": "Attendance",
-      "intervene": "Intervene"
-    },
-    "reports": {
-      "title": "System Reports",
-      "performance": "Performance Report",
-      "performanceDesc": "Academic performance analysis",
-      "feeCollection": "Fee Collection Report",
-      "feeCollectionDesc": "Financial summary",
-      "attendance": "Attendance Report",
-      "attendanceDesc": "Student attendance trends"
-    }
-  },
-  "parent": {
-    "dashboard": {
-      "title": "Parent Dashboard",
-      "subtitle": "Monitor your children's academic progress"
-    },
-    "classes": {
-      "s5": "Senior 5",
-      "s4": "Senior 4",
-      "s3": "Senior 3",
-      "s2": "Senior 2",
-      "s1": "Senior 1"
-    },
-    "academicAverage": "Academic Average",
-    "attendanceRate": "Attendance Rate",
-    "viewDetails": "View Details",
-    "messageTeacher": "Message Teacher",
-    "contactSchool": "Contact School",
-    "notifications": {
-      "title": "Recent Notifications",
-      "gradeUpload": "New grade uploaded for John in Mathematics",
-      "feeDeadline": "School fees deadline approaching",
-      "parentMeeting": "Parent-teacher meeting scheduled for Friday",
-      "time2hours": "2 hours ago",
-      "time1day": "1 day ago",
-      "time2days": "2 days ago"
-    },
-    "quickStats": {
-      "title": "Quick Stats",
-      "totalChildren": "Total Children",
-      "avgPerformance": "Average Performance",
-      "unreadMessages": "Unread Messages",
-      "feeStatus": "Fee Status",
-      "paid": "Paid",
-      "pending": "Pending",
-      "overdue": "Overdue"
-    },
-    "recentActivity": {
-      "title": "Recent Activity",
-      "avgGrade": "Average Grade",
-      "upcomingEvents": "Upcoming Events",
-      "unreadMessages": "Unread Messages",
-      "feeStatus": "Fee Status"
-    }
-  },
-  "performance": {
-    "satisfactory": "Satisfactory",
-    "good": "Good",
-    "excellent": "Excellent",
-    "nearDanger": "Needs Attention",
-    "danger": "At Risk"
-  },
-  "userManagement": {
-    "title": "User Management",
-    "subtitle": "Manage all system users",
-    "addUser": "Add User",
-    "addNewUser": "Add New User",
-    "editUser": "Edit User",
-    "userDetails": "User Details",
-    "deleteUser": "Delete User",
-    "deleteConfirmation": "Are you sure you want to delete user",
-    "deleteWarning": "This action cannot be undone.",
-    "username": "Username",
-    "email": "Email",
-    "role": "Role",
-    "status": "Status",
-    "createdAt": "Created At",
-    "updatedAt": "Updated At",
-    "actions": "Actions",
-    "view": "View",
-    "edit": "Edit",
-    "delete": "Delete",
-    "activate": "Activate",
-    "deactivate": "Deactivate",
-    "create": "Create User",
-    "update": "Update User",
-    "cancel": "Cancel",
-    "close": "Close",
-    "password": "Password",
-    "confirmPassword": "Confirm Password",
-    "searchPlaceholder": "Search users by username or email...",
-    "allRoles": "All Roles",
-    "allStatus": "All Status",
-    "showing": "Showing",
-    "perPage": "per page",
-    "page": "Page",
-    "of": "of",
-    "first": "First",
-    "last": "Last",
-    "noUsers": "No users found",
-    "id": "ID"
-  },
-  "roles": {
-    "admin": "Administrator",
-    "teacher": "Teacher",
-    "student": "Student",
-    "parent": "Parent"
-  },
-  "statuses": {
-    "active": "Active",
-    "inactive": "Inactive",
-    "suspended": "Suspended"
-  },
-  "summary": {
-    "totalUsers": "Total Users",
-    "activeUsers": "Active Users",
-    "inactiveUsers": "Inactive/Suspended",
-    "studentsTeachers": "Students/Teachers"
-  },
-  "messages": {
-    "userCreated": "User created successfully",
-    "userUpdated": "User updated successfully",
-    "userDeleted": "User deleted successfully",
-    "userActivated": "User activated successfully",
-    "userDeactivated": "User deactivated successfully",
-    "fillRequiredFields": "Please fill in all required fields",
-    "passwordsDoNotMatch": "Passwords do not match",
-    "passwordMinLength": "Password must be at least 6 characters",
-    "failedToFetchUsers": "Failed to fetch users",
-    "failedToCreateUser": "Failed to create user",
-    "failedToUpdateUser": "Failed to update user",
-    "failedToDeleteUser": "Failed to delete user",
-    "failedToToggleStatus": "Failed to toggle status"
-  },
-  "errors": {
-    "networkError": "Network error. Please check your connection.",
-    "somethingWentWrong": "Something went wrong. Please try again.",
-    "invalidCredentials": "Invalid username or password",
-    "accountInactive": "Your account is inactive. Please contact the administrator.",
-    "accountSuspended": "Your account has been suspended. Please contact the administrator.",
-    "invalidRole": "Invalid role. This account is registered as {role}.",
-    "permissionDenied": "Permission denied. You don't have access to this resource.",
-    "usernameExists": "Username already exists",
-    "usernameInvalid": "Username can only contain letters, numbers, and @/./+/-/_ characters"
-  },
-  "header": {
-    "title": "Ishuri System",
-    "profile": "Profile",
-    "settings": "Settings",
-    "logout": "Logout",
-    "user": "User"
+    "feeManagement": "Fee Management",
+    "chat": "Chat Management"
   },
   "messages": {
     "logoutSuccess": "Logged out successfully"
   },
-  "academics": {
-    "title": "Academics Management",
-    "subtitle": "Manage academic years, levels, classrooms, subjects, and fees",
-    "academicYears": "Academic Years",
-    "schoolLevels": "School Levels",
-    "classLevels": "Class Levels",
-    "classrooms": "Classrooms",
-    "subjects": "Subjects",
-    "assignments": "Subject Assignments",
-    "costs": "Fee Structures",
-    "add": "Add",
-    "search": "Search",
-    "showing": "Showing",
-    "perPage": "per page",
-    "page": "Page",
-    "of": "of",
-    "first": "First",
-    "last": "Last",
-    "actions": "Actions",
-    "view": "View",
-    "edit": "Edit",
-    "delete": "Delete",
-    "create": "Create",
-    "update": "Update",
-    "cancel": "Cancel",
-    "close": "Close",
-    "status": {
-      "active": "Active",
-      "inactive": "Inactive",
-      "suspended": "Suspended"
+
+  "landingPage": {
+    "nav": {
+      "features": "Features",
+      "about": "About",
+      "testimonials": "Testimonials",
+      "contact": "Contact",
+      "signIn": "Sign In"
     },
-    "form": {
-      "name": "Name",
-      "code": "Code",
-      "description": "Description",
-      "startDate": "Start Date",
-      "endDate": "End Date",
-      "currentYear": "Current Year",
-      "levelType": "Level Type",
-      "category": "Category",
-      "schoolLevel": "School Level",
-      "classLevel": "Class Level",
-      "roomType": "Room Type",
-      "shift": "Shift",
-      "capacity": "Capacity",
-      "subjectName": "Subject Name",
-      "subjectCode": "Subject Code",
-      "gradingSystem": "Grading System",
-      "passMark": "Pass Mark",
-      "teachingFrequency": "Teaching Frequency",
-      "hoursPerWeek": "Hours per Week",
-      "compulsory": "Compulsory",
-      "feeName": "Fee Name",
-      "paymentType": "Payment Type",
-      "amount": "Amount",
-      "frequency": "Frequency",
-      "mandatory": "Mandatory",
-      "displayOrder": "Display Order"
+    "hero": {
+      "badge": "AI-Powered School Management",
+      "title": "Welcome to",
+      "description": "Transform your school management with our intelligent platform. Streamline academics, communication, and administration all in one place.",
+      "getStarted": "Get Started",
+      "learnMore": "Learn More"
     },
-    "messages": {
-      "createSuccess": "{{name}} created successfully",
-      "updateSuccess": "{{name}} updated successfully",
-      "deleteSuccess": "{{name}} deleted successfully",
-      "deleteConfirmation": "Are you sure you want to delete this item?",
-      "deleteWarning": "This action cannot be undone.",
-      "noData": "No data found",
-      "fetchError": "Failed to fetch data",
-      "validationError": "Validation failed",
-      "duplicateError": "Item with this name already exists"
+    "stats": {
+      "students": "Students",
+      "teachers": "Teachers",
+      "satisfaction": "Satisfaction",
+      "paperForms": "Paper Forms"
+    },
+    "featuresSection": {
+      "title": "Everything You Need to Succeed",
+      "subtitle": "Powerful features designed to streamline every aspect of school management"
+    },
+    "features": {
+      "ai": {
+        "title": "AI Analytics",
+        "desc": "Predict student performance and identify at-risk students early"
+      },
+      "dashboard": {
+        "title": "Smart Dashboard",
+        "desc": "Real-time insights and comprehensive analytics at your fingertips"
+      },
+      "communication": {
+        "title": "Communication Hub",
+        "desc": "Seamless messaging between parents, teachers, and administrators"
+      },
+      "security": {
+        "title": "Enterprise Security",
+        "desc": "Bank-grade encryption and role-based access control"
+      },
+      "reports": {
+        "title": "Automated Reports",
+        "desc": "Generate detailed academic and administrative reports instantly"
+      },
+      "fees": {
+        "title": "Fee Management",
+        "desc": "Track payments, send reminders, and manage finances efficiently"
+      }
+    },
+    "rolesSection": {
+      "title": "Made for Everyone",
+      "subtitle": "Tailored experiences for every member of your school community"
+    },
+    "roles": {
+      "student": "Student",
+      "teacher": "Teacher",
+      "parent": "Parent",
+      "admin": "Admin"
+    },
+    "roleFeatures": {
+      "student": {
+        "0": "View grades & progress",
+        "1": "Access assignments",
+        "2": "Track attendance",
+        "3": "Digital ID card"
+      },
+      "parent": {
+        "0": "Monitor child's progress",
+        "1": "Receive instant alerts",
+        "2": "Pay fees online",
+        "3": "Teacher communication"
+      },
+      "teacher": {
+        "0": "Manage classes online",
+        "1": "Record grades easily",
+        "2": "AI grading assistant",
+        "3": "Parent communication"
+      },
+      "admin": {
+        "0": "Full system control",
+        "1": "Generate reports",
+        "2": "User management",
+        "3": "Financial oversight"
+      }
+    },
+    "aiSection": {
+      "badge": "AI-Powered Insights",
+      "title": "Smart Analytics for Better Outcomes",
+      "description": "Leverage artificial intelligence to identify patterns, predict performance, and intervene before students fall behind.",
+      "cardTitle": "Class Performance Overview",
+      "cardDesc": "Real-time analytics showing current class trends and risk factors",
+      "classAvg": "Class Average",
+      "atRisk": "At-Risk Students"
+    },
+    "zones": {
+      "green": {
+        "title": "Green Zone (75-100%)",
+        "desc": "Excellent progress - On track for success"
+      },
+      "yellow": {
+        "title": "Yellow Zone (50-74%)",
+        "desc": "Moderate risk - Needs attention"
+      },
+      "red": {
+        "title": "Red Zone (0-49%)",
+        "desc": "High risk - Immediate intervention required"
+      }
+    },
+    "testimonialsSection": {
+      "title": "Trusted by Our Community",
+      "subtitle": "What parents, teachers, and staff say about Ishuri"
+    },
+    "testimonials": {
+      "parent": "I can now track my child's progress in real-time. The instant alerts keep me informed about everything happening at school.",
+      "teacher": "The AI grading assistant saves me hours of work. I can focus more on teaching and less on paperwork.",
+      "director": "This platform has transformed how we manage our school. Everything from fees to reports is now digital.",
+      "directorRole": "School Director"
+    },
+    "chart": {
+      "title": "Academic Performance Trends",
+      "classAverage": "Class Average (%)",
+      "atRisk": "At-Risk Students",
+      "attendance": "Attendance Rate (%)"
+    },
+    "cta": {
+      "title": "Ready to Transform Your School?",
+      "subtitle": "Join hundreds of schools already using Ishuri to streamline their operations.",
+      "signIn": "Sign In to Dashboard",
+      "contact": "Contact Us",
+      "note": "Free demo available for administrators"
+    },
+    "login": {
+      "title": "Welcome Back",
+      "subtitle": "Sign in to your account",
+      "username": "Username",
+      "usernamePlaceholder": "Enter your username",
+      "password": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "role": "Select Role",
+      "selectRole": "Please select a role",
+      "forgotPassword": "Forgot Password?",
+      "signIn": "Sign In",
+      "welcome": "Welcome back!",
+      "invalidCredentials": "Invalid username, password, or role",
+      "adminNote": "Contact your school administrator if you need an account"
+    },
+    "forgotPassword": {
+      "title": "Reset Password",
+      "subtitle": "We'll send you a link to reset your password",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "Enter your email address",
+      "sendReset": "Send Reset Link",
+      "sentMessage": "Check your email for a password reset link.",
+      "backToSignIn": "Back to Sign In"
+    },
+    "footer": {
+      "description": "Modern school management platform for Les Hirondelles de Don Bosco, Ndera, Rwanda.",
+      "quickLinks": "Quick Links",
+      "contact": "Contact",
+      "resources": "Resources",
+      "schoolWebsite": "School Website",
+      "documentation": "Documentation",
+      "support": "Support",
+      "rights": "All rights reserved.",
+      "tagline": "Empowering education through technology"
+    },
+    "common": {
+      "loading": "Loading..."
+    },
+    "addParent": {
+      "title": "Add Parent/Guardian",
+      "subtitle": "Link a parent to your student profile",
+      "fullName": "Full Name",
+      "fullNamePlaceholder": "Enter parent's full name",
+      "phoneNumber": "Phone Number",
+      "email": "Email Address",
+      "physicalAddress": "Physical Address",
+      "addressPlaceholder": "Enter parent's address",
+      "relationshipType": "Relationship",
+      "submit": "Add Parent",
+      "cancel": "Cancel",
+      "error": "Failed to add parent",
+      "success": "Parent added successfully",
+      "fullNameRequired": "Full name is required",
+      "phoneRequired": "Phone number is required",
+      "emailRequired": "Email address is required"
+    },
+    "addRelationship": {
+      "father": "Father",
+      "mother": "Mother",
+      "guardian": "Guardian",
+      "other": "Other"
+    },
+    "passwordValidation": {
+      "title": "Password must contain:",
+      "minLength": "At least 6 characters",
+      "uppercase": "At least one uppercase letter",
+      "lowercase": "At least one lowercase letter",
+      "number": "At least one number",
+      "specialChar": "At least one special character (!@#$%^&*...)"
+    },
+    "errors": {
+      "networkError": "Network error. Please check your connection.",
+      "somethingWentWrong": "Something went wrong. Please try again.",
+      "invalidCredentials": "Invalid username or password",
+      "accountInactive": "Your account is inactive. Please contact the administrator.",
+      "accountSuspended": "Your account has been suspended. Please contact the administrator.",
+      "invalidRole": "Invalid role. This account is registered as {role}.",
+      "permissionDenied": "Permission denied. You don't have access to this resource."
     }
   },
 
-  "title": "Academics Management",
-  "subtitle": "Manage academic years, school levels, classes, classrooms, subjects, and fees",
-  
-  "tabs": {
-    "academicYears": "Academic Years",
-    "academicYearsDesc": "Manage school academic calendar years",
-    "schoolLevels": "School Levels",
-    "schoolLevelsDesc": "Define education levels (Primary, Secondary)",
-    "classLevels": "Class Levels",
-    "classLevelsDesc": "Create classes for each school level",
-    "classrooms": "Classrooms",
-    "classroomsDesc": "Manage physical classroom spaces",
-    "subjects": "Subjects",
-    "subjectsDesc": "Define academic subjects",
-    "assignments": "Subject Assignments",
-    "assignmentsDesc": "Assign subjects to class levels",
-    "feeStructures": "Fee Structures",
-    "feeStructuresDesc": "Manage tuition and fee structures"
-  },
-  
-  "stats": {
-    "schoolLevels": "School Levels",
-    "classLevels": "Class Levels",
-    "classrooms": "Classrooms",
-    "subjects": "Subjects",
-    "assignments": "Assignments",
-    "feeStructures": "Fee Structures"
-  },
-  
-  "table": {
-    "yearName": "Year Name",
-    "startDate": "Start Date",
-    "endDate": "End Date",
-    "current": "Current",
-    "actions": "Actions",
-    "levelName": "Level Name",
-    "description": "Description",
-    "className": "Class Name",
-    "classCode": "Class Code",
-    "schoolLevel": "School Level",
-    "roomName": "Room Name",
-    "roomCode": "Room Code",
-    "roomType": "Room Type",
-    "capacity": "Capacity",
-    "status": "Status",
-    "subjectName": "Subject Name",
-    "subjectCode": "Subject Code",
-    "passScore": "Pass Score",
-    "frequency": "Frequency",
-    "hoursPerWeek": "Hours/Week",
-    "type": "Type",
-    "feeName": "Fee Name",
-    "academicYear": "Academic Year",
-    "classLevel": "Class Level",
-    "amount": "Amount",
-    "mandatory": "Mandatory"
-  },
-  
-  "form": {
-    "yearName": "Year Name",
-    "startDate": "Start Date",
-    "endDate": "End Date",
-    "setAsCurrent": "Set as Current Year",
-    "levelName": "Level Name",
-    "description": "Description",
-    "className": "Class Name",
-    "classCode": "Class Code",
-    "schoolLevel": "School Level",
-    "roomName": "Room Name",
-    "roomCode": "Room Code",
-    "classLevel": "Class Level",
-    "roomType": "Room Type",
-    "capacity": "Capacity",
-    "status": "Status",
-    "subjectName": "Subject Name",
-    "subjectCode": "Subject Code",
-    "passScore": "Pass Score",
-    "teachingFrequency": "Teaching Frequency",
-    "hoursPerWeek": "Hours per Week",
-    "compulsory": "Compulsory Subject",
-    "feeName": "Fee Name",
-    "academicYear": "Academic Year",
-    "amount": "Amount (RWF)",
-    "frequency": "Frequency",
-    "mandatory": "Mandatory Fee",
-    "subject": "Subject",
-    "select": "Select"
-  },
-  
-  "placeholders": {
-    "yearName": "e.g., 2024-2025",
-    "levelName": "e.g., Nursery, Primary, Secondary",
-    "description": "Describe this item...",
-    "className": "e.g., Primary One, Senior 1",
-    "classCode": "e.g., P1, S1",
-    "roomName": "e.g., Room A101",
-    "roomCode": "e.g., A101",
-    "capacity": "Number of students",
-    "subjectName": "e.g., Mathematics",
-    "subjectCode": "e.g., MATH101",
-    "passScore": "e.g., 50",
-    "hoursPerWeek": "e.g., 4",
-    "feeName": "e.g., Tuition Fee",
-    "amount": "0"
-  },
-  
-  "roomTypes": {
-    "standard": "Standard",
-    "laboratory": "Laboratory",
-    "workshop": "Workshop",
-    "auditorium": "Auditorium"
-  },
-  
-  "status": {
-    "active": "Active",
-    "inactive": "Inactive",
-    "current": "Current",
-    "no": "No",
-    "yes": "Yes",
-    "suspended": "Suspended"
-  },
-  
-  "frequency": {
-    "daily": "Daily",
-    "weekly": "Weekly",
-    "termly": "Termly",
-    "yearly": "Yearly",
-    "monthly": "Monthly"
-  },
-  
-  "actions": {
-    "view": "View",
-    "edit": "Edit",
-    "delete": "Delete",
-    "add": "Add {name}",
-    "search": "Search...",
-    "refresh": "Refresh",
-    "toggleDarkMode": "Toggle Dark Mode",
-    "clickToAdd": "Click here to add new record"
-  },
-  
-  "pagination": {
-    "showing": "Showing",
-    "perPage": "per page",
-    "total": "Total records",
-    "first": "First",
-    "last": "Last",
-    "page": "Page"
-  },
-  
-  "messages": {
-    "loading": "Loading data...",
-    "noData": "No data found",
-    "fetchError": "Failed to fetch data",
-    "createSuccess": "{name} created successfully",
-    "createError": "Failed to create",
-    "updateSuccess": "Updated successfully",
-    "updateError": "Failed to update",
-    "updateNotSupported": "Update not supported for this section",
-    "deleteSuccess": "Deleted successfully",
-    "deleteError": "Failed to delete",
-    "statusUpdated": "Status updated to {status}",
-    "statusError": "Failed to update status",
-    "dataLoaded": "Data loaded successfully ({count} records)"
-  },
 
   
-  "actions": {
-    "create": "Create",
-    "update": "Update",
-    "cancel": "Cancel",
-    "close": "Close",
-    "viewDetails": "View Details",
-    "add": "Add",
-    "clickToAdd": "Click here to add new record",
-    "delete": "Delete",
-    "edit": "Edit",
-    "refresh": "Refresh",
-    "toggleDarkMode": "Toggle Dark Mode",
-    "search": "Search...",
-    "view": "View"
-  },
-  
-  "view": {
-    "basicInfo": "Basic Information",
-    "timestamps": "Timestamps",
-    "createdAt": "Created At",
-    "updatedAt": "Updated At"
-  },
-  
-  "delete": {
-    "title": "Delete Item",
-    "confirmation": "Are you sure you want to delete this item?",
-    "itemName": "Item",
-    "currentYearWarning": "This is the current academic year. Deleting it may affect system functionality.",
-    "warning": "This action cannot be undone."
-  },
-  
-  "status": {
-    "yes": "Yes",
-    "no": "No", 
-    "current": "Current",
-    "active": "Active",
-    "inactive": "Inactive",
-    "suspended": "Suspended"
-  },
-  
-  "messages": {
-    "creating": "Creating...",
-    "updating": "Updating...",
-    "deleting": "Deleting..."
-  },
-
-  
-  "title": "Academics Management",
-  "subtitle": "Manage academic structure, subjects, and fee configurations",
-  "subtitleWithYear": "Academic Year: {{year}} — Manage structure, subjects, and fee configurations",
-
-  "tabs": {
-    "academicYears": "Academic Years",
-    "schoolLevels": "School Levels",
-    "classLevels": "Class Levels",
-    "classrooms": "Classrooms",
-    "subjects": "Subjects",
-    "assignments": "Assignments",
-    "feeStructures": "Fee Structures"
-  },
-
-  "stats": {
-    "schoolLevels": "School Levels",
-    "classLevels": "Class Levels",
-    "classrooms": "Classrooms",
-    "subjects": "Subjects",
-    "assignments": "Assignments",
-    "feeStructures": "Fee Structures"
-  },
-
-  "status": {
-    "active": "Active",
-    "inactive": "Inactive",
-    "current": "Current",
-    "yes": "Yes",
-    "no": "No"
-  },
-
-  "labels": {
-    "required": "Required",
-    "optional": "Optional",
-    "mandatory": "Mandatory"
-  },
-
-  "roomTypes": {
-    "standard": "Standard",
-    "laboratory": "Laboratory",
-    "workshop": "Workshop",
-    "auditorium": "Auditorium"
-  },
-
-  "frequency": {
-    "daily": "Daily",
-    "weekly": "Weekly",
-    "termly": "Termly",
-    "yearly": "Yearly",
-    "monthly": "Monthly"
-  },
-
-  "actions": {
-    "add": "Add {{name}}",
-    "edit": "Edit",
-    "delete": "Delete",
-    "view": "View Details",
-    "viewDetails": "View Details",
-    "create": "Create",
-    "update": "Update",
-    "cancel": "Cancel",
-    "close": "Close",
-    "search": "Search {{name}}...",
-    "refresh": "Refresh",
-    "filters": "Filters",
-    "clearFilters": "Clear Filters",
-    "clickToAdd": "Click here to add one",
-    "toggleDarkMode": "Toggle dark mode",
-    "toggleStatus": "Click to toggle status"
-  },
-
-  "table": {
-    "yearName": "Year Name",
-    "startDate": "Start Date",
-    "endDate": "End Date",
-    "current": "Current",
-    "actions": "Actions",
-    "levelName": "Level Name",
-    "description": "Description",
-    "active": "Active",
-    "className": "Class Name",
-    "classCode": "Code",
-    "schoolLevel": "School Level",
-    "roomName": "Room Name",
-    "roomCode": "Code",
-    "classLevel": "Class Level",
-    "roomType": "Room Type",
-    "capacity": "Capacity",
-    "status": "Status",
-    "subjectName": "Subject Name",
-    "subjectCode": "Code",
-    "passScore": "Pass Score",
-    "subject": "Subject",
-    "frequency": "Frequency",
-    "hoursPerWeek": "Hours/Week",
-    "compulsory": "Compulsory",
-    "feeName": "Fee Name",
-    "academicYear": "Academic Year",
-    "amount": "Amount",
-    "mandatory": "Mandatory"
-  },
-
-  "form": {
-    "yearName": "Year Name",
-    "startDate": "Start Date",
-    "endDate": "End Date",
-    "setAsCurrent": "Set as Current Year",
-    "levelName": "Level Name",
-    "description": "Description",
-    "className": "Class Name",
-    "classCode": "Class Code",
-    "schoolLevel": "School Level",
-    "roomName": "Room Name",
-    "roomCode": "Room Code",
-    "classLevel": "Class Level",
-    "roomType": "Room Type",
-    "capacity": "Capacity",
-    "status": "Status",
-    "subjectName": "Subject Name",
-    "subjectCode": "Subject Code",
-    "passScore": "Pass Score (%)",
-    "subject": "Subject",
-    "teachingFrequency": "Teaching Frequency",
-    "hoursPerWeek": "Hours per Week",
-    "compulsory": "Compulsory Subject",
-    "feeName": "Fee Name",
-    "academicYear": "Academic Year",
-    "amount": "Amount (RWF)",
-    "frequency": "Payment Frequency",
-    "mandatory": "Mandatory Fee",
-    "selectOption": "Select {{label}}"
-  },
-
-  "placeholders": {
-    "yearName": "e.g. 2024–2025",
-    "levelName": "e.g. Primary, Secondary",
-    "description": "Optional description...",
-    "className": "e.g. Grade 1",
-    "classCode": "e.g. G1",
-    "roomName": "e.g. Room A",
-    "roomCode": "e.g. RM-A",
-    "capacity": "e.g. 40",
-    "subjectName": "e.g. Mathematics",
-    "subjectCode": "e.g. MATH101",
-    "passScore": "e.g. 50",
-    "hoursPerWeek": "e.g. 5",
-    "feeName": "e.g. Tuition Fee",
-    "amount": "e.g. 150000"
-  },
-
-  "filters": {
-    "status": "Status",
-    "allStatus": "All Statuses",
-    "classLevel": "Class Level",
-    "allClassLevels": "All Class Levels",
-    "schoolLevel": "School Level",
-    "allSchoolLevels": "All School Levels",
-    "roomType": "Room Type",
-    "allRoomTypes": "All Room Types",
-    "subjectType": "Subject Type",
-    "academicYear": "Academic Year",
-    "allYears": "All Years",
-    "frequency": "Frequency",
-    "allFrequencies": "All Frequencies",
-    "mandatoryType": "Mandatory",
-    "yearType": "Year Type",
-    "all": "All",
-    "currentOnly": "Current Year Only",
-    "pastOnly": "Past Years Only"
-  },
-
-  "modal": {
-    "fillDetails": "Fill in the details below to create a new record.",
-    "updateDetails": "Update the fields below and save your changes.",
-    "idLabel": "Record ID: #{{id}}"
-  },
-
-  "view": {
-    "basicInfo": "Basic Information",
-    "timestamps": "Timestamps",
-    "createdAt": "Created At",
-    "updatedAt": "Last Updated"
-  },
-
-  "delete": {
-    "title": "Confirm Deletion",
-    "confirmation": "Are you sure you want to delete this record? This action cannot be undone.",
-    "itemName": "Item",
-    "currentYearWarning": "Warning: This is the current academic year. Deleting it may affect other records.",
-    "warning": "This action is permanent and cannot be reversed."
-  },
-
-  "messages": {
-    "loading": "Loading data...",
-    "noData": "No records found.",
-    "dataLoaded": "{{tab}} loaded — {{count}} record(s) found.",
-    "fetchError": "Failed to load data. Please try again.",
-    "createSuccess": "{{name}} created successfully.",
-    "createError": "Failed to create record. Please check your inputs.",
-    "updateSuccess": "Record updated successfully.",
-    "updateError": "Failed to update record.",
-    "updateNotSupported": "Editing is not supported for this section.",
-    "deleteSuccess": "Record deleted successfully.",
-    "deleteError": "Failed to delete record.",
-    "statusUpdated": "Status changed to {{status}}.",
-    "statusError": "Failed to update status.",
-    "creating": "Creating...",
-    "updating": "Updating...",
-    "deleting": "Deleting..."
-  },
-
-  "pagination": {
-    "show": "Show",
-    "ofTotal": "of {{count}} records",
-    "totalCount": "{{count}} records",
-    "page": "Page {{current}} of {{total}}",
-    "first": "First",
-    "last": "Last"
-  },
-
-  
-  "title": "Teacher Management",
-  "subtitle": "Manage teachers, assignments, timetables, and school days",
-  
-  "tabs": {
-    "teachers": "Teachers",
-    "assignments": "Assignments",
-    "timetable": "Timetable",
-    "daySettings": "School Days",
-    "holidays": "Holidays"
-  },
-  
-  "stats": {
-    "totalTeachers": "Total Teachers",
-    "activeTeachers": "Active Teachers",
-    "totalAssignments": "Assignments",
-    "timetableEntries": "Timetable Entries"
-  },
-  
-  "table": {
-    "fullName": "Full Name",
-    "email": "Email",
-    "phone": "Phone",
-    "specialization": "Specialization",
-    "status": "Status",
-    "actions": "Actions",
-    "teacher": "Teacher",
-    "subject": "Subject",
-    "classLevel": "Class Level",
-    "hoursPerWeek": "Hours/Week",
-    "schoolLevel": "School Level",
-    "day": "Day",
-    "schedule": "Schedule",
-    "holidayName": "Holiday Name",
-    "date": "Date",
-    "academicYear": "Academic Year",
-    "recurring": "Recurring",
-    "username": "Username"
-  },
-  
-  "form": {
-    "fullName": "Full Name",
-    "email": "Email Address",
-    "phone": "Phone Number",
-    "address": "Address",
-    "gender": "Gender",
-    "educationLevel": "Education Level",
-    "qualification": "Qualifications",
-    "specialization": "Specialization",
-    "experience": "Years of Experience",
-    "birthDate": "Birth Date",
-    "hireDate": "Hire Date",
-    "status": "Status",
-    "bio": "Biography",
-    "teacher": "Teacher",
-    "schoolLevel": "School Level",
-    "classLevel": "Class Level",
-    "subject": "Subject",
-    "academicYear": "Academic Year",
-    "hoursPerWeek": "Hours per Week",
-    "notes": "Notes",
-    "dayOfWeek": "Day of Week",
-    "isSchoolDay": "Is School Day",
-    "startTime": "Start Time",
-    "endTime": "End Time",
-    "morningBreakStart": "Morning Break Start",
-    "morningBreakEnd": "Morning Break End",
-    "lunchBreakStart": "Lunch Break Start",
-    "lunchBreakEnd": "Lunch Break End",
-    "holidayName": "Holiday Name",
-    "date": "Date",
-    "isRecurring": "Recurring Yearly",
-    "description": "Description",
-    "selectOption": "Select {label}",
-    "allLevels": "All Levels"
-  },
-  
-  "placeholders": {
-    "fullName": "e.g., John Doe",
-    "address": "Street, City, Country",
-    "qualification": "List your qualifications...",
-    "specialization": "e.g., Mathematics",
-    "bio": "Tell us about yourself...",
-    "notes": "Additional notes...",
-    "holidayName": "e.g., Christmas Day"
-  },
-  
-  "gender": {
-    "male": "Male",
-    "female": "Female",
-    "other": "Other"
-  },
-  
-  "education": {
-    "diploma": "Diploma",
-    "bachelor": "Bachelor's Degree",
-    "master": "Master's Degree",
-    "doctorate": "Doctorate",
-    "certificate": "Certificate"
-  },
-  
-  "status": {
-    "active": "Active",
-    "inactive": "Inactive",
-    "onLeave": "On Leave",
-    "suspended": "Suspended",
-    "completed": "Completed",
-    "notSchoolDay": "Not a School Day",
-    "recurring": "Recurring",
-    "yes": "Yes",
-    "no": "No"
-  },
-  
-  "days": {
-    "monday": "Monday",
-    "tuesday": "Tuesday",
-    "wednesday": "Wednesday",
-    "thursday": "Thursday",
-    "friday": "Friday",
-    "saturday": "Saturday",
-    "sunday": "Sunday"
-  },
-  
-  "actions": {
-    "view": "View",
-    "edit": "Edit",
-    "delete": "Delete",
-    "add": "Add {name}",
-    "search": "Search...",
-    "refresh": "Refresh",
-    "create": "Create",
-    "update": "Update",
-    "cancel": "Cancel",
-    "close": "Close",
-    "viewDetails": "View Details",
-    "clickToAdd": "Click here to add new record",
-    "generateTimetable": "Generate Timetable"
-  },
-  
-  "filters": {
-    "allStatus": "All Status",
-    "allWeeks": "All Weeks",
-    "week": "Week {week}",
-    "allAcademicYears": "All Academic Years"
-  },
-  
-  "pagination": {
-    "showing": "Showing",
-    "perPage": "per page",
-    "total": "Total: {count} records",
-    "first": "First",
-    "last": "Last",
-    "page": "Page {current} of {total}"
-  },
-  
-  "delete": {
-    "title": "Delete Item",
-    "confirmation": "Are you sure you want to delete this item?",
-    "itemName": "Item",
-    "warning": "This action cannot be undone."
-  },
-  
-  "messages": {
-    "loading": "Loading data...",
-    "noData": "No data found",
-    "fetchError": "Failed to fetch data",
-    "createSuccess": "Created successfully",
-    "createError": "Failed to create",
-    "updateSuccess": "Updated successfully",
-    "updateError": "Failed to update",
-    "updateNotSupported": "Update not supported for this section",
-    "deleteSuccess": "Deleted successfully",
-    "deleteError": "Failed to delete",
-    "timetableGenerated": "Timetable generated successfully",
-    "timetableGenerateError": "Failed to generate timetable"
-  },
-
-    "teachers": {
+  "teachers": {
     "title": "Teacher Management",
-    "subtitle": "Manage teachers, assignments, timetables, and school days",
-    
+    "subtitle": "Manage teachers, assignments, timetables, and reports",
     "tabs": {
       "teachers": "Teachers",
       "assignments": "Assignments",
       "timetable": "Timetable",
-      "daySettings": "School Days",
-      "holidays": "Holidays",
       "reports": "Reports"
     },
-    
     "stats": {
       "totalTeachers": "Total Teachers",
       "activeTeachers": "Active",
       "inactiveTeachers": "Inactive",
       "onLeaveTeachers": "On Leave",
       "totalAssignments": "Assignments",
-      "timetableEntries": "Timetable Entries",
-      "totalHolidays": "Holidays"
+      "activeAssignments": "Active",
+      "timetableEntries": "Timetable Entries"
     },
-    
     "table": {
       "fullName": "Full Name",
       "username": "Username",
@@ -1300,90 +274,192 @@
       "teacher": "Teacher",
       "subject": "Subject",
       "classLevel": "Class Level",
-      "hoursPerWeek": "Hours/Week",
-      "hoursPerWeekSuffix": "h/wk",
       "schoolLevel": "School Level",
-      "day": "Day",
-      "schedule": "Schedule",
-      "holidayName": "Holiday Name",
-      "date": "Date",
-      "academicYear": "Academic Year",
-      "recurring": "Recurring"
+      "hoursPerWeek": "Hours/Week",
+      "hoursPerWeekSuffix": "hrs"
     },
-    
     "form": {
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "middleName": "Middle Name",
       "fullName": "Full Name",
       "email": "Email Address",
       "phone": "Phone Number",
       "address": "Address",
       "gender": "Gender",
       "educationLevel": "Education Level",
-      "qualification": "Qualifications",
+      "qualification": "Qualification",
       "specialization": "Specialization",
-      "experience": "Years of Experience",
+      "experience": "Experience (Years)",
       "birthDate": "Birth Date",
       "hireDate": "Hire Date",
       "status": "Status",
       "bio": "Biography",
-      "teacher": "Teacher",
-      "schoolLevel": "School Level",
-      "classLevel": "Class Level",
-      "subject": "Subject",
-      "academicYear": "Academic Year",
-      "hoursPerWeek": "Hours per Week",
+      "salary": "Salary",
+      "workHoursPerWeek": "Work Hours/Week",
+      "selectTeacher": "Select Teacher",
+      "selectSchoolLevel": "Select School Level",
+      "selectClassLevel": "Select Class Level",
+      "selectSubject": "Select Subject",
+      "selectClassroom": "Select Classroom",
+      "selectAcademicYear": "Select Academic Year",
+      "selectTerm": "Select Term",
+      "hoursPerWeek": "Hours Per Week",
       "notes": "Notes",
-      "dayOfWeek": "Day of Week",
-      "isSchoolDay": "Is School Day",
-      "startTime": "Start Time",
-      "endTime": "End Time",
-      "morningBreakStart": "Morning Break Start",
-      "morningBreakEnd": "Morning Break End",
-      "lunchBreakStart": "Lunch Break Start",
-      "lunchBreakEnd": "Lunch Break End",
       "holidayName": "Holiday Name",
       "date": "Date",
       "isRecurring": "Recurring Yearly",
       "description": "Description",
-      "selectOption": "Select {label}",
-      "allLevels": "All Levels"
+      "allLevels": "All Levels",
+      "qualifications": "Qualifications",
+      "classroom": "Classroom",
+      "term": "Term",
+      "age": "Age"
     },
-    
-    "placeholders": {
-      "fullName": "e.g., John Doe",
-      "address": "Street, City, Country",
-      "qualification": "List your qualifications...",
-      "specialization": "e.g., Mathematics",
-      "bio": "Tell us about yourself...",
-      "notes": "Additional notes...",
-      "holidayName": "e.g., Christmas Day"
-    },
-    
     "gender": {
       "male": "Male",
       "female": "Female",
       "other": "Other"
     },
-    
     "education": {
-      "diploma": "Diploma",
+      "a2": "A2 (Secondary)",
+      "a1": "A1 (Advanced Diploma)",
       "bachelor": "Bachelor's Degree",
       "master": "Master's Degree",
       "doctorate": "Doctorate",
       "certificate": "Certificate"
     },
-    
     "status": {
       "active": "Active",
       "inactive": "Inactive",
       "onLeave": "On Leave",
       "suspended": "Suspended",
       "completed": "Completed",
-      "notSchoolDay": "Not a School Day",
-      "recurring": "Recurring",
       "yes": "Yes",
-      "no": "No"
+      "no": "No",
+      "recurring": "Recurring",
+      "notSchoolDay": "Not a School Day"
     },
-    
+    "actions": {
+      "addTeacher": "Add Teacher",
+      "addAssignment": "Add Assignment",
+      "edit": "Edit",
+      "delete": "Delete",
+      "view": "View",
+      "viewDetails": "View Details",
+      "viewFull": "View Full Schedule",
+      "viewDocument": "View Document",
+      "search": "Search...",
+      "refresh": "Refresh",
+      "create": "Create",
+      "update": "Update",
+      "cancel": "Cancel",
+      "close": "Close",
+      "generateTimetable": "Generate Timetable",
+      "generateReport": "Generate Report",
+      "export": "Export",
+      "downloadReport": "Download Report",
+      "printReport": "Print Report",
+      "clear": "Clear",
+      "uploadDocument": "Upload Document",
+      "clickToAdd": "Click to add",
+      "editTeacher":"Edit Teacher"
+    },
+    "filters": {
+      "allStatus": "All Status",
+      "allTeachers": "All Teachers",
+      "allSchoolLevels": "All School Levels",
+      "allClassLevels": "All Class Levels",
+      "allAcademicYears": "All Academic Years",
+      "allTerms": "All Terms",
+      "allWeeks": "All Weeks",
+      "allDays": "All Days",
+      "weekPrefix": "Week"
+    },
+    "pagination": {
+      "showing": "Showing",
+      "of": "of",
+      "perPage": "per page",
+      "total": "Total",
+      "records": "records",
+      "page": "Page",
+      "first": "First",
+      "last": "Last"
+    },
+    "timetable": {
+      "day": "Day",
+      "startTime": "Start",
+      "endTime": "End",
+      "subject": "Subject",
+      "classLevel": "Class Level",
+      "classroom": "Classroom",
+      "totalTeachers": "Total Teachers",
+      "withTimetable": "With Timetable",
+      "totalEntries": "Total Entries",
+      "avgPerTeacher": "Avg/Teacher",
+      "hoursPerWeek": "hrs/week",
+      "entries": "entries",
+      "noData": "No timetable data available. Generate a timetable to get started.",
+      "noEntries": "No timetable entries found for the selected criteria.",
+      "noClasses": "No classes scheduled"
+    },
+    "detail": {
+      "profile": "Profile",
+      "documents": "Documents",
+      "assignments": "Assignments",
+      "timetable": "Timetable",
+      "personalInfo": "Personal Information",
+      "professionalInfo": "Professional Information",
+      "specializations": "Specializations",
+      "qualifications": "Qualifications",
+      "qualificationDocument": "Qualification Document",
+      "bio": "Biography",
+      "currentAssignments": "Current Assignments",
+      "weeklyTimetable": "Weekly Timetable",
+      "noDocuments": "No documents uploaded",
+      "noAssignments": "No assignments found",
+      "noTimetable": "No timetable entries found"
+    },
+    "reports": {
+      "title": "Teacher Reports",
+      "description": "Generate comprehensive reports about teachers, assignments, and performance",
+      "teachersList": "Teachers List",
+      "clickToGenerate": "Click to Generate Report",
+      "generatedOn": "Generated On",
+      "showingFirst": "Showing first",
+      "of": "of"
+    },
+    "messages": {
+      "dataLoaded": "{{count}} records loaded",
+      "createSuccess": "Teacher created successfully",
+      "updateSuccess": "Teacher updated successfully",
+      "deleteSuccess": "Teacher deleted successfully",
+      "assignmentCreateSuccess": "Assignment created successfully",
+      "assignmentDeleteSuccess": "Assignment deleted successfully",
+      "timetableGenerated": "Timetable generated successfully",
+      "entriesCreated": "entries created",
+      "conflictsDetected": "conflicts detected",
+      "reportGenerated": "Report generated successfully",
+      "exportSuccess": "Exported successfully",
+      "loading": "Loading...",
+      "noData": "No data found",
+      "noTeachersFound": "No teachers found matching your criteria",
+      "noAssignmentsFound": "No assignments found matching your criteria"
+    },
+    "errors": {
+      "fetchTeachersFailed": "Failed to fetch teachers",
+      "fetchAssignmentsFailed": "Failed to fetch assignments",
+      "fetchTimetableFailed": "Failed to fetch timetable",
+      "fetchDropdownFailed": "Failed to load dropdown data",
+      "createFailed": "Failed to create teacher",
+      "updateFailed": "Failed to update teacher",
+      "deleteFailed": "Failed to delete teacher",
+      "assignmentCreateFailed": "Failed to create assignment",
+      "assignmentDeleteFailed": "Failed to delete assignment",
+      "timetableGenerateFailed": "Failed to generate timetable",
+      "reportFailed": "Failed to generate report",
+      "exportFailed": "Failed to export data"
+    },
     "days": {
       "monday": "Monday",
       "tuesday": "Tuesday",
@@ -1393,115 +469,23 @@
       "saturday": "Saturday",
       "sunday": "Sunday"
     },
-    
-    "actions": {
-      "view": "View",
-      "edit": "Edit",
-      "delete": "Delete",
-      "add": "Add ",
-      "search": "Search...",
-      "refresh": "Refresh",
-      "create": "Create",
-      "update": "Update",
-      "cancel": "Cancel",
-      "close": "Close",
-      "viewDetails": "View Details",
-      "clickToAdd": "Click here to add new record",
-      "generateTimetable": "Generate",
-      "export": "Export",
-      "generateReport": "Generate Report",
-      "downloadReport": "Download Report",
-      "printReport": "Print Report",
-      "addNew": "Add New",
-      "status": "Status",
-      "select": "Select"
-    },
-    
-    "filters": {
-      "allStatus": "All Status",
-      "allTeachers": "All Teachers",
-      "allWeeks": "All Weeks",
-      "allDays": "All Days",
-      "week": "Week {week}",
-      "allAcademicYears": "All Academic Years",
-      "allSchoolLevels": "All School Levels"
-    },
-    
-    "pagination": {
-      "showing": "Showing",
-      "perPage": "per page",
-      "total": "Total: ",
-      "first": "First",
-      "last": "Last",
-      "page": "Page ",
-      "records": "records",
-      "of": "of"
-    },
-    
-    "timetable": {
-      "noData": "No timetable data available. Click Generate to create one.",
-      "noEntries": "No timetable entries found for the selected criteria.",
-      "day": "Day",
-      "startTime": "Start",
-      "endTime": "End",
-      "subject": "Subject",
-      "classLevel": "Class",
-      "classroom": "Room",
-      "totalTeachers": "Total Teachers",
-      "withTimetable": "With Timetable",
-      "totalEntries": "Total Entries",
-      "avgPerTeacher": "Avg/Teacher",
-      "hoursPerWeek": "hours/week",
-      "entries": "entries",
-      "noClasses": "No classes scheduled"
-    },
-    
-    "reports": {
-      "title": "Teacher Management Report",
-      "generatedOn": "Generated on",
-      "clickToGenerate": "Click Generate Report to view insights",
-      "description": "Comprehensive report including teachers, assignments, timetables, and holidays",
-      "teachersList": "Teachers List",
-      "showingFirst": "Showing first",
-      "of": "of"
-    },
-    
-    "holidays": {
-      "upcoming": "Upcoming Holidays"
-    },
-    
     "delete": {
       "title": "Delete Item",
       "confirmation": "Are you sure you want to delete this item?",
-      "itemName": "Item",
       "warning": "This action cannot be undone."
     },
-    
-    "messages": {
-      "loading": "Loading data...",
-      "noData": "No data found",
-      "fetchError": "Failed to fetch data",
-      "dataLoaded": "Data loaded successfully ({count} records)",
-      "createSuccess": "Created successfully",
-      "createError": "Failed to create",
-      "updateSuccess": "Updated successfully",
-      "updateError": "Failed to update",
-      "updateNotSupported": "Update not supported for this section",
-      "deleteSuccess": "Deleted successfully",
-      "deleteError": "Failed to delete",
-      "timetableGenerated": "Timetable generated successfully",
-      "timetableGenerateError": "Failed to generate timetable",
-      "entriesCreated": "entries created",
-      "conflictsDetected": "conflicts detected",
-      "exportSuccess": "Export completed successfully",
-      "exportError": "Failed to export data",
-      "reportGenerated": "Report generated successfully",
-      "reportError": "Failed to generate report",
-      "updating": "Updating...",
-      "adding": "Adding...",
-      "deleting": "Deleting..."
+    "placeholders": {
+      "fullName": "Enter full name",
+      "address": "Enter physical address",
+      "qualification": "List qualifications and certifications",
+      "specialization": "e.g., Mathematics, Physics, English",
+      "bio": "Brief biography about the teacher",
+      "holidayName": "Enter holiday name",
+      "description": "Enter description",
+      "notes": "Additional notes about this assignment"
     }
   },
+
 
 
   
@@ -1930,5 +914,510 @@
       "yearly": "Per Year",
       "monthly": "Per Month"
     }
+  },
+
+
+  "teacherAr": {
+      "title": "Academic Records Management",
+      "subtitle": "Manage your grade uploads, attendance sessions, and assignments",
+      "tabs": {
+        "grades": "Grade Uploads",
+        "attendance": "Attendance",
+        "assignments": "Assignments"
+      },
+      "stats": {
+        "gradeUploads": "Grade Uploads",
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "sessions": "Sessions",
+        "submitted": "Submitted",
+        "assignments": "Assignments",
+        "total": "Total",
+        "active": "Active",
+        "overdue": "Overdue"
+      },
+      "status": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "active": "Active",
+        "inactive": "Inactive",
+        "expired": "Expired"
+      },
+      "filters": {
+        "allClasses": "All Classes",
+        "allStatus": "All Status",
+        "allSubjects": "All Subjects"
+      },
+      "table": {
+        "actions": "Actions"
+      },
+      "grades": {
+        "upload": "Upload Grades",
+        "uploadTitle": "Upload Grade Sheet",
+        "viewTitle": "Grade Upload Details",
+        "subject": "Subject",
+        "classLevel": "Class Level",
+        "term": "Term",
+        "year": "Academic Year",
+        "gradesCount": "Grades",
+        "status": "Status",
+        "uploadedAt": "Uploaded At",
+        "noFile": "Please select an Excel file to upload.",
+        "uploadSuccess": "Grades uploaded successfully.",
+        "templateNote": "Excel File Format",
+        "requiredCols": "Required columns",
+        "optionalCols": "Optional columns",
+        "excelFile": "Excel File",
+        "dropLabel": "Drag & drop your Excel file here, or click to browse",
+        "dropHint": "Supported formats: .xlsx, .xls",
+        "uploadBtn": "Upload Grades",
+        "reviewedBy": "Reviewed by",
+        "awaitingReview": "Awaiting admin review",
+        "rejectionReason": "Rejection Reason",
+        "adminNotes": "Admin Notes"
+      },
+      "attendance": {
+        "record": "Record Attendance",
+        "recordTitle": "Record Attendance Session",
+        "viewTitle": "Attendance Session Details",
+        "subject": "Subject",
+        "classLevel": "Class Level",
+        "date": "Date",
+        "present": "Present",
+        "absent": "Absent",
+        "late": "Late",
+        "submitted": "Submitted",
+        "yes": "Yes",
+        "submit": "Submit",
+        "submitSuccess": "Attendance session submitted successfully.",
+        "createSuccess": "Attendance session created successfully.",
+        "noStudents": "No students found for this class. Please select a class level first.",
+        "studentRecords": "Student Attendance Records",
+        "markAllPresent": "Mark All Present",
+        "markAllAbsent": "Mark All Absent",
+        "selectClassFirst": "Please select a class level to load students.",
+        "noStudentsInClass": "No active students found in this class.",
+        "student": "Student",
+        "status": "Status",
+        "remarks": "Remarks",
+        "saveBtn": "Save Session",
+        "classroom": "Classroom"
+      },
+      "assignments": {
+        "upload": "Upload Assignment",
+        "uploadTitle": "Upload Assignment",
+        "viewTitle": "Assignment Details",
+        "title": "Title",
+        "subject": "Subject",
+        "classLevel": "Class Level",
+        "dueDate": "Due Date",
+        "totalMarks": "Total Marks",
+        "status": "Status",
+        "overdue": "Overdue",
+        "noFile": "Please select a PDF file to upload.",
+        "uploadSuccess": "Assignment uploaded successfully.",
+        "pdfFile": "PDF File",
+        "dropLabel": "Drag & drop your PDF file here, or click to browse",
+        "dropHint": "Supported format: .pdf",
+        "uploadBtn": "Upload Assignment",
+        "downloadPdf": "Download PDF"
+      },
+      "form": {
+        "classLevel": "Class Level",
+        "subject": "Subject",
+        "academicYear": "Academic Year",
+        "term": "Term",
+        "select": "Select",
+        "date": "Date",
+        "startTime": "Start Time",
+        "endTime": "End Time",
+        "classroom": "Classroom",
+        "optional": "Optional",
+        "notes": "Notes",
+        "dueDate": "Due Date",
+        "title": "Title",
+        "totalMarks": "Total Marks",
+        "description": "Description",
+        "instructions": "Instructions"
+      },
+      "placeholders": {
+        "term": "e.g. Term 1",
+        "notes": "Optional session notes...",
+        "optional": "Optional",
+        "title": "Assignment title...",
+        "description": "Brief description of the assignment...",
+        "instructions": "Step-by-step instructions for students..."
+      },
+      "actions": {
+        "view": "View",
+        "cancel": "Cancel",
+        "close": "Close",
+        "delete": "Delete",
+        "clickToUpload": "Click here to upload",
+        "clickToAdd": "Click here to add"
+      },
+      "delete": {
+        "title": "Confirm Deletion",
+        "confirmation": "Are you sure you want to delete this item?",
+        "warning": "This action is permanent and cannot be undone."
+      },
+      "messages": {
+        "noData": "No records found.",
+        "loaded": "Data loaded successfully.",
+        "fetchError": "Failed to load data. Please try again.",
+        "createError": "Failed to create record. Please check your inputs.",
+        "updateError": "Failed to update record.",
+        "deleteSuccess": "Record deleted successfully.",
+        "deleteError": "Failed to delete record.",
+        "fillRequired": "Please fill in all required fields."
+      },
+      "pagination": {
+        "total": "Total",
+        "first": "First",
+        "last": "Last"
+      }
+    },
+
+
+
+    
+  "userManagement": {
+    "title": "User Management",
+    "subtitle": "Manage all system users",
+    
+    "roles": {
+      "admin": "Administrator",
+      "teacher": "Teacher",
+      "student": "Student",
+      "parent": "Parent"
+    },
+    
+    "statuses": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "suspended": "Suspended"
+    },
+    
+    "summary": {
+      "totalUsers": "Total Users",
+      "activeUsers": "Active Users",
+      "inactiveUsers": "Inactive/Suspended",
+      "studentsTeachers": "Students/Teachers"
+    },
+    
+    "table": {
+      "id": "ID",
+      "username": "Username",
+      "email": "Email",
+      "role": "Role",
+      "status": "Status",
+      "createdAt": "Created At",
+      "updatedAt": "Updated At",
+      "actions": "Actions",
+      "noUsers": "No users found"
+    },
+    
+    "form": {
+      "username": "Username",
+      "email": "Email",
+      "role": "Role",
+      "status": "Status",
+      "password": "Password",
+      "confirmPassword": "Confirm Password"
+    },
+    
+    "filters": {
+      "allRoles": "All Roles",
+      "allStatus": "All Status"
+    },
+    
+    "actions": {
+      "addUser": "Add User",
+      "view": "View",
+      "edit": "Edit",
+      "delete": "Delete",
+      "activate": "Activate",
+      "deactivate": "Deactivate",
+      "create": "Create User",
+      "update": "Update User",
+      "cancel": "Cancel",
+      "close": "Close",
+      "refresh": "Refresh",
+      "searchPlaceholder": "Search users by username or email..."
+    },
+    
+    "modal": {
+      "addNewUser": "Add New User",
+      "editUser": "Edit User",
+      "userDetails": "User Details",
+      "deleteUser": "Delete User",
+      "deleteConfirmation": "Are you sure you want to delete user",
+      "deleteWarning": "This action cannot be undone."
+    },
+    
+    "pagination": {
+      "showing": "Showing",
+      "perPage": "per page",
+      "total": "Total",
+      "page": "Page",
+      "of": "of",
+      "first": "First",
+      "last": "Last"
+    },
+    
+    "messages": {
+      "loading": "Loading...",
+      "dataLoaded": "Data loaded successfully",
+      "fetchError": "Failed to fetch users",
+      "fillRequiredFields": "Please fill in all required fields",
+      "passwordsDoNotMatch": "Passwords do not match",
+      "passwordMinLength": "Password must be at least 6 characters",
+      "userCreated": "User created successfully",
+      "userUpdated": "User updated successfully",
+      "userDeleted": "User deleted successfully",
+      "userActivated": "User activated successfully",
+      "userDeactivated": "User deactivated successfully",
+      "failedToCreateUser": "Failed to create user",
+      "failedToUpdateUser": "Failed to update user",
+      "failedToDeleteUser": "Failed to delete user",
+      "failedToToggleStatus": "Failed to toggle status"
+    }
+  },
+
+
+  
+  
+  
+  "academics": {
+    "title": "Academics Management",
+    "subtitle": "Manage academic structure and settings",
+    "subtitleWithYear": "Academic Year: {{year}}",
+    "tabs": {
+      "academicYears": "Academic Years",
+      "terms": "Terms",
+      "schoolLevels": "School Levels",
+      "classLevels": "Class Levels",
+      "classrooms": "Classrooms",
+      "subjects": "Subjects",
+      "assignments": "Assignments",
+      "paymentTypes": "Payment Types",
+      "feeStructures": "Fee Structures",
+      "daySettings": "Day Settings",
+      "classroomAssignments": "Classroom Assignments",
+      "schoolBreaks": "School Breaks",
+      "holidays": "Holidays"
+    },
+    "stats": {
+      "academicYears": "Academic Years",
+      "terms": "Terms",
+      "schoolLevels": "School Levels",
+      "classLevels": "Class Levels",
+      "classrooms": "Classrooms",
+      "subjects": "Subjects",
+      "feeStructures": "Fee Structures",
+      "schoolBreaks": "School Breaks",
+      "holidays": "Holidays"
+    },
+    "form": {
+      "yearName": "Year Name",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "setAsCurrent": "Set as Current",
+      "academicYear": "Academic Year",
+      "termNumber": "Term Number",
+      "termName": "Term Name",
+      "levelName": "Level Name",
+      "dailyStartTime": "Daily Start Time",
+      "dailyEndTime": "Daily End Time",
+      "dailyStartTimeHint": "When classes begin each day (e.g., 08:00)",
+      "dailyEndTimeHint": "When classes end each day (e.g., 16:00)",
+      "className": "Class Name",
+      "classCode": "Class Code",
+      "schoolLevel": "School Level",
+      "schoolLevelOptional": "School Level (Optional)",
+      "allSchoolLevels": "All School Levels",
+      "roomName": "Room Name",
+      "roomCode": "Room Code",
+      "roomType": "Room Type",
+      "capacity": "Capacity",
+      "status": "Status",
+      "subjectName": "Subject Name",
+      "subjectCode": "Subject Code",
+      "passScore": "Pass Score",
+      "classLevel": "Class Level",
+      "subject": "Subject",
+      "teachingFrequency": "Teaching Frequency",
+      "hoursPerWeek": "Hours per Week",
+      "compulsory": "Compulsory",
+      "paymentTypeName": "Payment Type Name",
+      "paymentTypeCode": "Payment Type Code",
+      "feeName": "Fee Name",
+      "paymentType": "Payment Type",
+      "amount": "Amount",
+      "mandatory": "Mandatory",
+      "dayType": "Day Type",
+      "weekday": "Weekday",
+      "specificDate": "Specific Date",
+      "term": "Term",
+      "classroom": "Classroom",
+      "isPrimaryClassroom": "Is Primary Classroom",
+      "breakName": "Break Name",
+      "breakType": "Break Type",
+      "startTime": "Start Time",
+      "endTime": "End Time",
+      "holidayName": "Holiday Name",
+      "holidayDate": "Holiday Date",
+      "recurringYearly": "Recurring Yearly",
+      "description": "Description",
+      "selectOption": "Select {{label}}",
+      "schoolLevelHoursHint": "Operating hours: {{start}} - {{end}}",
+      "breakConstraintHint": "● Breaks must be at least 5 min after start and before end ● Min 5 min, Max 60 min",
+      "age": "Age"
+    },
+    "table": {
+      "yearName": "Year Name",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "current": "Current",
+      "academicYear": "Academic Year",
+      "termName": "Term Name",
+      "levelName": "Level Name",
+      "dailyHours": "Daily Hours",
+      "description": "Description",
+      "active": "Active",
+      "className": "Class Name",
+      "classCode": "Class Code",
+      "schoolLevel": "School Level",
+      "roomName": "Room Name",
+      "roomCode": "Room Code",
+      "assignedClassLevel": "Assigned Class Level",
+      "roomType": "Room Type",
+      "capacity": "Capacity",
+      "status": "Status",
+      "subjectName": "Subject Name",
+      "subjectCode": "Subject Code",
+      "passScore": "Pass Score",
+      "frequency": "Frequency",
+      "hoursPerWeek": "Hours/Week",
+      "compulsory": "Compulsory",
+      "paymentTypeName": "Payment Type",
+      "paymentTypeCode": "Code",
+      "feeName": "Fee Name",
+      "paymentType": "Payment Type",
+      "amount": "Amount",
+      "mandatory": "Mandatory",
+      "dayType": "Day Type",
+      "weekdayOrDate": "Weekday/Date",
+      "primary": "Primary",
+      "breakName": "Break Name",
+      "breakType": "Break Type",
+      "duration": "Duration",
+      "date": "Date",
+      "recurring": "Recurring",
+      "holidayName": "Holiday Name",
+      "actions": "Actions",
+      "term": "Term",
+      "classroom": "Classroom",
+      "age": "Age",
+      "noData": "No records found",
+      "classLevel": "Class Level",
+      "subject": "Subject",
+      "startTime": "Start Time",
+      "endTime": "End Time"
+    },
+    "labels": {
+      "primary": "Primary",
+      "required": "Required",
+      "optional": "Optional",
+      "mandatory": "Mandatory",
+      "allLevels": "All Levels",
+      "yearly": "Yearly",
+      "once": "Once"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "terms": {
+      "first": "First Term",
+      "second": "Second Term",
+      "third": "Third Term"
+    },
+    "roomTypes": {
+      "standard": "Standard",
+      "laboratory": "Laboratory",
+      "workshop": "Workshop",
+      "auditorium": "Auditorium"
+    },
+    "frequency": {
+      "daily": "Daily",
+      "weekly": "Weekly"
+    },
+    "dayTypes": {
+      "learning": "Learning Day",
+      "day_off": "Day Off",
+      "special": "Special Learning Day",
+      "dayOff": "Day Off"
+    },
+    "breakTypes": {
+      "short_break": "Short Break",
+      "lunch": "Lunch Break",
+      "recess": "Recess",
+      "other": "Other"
+    },
+    "weekdays": {
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday"
+    },
+    "actions": {
+      "add": "Add {{name}}",
+      "edit": "Edit",
+      "delete": "Delete",
+      "view": "View",
+      "viewDetails": "View Details",
+      "search": "Search {{name}}",
+      "filters": "Filters",
+      "refresh": "Refresh",
+      "clearFilters": "Clear Filters",
+      "create": "Create",
+      "update": "Update",
+      "cancel": "Cancel",
+      "close": "Close"
+    },
+    "messages": {
+      "loading": "Loading...",
+      "noData": "No data found",
+      "dataLoaded": "{{count}} item(s) loaded successfully",
+      "fetchError": "Failed to fetch data",
+      "createSuccess": "Created successfully",
+      "createError": "Failed to create",
+      "updateSuccess": "Updated successfully",
+      "updateError": "Failed to update",
+      "deleteSuccess": "Deleted successfully",
+      "deleteError": "Failed to delete",
+      "statusError": "Failed to update status",
+      "updateNotSupported": "Updates not supported for this item type"
+    },
+    "pagination": {
+      "show": "Show",
+      "ofTotal": "of {{count}} total",
+      "page": "Page {{current}} of {{total}}"
+    },
+    "delete": {
+      "title": "Confirm Delete",
+      "confirmation": "Are you sure you want to delete this item?",
+      "itemName": "Item Name"
+    },
+    "view": {
+      "basicInfo": "Basic Information"
+    }
   }
 }
+    

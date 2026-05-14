@@ -1,4 +1,6 @@
-# Simple translation dictionary
+# accounts/translations.py - Add these new messages
+
+# Simple translation dictionary (UPDATED)
 TRANSLATIONS = {
     'en': {
         # Auth errors
@@ -6,13 +8,19 @@ TRANSLATIONS = {
         'account_inactive': 'Your account is inactive. Please contact administrator.',
         'account_suspended': 'Your account has been suspended. Please contact administrator.',
         'invalid_role': 'Invalid role. This account is registered as {role}.',
+        'username_not_found': 'Username not found. Please check and try again.',
+        'passwords_do_not_match': 'Passwords do not match. Please re-enter.',
+        'password_too_short': 'Password must be at least 6 characters long.',
+        'invalid_current_password': 'Current password is incorrect. Please try again.',
         
         # Success messages
         'login_success': 'Login successful',
         'logout_success': 'Logout successful',
         'password_changed': 'Password changed successfully',
         'password_reset_sent': 'Password reset instructions sent to your email',
-        'password_reset_success': 'Password reset successful',
+        'password_reset_success': 'Password reset successful. You can now login with your new password.',
+        'username_exists_true': 'Username exists',
+        'username_exists_false': 'Username does not exist',
         
         # User management
         'user_created': 'User created successfully',
@@ -26,12 +34,18 @@ TRANSLATIONS = {
         'account_inactive': 'Votre compte est inactif. Veuillez contacter l\'administrateur.',
         'account_suspended': 'Votre compte a été suspendu. Veuillez contacter l\'administrateur.',
         'invalid_role': 'Rôle invalide. Ce compte est enregistré comme {role}.',
+        'username_not_found': 'Nom d\'utilisateur introuvable. Veuillez vérifier et réessayer.',
+        'passwords_do_not_match': 'Les mots de passe ne correspondent pas. Veuillez les ré-saisir.',
+        'password_too_short': 'Le mot de passe doit contenir au moins 6 caractères.',
+        'invalid_current_password': 'Le mot de passe actuel est incorrect. Veuillez réessayer.',
         
         'login_success': 'Connexion réussie',
         'logout_success': 'Déconnexion réussie',
         'password_changed': 'Mot de passe changé avec succès',
         'password_reset_sent': 'Instructions de réinitialisation envoyées à votre email',
-        'password_reset_success': 'Réinitialisation du mot de passe réussie',
+        'password_reset_success': 'Réinitialisation du mot de passe réussie. Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.',
+        'username_exists_true': 'Le nom d\'utilisateur existe',
+        'username_exists_false': 'Le nom d\'utilisateur n\'existe pas',
         
         'user_created': 'Utilisateur créé avec succès',
         'user_updated': 'Utilisateur mis à jour avec succès',
@@ -44,12 +58,18 @@ TRANSLATIONS = {
         'account_inactive': 'Konti yawe nkora. Nyamuneka wagirane n\'umuyobozi.',
         'account_suspended': 'Konti yawe yahagaritswe. Nyamuneka wagirane n\'umuyobozi.',
         'invalid_role': 'Uruhare si rwo. Iyi konti yiyandikishije nk\'{role}.',
+        'username_not_found': 'Izina rikoresha ntiriboneka. Nyamuneka ugenzure noneho ugerageze.',
+        'passwords_do_not_match': 'Ijambo banga ntirisobanutse. Nyamuneka uhindure noneho ugerageze.',
+        'password_too_short': 'Ijambo banga rigomba kugira inyuguti zigera kuri 6.',
+        'invalid_current_password': 'Ijambo banga ubu ukoresha si cyo. Nyamuneka ugerageze noneho.',
         
         'login_success': 'Winjiye neza',
         'logout_success': 'Wasohotse neza',
         'password_changed': 'Ijambo banga ryahinduwe neza',
         'password_reset_sent': 'Amabwiriza yo gusubiramo ijambo banga yoherejwe kuri email yawe',
-        'password_reset_success': 'Ijambo banga ryasubiwemo neza',
+        'password_reset_success': 'Ijambo banga ryasubiwemo neza. Ushobora nonaha kwinjira ukoreshe ijambo banga rishya.',
+        'username_exists_true': 'Izina rikoresha riboneka',
+        'username_exists_false': 'Izina rikoresha ntiriboneka',
         
         'user_created': 'Umukoresha yaremwe neza',
         'user_updated': 'Umukoresha yahinduwe neza',

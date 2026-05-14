@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { LogOut, User, Settings, ChevronDown, Menu } from 'lucide-react';
-import ThemeToggle from '../Common/ThemeToggle';
-import LanguageSwitcher from '../Common/LanguageSwitcher';
+import { LogOut, User, Settings, ChevronDown, Menu, Bell, MessageCircle } from 'lucide-react';
+import ThemeToggle from '../../Common/ThemeToggle';
+import LanguageSwitcher from '../../Common/LanguageSwitcher';
 import toast from 'react-hot-toast';
 
-const Header = ({ user, onMenuClick }) => {
+const AdminHeader = ({ user, onMenuClick }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const [notificationCount] = useState(3);
+  const [messageCount] = useState(2);
   
   const handleLogout = async () => {
     try {
@@ -18,7 +20,6 @@ const Header = ({ user, onMenuClick }) => {
       const currentLanguage = localStorage.getItem('user_language') || 'en';
       
       if (refreshToken && accessToken) {
-        // Call logout API using fetch
         const response = await fetch('http://127.0.0.1:8000/api/account/logout/', {
           method: 'POST',
           headers: {
@@ -34,7 +35,6 @@ const Header = ({ user, onMenuClick }) => {
         }
       }
       
-      // Clear all storage
       localStorage.clear();
       sessionStorage.clear();
       
@@ -42,7 +42,6 @@ const Header = ({ user, onMenuClick }) => {
       navigate('/', { replace: true });
     } catch (error) {
       console.error('Logout error:', error);
-      // Still clear local storage even if API call fails
       localStorage.clear();
       sessionStorage.clear();
       toast.success(t('messages.logoutSuccess', 'Logged out successfully'));
@@ -51,20 +50,19 @@ const Header = ({ user, onMenuClick }) => {
   };
   
   const getUserInitial = () => {
-    if (!user) return 'U';
-    return user.username ? user.username.charAt(0).toUpperCase() : 'U';
+    if (!user) return 'A';
+    return user.username ? user.username.charAt(0).toUpperCase() : 'A';
   };
   
   const getUserDisplayName = () => {
-    if (!user) return t('header.user', 'User');
-    return user.username || t('header.user', 'User');
+    if (!user) return t('header.user', 'Admin');
+    return user.username || t('header.user', 'Admin');
   };
   
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
       <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 h-16">
         <div className="flex items-center gap-3">
-          {/* Hamburger Menu Button - visible on mobile only */}
           <button
             onClick={onMenuClick}
             className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors lg:hidden"
@@ -74,13 +72,41 @@ const Header = ({ user, onMenuClick }) => {
           </button>
           
           <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-            {t('header.title', 'Ishuri System')}
+            {t('header.title', 'Ishuri System')} - {t('header.admin', 'Teacher Portal')}
           </h1>
         </div>
         
         <div className="flex items-center gap-3">
           <LanguageSwitcher />
           <ThemeToggle />
+          
+          {/* Notification Bell */}
+          <button
+            onClick={() => navigate('/teacher/notifications')}
+            className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            aria-label="Notifications"
+          >
+            <Bell className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+            {notificationCount > 0 && (
+              <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                {notificationCount}
+              </span>
+            )}
+          </button>
+          
+          {/* Message Icon */}
+          <button
+            onClick={() => navigate('/teacher/chat')}
+            className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            aria-label="Messages"
+          >
+            <MessageCircle className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+            {messageCount > 0 && (
+              <span className="absolute top-1 right-1 w-4 h-4 bg-blue-500 text-white text-xs rounded-full flex items-center justify-center">
+                {messageCount}
+              </span>
+            )}
+          </button>
           
           <div className="relative">
             <button
@@ -109,7 +135,7 @@ const Header = ({ user, onMenuClick }) => {
                     <button
                       onClick={() => {
                         setIsOpen(false);
-                        navigate('/app/profile');
+                        navigate('/teacher/profile');
                       }}
                       className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 transition-colors"
                     >
@@ -148,4 +174,4 @@ const Header = ({ user, onMenuClick }) => {
   );
 };
 
-export default Header;
+export default AdminHeader;

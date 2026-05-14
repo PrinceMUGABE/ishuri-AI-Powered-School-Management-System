@@ -3,45 +3,27 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
-import Layout from './components/Layout/Layout';
 import LandingPage from './components/common/LandingPage';
 
-// Dashboard imports
-import StudentDashboard from './pages/Dashboard/StudentDashboard';
-import TeacherDashboard from './pages/Dashboard/TeacherDashboard';
-import ParentDashboard from './pages/Dashboard/ParentDashboard';
-import AdminDashboard from './pages/Dashboard/AdminDashboard';
-
-// Student pages
-import Grades from './pages/Student/Grades';
-import Attendance from './pages/Student/Attendance';
-import Assignments from './pages/Student/Assignments';
-import DigitalID from './pages/Student/DigitalID';
-import AcademicReport from './pages/Student/AcademicReport';
-
-// Teacher pages
-import GradeUpload from './pages/Teacher/GradeUpload';
-import Timetable from './pages/Teacher/Timetable';
-import AttendanceRecord from './pages/Teacher/AttendanceRecord';
-import AssignmentUpload from './pages/Teacher/AssignmentUpload';
-
-// Parent pages
-import ChildProfile from './pages/Parent/ChildProfile';
-
-// Communication
-import LiveChat from './pages/Communication/LiveChat';
-
-// Admin pages
-import UserManagement from './pages/Admin/UserManagement';
-import GradeApproval from './pages/Admin/GradeApproval';
-import FeeManagement from './pages/Admin/FeeManagement';
-import Reports from './pages/Admin/Reports';
+// Admin Layout and Pages
+import AdminLayout from './components/layout/admin/AdminLayout';
+import AdminDashboard from './pages/admin/Dashboard';
+import UserManagement from './pages/admin/UserManagement';
+import FeeManagement from './pages/admin/FeeManagement';
+import Reports from './pages/admin/Reports';
 import AcademicsManagement from './pages/admin/AcademicsManagement';
 import TeacherManagement from './pages/admin/TeacherManagement';
 import StudentManagement from './pages/admin/StudentsManagement';
 import AdminChatManagement from './pages/admin/ChatManagement';
+import AcademicsRecordsManagement from './pages/admin/AcademicRecordsManagement';
 
-// Helper function to check if user is authenticated from localStorage
+
+
+// Teacher Layout and Pages (To be implemented)
+import TeacherLayout from './components/layout/teacher/TeacherLayout';
+import StudentsGrades from './pages/teacher/GradeUpload';
+
+// Helper function to check if user is authenticated
 const isAuthenticated = () => {
   const token = localStorage.getItem('access_token');
   const user = localStorage.getItem('user');
@@ -54,9 +36,7 @@ const isAuthenticated = () => {
     const userData = JSON.parse(user);
     const tokenExpiry = localStorage.getItem('token_expiry');
     
-    // Check if token exists and is not expired
     if (tokenExpiry && Date.now() > parseInt(tokenExpiry)) {
-      // Token expired, clear storage
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
       localStorage.removeItem('user');
@@ -72,192 +52,26 @@ const isAuthenticated = () => {
   }
 };
 
-// Get user from localStorage
-const getUser = () => {
-  const userStr = localStorage.getItem('user');
-  if (!userStr) return null;
-  
-  try {
-    return JSON.parse(userStr);
-  } catch (error) {
-    console.error('Error parsing user from storage:', error);
-    return null;
-  }
-};
-
-// ProtectedRoute: redirects to root (/) if not authenticated
+// Route Protection Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const isAuth = isAuthenticated();
-  const user = getUser();
+  const userStr = localStorage.getItem('user');
+  const user = userStr ? JSON.parse(userStr) : null;
 
   if (!isAuth) {
-    console.log('[ProtectedRoute] Not authenticated, redirecting to /');
     return <Navigate to="/" replace />;
   }
 
   if (allowedRoles && !allowedRoles.includes(user?.role)) {
-    console.log(`[ProtectedRoute] Role ${user?.role} not allowed, redirecting to /app/dashboard`);
-    return <Navigate to="/app/dashboard" replace />;
+    // Redirect to appropriate dashboard based on role
+    if (user?.role === 'admin') return <Navigate to="/app/dashboard" replace />;
+    if (user?.role === 'teacher') return <Navigate to="/teacher/dashboard" replace />;
+    if (user?.role === 'student') return <Navigate to="/student/dashboard" replace />;
+    if (user?.role === 'parent') return <Navigate to="/parent/dashboard" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return children;
-};
-
-const AppRoutes = () => {
-  const user = getUser();
-
-  const getDashboard = () => {
-    switch (user?.role) {
-      case 'student': return <StudentDashboard />;
-      case 'teacher': return <TeacherDashboard />;
-      case 'parent': return <ParentDashboard />;
-      case 'admin': return <AdminDashboard />;
-      default: return <Navigate to="/" replace />;
-    }
-  };
-
-  return (
-    <Routes>
-      {/* Public Routes - Landing page at root */}
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<Navigate to="/" replace />} />
-
-      {/* Protected Routes under /app */}
-      <Route path="/app" element={<Layout />}>
-
-        <Route path="dashboard" element={
-          <ProtectedRoute>
-            {getDashboard()}
-          </ProtectedRoute>
-        } />
-
-        <Route path="communications" element={
-          <ProtectedRoute>
-            <LiveChat />
-          </ProtectedRoute>
-        } />
-
-        {/* Student Routes */}
-        <Route path="grades" element={
-          <ProtectedRoute allowedRoles={['student']}>
-            <Grades />
-          </ProtectedRoute>
-        } />
-
-        <Route path="attendance" element={
-          <ProtectedRoute allowedRoles={['student']}>
-            <Attendance />
-          </ProtectedRoute>
-        } />
-
-        <Route path="assignments" element={
-          <ProtectedRoute allowedRoles={['student']}>
-            <Assignments />
-          </ProtectedRoute>
-        } />
-
-        <Route path="digital-id" element={
-          <ProtectedRoute allowedRoles={['student']}>
-            <DigitalID />
-          </ProtectedRoute>
-        } />
-
-        <Route path="academic-report" element={
-          <ProtectedRoute allowedRoles={['student']}>
-            <AcademicReport />
-          </ProtectedRoute>
-        } />
-
-        {/* Teacher Routes */}
-        <Route path="timetable" element={
-          <ProtectedRoute allowedRoles={['teacher']}>
-            <Timetable />
-          </ProtectedRoute>
-        } />
-
-        <Route path="grade-upload" element={
-          <ProtectedRoute allowedRoles={['teacher']}>
-            <GradeUpload />
-          </ProtectedRoute>
-        } />
-
-        <Route path="attendance-record" element={
-          <ProtectedRoute allowedRoles={['teacher']}>
-            <AttendanceRecord />
-          </ProtectedRoute>
-        } />
-
-        <Route path="assignment-upload" element={
-          <ProtectedRoute allowedRoles={['teacher']}>
-            <AssignmentUpload />
-          </ProtectedRoute>
-        } />
-
-        {/* Parent Routes */}
-        <Route path="child-profile" element={
-          <ProtectedRoute allowedRoles={['parent']}>
-            <ChildProfile />
-          </ProtectedRoute>
-        } />
-
-        {/* Admin Routes */}
-        <Route path="users" element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <UserManagement />
-          </ProtectedRoute>
-        } />
-
-        <Route path="grade-approval" element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <GradeApproval />
-          </ProtectedRoute>
-        } />
-
-        <Route path="fee-management" element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <FeeManagement />
-          </ProtectedRoute>
-        } />
-
-        <Route path="teacher-management" element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <TeacherManagement />
-          </ProtectedRoute>
-        } />
-
-        <Route path="student-management" element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <StudentManagement />
-          </ProtectedRoute>
-        } />
-
-        <Route path="reports" element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <Reports />
-          </ProtectedRoute>
-        } />
-
-
-        <Route path="chat" element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <AdminChatManagement />
-          </ProtectedRoute>
-        } />
-
-        <Route path="academics" element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <AcademicsManagement />
-          </ProtectedRoute>
-        } />
-
-        {/* Fallback inside /app */}
-        <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
-      </Route>
-
-      {/* Global fallback - redirect to root */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  );
 };
 
 function App() {
@@ -265,7 +79,75 @@ function App() {
     <ThemeProvider>
       <LanguageProvider>
         <Toaster position="top-right" />
-        <AppRoutes />
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<Navigate to="/" replace />} />
+
+          {/* Admin Routes */}
+          <Route 
+            path="/app" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="/app/dashboard" replace />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="users" element={<UserManagement />} />
+            <Route path="fee-management" element={<FeeManagement />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="academics" element={<AcademicsManagement />} />
+            <Route path="teacher-management" element={<TeacherManagement />} />
+            <Route path="student-management" element={<StudentManagement />} />
+            <Route path="chat" element={<AdminChatManagement />} />
+            <Route path="grade-approval" element={<AcademicsRecordsManagement />} />
+            <Route path="profile" element={<div>Profile Page</div>} />
+            <Route path="settings" element={<div>Settings Page</div>} />
+            <Route path="notifications" element={<div>Notifications Page</div>} />
+            <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
+          </Route>
+
+          {/* Teacher Routes - To be implemented */}
+          <Route 
+            path="/teacher" 
+            element={
+              <ProtectedRoute allowedRoles={['teacher']}>
+                <TeacherLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="dashboard" element={<StudentsGrades />} />
+          </Route>
+
+          {/* Student Routes - To be implemented */}
+          <Route 
+            path="/student" 
+            element={
+              <ProtectedRoute allowedRoles={['student']}>
+                <div>Student Layout Coming Soon</div>
+              </ProtectedRoute>
+            }
+          >
+            <Route path="dashboard" element={<div>Student Dashboard</div>} />
+          </Route>
+
+          {/* Parent Routes - To be implemented */}
+          <Route 
+            path="/parent" 
+            element={
+              <ProtectedRoute allowedRoles={['parent']}>
+                <div>Parent Layout Coming Soon</div>
+              </ProtectedRoute>
+            }
+          >
+            <Route path="dashboard" element={<div>Parent Dashboard</div>} />
+          </Route>
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </LanguageProvider>
     </ThemeProvider>
   );

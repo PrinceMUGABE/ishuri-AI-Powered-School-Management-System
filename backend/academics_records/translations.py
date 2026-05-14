@@ -85,6 +85,77 @@ TRANSLATIONS = {
     "notif_assignment_uploaded_msg":    {"en": "A new assignment '{title}' has been posted for {subject} – {class_level}. Due: {due_date}.", "fr": "Un nouveau devoir '{title}' a été publié pour {subject} – {class_level}. Délai : {due_date}.", "rw": "Akazi gashya '{title}' gashyizweho kuri {subject} – {class_level}. Igihe: {due_date}."},
     "notif_assignment_admin_title":     {"en": "New Assignment Uploaded",        "fr": "Nouveau devoir téléchargé",         "rw": "Akazi gashya gasohowe"},
     "notif_assignment_admin_msg":       {"en": "Teacher {teacher} uploaded assignment '{title}' for {subject} – {class_level}.", "fr": "L'enseignant {teacher} a publié le devoir '{title}' pour {subject} – {class_level}.", "rw": "Umwarimu {teacher} yashyize akazi '{title}' kuri {subject} – {class_level}."},
+    
+    # Add to TRANSLATIONS dict
+
+"grade_upload_no_data": {
+    "en": "No valid grade data found in the file.",
+    "fr": "Aucune donnée de note valide trouvée dans le fichier.",
+    "rw": "Nta manota afite agaciro yabonetse muri dosiye.",
+},
+"attendance_upload_no_data": {
+    "en": "No valid attendance data found in the file.",
+    "fr": "Aucune donnée de présence valide trouvée dans le fichier.",
+    "rw": "Nta makuru y'ibarurishamibare afite agaciro yabonetse muri dosiye.",
+},
+"attendance_upload_bad_template": {
+    "en": "Excel file is missing required columns: {cols}",
+    "fr": "Colonnes requises manquantes dans le fichier : {cols}",
+    "rw": "Insonga zikenewe zirabura muri dosiye: {cols}",
+},
+"students_fetched": {
+    "en": "Students fetched successfully.",
+    "fr": "Étudiants récupérés avec succès.",
+    "rw": "Abanyeshuri babonetse neza.",
+},
+
+# Add to TRANSLATIONS dict in translations.py
+
+"students_fetched": {
+    "en": "Students fetched successfully.",
+    "fr": "Étudiants récupérés avec succès.",
+    "rw": "Abanyeshuri babonetse neza.",
+},
+"grade_upload_no_data": {
+    "en": "No valid grade data found in the file.",
+    "fr": "Aucune donnée de note valide trouvée dans le fichier.",
+    "rw": "Nta manota afite agaciro yabonetse muri dosiye.",
+},
+"attendance_upload_no_data": {
+    "en": "No valid attendance data found in the file.",
+    "fr": "Aucune donnée de présence valide trouvée dans le fichier.",
+    "rw": "Nta makuru y'ibarurishamibare afite agaciro yabonetse muri dosiye.",
+},
+"attendance_upload_bad_template": {
+    "en": "Excel file is missing required columns: {cols}",
+    "fr": "Colonnes requises manquantes dans le fichier : {cols}",
+    "rw": "Insonga zikenewe zirabura muri dosiye: {cols}",
+},
+"attendance.noStudentsInClass": {
+    "en": "No active students found in this class",
+    "fr": "Aucun étudiant actif trouvé dans cette classe",
+    "rw": "Nta munyeshuri ukora ubonetse muri iri shuri",
+},
+"attendance.selectClassFirst": {
+    "en": "Select a class level to view students",
+    "fr": "Sélectionnez un niveau de classe pour voir les étudiants",
+    "rw": "Hitamo urwego rw'ishuri kugira ngo ubone abanyeshuri",
+},
+"attendance.studentRecords": {
+    "en": "Student Attendance Records",
+    "fr": "Registres de présence des étudiants",
+    "rw": "Ibarurishamibare ry'abanyeshuri",
+},
+"attendance.markAllPresent": {
+    "en": "Mark All Present",
+    "fr": "Marquer tous présents",
+    "rw": "Shyira bose nk'abahari",
+},
+"attendance.markAllAbsent": {
+    "en": "Mark All Absent",
+    "fr": "Marquer tous absents",
+    "rw": "Shyira bose nk'abatari",
+},
 }
 
 

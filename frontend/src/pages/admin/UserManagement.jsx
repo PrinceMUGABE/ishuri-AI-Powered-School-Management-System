@@ -75,16 +75,16 @@ const UserManagement = () => {
   });
 
   const roles = [
-    { value: 'admin', label: 'Administrator' },
-    { value: 'teacher', label: 'Teacher' },
-    { value: 'student', label: 'Student' },
-    { value: 'parent', label: 'Parent' }
+    { value: 'admin', label: t('userManagement.roles.admin', 'Administrator') },
+    { value: 'teacher', label: t('userManagement.roles.teacher', 'Teacher') },
+    { value: 'student', label: t('userManagement.roles.student', 'Student') },
+    { value: 'parent', label: t('userManagement.roles.parent', 'Parent') }
   ];
   
   const statuses = [
-    { value: 'active', label: 'Active', color: 'green' },
-    { value: 'inactive', label: 'Inactive', color: 'yellow' },
-    { value: 'suspended', label: 'Suspended', color: 'red' }
+    { value: 'active', label: t('userManagement.statuses.active', 'Active'), color: 'green' },
+    { value: 'inactive', label: t('userManagement.statuses.inactive', 'Inactive'), color: 'yellow' },
+    { value: 'suspended', label: t('userManagement.statuses.suspended', 'Suspended'), color: 'red' }
   ];
 
   // Fetch users from backend
@@ -107,12 +107,13 @@ const UserManagement = () => {
       if (response.data.success) {
         setUsers(response.data.data.results);
         setTotalUsers(response.data.data.count);
+        toast.success(t('userManagement.messages.dataLoaded', 'Data loaded successfully'));
       } else {
-        toast.error(response.data.message || 'Failed to fetch users');
+        toast.error(response.data.message || t('userManagement.messages.fetchError', 'Failed to fetch users'));
       }
     } catch (error) {
       console.error('Error fetching users:', error);
-      toast.error(error.response?.data?.message || 'Failed to fetch users');
+      toast.error(error.response?.data?.message || t('userManagement.messages.fetchError', 'Failed to fetch users'));
     } finally {
       setLoading(false);
     }
@@ -126,17 +127,17 @@ const UserManagement = () => {
   // Create new user
   const handleCreateUser = async () => {
     if (!newUser.username || !newUser.password || !newUser.confirm_password) {
-      toast.error('Please fill in all required fields');
+      toast.error(t('userManagement.messages.fillRequiredFields', 'Please fill in all required fields'));
       return;
     }
     
     if (newUser.password !== newUser.confirm_password) {
-      toast.error('Passwords do not match');
+      toast.error(t('userManagement.messages.passwordsDoNotMatch', 'Passwords do not match'));
       return;
     }
     
     if (newUser.password.length < 6) {
-      toast.error('Password must be at least 6 characters');
+      toast.error(t('userManagement.messages.passwordMinLength', 'Password must be at least 6 characters'));
       return;
     }
     
@@ -152,7 +153,7 @@ const UserManagement = () => {
       });
       
       if (response.data.success) {
-        toast.success(response.data.message || 'User created successfully');
+        toast.success(response.data.message || t('userManagement.messages.userCreated', 'User created successfully'));
         setShowAddModal(false);
         setNewUser({
           username: '',
@@ -165,12 +166,12 @@ const UserManagement = () => {
         fetchUsers(); // Refresh the list
       } else {
         const errors = response.data.errors;
-        const errorMessage = Object.values(errors).flat()[0] || 'Failed to create user';
+        const errorMessage = Object.values(errors).flat()[0] || t('userManagement.messages.failedToCreateUser', 'Failed to create user');
         toast.error(errorMessage);
       }
     } catch (error) {
       console.error('Error creating user:', error);
-      const errorMessage = error.response?.data?.message || error.response?.data?.errors || 'Failed to create user';
+      const errorMessage = error.response?.data?.message || error.response?.data?.errors || t('userManagement.messages.failedToCreateUser', 'Failed to create user');
       toast.error(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
     } finally {
       setLoading(false);
@@ -180,7 +181,7 @@ const UserManagement = () => {
   // Update user
   const handleUpdateUser = async () => {
     if (!editUser.username) {
-      toast.error('Username is required');
+      toast.error(t('userManagement.messages.fillRequiredFields', 'Please fill in all required fields'));
       return;
     }
     
@@ -194,17 +195,17 @@ const UserManagement = () => {
       });
       
       if (response.data.success) {
-        toast.success(response.data.message || 'User updated successfully');
+        toast.success(response.data.message || t('userManagement.messages.userUpdated', 'User updated successfully'));
         setShowEditModal(false);
         fetchUsers(); // Refresh the list
       } else {
         const errors = response.data.errors;
-        const errorMessage = Object.values(errors).flat()[0] || 'Failed to update user';
+        const errorMessage = Object.values(errors).flat()[0] || t('userManagement.messages.failedToUpdateUser', 'Failed to update user');
         toast.error(errorMessage);
       }
     } catch (error) {
       console.error('Error updating user:', error);
-      const errorMessage = error.response?.data?.message || error.response?.data?.errors || 'Failed to update user';
+      const errorMessage = error.response?.data?.message || error.response?.data?.errors || t('userManagement.messages.failedToUpdateUser', 'Failed to update user');
       toast.error(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
     } finally {
       setLoading(false);
@@ -220,16 +221,16 @@ const UserManagement = () => {
       const response = await apiClient.delete(`/users/${selectedUser.id}/`);
       
       if (response.data.success) {
-        toast.success(response.data.message || 'User deleted successfully');
+        toast.success(response.data.message || t('userManagement.messages.userDeleted', 'User deleted successfully'));
         setShowDeleteModal(false);
         setSelectedUser(null);
         fetchUsers(); // Refresh the list
       } else {
-        toast.error(response.data.message || 'Failed to delete user');
+        toast.error(response.data.message || t('userManagement.messages.failedToDeleteUser', 'Failed to delete user'));
       }
     } catch (error) {
       console.error('Error deleting user:', error);
-      const errorMessage = error.response?.data?.message || 'Failed to delete user';
+      const errorMessage = error.response?.data?.message || t('userManagement.messages.failedToDeleteUser', 'Failed to delete user');
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -243,14 +244,17 @@ const UserManagement = () => {
       const response = await apiClient.post(`/users/${user.id}/toggle-status/`);
       
       if (response.data.success) {
-        toast.success(response.data.message || `User ${response.data.data.status === 'active' ? 'activated' : 'deactivated'} successfully`);
+        const statusMessage = response.data.data.status === 'active' 
+          ? t('userManagement.messages.userActivated', 'User activated successfully')
+          : t('userManagement.messages.userDeactivated', 'User deactivated successfully');
+        toast.success(response.data.message || statusMessage);
         fetchUsers(); // Refresh the list
       } else {
-        toast.error(response.data.message || 'Failed to toggle status');
+        toast.error(response.data.message || t('userManagement.messages.failedToToggleStatus', 'Failed to toggle status'));
       }
     } catch (error) {
       console.error('Error toggling status:', error);
-      const errorMessage = error.response?.data?.message || 'Failed to toggle status';
+      const errorMessage = error.response?.data?.message || t('userManagement.messages.failedToToggleStatus', 'Failed to toggle status');
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -323,7 +327,7 @@ const UserManagement = () => {
           className="px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded-lg transition-colors flex items-center gap-2"
         >
           <UserPlus className="w-4 h-4" />
-          {t('userManagement.addUser', 'Add User')}
+          {t('userManagement.actions.addUser', 'Add User')}
         </button>
       </div>
 
@@ -332,7 +336,7 @@ const UserManagement = () => {
         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Total Users</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('userManagement.summary.totalUsers', 'Total Users')}</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
             </div>
             <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
@@ -344,7 +348,7 @@ const UserManagement = () => {
         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Active Users</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('userManagement.summary.activeUsers', 'Active Users')}</p>
               <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.active}</p>
             </div>
             <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
@@ -356,7 +360,7 @@ const UserManagement = () => {
         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Inactive/Suspended</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('userManagement.summary.inactiveUsers', 'Inactive/Suspended')}</p>
               <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{stats.inactive + stats.suspended}</p>
             </div>
             <div className="w-10 h-10 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center">
@@ -368,7 +372,7 @@ const UserManagement = () => {
         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Students/Teachers</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('userManagement.summary.studentsTeachers', 'Students/Teachers')}</p>
               <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.students} / {stats.teachers}</p>
             </div>
             <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
@@ -385,7 +389,7 @@ const UserManagement = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder={t('userManagement.searchPlaceholder', 'Search users by username or email...')}
+              placeholder={t('userManagement.actions.searchPlaceholder', 'Search users by username or email...')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
@@ -398,7 +402,7 @@ const UserManagement = () => {
               onChange={(e) => setSelectedRole(e.target.value)}
               className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
-              <option value="all">{t('userManagement.allRoles', 'All Roles')}</option>
+              <option value="all">{t('userManagement.filters.allRoles', 'All Roles')}</option>
               {roles.map(role => (
                 <option key={role.value} value={role.value}>{role.label}</option>
               ))}
@@ -409,7 +413,7 @@ const UserManagement = () => {
               onChange={(e) => setSelectedStatus(e.target.value)}
               className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
-              <option value="all">{t('userManagement.allStatus', 'All Status')}</option>
+              <option value="all">{t('userManagement.filters.allStatus', 'All Status')}</option>
               {statuses.map(status => (
                 <option key={status.value} value={status.value}>{status.label}</option>
               ))}
@@ -418,6 +422,7 @@ const UserManagement = () => {
             <button
               onClick={fetchUsers}
               className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+              title={t('userManagement.actions.refresh', 'Refresh')}
             >
               <RefreshCw className="w-4 h-4" />
             </button>
@@ -432,22 +437,22 @@ const UserManagement = () => {
             <thead className="bg-gray-50 dark:bg-gray-700/50">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  {t('userManagement.username', 'Username')}
+                  {t('userManagement.table.username', 'Username')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  {t('userManagement.email', 'Email')}
+                  {t('userManagement.table.email', 'Email')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  {t('userManagement.role', 'Role')}
+                  {t('userManagement.table.role', 'Role')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  {t('userManagement.status', 'Status')}
+                  {t('userManagement.table.status', 'Status')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  {t('userManagement.createdAt', 'Created At')}
+                  {t('userManagement.table.createdAt', 'Created At')}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  {t('userManagement.actions', 'Actions')}
+                  {t('userManagement.table.actions', 'Actions')}
                 </th>
               </tr>
             </thead>
@@ -458,12 +463,13 @@ const UserManagement = () => {
                     <div className="flex justify-center">
                       <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
                     </div>
+                    <p className="mt-2 text-sm text-gray-500">{t('userManagement.messages.loading', 'Loading...')}</p>
                   </td>
                 </tr>
               ) : currentUsers.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
-                    {t('userManagement.noUsers', 'No users found')}
+                    {t('userManagement.table.noUsers', 'No users found')}
                   </td>
                 </tr>
               ) : (
@@ -480,7 +486,7 @@ const UserManagement = () => {
                     <td className="px-4 py-3">
                       <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(user.role)}`}>
                         {getRoleIcon(user.role)}
-                        {user.role_display || user.role}
+                        {user.role_display || t(`userManagement.roles.${user.role}`, user.role)}
                       </span>
                     </td>
                     <td className="px-4 py-3">
@@ -488,7 +494,7 @@ const UserManagement = () => {
                         {user.status === 'active' && <CheckCircle className="w-3 h-3" />}
                         {user.status === 'inactive' && <Clock className="w-3 h-3" />}
                         {user.status === 'suspended' && <AlertCircle className="w-3 h-3" />}
-                        {user.status_display || user.status}
+                        {user.status_display || t(`userManagement.statuses.${user.status}`, user.status)}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
@@ -502,7 +508,7 @@ const UserManagement = () => {
                             setShowViewModal(true);
                           }}
                           className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                          title={t('userManagement.view', 'View')}
+                          title={t('userManagement.actions.view', 'View')}
                         >
                           <Eye className="w-4 h-4 text-blue-500" />
                         </button>
@@ -518,14 +524,14 @@ const UserManagement = () => {
                             setShowEditModal(true);
                           }}
                           className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                          title={t('userManagement.edit', 'Edit')}
+                          title={t('userManagement.actions.edit', 'Edit')}
                         >
                           <Edit className="w-4 h-4 text-yellow-500" />
                         </button>
                         <button
                           onClick={() => handleToggleStatus(user)}
                           className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                          title={user.status === 'active' ? t('userManagement.deactivate', 'Deactivate') : t('userManagement.activate', 'Activate')}
+                          title={user.status === 'active' ? t('userManagement.actions.deactivate', 'Deactivate') : t('userManagement.actions.activate', 'Activate')}
                         >
                           {user.status === 'active' ? (
                             <UserX className="w-4 h-4 text-orange-500" />
@@ -539,7 +545,7 @@ const UserManagement = () => {
                             setShowDeleteModal(true);
                           }}
                           className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                          title={t('userManagement.delete', 'Delete')}
+                          title={t('userManagement.actions.delete', 'Delete')}
                         >
                           <Trash2 className="w-4 h-4 text-red-500" />
                         </button>
@@ -557,7 +563,7 @@ const UserManagement = () => {
           <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600 dark:text-gray-400">
-                {t('userManagement.showing', 'Showing')}
+                {t('userManagement.pagination.showing', 'Showing')}
               </span>
               <select
                 value={itemsPerPage}
@@ -574,7 +580,10 @@ const UserManagement = () => {
                 <option value={100}>100</option>
               </select>
               <span className="text-sm text-gray-600 dark:text-gray-400">
-                {t('userManagement.perPage', 'per page')}
+                {t('userManagement.pagination.perPage', 'per page')}
+              </span>
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                {t('userManagement.pagination.total', 'Total')}: {totalUsers}
               </span>
             </div>
             
@@ -584,7 +593,7 @@ const UserManagement = () => {
                 disabled={currentPage === 1}
                 className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {t('userManagement.first', 'First')}
+                {t('userManagement.pagination.first', 'First')}
               </button>
               <button
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
@@ -594,7 +603,7 @@ const UserManagement = () => {
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <span className="text-sm text-gray-600 dark:text-gray-400">
-                {t('userManagement.page', 'Page')} {currentPage} {t('userManagement.of', 'of')} {totalPages}
+                {t('userManagement.pagination.page', 'Page')} {currentPage} {t('userManagement.pagination.of', 'of')} {totalPages}
               </span>
               <button
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
@@ -608,7 +617,7 @@ const UserManagement = () => {
                 disabled={currentPage === totalPages}
                 className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {t('userManagement.last', 'Last')}
+                {t('userManagement.pagination.last', 'Last')}
               </button>
             </div>
           </div>
@@ -621,7 +630,7 @@ const UserManagement = () => {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                {t('userManagement.addNewUser', 'Add New User')}
+                {t('userManagement.modal.addNewUser', 'Add New User')}
               </h2>
               <button onClick={() => setShowAddModal(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
                 <X className="w-5 h-5" />
@@ -631,7 +640,7 @@ const UserManagement = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                  {t('userManagement.username', 'Username')} *
+                  {t('userManagement.form.username', 'Username')} *
                 </label>
                 <input
                   type="text"
@@ -644,7 +653,7 @@ const UserManagement = () => {
               
               <div>
                 <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                  {t('userManagement.email', 'Email')}
+                  {t('userManagement.form.email', 'Email')}
                 </label>
                 <input
                   type="email"
@@ -657,7 +666,7 @@ const UserManagement = () => {
               
               <div>
                 <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                  {t('userManagement.role', 'Role')} *
+                  {t('userManagement.form.role', 'Role')} *
                 </label>
                 <select
                   value={newUser.role}
@@ -672,7 +681,7 @@ const UserManagement = () => {
               
               <div>
                 <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                  {t('userManagement.status', 'Status')}
+                  {t('userManagement.form.status', 'Status')}
                 </label>
                 <select
                   value={newUser.status}
@@ -687,7 +696,7 @@ const UserManagement = () => {
               
               <div>
                 <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                  {t('userManagement.password', 'Password')} *
+                  {t('userManagement.form.password', 'Password')} *
                 </label>
                 <input
                   type="password"
@@ -700,7 +709,7 @@ const UserManagement = () => {
               
               <div>
                 <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                  {t('userManagement.confirmPassword', 'Confirm Password')} *
+                  {t('userManagement.form.confirmPassword', 'Confirm Password')} *
                 </label>
                 <input
                   type="password"
@@ -714,10 +723,10 @@ const UserManagement = () => {
             
             <div className="flex gap-3 mt-6">
               <button onClick={handleCreateUser} className="flex-1 px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded-lg transition-colors">
-                {t('userManagement.create', 'Create User')}
+                {t('userManagement.actions.create', 'Create User')}
               </button>
               <button onClick={() => setShowAddModal(false)} className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors">
-                {t('userManagement.cancel', 'Cancel')}
+                {t('userManagement.actions.cancel', 'Cancel')}
               </button>
             </div>
           </div>
@@ -730,7 +739,7 @@ const UserManagement = () => {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                {t('userManagement.editUser', 'Edit User')}
+                {t('userManagement.modal.editUser', 'Edit User')}
               </h2>
               <button onClick={() => setShowEditModal(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
                 <X className="w-5 h-5" />
@@ -740,7 +749,7 @@ const UserManagement = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                  {t('userManagement.username', 'Username')} *
+                  {t('userManagement.form.username', 'Username')} *
                 </label>
                 <input
                   type="text"
@@ -752,7 +761,7 @@ const UserManagement = () => {
               
               <div>
                 <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                  {t('userManagement.email', 'Email')}
+                  {t('userManagement.form.email', 'Email')}
                 </label>
                 <input
                   type="email"
@@ -764,7 +773,7 @@ const UserManagement = () => {
               
               <div>
                 <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                  {t('userManagement.role', 'Role')} *
+                  {t('userManagement.form.role', 'Role')} *
                 </label>
                 <select
                   value={editUser.role}
@@ -779,7 +788,7 @@ const UserManagement = () => {
               
               <div>
                 <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                  {t('userManagement.status', 'Status')}
+                  {t('userManagement.form.status', 'Status')}
                 </label>
                 <select
                   value={editUser.status}
@@ -795,10 +804,10 @@ const UserManagement = () => {
             
             <div className="flex gap-3 mt-6">
               <button onClick={handleUpdateUser} className="flex-1 px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded-lg transition-colors">
-                {t('userManagement.update', 'Update User')}
+                {t('userManagement.actions.update', 'Update User')}
               </button>
               <button onClick={() => setShowEditModal(false)} className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors">
-                {t('userManagement.cancel', 'Cancel')}
+                {t('userManagement.actions.cancel', 'Cancel')}
               </button>
             </div>
           </div>
@@ -811,7 +820,7 @@ const UserManagement = () => {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                {t('userManagement.userDetails', 'User Details')}
+                {t('userManagement.modal.userDetails', 'User Details')}
               </h2>
               <button onClick={() => setShowViewModal(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
                 <X className="w-5 h-5" />
@@ -820,38 +829,38 @@ const UserManagement = () => {
             
             <div className="space-y-3">
               <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-                <span className="font-medium text-gray-600 dark:text-gray-400">{t('userManagement.id', 'ID')}:</span>
+                <span className="font-medium text-gray-600 dark:text-gray-400">{t('userManagement.table.id', 'ID')}:</span>
                 <span className="text-gray-900 dark:text-white">{selectedUser.id}</span>
               </div>
               <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-                <span className="font-medium text-gray-600 dark:text-gray-400">{t('userManagement.username', 'Username')}:</span>
+                <span className="font-medium text-gray-600 dark:text-gray-400">{t('userManagement.table.username', 'Username')}:</span>
                 <span className="text-gray-900 dark:text-white">{selectedUser.username}</span>
               </div>
               <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-                <span className="font-medium text-gray-600 dark:text-gray-400">{t('userManagement.email', 'Email')}:</span>
+                <span className="font-medium text-gray-600 dark:text-gray-400">{t('userManagement.table.email', 'Email')}:</span>
                 <span className="text-gray-900 dark:text-white">{selectedUser.email || '-'}</span>
               </div>
               <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-                <span className="font-medium text-gray-600 dark:text-gray-400">{t('userManagement.role', 'Role')}:</span>
+                <span className="font-medium text-gray-600 dark:text-gray-400">{t('userManagement.table.role', 'Role')}:</span>
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(selectedUser.role)}`}>
-                  {selectedUser.role_display || selectedUser.role}
+                  {selectedUser.role_display || t(`userManagement.roles.${selectedUser.role}`, selectedUser.role)}
                 </span>
               </div>
               <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-                <span className="font-medium text-gray-600 dark:text-gray-400">{t('userManagement.status', 'Status')}:</span>
+                <span className="font-medium text-gray-600 dark:text-gray-400">{t('userManagement.table.status', 'Status')}:</span>
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeColor(selectedUser.status)}`}>
-                  {selectedUser.status_display || selectedUser.status}
+                  {selectedUser.status_display || t(`userManagement.statuses.${selectedUser.status}`, selectedUser.status)}
                 </span>
               </div>
               <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-                <span className="font-medium text-gray-600 dark:text-gray-400">{t('userManagement.createdAt', 'Created At')}:</span>
+                <span className="font-medium text-gray-600 dark:text-gray-400">{t('userManagement.table.createdAt', 'Created At')}:</span>
                 <span className="text-gray-900 dark:text-white">
                   {new Date(selectedUser.created_at).toLocaleString()}
                 </span>
               </div>
               {selectedUser.updated_at && (
                 <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-                  <span className="font-medium text-gray-600 dark:text-gray-400">{t('userManagement.updatedAt', 'Updated At')}:</span>
+                  <span className="font-medium text-gray-600 dark:text-gray-400">{t('userManagement.table.updatedAt', 'Updated At')}:</span>
                   <span className="text-gray-900 dark:text-white">
                     {new Date(selectedUser.updated_at).toLocaleString()}
                   </span>
@@ -861,7 +870,7 @@ const UserManagement = () => {
             
             <div className="mt-6">
               <button onClick={() => setShowViewModal(false)} className="w-full px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded-lg transition-colors">
-                {t('userManagement.close', 'Close')}
+                {t('userManagement.actions.close', 'Close')}
               </button>
             </div>
           </div>
@@ -877,21 +886,23 @@ const UserManagement = () => {
                 <Trash2 className="w-8 h-8 text-red-600 dark:text-red-400" />
               </div>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                {t('userManagement.deleteUser', 'Delete User')}
+                {t('userManagement.modal.deleteUser', 'Delete User')}
               </h2>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                {t('userManagement.deleteConfirmation', 'Are you sure you want to delete user')}{' '}
+                {t('userManagement.modal.deleteConfirmation', 'Are you sure you want to delete user')}{' '}
                 <strong className="text-gray-900 dark:text-white">{selectedUser.username}</strong>?
-                {t('userManagement.deleteWarning', 'This action cannot be undone.')}
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {t('userManagement.modal.deleteWarning', 'This action cannot be undone.')}
               </p>
             </div>
             
             <div className="flex gap-3 mt-4">
               <button onClick={handleDeleteUser} className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
-                {t('userManagement.delete', 'Delete')}
+                {t('userManagement.actions.delete', 'Delete')}
               </button>
               <button onClick={() => setShowDeleteModal(false)} className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors">
-                {t('userManagement.cancel', 'Cancel')}
+                {t('userManagement.actions.cancel', 'Cancel')}
               </button>
             </div>
           </div>
