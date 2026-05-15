@@ -26,7 +26,9 @@ urlpatterns = [
     path('<int:student_id>/history/', views.get_student_academic_history, name='student-history'),
 
     # ─── Admin: Parent / Guardian management ──────────────────────
+    path('parents/', views.get_all_parents, name='parent-list'),
     path('parents/create/', views.create_parent, name='parent-create'),
+    path('parents/<int:parent_id>/delete/', views.delete_parent, name='parent-delete'),
     path('parents/me/', views.get_my_parent_profile, name='parent-me'),
 
     # ─── Teacher ↔ Student cross-endpoints ────────────────────────

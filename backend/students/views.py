@@ -17,7 +17,7 @@ from rest_framework import status
 
 from accounts.models import User
 from accounts.permissions import IsAdmin
-from academics.models import AcademicYear, Term, ClassRoom
+from academics.models import AcademicYear, Term, ClassRoom, ClassLevel
 from teachers.models import Teacher, TeacherAssignment, TeacherTimetable
 
 from .models import Student, Parent, StudentParent, StudentClassroomAssignment, StudentAcademicHistory
@@ -210,6 +210,7 @@ def create_student(request):
         
         response_data = StudentDetailSerializer(student).data
         if classroom_assigned:
+            classroom_assigned = ClassRoom.objects.get(id=classroom_assigned.id)
             response_data['assigned_classroom'] = {
                 'id': classroom_assigned.id,
                 'name': classroom_assigned.name,
@@ -236,7 +237,7 @@ def create_student(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def get_all_students(request):
-    """Admin: List all students with optional filters and pagination."""
+    """Admin: List all students."""
     print(f"\n{SEPARATOR}\n[get_all_students] Request received\n{SEPARATOR}")
     lang = get_lang_from_request(request)
 
@@ -245,55 +246,20 @@ def get_all_students(request):
             'user', 'current_academic_year', 'current_school_level', 'current_class_level', 'created_by'
         ).prefetch_related('parents', 'classroom_assignments')
 
-        # Filters
-        search = request.query_params.get('search')
-        if search:
-            qs = qs.filter(full_name__icontains=search)
-
-        status_filter = request.query_params.get('status')
-        if status_filter:
-            qs = qs.filter(status=status_filter)
-
-        class_level_id = request.query_params.get('class_level_id')
-        if class_level_id:
-            qs = qs.filter(current_class_level_id=class_level_id)
-
-        school_level_id = request.query_params.get('school_level_id')
-        if school_level_id:
-            qs = qs.filter(current_school_level_id=school_level_id)
-
-        academic_year_id = request.query_params.get('academic_year_id')
-        if academic_year_id:
-            qs = qs.filter(current_academic_year_id=academic_year_id)
-        
-        classroom_id = request.query_params.get('classroom_id')
-        if classroom_id:
-            qs = qs.filter(classroom_assignments__classroom_id=classroom_id, classroom_assignments__status='active')
-
-        # Pagination
-        page = max(int(request.query_params.get('page', 1)), 1)
-        page_size = min(int(request.query_params.get('page_size', 10)), 100)
-        total = qs.count()
-        start = (page - 1) * page_size
-        paginated = qs[start:start + page_size]
-
-        print(f"[get_all_students] Returning {len(paginated)} of {total}")
+        print(f"[get_all_students] Returning {qs.count()} students")
+        returned_students = StudentListSerializer(qs, many=True).data
+        print(f"retrieved students:\n{returned_students}\n")
         return Response({
             'success': True,
             'language': lang,
-            'data': {
-                'count': total,
-                'page': page,
-                'page_size': page_size,
-                'total_pages': (total + page_size - 1) // page_size,
-                'results': StudentListSerializer(paginated, many=True).data,
-            },
+            'data': StudentListSerializer(qs, many=True).data,
         })
 
     except Exception as exc:
         logger.error(f"[get_all_students] Error: {exc}", exc_info=True)
         return Response({'success': False, 'message': str(exc), 'language': lang},
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 @api_view(['GET'])
@@ -708,6 +674,8 @@ def create_parent(request):
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_my_parent_profile(request):
@@ -736,6 +704,48 @@ def get_my_parent_profile(request):
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+     
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated, IsAdmin])
+def delete_parent(request, parent_id):
+    """Admin: Delete a parent and their linked user account."""
+    print(f"\n{SEPARATOR}\n[delete_parent] ID={parent_id}\n{SEPARATOR}")
+    lang = get_lang_from_request(request)
+
+    try:
+        parent = get_object_or_404(Parent, id=parent_id)
+        full_name = parent.full_name
+
+        # Notify before delete
+        if parent.user:
+            _notify_user(
+                user=parent.user,
+                notification_type='user_deleted',
+                title=get_message('notif_parent_deleted_title', lang),
+                message='Your parent account has been removed from the system.',
+                created_by=request.user,
+            )
+
+        with transaction.atomic():
+            user = parent.user
+            parent.delete()
+            if user:
+                user.delete()
+
+        print(f"[delete_parent] Deleted: {full_name}")
+        return Response({
+            'success': True,
+            'message': get_message('parent_deleted', lang),
+            'language': lang,
+            'data': {'full_name': full_name},
+        })
+
+    except Exception as exc:
+        logger.error(f"[delete_parent] Error: {exc}", exc_info=True)
+        return Response({'success': False, 'message': str(exc), 'language': lang},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)       
+        
+        
 # ═══════════════════════════════════════════════════════════════
 # TEACHER ↔ STUDENT VIEWS
 # ═══════════════════════════════════════════════════════════════
@@ -998,4 +1008,56 @@ def get_student_academic_history(request, student_id):
         
         
         
+        
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsAdmin])
+def get_all_parents(request):
+    """Admin: List all parents with optional filters and pagination."""
+    print(f"\n{SEPARATOR}\n[get_all_parents] Request received\n{SEPARATOR}")
+    lang = get_lang_from_request(request)
+
+    try:
+        qs = Parent.objects.select_related('user', 'created_by').prefetch_related('students')
+
+        # Filters
+        search = request.query_params.get('search')
+        if search:
+            qs = qs.filter(full_name__icontains=search)
+
+        status_filter = request.query_params.get('status')
+        if status_filter:
+            qs = qs.filter(status=status_filter)
+
+        relationship_type = request.query_params.get('relationship_type')
+        if relationship_type:
+            qs = qs.filter(relationship_type=relationship_type)
+
+        student_id = request.query_params.get('student_id')
+        if student_id:
+            qs = qs.filter(students__id=student_id)
+
+        # Pagination
+        page = max(int(request.query_params.get('page', 1)), 1)
+        page_size = min(int(request.query_params.get('page_size', 10)), 100)
+        total = qs.count()
+        start = (page - 1) * page_size
+        paginated = qs[start:start + page_size]
+
+        print(f"[get_all_parents] Returning {len(paginated)} of {total}")
+        return Response({
+            'success': True,
+            'language': lang,
+            'data': {
+                'count': total,
+                'page': page,
+                'page_size': page_size,
+                'total_pages': (total + page_size - 1) // page_size,
+                'results': ParentListSerializer(paginated, many=True).data,
+            },
+        })
+
+    except Exception as exc:
+        logger.error(f"[get_all_parents] Error: {exc}", exc_info=True)
+        return Response({'success': False, 'message': str(exc), 'language': lang},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         

@@ -130,11 +130,12 @@ class StudentMinimalSerializer(serializers.ModelSerializer):
     current_school_level = SchoolLevelMinimalSerializer(read_only=True)
     current_academic_year = AcademicYearMinimalSerializer(read_only=True)
     current_classroom = serializers.SerializerMethodField()
+    user = UserMinimalSerializer(read_only=True)
 
     class Meta:
         model = Student
         fields = [
-            'id', 'full_name', 'roll_number', 'email', 'phone_number',
+            'id', 'user', 'full_name', 'roll_number', 'email', 'phone_number',
             'birth_date', 'age', 'status', 'current_classroom',
             'current_academic_year', 'current_school_level', 'current_class_level'
         ]
@@ -157,11 +158,12 @@ class ParentListSerializer(serializers.ModelSerializer):
         source='get_relationship_type_display', read_only=True
     )
     students_count = serializers.SerializerMethodField()
+    user = UserMinimalSerializer(read_only=True)
 
     class Meta:
         model = Parent
         fields = [
-            'id', 'full_name', 'phone_number', 'email',
+            'id', 'user', 'full_name', 'phone_number', 'email',
             'relationship_type', 'relationship_type_display',
             'status', 'students_count', 'created_at', 'physical_address'
         ]
