@@ -19,16 +19,9 @@ from accounts.models import User
 # Field helpers
 # ---------------------------------------------------------------------------
 
-class Base64ImageField(serializers.ImageField):
-    def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith('data:image'):
-            fmt, imgstr = data.split(';base64,')
-            ext = fmt.split('/')[-1]
-            data = ContentFile(base64.b64decode(imgstr), name=f'temp.{ext}')
-        return super().to_internal_value(data)
-
-
 class Base64FileField(serializers.FileField):
+    """Accepts base64-encoded data URIs for document file uploads."""
+
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:'):
             try:
@@ -96,15 +89,59 @@ class TeacherDocumentSerializer(serializers.ModelSerializer):
 
 
 # ---------------------------------------------------------------------------
+# Profile picture helpers
+# ---------------------------------------------------------------------------
+
+def _decode_profile_picture(data):
+    """
+    Parse an incoming base64 data URI.
+
+    Returns (bytes, mime_type) or raises ValidationError.
+    Accepts:  "data:image/png;base64,iVBOR..."
+    """
+    if not data:
+        return None, ''
+    if not isinstance(data, str) or not data.startswith('data:'):
+        raise serializers.ValidationError(
+            'Profile picture must be a base64 data URI '
+            '(e.g. "data:image/png;base64,...")'
+        )
+    try:
+        header, b64str = data.split(';base64,', 1)
+        mime = header.split(':', 1)[1]           # e.g. "image/png"
+        raw_bytes = base64.b64decode(b64str)
+        return raw_bytes, mime
+    except Exception as exc:
+        raise serializers.ValidationError(f'Invalid profile picture data: {exc}')
+
+
+def _encode_profile_picture(binary_value, mime):
+    """
+    Build a base64 data URI from a BinaryField value.
+
+    Returns a string like "data:image/jpeg;base64,..." or None.
+    """
+    if not binary_value:
+        return None
+    raw = bytes(binary_value)           # handles both bytes and memoryview (PostgreSQL)
+    b64 = base64.b64encode(raw).decode('utf-8')
+    mime = mime or 'image/jpeg'
+    return f'data:{mime};base64,{b64}'
+
+
+# ---------------------------------------------------------------------------
 # Teacher
 # ---------------------------------------------------------------------------
 
 class TeacherSerializer(serializers.ModelSerializer):
+    # ---- read-only computed fields ----------------------------------------
     age = serializers.IntegerField(read_only=True)
     full_name = serializers.CharField(read_only=True)
     profile_picture_url = serializers.SerializerMethodField()
     qualification_document_url = serializers.SerializerMethodField()
     qualification_document_name = serializers.SerializerMethodField()
+
+    # ---- specializations ---------------------------------------------------
     specializations_detail = TeacherSpecializationSerializer(
         source='specializations', many=True, read_only=True
     )
@@ -113,30 +150,44 @@ class TeacherSerializer(serializers.ModelSerializer):
         queryset=Subject.objects.filter(status='active'),
         many=True, write_only=True, required=False
     )
+
+    # ---- nested user info --------------------------------------------------
     user_info = UserInfoSerializer(source='user', read_only=True)
+
+    # ---- profile_picture: write-only CharField, read via profile_picture_url
+    profile_picture = serializers.CharField(
+        write_only=True, required=False, allow_null=True, allow_blank=True,
+        help_text='Base64 data URI, e.g. "data:image/png;base64,..."'
+    )
 
     class Meta:
         model = Teacher
         fields = [
-            'id', 'user', 'user_info', 'first_name', 'last_name', 'middle_name',
-            'full_name', 'email', 'phone_number', 'address', 'gender',
+            'id', 'user', 'user_info',
+            'first_name', 'last_name', 'middle_name', 'full_name',
+            'email', 'phone_number', 'address', 'gender',
             'salary', 'work_hours_per_week',
             'specializations', 'specializations_ids', 'specializations_detail',
             'education_level', 'qualifications',
             'qualification_document', 'qualification_document_url', 'qualification_document_name',
             'birth_date', 'age', 'hire_date', 'status',
-            'profile_picture', 'profile_picture_url', 'bio',
+            # write-only input field
+            'profile_picture',
+            # read-only output field (full data URI)
+            'profile_picture_url',
+            'bio',
             'created_at', 'updated_at', 'created_by',
         ]
-        read_only_fields = ['id', 'age', 'created_at', 'updated_at', 'created_by', 'user']
+        read_only_fields = [
+            'id', 'age', 'created_at', 'updated_at', 'created_by', 'user',
+            'profile_picture_url',
+        ]
+
+    # ---- serializer method fields -----------------------------------------
 
     def get_profile_picture_url(self, obj):
-        if obj.profile_picture and obj.profile_picture.name:
-            try:
-                return obj.profile_picture.url
-            except Exception:
-                return None
-        return None
+        """Return a full base64 data URI, or None."""
+        return _encode_profile_picture(obj.profile_picture, obj.profile_picture_mime)
 
     def get_qualification_document_url(self, obj):
         if obj.qualification_document and obj.qualification_document.name:
@@ -150,6 +201,8 @@ class TeacherSerializer(serializers.ModelSerializer):
         if obj.qualification_document and obj.qualification_document.name:
             return os.path.basename(obj.qualification_document.name)
         return None
+
+    # ---- field-level validation -------------------------------------------
 
     def validate_email(self, value):
         value = value.lower().strip()
@@ -181,6 +234,21 @@ class TeacherSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError('Invalid birth date')
         return value
 
+    def validate_profile_picture(self, value):
+        """
+        Decode the incoming data URI and stash the mime type for use in
+        create() / update().  Returns raw bytes (or None).
+        """
+        if not value:
+            # Explicit null/blank — caller wants to clear the picture
+            self._profile_picture_bytes = None
+            self._profile_picture_mime = ''
+            return None
+        raw_bytes, mime = _decode_profile_picture(value)
+        self._profile_picture_bytes = raw_bytes
+        self._profile_picture_mime = mime
+        return raw_bytes
+
     def validate(self, data):
         if data.get('work_hours_per_week', 0) > 60:
             raise serializers.ValidationError(
@@ -188,25 +256,48 @@ class TeacherSerializer(serializers.ModelSerializer):
             )
         return data
 
+    # ---- create / update --------------------------------------------------
+
+    def _apply_profile_picture(self, validated_data):
+        """
+        Move the decoded bytes + mime into validated_data under the correct
+        model field names, removing the write-only 'profile_picture' key.
+        """
+        if 'profile_picture' in validated_data:
+            validated_data.pop('profile_picture')          # remove write-only key
+        if hasattr(self, '_profile_picture_bytes'):
+            validated_data['profile_picture'] = self._profile_picture_bytes
+            validated_data['profile_picture_mime'] = self._profile_picture_mime
+
     def create(self, validated_data):
         specializations = validated_data.pop('specializations', [])
+        self._apply_profile_picture(validated_data)
         teacher = super().create(validated_data)
         teacher.specializations.set(specializations)
         return teacher
 
     def update(self, instance, validated_data):
         specializations = validated_data.pop('specializations', None)
+        self._apply_profile_picture(validated_data)
         teacher = super().update(instance, validated_data)
         if specializations is not None:
             teacher.specializations.set(specializations)
         return teacher
 
 
+# ---------------------------------------------------------------------------
+# TeacherCreateSerializer
+# ---------------------------------------------------------------------------
+
 class TeacherCreateSerializer(serializers.ModelSerializer):
     specializations_ids = serializers.PrimaryKeyRelatedField(
         source='specializations',
         queryset=Subject.objects.filter(status='active'),
         many=True, required=False
+    )
+    profile_picture = serializers.CharField(
+        write_only=True, required=False, allow_null=True, allow_blank=True,
+        help_text='Base64 data URI, e.g. "data:image/png;base64,..."'
     )
 
     class Meta:
@@ -243,16 +334,54 @@ class TeacherCreateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError('Invalid birth date')
         return value
 
+    def validate_profile_picture(self, value):
+        if not value:
+            self._profile_picture_bytes = None
+            self._profile_picture_mime = ''
+            return None
+        raw_bytes, mime = _decode_profile_picture(value)
+        self._profile_picture_bytes = raw_bytes
+        self._profile_picture_mime = mime
+        return raw_bytes
+
+    def _apply_profile_picture(self, validated_data):
+        if 'profile_picture' in validated_data:
+            validated_data.pop('profile_picture')
+        if hasattr(self, '_profile_picture_bytes'):
+            validated_data['profile_picture'] = self._profile_picture_bytes
+            validated_data['profile_picture_mime'] = self._profile_picture_mime
+
+    def create(self, validated_data):
+        specializations = validated_data.pop('specializations', [])
+        self._apply_profile_picture(validated_data)
+        teacher = super().create(validated_data)
+        teacher.specializations.set(specializations)
+        return teacher
+
+
+# ---------------------------------------------------------------------------
+# TeacherProfileUpdateSerializer
+# ---------------------------------------------------------------------------
 
 class TeacherProfileUpdateSerializer(serializers.ModelSerializer):
-    profile_picture = Base64ImageField(required=False, allow_null=True)
+    profile_picture = serializers.CharField(
+        required=False, allow_null=True, allow_blank=True,
+        help_text='Base64 data URI, e.g. "data:image/png;base64,..." — send null to clear'
+    )
+    # Expose the current picture as a read-only data URI on responses
+    profile_picture_url = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Teacher
         fields = [
             'first_name', 'last_name', 'middle_name', 'phone_number',
-            'address', 'gender', 'qualifications', 'bio', 'profile_picture',
+            'address', 'gender', 'qualifications', 'bio',
+            'profile_picture',       # write-only input
+            'profile_picture_url',   # read-only output
         ]
+
+    def get_profile_picture_url(self, obj):
+        return _encode_profile_picture(obj.profile_picture, obj.profile_picture_mime)
 
     def validate_phone_number(self, value):
         value = re.sub(r'\s+', '', value)
@@ -260,6 +389,29 @@ class TeacherProfileUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('A teacher with this phone number already exists')
         return value
 
+    def validate_profile_picture(self, value):
+        if not value:
+            self._profile_picture_bytes = None
+            self._profile_picture_mime = ''
+            return None
+        raw_bytes, mime = _decode_profile_picture(value)
+        self._profile_picture_bytes = raw_bytes
+        self._profile_picture_mime = mime
+        return raw_bytes
+
+    def update(self, instance, validated_data):
+        # Swap the write-only key for the real model fields
+        if 'profile_picture' in validated_data:
+            validated_data.pop('profile_picture')
+        if hasattr(self, '_profile_picture_bytes'):
+            validated_data['profile_picture'] = self._profile_picture_bytes
+            validated_data['profile_picture_mime'] = self._profile_picture_mime
+        return super().update(instance, validated_data)
+
+
+# ---------------------------------------------------------------------------
+# ChangePasswordSerializer
+# ---------------------------------------------------------------------------
 
 class ChangePasswordSerializer(serializers.Serializer):
     current_password = serializers.CharField(required=True, write_only=True)
@@ -273,7 +425,7 @@ class ChangePasswordSerializer(serializers.Serializer):
 
 
 # ---------------------------------------------------------------------------
-# TeacherAssignment
+# TeacherAssignmentSerializer
 # ---------------------------------------------------------------------------
 
 class TeacherAssignmentSerializer(serializers.ModelSerializer):
@@ -299,7 +451,7 @@ class TeacherAssignmentSerializer(serializers.ModelSerializer):
     classrooms = serializers.PrimaryKeyRelatedField(
         queryset=ClassRoom.objects.filter(status='active'),
         many=True,
-        required=False 
+        required=False
     )
     classrooms_detail = ClassRoomBriefSerializer(source='classrooms', many=True, read_only=True)
 
@@ -332,11 +484,10 @@ class TeacherAssignmentSerializer(serializers.ModelSerializer):
         school_level = data.get('school_level') or (self.instance.school_level if self.instance else None)
         subject = data.get('subject') or (self.instance.subject if self.instance else None)
         teacher = data.get('teacher') or (self.instance.teacher if self.instance else None)
-        classrooms = data.get('classrooms')  # may be None or []
+        classrooms = data.get('classrooms')
 
         # ----------------------------------------------------------------
-        # 1. AUTO-POPULATE classrooms FIRST before any validation that
-        #    touches them — otherwise iterating over None will crash.
+        # 1. AUTO-POPULATE classrooms first so downstream checks don't crash
         # ----------------------------------------------------------------
         if not classrooms and class_level:
             auto_rooms = list(
@@ -358,11 +509,14 @@ class TeacherAssignmentSerializer(serializers.ModelSerializer):
                 })
         elif not classrooms:
             raise serializers.ValidationError({
-                'classrooms': 'Classrooms are required and could not be auto-populated without a class level.'
+                'classrooms': (
+                    'Classrooms are required and could not be auto-populated '
+                    'without a class level.'
+                )
             })
 
         # ----------------------------------------------------------------
-        # 2. Now validate — classrooms is guaranteed to be a non-empty list
+        # 2. Structural validations
         # ----------------------------------------------------------------
 
         # class_level must belong to school_level
@@ -381,8 +535,7 @@ class TeacherAssignmentSerializer(serializers.ModelSerializer):
                 {'teacher': f'Teacher "{teacher.full_name}" is not active'}
             )
 
-        # All classrooms must be active (auto-populated ones already are,
-        # but this guards against manually supplied inactive rooms)
+        # All classrooms must be active
         for room in classrooms:
             if room.status != 'active':
                 raise serializers.ValidationError(
@@ -424,7 +577,7 @@ class TeacherAssignmentSerializer(serializers.ModelSerializer):
 
 
 # ---------------------------------------------------------------------------
-# TeacherTimetable
+# TeacherTimetableSerializer
 # ---------------------------------------------------------------------------
 
 class TeacherTimetableSerializer(serializers.ModelSerializer):
@@ -456,7 +609,7 @@ class TeacherTimetableSerializer(serializers.ModelSerializer):
 
 
 # ---------------------------------------------------------------------------
-# Holiday & SchoolDaySetting
+# HolidaySerializer
 # ---------------------------------------------------------------------------
 
 class HolidaySerializer(serializers.ModelSerializer):
@@ -489,6 +642,10 @@ class HolidaySerializer(serializers.ModelSerializer):
                 pass
         return value
 
+
+# ---------------------------------------------------------------------------
+# SchoolDaySettingSerializer
+# ---------------------------------------------------------------------------
 
 class SchoolDaySettingSerializer(serializers.ModelSerializer):
     academic_year_name = serializers.CharField(source='academic_year.name', read_only=True)

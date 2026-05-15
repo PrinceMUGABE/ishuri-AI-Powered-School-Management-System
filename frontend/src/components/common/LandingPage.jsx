@@ -95,24 +95,24 @@ apiClient.interceptors.response.use(
   }
 );
 
-// Password validation function
+// Enhanced password validation function
 const validatePassword = (password, t) => {
   const errors = [];
   
-  if (password.length < 6) {
-    errors.push(t('landingPage.passwordValidation.minLength'));
+  if (!password || password.length < 6) {
+    errors.push(t('landingPage.passwordValidation.minLength') || 'Password must be at least 6 characters');
   }
   if (!/[A-Z]/.test(password)) {
-    errors.push(t('landingPage.passwordValidation.uppercase'));
+    errors.push(t('landingPage.passwordValidation.uppercase') || 'Password must contain at least one uppercase letter');
   }
   if (!/[a-z]/.test(password)) {
-    errors.push(t('landingPage.passwordValidation.lowercase'));
+    errors.push(t('landingPage.passwordValidation.lowercase') || 'Password must contain at least one lowercase letter');
   }
   if (!/[0-9]/.test(password)) {
-    errors.push(t('landingPage.passwordValidation.number'));
+    errors.push(t('landingPage.passwordValidation.number') || 'Password must contain at least one number');
   }
   if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-    errors.push(t('landingPage.passwordValidation.specialChar'));
+    errors.push(t('landingPage.passwordValidation.specialChar') || 'Password must contain at least one special character (!@#$%^&* etc.)');
   }
   
   return errors;
@@ -376,7 +376,7 @@ const LoginModal = ({ onClose, onForgotPassword, onLoginSuccess }) => {
   );
 };
 
-// Check Username Modal
+// Check Username Modal - Step 1 of Password Reset
 const CheckUsernameModal = ({ onBack, onUsernameFound, onClose }) => {
   const { t, i18n } = useTranslation();
   const [username, setUsername] = useState('');
@@ -384,8 +384,9 @@ const CheckUsernameModal = ({ onBack, onUsernameFound, onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
     if (!username.trim()) {
-      toast.error(t('landingPage.forgotPassword.emailLabel') || 'Username required');
+      toast.error(t('landingPage.forgotPassword.usernameRequired') || 'Username is required');
       return;
     }
 
@@ -402,10 +403,10 @@ const CheckUsernameModal = ({ onBack, onUsernameFound, onClose }) => {
       console.log('[Check Username Response]', response.data);
 
       if (response.data.success && response.data.exists) {
-        toast.success(response.data.message);
+        toast.success(response.data.message || t('landingPage.forgotPassword.usernameFound'));
         onUsernameFound(username.trim(), response.data.data);
       } else {
-        toast.error(response.data.message || t('landingPage.errors.invalidCredentials'));
+        toast.error(response.data.message || t('landingPage.forgotPassword.usernameNotFound'));
       }
     } catch (error) {
       console.error('[Check Username Error]', error);
@@ -439,16 +440,16 @@ const CheckUsernameModal = ({ onBack, onUsernameFound, onClose }) => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-            {t('landingPage.forgotPassword.emailLabel')}
+            {t('landingPage.forgotPassword.usernameLabel') || 'Username'}
           </label>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
-              placeholder={t('landingPage.forgotPassword.emailPlaceholder')}
+              placeholder={t('landingPage.forgotPassword.usernamePlaceholder') || 'Enter your username'}
               required
               disabled={loading}
               autoFocus
@@ -466,7 +467,7 @@ const CheckUsernameModal = ({ onBack, onUsernameFound, onClose }) => {
           ) : (
             <>
               <CheckCircle className="w-4 h-4" />
-              {t('landingPage.forgotPassword.sendReset')}
+              {t('landingPage.forgotPassword.verifyUsername') || 'Verify Username'}
             </>
           )}
         </button>
@@ -483,7 +484,7 @@ const CheckUsernameModal = ({ onBack, onUsernameFound, onClose }) => {
   );
 };
 
-// Reset Password Modal
+// Reset Password Modal - Step 2 of Password Reset
 const ResetPasswordModal = ({ username, userData, onBack, onClose, onPasswordReset }) => {
   const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState(false);
@@ -494,9 +495,28 @@ const ResetPasswordModal = ({ username, userData, onBack, onClose, onPasswordRes
     confirm_password: ''
   });
   const [passwordErrors, setPasswordErrors] = useState([]);
+  const [passwordStrength, setPasswordStrength] = useState({
+    length: false,
+    uppercase: false,
+    lowercase: false,
+    number: false,
+    special: false
+  });
+
+  // Check password strength in real-time
+  const checkPasswordStrength = (password) => {
+    setPasswordStrength({
+      length: password.length >= 6,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /[0-9]/.test(password),
+      special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+    });
+  };
 
   const handlePasswordChange = (value) => {
     setFormData({ ...formData, new_password: value });
+    checkPasswordStrength(value);
     const errors = validatePassword(value, t);
     setPasswordErrors(errors);
   };
@@ -531,7 +551,7 @@ const ResetPasswordModal = ({ username, userData, onBack, onClose, onPasswordRes
       console.log('[Reset Password Response]', response.data);
 
       if (response.data.success) {
-        toast.success(response.data.message);
+        toast.success(response.data.message || t('landingPage.forgotPassword.passwordResetSuccess'));
         
         // Auto-login after password reset
         const loginResponse = await apiClient.post('/account/login/', {
@@ -556,12 +576,15 @@ const ResetPasswordModal = ({ username, userData, onBack, onClose, onPasswordRes
           
           apiClient.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
           
-          toast.success(response.data.message || t('landingPage.forgotPassword.sentMessage'));
+          toast.success(t('landingPage.forgotPassword.loginSuccess') || 'Password reset successful! Logging you in...');
           onPasswordReset(user);
+          onClose();
+        } else {
+          toast.success(t('landingPage.forgotPassword.resetSuccess') || 'Password reset successful! Please login.');
           onClose();
         }
       } else {
-        toast.error(response.data.message || t('landingPage.forgotPassword.sendReset'));
+        toast.error(response.data.message || t('landingPage.forgotPassword.resetFailed'));
       }
     } catch (error) {
       console.error('[Reset Password Error]', error);
@@ -571,8 +594,20 @@ const ResetPasswordModal = ({ username, userData, onBack, onClose, onPasswordRes
     }
   };
 
+  const getPasswordStrengthColor = () => {
+    const passedCount = Object.values(passwordStrength).filter(Boolean).length;
+    if (passedCount === 5) return 'bg-green-500';
+    if (passedCount >= 3) return 'bg-yellow-500';
+    return 'bg-red-500';
+  };
+
+  const getPasswordStrengthPercent = () => {
+    const passedCount = Object.values(passwordStrength).filter(Boolean).length;
+    return (passedCount / 5) * 100;
+  };
+
   return (
-    <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md mx-4 p-8">
+    <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md mx-4 p-8 max-h-[90vh] overflow-y-auto">
       <button
         onClick={onClose}
         className="absolute top-4 right-4 p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -585,20 +620,20 @@ const ResetPasswordModal = ({ username, userData, onBack, onClose, onPasswordRes
           <Lock className="w-7 h-7 text-green-600" />
         </div>
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-          {t('landingPage.forgotPassword.title')}
+          {t('landingPage.forgotPassword.resetTitle') || 'Reset Password'}
         </h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          {t('landingPage.forgotPassword.subtitle')}
+          {t('landingPage.forgotPassword.resetSubtitle') || 'Create a new password for your account'}
         </p>
         <p className="text-xs text-gray-400 mt-1">
-          {t('landingPage.forgotPassword.emailLabel')}: <span className="font-semibold text-green-700">{username}</span>
+          {t('landingPage.forgotPassword.resettingFor') || 'Resetting password for'}: <span className="font-semibold text-green-700 dark:text-green-400">{username}</span>
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-            {t('landingPage.login.password')}
+            {t('landingPage.forgotPassword.newPassword') || 'New Password'}
           </label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -607,7 +642,7 @@ const ResetPasswordModal = ({ username, userData, onBack, onClose, onPasswordRes
               value={formData.new_password}
               onChange={(e) => handlePasswordChange(e.target.value)}
               className="w-full pl-10 pr-10 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
-              placeholder={t('landingPage.login.passwordPlaceholder')}
+              placeholder={t('landingPage.forgotPassword.newPasswordPlaceholder') || 'Enter new password'}
               required
               disabled={loading}
             />
@@ -619,16 +654,53 @@ const ResetPasswordModal = ({ username, userData, onBack, onClose, onPasswordRes
               {showPassword ? <EyeOff className="w-4 h-4 text-gray-400" /> : <Eye className="w-4 h-4 text-gray-400" />}
             </button>
           </div>
-          {passwordErrors.length > 0 && (
-            <div className="mt-2 text-xs text-red-600 dark:text-red-400 space-y-1">
-              <p className="font-semibold">{t('landingPage.passwordValidation.title')}</p>
-              {passwordErrors.map((err, idx) => (
-                <p key={idx} className="flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" /> {err}
-                </p>
-              ))}
+
+          {/* Password strength indicator */}
+          {formData.new_password && (
+            <div className="mt-2">
+              <div className="flex justify-between text-xs mb-1">
+                <span className="text-gray-600 dark:text-gray-400">
+                  {t('landingPage.passwordValidation.strength') || 'Password strength'}:
+                </span>
+                <span className="font-semibold">
+                  {Object.values(passwordStrength).filter(Boolean).length}/5
+                </span>
+              </div>
+              <div className="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div 
+                  className={`h-full transition-all duration-300 ${getPasswordStrengthColor()}`}
+                  style={{ width: `${getPasswordStrengthPercent()}%` }}
+                />
+              </div>
             </div>
           )}
+
+          {/* Password requirements checklist */}
+          <div className="mt-3 space-y-1.5">
+            <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+              {t('landingPage.passwordValidation.requirements') || 'Password must contain:'}
+            </p>
+            <div className={`flex items-center gap-2 text-xs ${passwordStrength.length ? 'text-green-600 dark:text-green-400' : 'text-gray-500'}`}>
+              {passwordStrength.length ? <Check className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
+              <span>{t('landingPage.passwordValidation.minLength') || 'At least 6 characters'}</span>
+            </div>
+            <div className={`flex items-center gap-2 text-xs ${passwordStrength.uppercase ? 'text-green-600 dark:text-green-400' : 'text-gray-500'}`}>
+              {passwordStrength.uppercase ? <Check className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
+              <span>{t('landingPage.passwordValidation.uppercase') || 'At least one uppercase letter'}</span>
+            </div>
+            <div className={`flex items-center gap-2 text-xs ${passwordStrength.lowercase ? 'text-green-600 dark:text-green-400' : 'text-gray-500'}`}>
+              {passwordStrength.lowercase ? <Check className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
+              <span>{t('landingPage.passwordValidation.lowercase') || 'At least one lowercase letter'}</span>
+            </div>
+            <div className={`flex items-center gap-2 text-xs ${passwordStrength.number ? 'text-green-600 dark:text-green-400' : 'text-gray-500'}`}>
+              {passwordStrength.number ? <Check className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
+              <span>{t('landingPage.passwordValidation.number') || 'At least one number'}</span>
+            </div>
+            <div className={`flex items-center gap-2 text-xs ${passwordStrength.special ? 'text-green-600 dark:text-green-400' : 'text-gray-500'}`}>
+              {passwordStrength.special ? <Check className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
+              <span>{t('landingPage.passwordValidation.specialChar') || 'At least one special character (!@#$%^&*)'}</span>
+            </div>
+          </div>
         </div>
 
         <div>
@@ -642,7 +714,7 @@ const ResetPasswordModal = ({ username, userData, onBack, onClose, onPasswordRes
               value={formData.confirm_password}
               onChange={(e) => setFormData({ ...formData, confirm_password: e.target.value })}
               className="w-full pl-10 pr-10 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
-              placeholder={t('landingPage.login.passwordPlaceholder')}
+              placeholder={t('landingPage.forgotPassword.confirmPasswordPlaceholder') || 'Confirm new password'}
               required
               disabled={loading}
             />
@@ -654,11 +726,17 @@ const ResetPasswordModal = ({ username, userData, onBack, onClose, onPasswordRes
               {showConfirmPassword ? <EyeOff className="w-4 h-4 text-gray-400" /> : <Eye className="w-4 h-4 text-gray-400" />}
             </button>
           </div>
+          {formData.confirm_password && formData.new_password !== formData.confirm_password && (
+            <p className="mt-1 text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" />
+              {t('landingPage.forgotPassword.passwordsDoNotMatch') || 'Passwords do not match'}
+            </p>
+          )}
         </div>
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !passwordStrength.length || !passwordStrength.uppercase || !passwordStrength.lowercase || !passwordStrength.number || !passwordStrength.special || formData.new_password !== formData.confirm_password}
           className="w-full bg-green-700 hover:bg-green-800 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (
@@ -666,7 +744,7 @@ const ResetPasswordModal = ({ username, userData, onBack, onClose, onPasswordRes
           ) : (
             <>
               <CheckCircle className="w-4 h-4" />
-              {t('landingPage.forgotPassword.sendReset')}
+              {t('landingPage.forgotPassword.resetPassword') || 'Reset Password'}
             </>
           )}
         </button>
@@ -677,8 +755,73 @@ const ResetPasswordModal = ({ username, userData, onBack, onClose, onPasswordRes
         className="mt-5 flex items-center gap-1.5 text-sm text-gray-500 hover:text-green-700 dark:hover:text-green-400 transition-colors mx-auto"
       >
         <ArrowLeft className="w-4 h-4" />
-        {t('landingPage.forgotPassword.backToSignIn')}
+        {t('landingPage.forgotPassword.backToUsername') || 'Back to username verification'}
       </button>
+    </div>
+  );
+};
+
+// Forgot Password Flow Modal - Manages steps
+const ForgotPasswordFlow = ({ onClose, onPasswordReset }) => {
+  const [step, setStep] = useState('check'); // 'check', 'reset'
+  const [username, setUsername] = useState('');
+  const [userData, setUserData] = useState(null);
+
+  const handleUsernameFound = (foundUsername, data) => {
+    setUsername(foundUsername);
+    setUserData(data);
+    setStep('reset');
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      {step === 'check' ? (
+        <CheckUsernameModal
+          onBack={onClose}
+          onUsernameFound={handleUsernameFound}
+          onClose={onClose}
+        />
+      ) : (
+        <ResetPasswordModal
+          username={username}
+          userData={userData}
+          onBack={() => setStep('check')}
+          onClose={onClose}
+          onPasswordReset={onPasswordReset}
+        />
+      )}
+    </div>
+  );
+};
+
+// Auth Modal
+const AuthModal = ({ onClose, onLoginSuccess }) => {
+  const [view, setView] = useState('login');
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      {view === 'login' ? (
+        <LoginModal
+          onClose={onClose}
+          onForgotPassword={() => setView('forgot')}
+          onLoginSuccess={onLoginSuccess}
+        />
+      ) : (
+        <ForgotPasswordFlow
+          onClose={onClose}
+          onPasswordReset={onLoginSuccess}
+        />
+      )}
     </div>
   );
 };
@@ -882,72 +1025,7 @@ const AddParentModal = ({ onClose, onParentAdded }) => {
   );
 };
 
-// Forgot Password Flow Modal
-const ForgotPasswordFlow = ({ onClose, onPasswordReset }) => {
-  const [step, setStep] = useState('check'); // 'check', 'reset'
-  const [username, setUsername] = useState('');
-  const [userData, setUserData] = useState(null);
-
-  const handleUsernameFound = (foundUsername, data) => {
-    setUsername(foundUsername);
-    setUserData(data);
-    setStep('reset');
-  };
-
-  return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      {step === 'check' ? (
-        <CheckUsernameModal
-          onBack={onClose}
-          onUsernameFound={handleUsernameFound}
-          onClose={onClose}
-        />
-      ) : (
-        <ResetPasswordModal
-          username={username}
-          userData={userData}
-          onBack={() => setStep('check')}
-          onClose={onClose}
-          onPasswordReset={onPasswordReset}
-        />
-      )}
-    </div>
-  );
-};
-
-// Auth Modal
-const AuthModal = ({ onClose, onLoginSuccess }) => {
-  const [view, setView] = useState('login');
-
-  return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      {view === 'login' ? (
-        <LoginModal
-          onClose={onClose}
-          onForgotPassword={() => setView('forgot')}
-          onLoginSuccess={onLoginSuccess}
-        />
-      ) : (
-        <ForgotPasswordFlow
-          onClose={onClose}
-          onPasswordReset={onLoginSuccess}
-        />
-      )}
-    </div>
-  );
-};
-
-// Main Landing Page
+// Main Landing Page (keep as is from original)
 const LandingPage = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -1014,7 +1092,6 @@ const LandingPage = () => {
               if (!hasParents) {
                 setShowAddParentModal(true);
               } else {
-                // Navigate to student dashboard
                 navigate('/app/student/dashboard');
               }
             } catch (err) {
@@ -1024,7 +1101,6 @@ const LandingPage = () => {
               setCheckingParent(false);
             }
           } else {
-            // Navigate to role-based dashboard
             const routes = {
               admin: '/app/admin/dashboard',
               teacher: '/app/teacher/dashboard',
@@ -1061,17 +1137,15 @@ const LandingPage = () => {
       apiClient.defaults.headers.common['X-Language'] = user.language;
     }
     
-    // If user is a student, check for parents after login
     if (user.role === 'student') {
       setTimeout(() => {
-        window.location.reload(); // Reload to trigger parent check
+        window.location.reload();
       }, 500);
     }
   };
 
   const handleParentAdded = () => {
     toast.success(t('landingPage.addParent.success'));
-    // Navigate to student dashboard after parent is added
     navigate('/app/student/dashboard');
   };
 

@@ -1145,7 +1145,7 @@ def teacher_report(request):
                     for g in ('male', 'female', 'other')
                 },
                 'education_distribution': {
-                    label: Teacher.objects.filter(education_level=code).count()
+                    str(label): Teacher.objects.filter(education_level=code).count()
                     for code, label in Teacher.EducationLevel.choices
                     if Teacher.objects.filter(education_level=code).exists()
                 },

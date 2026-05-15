@@ -1,13 +1,17 @@
+# students/models.py
+
+import uuid
+import re
+from datetime import date
+from decimal import Decimal
+
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from django.core.validators import RegexValidator, EmailValidator
+from django.core.validators import RegexValidator, EmailValidator, MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from datetime import date
-import re
-import uuid
 
-from academics.models import AcademicYear, SchoolLevel, ClassLevel
+from academics.models import AcademicYear, SchoolLevel, ClassLevel, ClassRoom, Term
 from accounts.models import User
 
 
@@ -75,7 +79,7 @@ class Parent(models.Model):
         _('status'),
         max_length=20,
         choices=Status.choices,
-        default=Status.INACTIVE
+        default=Status.ACTIVE
     )
 
     # Timestamps
@@ -122,6 +126,8 @@ class Student(models.Model):
     class Status(models.TextChoices):
         ACTIVE = 'active', _('Active')
         INACTIVE = 'inactive', _('Inactive')
+        TRANSFERRED = 'transferred', _('Transferred')
+        GRADUATED = 'graduated', _('Graduated')
 
     # User account link
     user = models.OneToOneField(
@@ -163,7 +169,7 @@ class Student(models.Model):
     )
     birth_date = models.DateField(_('birth date'), null=True, blank=True)
 
-    # Academic placement
+    # Academic placement (current)
     current_academic_year = models.ForeignKey(
         AcademicYear,
         on_delete=models.SET_NULL,
@@ -203,8 +209,11 @@ class Student(models.Model):
         _('status'),
         max_length=20,
         choices=Status.choices,
-        default=Status.INACTIVE
+        default=Status.ACTIVE
     )
+
+    # Enrollment date
+    enrollment_date = models.DateField(_('enrollment date'), default=date.today)
 
     # Timestamps
     created_at = models.DateTimeField(_('created at'), auto_now_add=True)
@@ -309,3 +318,156 @@ class StudentParent(models.Model):
 
     def __str__(self):
         return f"{self.parent.full_name} -> {self.student.full_name}"
+
+
+class StudentClassroomAssignment(models.Model):
+    """
+    Tracks which classroom a student is assigned to for a specific academic year and term.
+    A student can only be in one classroom per term.
+    """
+    
+    class Status(models.TextChoices):
+        ACTIVE = 'active', _('Active')
+        INACTIVE = 'inactive', _('Inactive')
+        TRANSFERRED = 'transferred', _('Transferred')
+    
+    student = models.ForeignKey(
+        Student,
+        on_delete=models.CASCADE,
+        related_name='classroom_assignments',
+        verbose_name=_('student')
+    )
+    classroom = models.ForeignKey(
+        ClassRoom,
+        on_delete=models.CASCADE,
+        related_name='student_assignments',
+        verbose_name=_('classroom')
+    )
+    academic_year = models.ForeignKey(
+        AcademicYear,
+        on_delete=models.CASCADE,
+        related_name='student_classroom_assignments',
+        verbose_name=_('academic year')
+    )
+    term = models.ForeignKey(
+        Term,
+        on_delete=models.CASCADE,
+        related_name='student_classroom_assignments',
+        verbose_name=_('term'),
+        null=True,
+        blank=True
+    )
+    school_level = models.ForeignKey(
+        SchoolLevel,
+        on_delete=models.CASCADE,
+        related_name='student_classroom_assignments',
+        verbose_name=_('school level')
+    )
+    class_level = models.ForeignKey(
+        ClassLevel,
+        on_delete=models.CASCADE,
+        related_name='student_classroom_assignments',
+        verbose_name=_('class level')
+    )
+    status = models.CharField(
+        _('status'),
+        max_length=20,
+        choices=Status.choices,
+        default=Status.ACTIVE
+    )
+    assigned_at = models.DateTimeField(auto_now_add=True)
+    assigned_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='assigned_classrooms',
+        verbose_name=_('assigned by')
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = _('student classroom assignment')
+        verbose_name_plural = _('student classroom assignments')
+        unique_together = [['student', 'academic_year', 'term']]
+        ordering = ['-assigned_at']
+        indexes = [
+            models.Index(fields=['student', 'academic_year', 'term']),
+            models.Index(fields=['classroom', 'academic_year']),
+            models.Index(fields=['status']),
+        ]
+    
+    def __str__(self):
+        term_str = f" - {self.term.name}" if self.term else ""
+        return f"{self.student.full_name} → {self.classroom.name} ({self.academic_year.name}{term_str})"
+
+
+class StudentAcademicHistory(models.Model):
+    """
+    Track student's academic progression history.
+    """
+    
+    student = models.ForeignKey(
+        Student,
+        on_delete=models.CASCADE,
+        related_name='academic_history',
+        verbose_name=_('student')
+    )
+    academic_year = models.ForeignKey(
+        AcademicYear,
+        on_delete=models.CASCADE,
+        verbose_name=_('academic year')
+    )
+    term = models.ForeignKey(
+        Term,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        verbose_name=_('term')
+    )
+    school_level = models.ForeignKey(
+        SchoolLevel,
+        on_delete=models.CASCADE,
+        verbose_name=_('school level')
+    )
+    class_level = models.ForeignKey(
+        ClassLevel,
+        on_delete=models.CASCADE,
+        verbose_name=_('class level')
+    )
+    classroom = models.ForeignKey(
+        ClassRoom,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        verbose_name=_('classroom')
+    )
+    status = models.CharField(
+        _('status'),
+        max_length=20,
+        choices=Student.Status.choices,
+        default=Student.Status.ACTIVE
+    )
+    promoted_from = models.ForeignKey(
+        ClassLevel,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='promoted_students',
+        verbose_name=_('promoted from')
+    )
+    notes = models.TextField(_('notes'), blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = _('student academic history')
+        verbose_name_plural = _('student academic histories')
+        ordering = ['-academic_year', '-term']
+        indexes = [
+            models.Index(fields=['student', 'academic_year']),
+            models.Index(fields=['class_level']),
+        ]
+    
+    def __str__(self):
+        return f"{self.student.full_name} - {self.academic_year.name}: {self.class_level.name}"
+    
+    

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Upload, FileText, Download, Trash2, Eye, Calendar, BookOpen, Users } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const AssignmentUpload = () => {
+const TeacherAssignmentUpload = () => {
   const { t } = useTranslation();
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
@@ -341,4 +341,4 @@ const AssignmentUpload = () => {
   );
 };
 
-export default AssignmentUpload;
+export default TeacherAssignmentUpload;

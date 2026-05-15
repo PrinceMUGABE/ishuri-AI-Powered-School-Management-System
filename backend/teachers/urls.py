@@ -7,8 +7,8 @@ urlpatterns = [
     # Teacher CRUD
     path('teachers/', views.teacher_list_create, name='teacher_list_create'),
     path('teachers/<int:pk>/', views.teacher_detail, name='teacher_detail'),
-    path('teachers/profile/', views.teacher_profile, name='teacher_profile'),
-    path('teachers/change-password/', views.change_password, name='change_password'),
+    path('profile/', views.teacher_profile, name='teacher_profile'),
+    path('change-password/', views.change_password, name='change_password'),
     
     # Teacher Documents
     path('teachers/documents/', views.teacher_documents, name='teacher_documents'),

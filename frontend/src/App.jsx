@@ -22,6 +22,10 @@ import AcademicsRecordsManagement from './pages/admin/AcademicRecordsManagement'
 // Teacher Layout and Pages (To be implemented)
 import TeacherLayout from './components/layout/teacher/TeacherLayout';
 import StudentsGrades from './pages/teacher/GradeUpload';
+import TeacherDashboard from './pages/teacher/TeacherDashboard';
+import TeacherProfile from './pages/teacher/TeacherProfile';
+import TeacherAssignmentUpload from './pages/teacher/AssignmentUpload';
+import TeacherAttendanceRecord from './pages/teacher/AttendanceRecord';
 
 // Helper function to check if user is authenticated
 const isAuthenticated = () => {
@@ -118,7 +122,11 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route path="dashboard" element={<StudentsGrades />} />
+            <Route path="dashboard" element={<TeacherDashboard />} />
+            <Route path="grades" element={<StudentsGrades /> } />
+            <Route path="profile" element={<TeacherProfile />} />
+            <Route path="attendance" element={<TeacherAttendanceRecord />} />
+            <Route path="assignments" element={<TeacherAssignmentUpload />} />
           </Route>
 
           {/* Student Routes - To be implemented */}

@@ -129,11 +129,14 @@ class Teacher(models.Model):
         choices=Status.choices, default=Status.ACTIVE
     )
 
-    profile_picture = models.ImageField(
+    profile_picture = models.BinaryField(
         _('profile picture'),
-        upload_to=teacher_profile_picture_path,
         null=True, blank=True,
-        validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif'])]
+        editable=True,
+    )
+    profile_picture_mime = models.CharField(
+        _('profile picture mime type'),
+        max_length=50, blank=True, default='',
     )
     bio = models.TextField(_('biography'), blank=True)
 

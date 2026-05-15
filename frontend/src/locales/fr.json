@@ -28,6 +28,7 @@
     "logoutSuccess": "Déconnecté avec succès"
   },
   
+ 
   "landingPage": {
     "nav": {
       "features": "Fonctionnalités",
@@ -39,183 +40,202 @@
     "hero": {
       "badge": "Gestion scolaire alimentée par l'IA",
       "title": "Bienvenue à",
-      "description": "Transformez la gestion de votre école avec notre plateforme intelligente. Rationalisez les activités académiques, la communication et l'administration en un seul endroit.",
+      "description": "Transformez votre école avec une gestion intelligente, des analyses en temps réel et une communication fluide entre les élèves, les parents et les enseignants.",
       "getStarted": "Commencer",
       "learnMore": "En savoir plus"
     },
-    "stats": {
-      "students": "Étudiants",
-      "teachers": "Enseignants",
-      "satisfaction": "Satisfaction",
-      "paperForms": "Formulaires papier"
-    },
-    "featuresSection": {
-      "title": "Tout ce dont vous avez besoin pour réussir",
-      "subtitle": "Des fonctionnalités puissantes conçues pour rationaliser tous les aspects de la gestion scolaire"
-    },
     "features": {
       "ai": {
-        "title": "Analytique IA",
-        "desc": "Prédire les performances des étudiants et identifier les élèves à risque tôt"
+        "title": "Analyses basées sur l'IA",
+        "desc": "Prédisez les performances des élèves et identifiez les élèves à risque tôt"
       },
       "dashboard": {
-        "title": "Tableau de bord intelligent",
-        "desc": "Informations en temps réel et analyses complètes à portée de main"
+        "title": "Tableaux de bord interactifs",
+        "desc": "Analyses en temps réel et rapports personnalisables pour toutes les parties prenantes"
       },
       "communication": {
-        "title": "Centre de communication",
-        "desc": "Messagerie transparente entre parents, enseignants et administrateurs"
+        "title": "Communication fluide",
+        "desc": "Messagerie instantanée, annonces et réunions parents-enseignants"
       },
       "security": {
-        "title": "Sécurité d'entreprise",
-        "desc": "Cryptage de niveau bancaire et contrôle d'accès basé sur les rôles"
+        "title": "Plateforme sécurisée",
+        "desc": "Contrôle d'accès basé sur les rôles et stockage de données chiffrées"
       },
       "reports": {
-        "title": "Rapports automatisés",
-        "desc": "Générez instantanément des rapports académiques et administratifs détaillés"
+        "title": "Rapports intelligents",
+        "desc": "Bulletins automatiques, relevés de notes et analyses de performance"
       },
       "fees": {
         "title": "Gestion des frais",
-        "desc": "Suivez les paiements, envoyez des rappels et gérez les finances efficacement"
+        "desc": "Paiements en ligne, facturation et suivi financier"
       }
     },
-    "rolesSection": {
-      "title": "Conçu pour tout le monde",
-      "subtitle": "Des expériences adaptées à chaque membre de votre communauté scolaire"
+    "stats": {
+      "students": "Élèves actifs",
+      "teachers": "Enseignants",
+      "satisfaction": "Taux de satisfaction",
+      "paperForms": "Formulaires papier"
     },
     "roles": {
-      "student": "Étudiant",
-      "teacher": "Enseignant",
+      "student": "Élève",
       "parent": "Parent",
+      "teacher": "Enseignant",
       "admin": "Admin"
+    },
+    "rolesSection": {
+      "title": "Conçu pour tous",
+      "subtitle": "Expériences adaptées pour chaque utilisateur de votre communauté scolaire"
     },
     "roleFeatures": {
       "student": {
-        "0": "Voir les notes et progrès",
-        "1": "Accéder aux devoirs",
+        "0": "Voir les notes et devoirs",
+        "1": "Soumettre les devoirs en ligne",
         "2": "Suivre l'assiduité",
-        "3": "Carte d'identité numérique"
+        "3": "Accéder aux ressources d'apprentissage"
       },
       "parent": {
         "0": "Suivre les progrès de l'enfant",
-        "1": "Recevoir des alertes instantanées",
-        "2": "Payer les frais en ligne",
-        "3": "Communication avec les enseignants"
+        "1": "Recevoir des alertes en temps réel",
+        "2": "Communiquer avec les enseignants",
+        "3": "Payer les frais en ligne"
       },
       "teacher": {
-        "0": "Gérer les classes en ligne",
-        "1": "Enregistrer les notes facilement",
-        "2": "Assistant de notation IA",
-        "3": "Communication avec les parents"
+        "0": "Gérer les classes et les élèves",
+        "1": "Enregistrer les notes et l'assiduité",
+        "2": "Générer les bulletins",
+        "3": "Analyses basées sur l'IA"
       },
       "admin": {
         "0": "Contrôle complet du système",
-        "1": "Générer des rapports",
-        "2": "Gestion des utilisateurs",
-        "3": "Supervision financière"
+        "1": "Gestion des utilisateurs",
+        "2": "Supervision financière",
+        "3": "Analyses et rapports"
       }
     },
     "aiSection": {
-      "badge": "Informations alimentées par l'IA",
-      "title": "Analytique intelligente pour de meilleurs résultats",
-      "description": "Exploitez l'intelligence artificielle pour identifier des modèles, prédire les performances et intervenir avant que les élèves ne prennent du retard.",
+      "badge": "Système d'alerte précoce basé sur l'IA",
+      "title": "Identifiez les élèves à risque avant qu'il ne soit trop tard",
+      "description": "Notre système intelligent analyse les modèles de performance des élèves et alerte les enseignants lorsqu'une intervention est nécessaire.",
       "cardTitle": "Aperçu des performances de la classe",
-      "cardDesc": "Analyse en temps réel montrant les tendances actuelles de la classe et les facteurs de risque",
+      "cardDesc": "Analyse IA des performances académiques actuelles",
       "classAvg": "Moyenne de la classe",
       "atRisk": "Élèves à risque"
     },
     "zones": {
       "green": {
-        "title": "Zone verte (75-100%)",
-        "desc": "Progrès excellent - Sur la voie du succès"
+        "title": "Zone verte - Sur la bonne voie",
+        "desc": "Bonnes performances, aucune intervention nécessaire"
       },
       "yellow": {
-        "title": "Zone jaune (50-74%)",
-        "desc": "Risque modéré - Nécessite une attention"
+        "title": "Zone jaune - À surveiller",
+        "desc": "Légère baisse, vérification recommandée"
       },
       "red": {
-        "title": "Zone rouge (0-49%)",
-        "desc": "Risque élevé - Intervention immédiate requise"
+        "title": "Zone rouge - Action immédiate",
+        "desc": "Baisse critique, intervention requise"
       }
+    },
+    "testimonials": {
+      "parent": "En tant que parent, je peux facilement suivre les progrès de mon enfant et communiquer avec les enseignants. Les alertes en temps réel me tiennent informé de tout ce qui se passe à l'école.",
+      "teacher": "Les analyses IA m'aident à identifier tôt les élèves en difficulté. La saisie des notes est rapide et les rapports se génèrent automatiquement.",
+      "director": "Gérer notre école n'a jamais été aussi facile. Des frais aux études, tout est au même endroit.",
+      "directorRole": "Directeur d'école"
     },
     "testimonialsSection": {
       "title": "Approuvé par notre communauté",
-      "subtitle": "Ce que les parents, enseignants et personnel disent d'Ishuri"
-    },
-    "testimonials": {
-      "parent": "Je peux maintenant suivre les progrès de mon enfant en temps réel. Les alertes instantanées me tiennent informé de tout ce qui se passe à l'école.",
-      "teacher": "L'assistant de notation IA me fait gagner des heures de travail. Je peux me concentrer davantage sur l'enseignement et moins sur la paperasse.",
-      "director": "Cette plateforme a transformé la façon dont nous gérons notre école. Tout, des frais aux rapports, est désormais numérique.",
-      "directorRole": "Directeur d'école"
+      "subtitle": "Découvrez ce que nos utilisateurs disent"
     },
     "chart": {
-      "title": "Tendances des performances académiques",
-      "classAverage": "Moyenne de la classe (%)",
+      "classAverage": "Moyenne de la classe",
       "atRisk": "Élèves à risque",
-      "attendance": "Taux d'assiduité (%)"
+      "attendance": "Taux d'assiduité",
+      "title": "Tendances de performance par trimestre"
     },
     "cta": {
       "title": "Prêt à transformer votre école ?",
-      "subtitle": "Rejoignez des centaines d'écoles utilisant déjà Ishuri pour rationaliser leurs opérations.",
-      "signIn": "Se connecter au tableau de bord",
-      "contact": "Contactez-nous",
-      "note": "Démo gratuite disponible pour les administrateurs"
-    },
-    "login": {
-      "title": "Bon retour",
-      "subtitle": "Connectez-vous à votre compte",
-      "username": "Nom d'utilisateur",
-      "usernamePlaceholder": "Entrez votre nom d'utilisateur",
-      "password": "Mot de passe",
-      "passwordPlaceholder": "Entrez votre mot de passe",
-      "role": "Sélectionner un rôle",
-      "selectRole": "Veuillez sélectionner un rôle",
-      "forgotPassword": "Mot de passe oublié ?",
-      "signIn": "Se connecter",
-      "welcome": "Bon retour !",
-      "invalidCredentials": "Nom d'utilisateur, mot de passe ou rôle invalide",
-      "adminNote": "Contactez l'administrateur de votre école si vous avez besoin d'un compte"
-    },
-    "forgotPassword": {
-      "title": "Réinitialiser le mot de passe",
-      "subtitle": "Nous vous enverrons un lien pour réinitialiser votre mot de passe",
-      "emailLabel": "Adresse e-mail",
-      "emailPlaceholder": "Entrez votre adresse e-mail",
-      "sendReset": "Envoyer le lien de réinitialisation",
-      "sentMessage": "Vérifiez votre e-mail pour un lien de réinitialisation de mot de passe.",
-      "backToSignIn": "Retour à la connexion"
+      "subtitle": "Rejoignez des centaines d'écoles qui utilisent déjà Ishuri pour rationaliser leurs opérations.",
+      "signIn": "Connectez-vous à votre compte",
+      "contact": "Contacter les ventes",
+      "note": "Gratuit pour les élèves, parents et personnel des Hirondelles de Don Bosco"
     },
     "footer": {
-      "description": "Plateforme moderne de gestion scolaire pour Les Hirondelles de Don Bosco, Ndera, Rwanda.",
+      "description": "Système moderne de gestion scolaire pour Les Hirondelles de Don Bosco.",
       "quickLinks": "Liens rapides",
-      "contact": "Contact",
+      "contact": "Coordonnées",
       "resources": "Ressources",
       "schoolWebsite": "Site web de l'école",
       "documentation": "Documentation",
       "support": "Support",
       "rights": "Tous droits réservés.",
-      "tagline": "Renforcer l'éducation par la technologie"
+      "tagline": "Renforcer l'éducation grâce à la technologie"
     },
-    "common": {
-      "loading": "Chargement..."
+    "login": {
+      "title": "Bon retour",
+      "subtitle": "Connectez-vous à votre compte",
+      "username": "Nom d'utilisateur",
+      "password": "Mot de passe",
+      "usernamePlaceholder": "Entrez votre nom d'utilisateur",
+      "passwordPlaceholder": "Entrez votre mot de passe",
+      "forgotPassword": "Mot de passe oublié ?",
+      "signIn": "Se connecter",
+      "adminNote": "Contactez votre administrateur scolaire si vous avez besoin d'un compte",
+      "usernameRequired": "Le nom d'utilisateur est requis",
+      "passwordRequired": "Le mot de passe est requis",
+      "invalidCredentials": "Nom d'utilisateur ou mot de passe invalide",
+      "welcome": "Bon retour !"
+    },
+    "forgotPassword": {
+      "title": "Réinitialiser le mot de passe",
+      "subtitle": "Entrez votre nom d'utilisateur pour vérifier votre compte",
+      "resetTitle": "Créer un nouveau mot de passe",
+      "resetSubtitle": "Choisissez un mot de passe fort pour votre compte",
+      "usernameLabel": "Nom d'utilisateur",
+      "usernamePlaceholder": "Entrez votre nom d'utilisateur",
+      "usernameRequired": "Le nom d'utilisateur est requis",
+      "usernameFound": "Nom d'utilisateur vérifié ! Veuillez entrer votre nouveau mot de passe.",
+      "usernameNotFound": "Nom d'utilisateur non trouvé. Veuillez vérifier et réessayer.",
+      "verifyUsername": "Vérifier le nom d'utilisateur",
+      "newPassword": "Nouveau mot de passe",
+      "newPasswordPlaceholder": "Entrez le nouveau mot de passe",
+      "confirmPassword": "Confirmer le mot de passe",
+      "confirmPasswordPlaceholder": "Confirmez le nouveau mot de passe",
+      "resetPassword": "Réinitialiser le mot de passe",
+      "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
+      "passwordResetSuccess": "Réinitialisation du mot de passe réussie ! Connexion en cours...",
+      "resetSuccess": "Réinitialisation du mot de passe réussie ! Veuillez vous connecter.",
+      "resetFailed": "Échec de la réinitialisation du mot de passe. Veuillez réessayer.",
+      "loginSuccess": "Réinitialisation du mot de passe réussie ! Connexion en cours...",
+      "resettingFor": "Réinitialisation du mot de passe pour",
+      "backToSignIn": "Retour à la connexion",
+      "backToUsername": "Retour à la vérification du nom d'utilisateur"
+    },
+    "passwordValidation": {
+      "title": "Le mot de passe doit contenir :",
+      "strength": "Force du mot de passe",
+      "minLength": "Au moins 6 caractères",
+      "uppercase": "Au moins une lettre majuscule",
+      "lowercase": "Au moins une lettre minuscule",
+      "number": "Au moins un chiffre",
+      "specialChar": "Au moins un caractère spécial (!@#$%^&*)",
+      "requirements": "Exigences du mot de passe :"
     },
     "addParent": {
       "title": "Ajouter un parent/tuteur",
-      "subtitle": "Lier un parent à votre profil étudiant",
+      "subtitle": "Veuillez ajouter au moins un parent ou tuteur à votre profil",
       "fullName": "Nom complet",
       "fullNamePlaceholder": "Entrez le nom complet du parent",
       "phoneNumber": "Numéro de téléphone",
       "email": "Adresse e-mail",
       "physicalAddress": "Adresse physique",
-      "addressPlaceholder": "Entrez l'adresse du parent",
+      "addressPlaceholder": "Entrez l'adresse physique",
       "relationshipType": "Relation",
       "submit": "Ajouter le parent",
       "cancel": "Annuler",
-      "error": "Échec de l'ajout du parent",
-      "success": "Parent ajouté avec succès",
-      "fullNameRequired": "Le nom complet est requis",
+      "fullNameRequired": "Le nom complet du parent est requis",
       "phoneRequired": "Le numéro de téléphone est requis",
-      "emailRequired": "L'adresse e-mail est requise"
+      "emailRequired": "L'adresse e-mail est requise",
+      "success": "Parent ajouté avec succès !",
+      "error": "Échec de l'ajout du parent. Veuillez réessayer."
     },
     "addRelationship": {
       "father": "Père",
@@ -223,24 +243,16 @@
       "guardian": "Tuteur",
       "other": "Autre"
     },
-    "passwordValidation": {
-      "title": "Le mot de passe doit contenir :",
-      "minLength": "Au moins 6 caractères",
-      "uppercase": "Au moins une lettre majuscule",
-      "lowercase": "Au moins une lettre minuscule",
-      "number": "Au moins un chiffre",
-      "specialChar": "Au moins un caractère spécial (!@#$%^&*...)"
+    "common": {
+      "loading": "Chargement..."
     },
     "errors": {
       "networkError": "Erreur réseau. Veuillez vérifier votre connexion.",
       "somethingWentWrong": "Quelque chose s'est mal passé. Veuillez réessayer.",
-      "invalidCredentials": "Nom d'utilisateur ou mot de passe invalide",
-      "accountInactive": "Votre compte est inactif. Veuillez contacter l'administrateur.",
-      "accountSuspended": "Votre compte a été suspendu. Veuillez contacter l'administrateur.",
-      "invalidRole": "Rôle invalide. Ce compte est enregistré comme {role}.",
-      "permissionDenied": "Permission refusée. Vous n'avez pas accès à cette ressource."
+      "invalidCredentials": "Nom d'utilisateur ou mot de passe invalide"
     }
   },
+
 
 
   
@@ -1189,166 +1201,39 @@
   
   
  
+  
   "academics": {
-    "title": "Gestion Académique",
-    "subtitle": "Gérer la structure académique et les paramètres",
-    "subtitleWithYear": "Année Académique : {{year}}",
+    "title": "Gestion académique",
+    "subtitle": "Gérer la structure académique de l'école",
+    "subtitleWithYear": "Gérer l'académique pour {{year}}",
     "tabs": {
-      "academicYears": "Années Académiques",
+      "academicYears": "Années académiques",
       "terms": "Trimestres",
-      "schoolLevels": "Niveaux Scolaires",
-      "classLevels": "Niveaux de Classe",
-      "classrooms": "Salles de Classe",
+      "schoolLevels": "Niveaux scolaires",
+      "classLevels": "Classes",
+      "classrooms": "Salles de classe",
       "subjects": "Matières",
-      "assignments": "Attributions",
-      "paymentTypes": "Types de Paiement",
-      "feeStructures": "Structures de Frais",
-      "daySettings": "Paramètres de Journée",
-      "classroomAssignments": "Attributions de Salles",
-      "schoolBreaks": "Pauses Scolaires",
-      "holidays": "Jours Fériés"
+      "assignments": "Affectations",
+      "paymentTypes": "Types de paiement",
+      "feeStructures": "Structures de frais",
+      "daySettings": "Paramètres de jour",
+      "schoolBreaks": "Pauses scolaires",
+      "holidays": "Jours fériés"
     },
     "stats": {
-      "academicYears": "Années Acad.",
+      "academicYears": "Années",
       "terms": "Trimestres",
-      "schoolLevels": "Niveaux Scol.",
-      "classLevels": "Niveaux Classe",
+      "schoolLevels": "Niveaux",
+      "classLevels": "Classes",
       "classrooms": "Salles",
       "subjects": "Matières",
-      "feeStructures": "Structures de Frais",
+      "feeStructures": "Frais",
       "schoolBreaks": "Pauses",
-      "holidays": "Jours Fériés"
-    },
-    "form": {
-      "yearName": "Nom de l'Année",
-      "startDate": "Date de Début",
-      "endDate": "Date de Fin",
-      "setAsCurrent": "Définir comme Actuelle",
-      "academicYear": "Année Académique",
-      "termNumber": "Numéro du Trimestre",
-      "termName": "Nom du Trimestre",
-      "levelName": "Nom du Niveau",
-      "dailyStartTime": "Heure de Début Quotidienne",
-      "dailyEndTime": "Heure de Fin Quotidienne",
-      "dailyStartTimeHint": "Quand les cours commencent chaque jour (ex: 08:00)",
-      "dailyEndTimeHint": "Quand les cours se terminent chaque jour (ex: 16:00)",
-      "className": "Nom de la Classe",
-      "classCode": "Code de la Classe",
-      "schoolLevel": "Niveau Scolaire",
-      "schoolLevelOptional": "Niveau Scolaire (Optionnel)",
-      "allSchoolLevels": "Tous les Niveaux",
-      "roomName": "Nom de la Salle",
-      "roomCode": "Code de la Salle",
-      "roomType": "Type de Salle",
-      "capacity": "Capacité",
-      "status": "Statut",
-      "subjectName": "Nom de la Matière",
-      "subjectCode": "Code de la Matière",
-      "passScore": "Note de Réussite",
-      "classLevel": "Niveau de Classe",
-      "subject": "Matière",
-      "teachingFrequency": "Fréquence d'Enseignement",
-      "hoursPerWeek": "Heures par Semaine",
-      "compulsory": "Obligatoire",
-      "paymentTypeName": "Nom du Type de Paiement",
-      "paymentTypeCode": "Code du Type de Paiement",
-      "feeName": "Nom des Frais",
-      "paymentType": "Type de Paiement",
-      "amount": "Montant",
-      "mandatory": "Obligatoire",
-      "dayType": "Type de Journée",
-      "weekday": "Jour de la Semaine",
-      "specificDate": "Date Spécifique",
-      "term": "Trimestre",
-      "classroom": "Salle de Classe",
-      "isPrimaryClassroom": "Salle Principale",
-      "breakName": "Nom de la Pause",
-      "breakType": "Type de Pause",
-      "startTime": "Heure de Début",
-      "endTime": "Heure de Fin",
-      "holidayName": "Nom du Jour Férié",
-      "holidayDate": "Date du Jour Férié",
-      "recurringYearly": "Annuel",
-      "description": "Description",
-      "selectOption": "Sélectionner {{label}}",
-      "schoolLevelHoursHint": "Horaires : {{start}} - {{end}}",
-      "breakConstraintHint": "● Pause min 5 min après début et avant fin ● Min 5 min, Max 60 min",
-      "age": "Âge",
-      "selectSchoolLevel":"Sélectionner un cycle",
-      "selectSchoolLevelFirst": "Veuillez sélectionner un cycle scolaire pour charger les niveaux de classe disponibles",
-      "selectClassLevel": "Sélectionner un niveau de classe",
-      "selectClassLevelFirst": "Veuillez sélectionner un niveau de classe pour charger les matières disponibles",
-      "selectSubject": "Sélectionner une matière"
-    },
-    "table": {
-      "yearName": "Année",
-      "startDate": "Date Début",
-      "endDate": "Date Fin",
-      "current": "Actuelle",
-      "academicYear": "Année Acad.",
-      "termName": "Trimestre",
-      "levelName": "Niveau",
-      "dailyHours": "Horaires Quotidiens",
-      "description": "Description",
-      "active": "Actif",
-      "className": "Classe",
-      "classCode": "Code",
-      "schoolLevel": "Niveau Scol.",
-      "roomName": "Salle",
-      "roomCode": "Code",
-      "assignedClassLevel": "Classe Attribuée",
-      "roomType": "Type",
-      "capacity": "Capacité",
-      "status": "Statut",
-      "subjectName": "Matière",
-      "subjectCode": "Code",
-      "passScore": "Note Réussite",
-      "frequency": "Fréquence",
-      "hoursPerWeek": "Heures/Sem.",
-      "compulsory": "Oblig.",
-      "paymentTypeName": "Type Paiement",
-      "paymentTypeCode": "Code",
-      "feeName": "Frais",
-      "paymentType": "Type Paiement",
-      "amount": "Montant",
-      "mandatory": "Oblig.",
-      "dayType": "Type Journée",
-      "weekdayOrDate": "Jour/Date",
-      "primary": "Principal",
-      "breakName": "Pause",
-      "breakType": "Type",
-      "duration": "Durée",
-      "date": "Date",
-      "recurring": "Récurrent",
-      "holidayName": "Jour Férié",
-      "actions": "Actions",
-      "classroom": "Salle de Classe",
-       "noData": "Aucun enregistrement trouvé",
-       "age": "Âge",
-       "classLevel": "Niveau de Classe",
-       "subject": "Matière",
-       "term":"Trimestre",
-       "startTime": "Heure de Début",
-       "endTime": "Heure de Fin",
-       "assign": "Attribuer"
-    },
-    "labels": {
-      "primary": "Principal",
-      "required": "Obligatoire",
-      "optional": "Optionnel",
-      "mandatory": "Obligatoire",
-      "allLevels": "Tous Niveaux",
-      "yearly": "Annuel",
-      "once": "Unique"
+      "holidays": "Fériés"
     },
     "status": {
       "active": "Actif",
       "inactive": "Inactif"
-    },
-    "terms": {
-      "first": "Premier Trimestre",
-      "second": "Deuxième Trimestre",
-      "third": "Troisième Trimestre"
     },
     "roomTypes": {
       "standard": "Standard",
@@ -1356,21 +1241,26 @@
       "workshop": "Atelier",
       "auditorium": "Auditorium"
     },
+    "dayTypes": {
+      "learning": "Jour d'apprentissage",
+      "dayOff": "Jour de congé",
+      "special": "Jour spécial"
+    },
+    "breakTypes": {
+      "shortBreak": "Courte pause",
+      "lunch": "Déjeuner",
+      "recess": "Récréation",
+      "other": "Autre",
+      "short_break": "Courte pause"
+    },
+    "terms": {
+      "first": "Premier",
+      "second": "Deuxième",
+      "third": "Troisième"
+    },
     "frequency": {
       "daily": "Quotidien",
       "weekly": "Hebdomadaire"
-    },
-    "dayTypes": {
-      "learning": "Jour d'Apprentissage",
-      "day_off": "Congé",
-      "special": "Jour Spécial",
-      "dayOff": "Jour de Congé"
-    },
-    "breakTypes": {
-      "short_break": "Petite Pause",
-      "lunch": "Pause Déjeuner",
-      "recess": "Récréation",
-      "other": "Autre"
     },
     "weekdays": {
       "monday": "Lundi",
@@ -1381,59 +1271,229 @@
       "saturday": "Samedi",
       "sunday": "Dimanche"
     },
+    "labels": {
+      "required": "Obligatoire",
+      "optional": "Optionnel",
+      "mandatory": "Obligatoire",
+      "yearly": "Annuel",
+      "once": "Unique",
+      "allLevels": "Tous niveaux"
+    },
+    "form": {
+      "yearName": "Nom de l'année",
+      "startDate": "Date de début",
+      "endDate": "Date de fin",
+      "setAsCurrent": "Définir comme courant",
+      "academicYear": "Année académique",
+      "termNumber": "Numéro du trimestre",
+      "termName": "Nom du trimestre",
+      "levelName": "Nom du niveau",
+      "description": "Description",
+      "dailyStartTime": "Heure de début quotidienne",
+      "dailyStartTimeHint": "ex: 08h00",
+      "dailyEndTime": "Heure de fin quotidienne",
+      "dailyEndTimeHint": "ex: 15h00",
+      "className": "Nom de la classe",
+      "classCode": "Code de la classe",
+      "schoolLevel": "Niveau scolaire",
+      "roomName": "Nom de la salle",
+      "roomCode": "Code de la salle",
+      "roomType": "Type de salle",
+      "capacity": "Capacité",
+      "status": "Statut",
+      "subjectName": "Nom de la matière",
+      "subjectCode": "Code matière",
+      "passScore": "Note de passage",
+      "teachingFrequency": "Fréquence d'enseignement",
+      "hoursPerWeek": "Heures par semaine",
+      "compulsory": "Obligatoire",
+      "paymentTypeName": "Nom du type de paiement",
+      "paymentTypeCode": "Code du type de paiement",
+      "feeName": "Nom des frais",
+      "amount": "Montant",
+      "mandatory": "Obligatoire",
+      "dayType": "Type de jour",
+      "weekday": "Jour de semaine",
+      "specificDate": "Date spécifique",
+      "breakName": "Nom de la pause",
+      "breakType": "Type de pause",
+      "startTime": "Heure de début",
+      "endTime": "Heure de fin",
+      "holidayName": "Nom du jour férié",
+      "holidayDate": "Date",
+      "schoolLevelOptional": "Niveau scolaire (optionnel)",
+      "allSchoolLevels": "Tous les niveaux",
+      "recurringYearly": "Récurrent annuel",
+      "selectOption": "Sélectionner {{label}}",
+      "classroom": "Salle de classe",
+      "selectSchoolLevel": "Sélectionner un niveau",
+      "selectClassLevel": "Sélectionner une classe",
+      "selectSchoolLevelFirst": "Sélectionnez d'abord le niveau",
+      "schoolLevelHoursHint": "Horaires scolaires: {{start}} – {{end}}",
+      "breakConstraintHint": "Les pauses doivent respecter les horaires scolaires",
+      "subject": "Matière",
+      "classLevel":"Niveau de Classe"
+    },
+    "table": {
+      "yearName": "Année",
+      "startDate": "Date début",
+      "endDate": "Date fin",
+      "current": "Courant",
+      "actions": "Actions",
+      "academicYear": "Année académique",
+      "termName": "Trimestre",
+      "levelName": "Niveau",
+      "dailyHours": "Horaires quotidiens",
+      "className": "Classe",
+      "classCode": "Code",
+      "schoolLevel": "Niveau",
+      "roomName": "Salle",
+      "roomCode": "Code",
+      "assignedClassLevel": "Classe assignée",
+      "roomType": "Type",
+      "capacity": "Capacité",
+      "subjectName": "Matière",
+      "subjectCode": "Code",
+      "passScore": "Note passage",
+      "frequency": "Fréquence",
+      "hoursPerWeek": "H/semaine",
+      "compulsory": "Obligatoire",
+      "paymentTypeName": "Type",
+      "paymentTypeCode": "Code",
+      "feeName": "Frais",
+      "paymentType": "Type paiement",
+      "amount": "Montant",
+      "mandatory": "Obligatoire",
+      "weekdayOrDate": "Jour / Date",
+      "breakName": "Pause",
+      "breakType": "Type",
+      "startTime": "Début",
+      "endTime": "Fin",
+      "duration": "Durée",
+      "holidayName": "Férié",
+      "date": "Date",
+      "recurring": "Récurrent",
+      "status": "Statut",
+      "subject": "Matière",
+      "classLevel":"Niveau de Classe"
+    },
     "actions": {
       "add": "Ajouter {{name}}",
-      "edit": "Modifier",
-      "delete": "Supprimer",
-      "view": "Voir",
-      "viewDetails": "Voir Détails",
       "search": "Rechercher {{name}}",
       "filters": "Filtres",
-      "refresh": "Actualiser",
-      "clearFilters": "Effacer Filtres",
+      "refresh": "Rafraîchir",
+      "clearFilters": "Effacer filtres",
+      "view": "Voir",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "assign": "Assigner",
+      "unassign": "Désassigner",
+      "assignClassroom": "Assigner salle",
       "create": "Créer",
-      "update": "Mettre à Jour",
+      "update": "Mettre à jour",
       "cancel": "Annuler",
       "close": "Fermer",
-      "assign": "Attribuer",
-      "assignClassroom": "Attribuer une Salle",
-      "generateReport": "Générer un Rapport",
-      "unassign": "Désattribuer",
-      "assigning": "Attribution en cours...",
-      "generateTimetable": "Générer l'Emploi du Temps",
-      "generatingTimetable": "Génération de l'emploi du temps en cours...",
-      "generating": "Génération ....."
+      "viewDetails": "Voir détails"
+    },
+    "filters": {
+      "allStatus": "Tous statuts",
+      "current": "Courant",
+      "notCurrent": "Non courant",
+      "allAcademicYears": "Toutes années",
+      "active": "Actif",
+      "inactive": "Inactif",
+      "allSchoolLevels": "Tous niveaux",
+      "allRoomTypes": "Tous types",
+      "assigned": "Assignée",
+      "unassigned": "Non assignée",
+      "allClassrooms": "Toutes salles",
+      "allClassLevels": "Toutes classes",
+      "allSubjects": "Toutes matières",
+      "compulsory": "Obligatoire",
+      "optional": "Optionnel",
+      "allFees": "Tous frais",
+      "allDayTypes": "Tous types",
+      "allBreakTypes": "Toutes pauses",
+      "allHolidays": "Tous fériés",
+      "recurring": "Récurrent",
+      "oneTime": "Unique",
+      "filterOptions": "Options de filtre"
     },
     "messages": {
-      "loading": "Chargement...",
-      "noData": "Aucune donnée trouvée",
-      "dataLoaded": "{{count}} élément(s) chargé(s)",
+      "dataLoaded": "{{count}} enregistrements chargés",
       "fetchError": "Échec du chargement",
-      "createSuccess": "Créé avec succès",
-      "createError": "Échec de la création",
-      "updateSuccess": "Mis à jour avec succès",
-      "updateError": "Échec de la mise à jour",
-      "deleteSuccess": "Supprimé avec succès",
-      "deleteError": "Échec de la suppression",
-      "statusError": "Échec mise à jour statut",
+      "selectClassLevel": "Veuillez sélectionner une classe",
+      "assignSuccess": "Salle assignée avec succès",
+      "assignError": "Échec de l'assignation",
+      "unassignSuccess": "Salle désassignée avec succès",
+      "unassignError": "Échec de la désassignation",
+      "createSuccess": "Enregistrement créé",
+      "createError": "Échec de création",
+      "updateSuccess": "Enregistrement mis à jour",
+      "updateError": "Échec mise à jour",
       "updateNotSupported": "Mise à jour non supportée",
-      "selectedClassroom": "Salle sélectionnée",
-      "noClassroomsAvailable": "Aucune salle disponible pour les critères sélectionnés",
-      "reportGenerated": "Rapport généré avec succès",
-      "reportError": "Échec de la génération du rapport"
+      "deleteSuccess": "Enregistrement supprimé",
+      "deleteError": "Échec suppression",
+      "statusError": "Échec mise à jour statut",
+      "loading": "Chargement...",
+      "noData": "Aucune donnée",
+      "noClassLevelsInSchoolLevel": "Aucune classe pour ce niveau",
+      "selectedClassLevel": "Classe sélectionnée",
+      "assigning": "Assignation...",
+      "unassigning": "Désassignation..."
     },
     "pagination": {
       "show": "Afficher",
-      "ofTotal": "sur {{count}} total",
+      "ofTotal": "sur {{count}}",
       "page": "Page {{current}} sur {{total}}"
     },
     "delete": {
-      "title": "Confirmer Suppression",
-      "confirmation": "Êtes-vous sûr de vouloir supprimer ?",
-      "itemName": "Nom"
+      "title": "Confirmer suppression",
+      "confirmation": "Voulez-vous vraiment supprimer ?",
+      "itemName": "Élément"
+    },
+    "unassign": {
+      "title": "Confirmer désassignation",
+      "confirmation": "Voulez-vous vraiment désassigner cette salle ?",
+      "classroom": "Salle",
+      "currentAssignment": "Assignation actuelle"
     },
     "view": {
-      "basicInfo": "Informations de Base"
+      "basicInfo": "Informations de base"
+    }
+  },
+
+
+  
+  "teacher_layout": {
+    "greeting": {
+      "morning": "Bonjour",
+      "afternoon": "Bon après-midi",
+      "evening": "Bonsoir",
+      "teacher": "Enseignant"
+    },
+    "header": {
+      "notifications": "Notifications",
+      "messages": "Messages",
+      "profile": "Mon profil",
+      "logout": "Se déconnecter"
+    },
+    "nav": {
+      "menu": "Menu principal",
+      "dashboard": "Tableau de bord",
+      "grades": "Notes",
+      "attendances": "Présences",
+      "assignments": "Devoirs",
+      "myStudents": "Mes élèves",
+      "chats": "Discussions",
+      "profile": "Profil"
+    },
+    "common": {
+      "loading": "Chargement de votre espace de travail…",
+      "role": "Enseignant"
+    },
+    "messages": {
+      "logoutSuccess": "Vous avez été déconnecté avec succès."
     }
   }
 }

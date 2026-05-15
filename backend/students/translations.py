@@ -1,7 +1,4 @@
-"""
-Translation helpers for the students app.
-Supports: en (English), fr (French), rw (Kinyarwanda)
-"""
+# students/translations.py
 
 MESSAGES = {
     # Student CRUD
@@ -52,11 +49,6 @@ MESSAGES = {
         'fr': 'Vous n\'avez pas la permission d\'effectuer cette action',
         'rw': 'Ntufite uburenganzira bwo gukora ibi',
     },
-    'account_created': {
-        'en': 'User account created and credentials sent',
-        'fr': 'Compte utilisateur créé et identifiants envoyés',
-        'rw': 'Konti y\'umukoresha yaremwe kandi amakuru yoherejwe',
-    },
     # Notifications
     'notif_student_created_title': {
         'en': 'Welcome to the School',
@@ -88,35 +80,15 @@ MESSAGES = {
         'fr': 'Votre compte parent/tuteur a été créé avec succès.',
         'rw': 'Konti yawe y\'umubyeyi yaremwe neza.',
     },
-    'notif_parent_updated_title': {
-        'en': 'Parent Profile Updated',
-        'fr': 'Profil parent mis à jour',
-        'rw': 'Umwirondoro w\'umubyeyi wavuguruwe',
-    },
     'student_already_has_parents': {
-        'en': 'You already have a parent/guardian assigned. Only an administrator can modify your parent records.',
-        'fr': 'Vous avez déjà un parent/tuteur assigné. Seul un administrateur peut modifier vos dossiers parentaux.',
-        'rw': 'Usanzwe ufite umubyeyi/umurezi wagenwe. Umuyobozi gusa ashobora guhindura amakuru ya babyeyi bawe.',
+        'en': 'You already have a parent/guardian assigned.',
+        'fr': 'Vous avez déjà un parent/tuteur assigné.',
+        'rw': 'Usanzwe ufite umubyeyi/umurezi wagenwe.',
     },
     'contact_admin_to_update_parents': {
-        'en': 'Please contact an administrator to add, update, or remove parent/guardian records.',
-        'fr': 'Veuillez contacter un administrateur pour ajouter, mettre à jour ou supprimer les dossiers de parents/tuteurs.',
-        'rw': 'Nyamuneka wamarana n\'umuyobozi kugirango wongerere, uvugurure cyangwa usibe amakuru ya babyeyi/abarezi.',
-    },
-    'notif_student_parent_added_title': {
-        'en': 'Parent/Guardian Added',
-        'fr': 'Parent/Tuteur Ajouté',
-        'rw': 'Umubyeyi/Umurezi Yongewe',
-    },
-    'notif_student_parent_added_msg': {
-        'en': '{parent_name} has been added as your parent/guardian.',
-        'fr': '{parent_name} a été ajouté(e) comme votre parent/tuteur.',
-        'rw': '{parent_name} yongewe nk\'umubyeyi/umurezi wawe.',
-    },
-    'notif_parent_deleted_title': {
-        'en': 'Parent Account Removed',
-        'fr': 'Compte parent supprimé',
-        'rw': 'Konti y\'umubyeyi isibwe',
+        'en': 'Please contact an administrator to modify parent/guardian records.',
+        'fr': 'Veuillez contacter un administrateur pour modifier les dossiers de parents/tuteurs.',
+        'rw': 'Nyamuneka wamarana n\'umuyobozi kugirango uhindure amakuru ya babyeyi.',
     },
 }
 
@@ -132,3 +104,15 @@ def get_message(key: str, lang: str = 'en', **kwargs) -> str:
         except KeyError:
             pass
     return text
+
+
+def get_lang(request) -> str:
+    """Detect language from request"""
+    for source in [
+        request.headers.get('X-Language'),
+        (request.headers.get('Accept-Language') or '').split(',')[0].split('-')[0],
+        getattr(request.user, 'language', None) if hasattr(request, 'user') and request.user.is_authenticated else None
+    ]:
+        if source and source in ('en', 'fr', 'rw'):
+            return source
+    return 'en'

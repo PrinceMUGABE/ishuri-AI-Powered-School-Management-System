@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { CheckCircle, XCircle, Clock, Users, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const AttendanceRecord = () => {
+const TeacherAttendanceRecord = () => {
   const { t } = useTranslation();
   const [selectedClass, setSelectedClass] = useState('S5 Science');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -204,4 +204,4 @@ const AttendanceRecord = () => {
   );
 };
 
-export default AttendanceRecord;
+export default TeacherAttendanceRecord;

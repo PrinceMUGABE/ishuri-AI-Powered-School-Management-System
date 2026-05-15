@@ -27,194 +27,214 @@
   "messages": {
     "logoutSuccess": "Wasohotse neza"
   },
+  
   "landingPage": {
     "nav": {
       "features": "Ibiranga",
-      "about": "Ibiranga",
+      "about": "Ibyerekeye",
       "testimonials": "Ubuhamya",
-      "contact": "Guhuza",
-      "signIn": "Injiramo"
+      "contact": "Twandikire",
+      "signIn": "Injira"
     },
     "hero": {
-      "badge": "Gestion y'Amashuri ifashijwe na AI",
+      "badge": "Gestion y'Ishuri ikoresheje tekinoroji",
       "title": "Murakaza neza kuri",
-      "description": "Hindura imiyoborere y'ishuri ryawe hamwe n'urubuga rwacu rwa kijyambere. Ruhuza iby'amasomo, itumanaho n'ubuyobozi ahantu hamwe.",
+      "description": "Hindura ishuri ryawe uyijemo ubumenyi bwa tekinoroji, isesengura ry'igihe nyaryo, n'itumanaho ryoroshye hagati y'abanyeshuri, ababyeyi n'abarimu.",
       "getStarted": "Tangira",
       "learnMore": "Menya byinshi"
     },
-    "stats": {
-      "students": "Abanyeshuli",
-      "teachers": "Abarezi",
-      "satisfaction": "Kunyurwa",
-      "paperForms": "Impapuro z'urupapuro"
-    },
-    "featuresSection": {
-      "title": "Ibintu byose ukeneye gutsinda",
-      "subtitle": "Ibiranga bikomeye byagenewe kunoza imiyoborere y'ishuri mu nzego zose"
-    },
     "features": {
       "ai": {
-        "title": "Isesengura rya AI",
-        "desc": "Hinduranya imyitwarire y'abanyeshuli kandi ubone abari mu kaga hakiri kare"
+        "title": "Ubushishozi bwa tekinoroji",
+        "desc": "Menya iby'ikoranabuhanga ry'umunyeshuri ukiri kare"
       },
       "dashboard": {
-        "title": "Ikibaho cy'ubwenge",
-        "desc": "Amakuru y'igihe nyiri n'isesengura rirambuye mu minwe yawe"
+        "title": "Ibikorana by'ikoranabuhanga",
+        "desc": "Isesengura ry'igihe nyaryo n'raporo zikoreshwa na buri wese"
       },
       "communication": {
-        "title": "Ihuriro ry'itumanaho",
-        "desc": "Ubutumwa butoroshye hagati y'ababyeyi, abarezi n'abayobozi"
+        "title": "Itumanaho ritoroshye",
+        "desc": "Ubutumwa bwihuse, amakuru, n'inama z'ababyeyi n'abarimu"
       },
       "security": {
-        "title": "Umutekano w'ibanze",
-        "desc": "Ibanga ry'urwego rw'amabanki n'igenzura rishingiye ku nshingano"
+        "title": "Ikibanza kiziritse",
+        "desc": "Uburenganzira bukoreshwa n'inshingano za buri wese n'ububiko bw'amakuru buhifitse"
       },
       "reports": {
-        "title": "Raporo zikora zikora",
-        "desc": "Kora raporo zirambuye z'amashuri n'ubuyobozi ako kanya"
+        "title": "Raporo zihaye ubwenge",
+        "desc": "Ibipimo byikora, inyandiko z'amasomo, n'isesengura ry'ikoranabuhanga"
       },
       "fees": {
-        "title": "Gestion y'amafaranga y'ishuri",
-        "desc": "Kurikiranya amafaranga yoherejwe, kohereza ibibutso, no gucunga imari neza"
+        "title": "Imicungire y'amasomo",
+        "desc": "Kwishyura kuri interineti, amadeni, n'ubukangurambaga bw'amafaranga"
       }
     },
-    "rolesSection": {
-      "title": "Byakorewe buri wese",
-      "subtitle": "Ibyifuzo bigenewe buri munyamuryango w'ishuri ryawe"
+    "stats": {
+      "students": "Abanyeshuri bakora",
+      "teachers": "Abarimu",
+      "satisfaction": "Urwego rw'ishimwe",
+      "paperForms": "Impapuro zikoreshwa"
     },
     "roles": {
-      "student": "Umunyeshuli",
-      "teacher": "Umurezi",
+      "student": "Umunyeshuri",
       "parent": "Umubyeyi",
+      "teacher": "Umwarimu",
       "admin": "Ubuyobozi"
+    },
+    "rolesSection": {
+      "title": "Biteganyirijwe buri wese",
+      "subtitle": "Ibikorwa bihuje n'ibyo buri wese akenera mu muryango w'ishuri ryawe"
     },
     "roleFeatures": {
       "student": {
-        "0": "Reba amanota n'iterambere",
-        "1": "Kora imyitozo",
-        "2": "Kurikiranya itabere mu ishuri",
-        "3": "Ikarita y'indangamuntu ya digitale"
+        "0": "Reba amanota n'imirimo",
+        "1": "Ohereza imirimo yawe kuri interineti",
+        "2": "Kurikira itabaza",
+        "3": "Koresha ibikoresho by'imyigishirize"
       },
       "parent": {
-        "0": "Kurikiranya iterambere ry'umwana",
-        "1": "Kubona ubutumwa bwo mu kanya",
-        "2": "Kwiriha amafaranga y'ishuri kuri interineti",
-        "3": "Itumanaho n'umurezi"
+        "0": "Kurikira iterambere ry'umwana",
+        "1": "Kubona amakuru akiri make",
+        "2": "Kuvugana n'abarimu",
+        "3": "Kwishyura amasomo kuri interineti"
       },
       "teacher": {
-        "0": "Gucunga amasomo kuri interineti",
-        "1": "Kwandika amanota byoroshye",
-        "2": "Umufasha mu gutanga amanota ya AI",
-        "3": "Itumanaho n'ababyeyi"
+        "0": "Gicungira amashuri n'abanyeshuri",
+        "1": "Andika amanota n'itabaza",
+        "2": "Kora ibipimo by'amasomo",
+        "3": "Ubushishozi bwa tekinoroji"
       },
       "admin": {
         "0": "Kugenzura sisitemu yose",
-        "1": "Gukora raporo",
-        "2": "Gucunga abakoresha",
-        "3": "Kugenzura imari"
+        "1": "Imicungire y'abakoresha",
+        "2": "Kurikirana imari",
+        "3": "Isesengura n'uraporo"
       }
     },
     "aiSection": {
-      "badge": "Ibivugwa na AI",
-      "title": "Isesengura ry'ubwenge ku ngaruka nziza",
-      "description": "Koresha ubwenge bw'ikinyabupfura kugira ngo umenye ibintu, hinduranya imyitwarire, ubone abanyeshuli bari mu kaga mbere y'uko barushaho kuyoboka.",
-      "cardTitle": "Agereranywa ry'ibyagezweho mu ishuri",
-      "cardDesc": "Isesengura ry'igihe nyiri ryerekana imyitwarire n'ibintu bishobora guteza akaga",
-      "classAvg": "Agereranywa ry'ishuri",
-      "atRisk": "Abanyeshuli bari mu kaga"
+      "badge": "Sisitemu ihanura ikoresheje tekinoroji",
+      "title": "Menya abanyeshuri bari mu kaga mbere y'igihe",
+      "description": "Sisitemu yacu y'ikoranabuhanga isesengura imikorere y'abanyeshuri ikanamenyesha abarimu mugihe hakeneye ubufasha.",
+      "cardTitle": "Iperereza ku mikorere y'ishuri",
+      "cardDesc": "Isesengura rya tekinoroji ku mikorere y'amasomo",
+      "classAvg": "Urugero rw'amanota y'ishuri",
+      "atRisk": "Abanyeshuri bari mu kaga"
     },
     "zones": {
       "green": {
-        "title": "Akagari k'icyatsi kibisi (75-100%)",
-        "desc": "Iterambere rihebuje - uri mu nzira yo gutsinda"
+        "title": "Akazu gahoraho - Bari mu nzira",
+        "desc": "Imikorere myiza, nta ngingo yo kugira icyo ubakorera"
       },
       "yellow": {
-        "title": "Akagari k'umuhondo (50-74%)",
-        "desc": "Akaga gaciriritse - gisaba kwitabwaho"
+        "title": "Akazu k'umuhondo - Gukurikiranwa",
+        "desc": "Agaciro kagabanutse, gisabwa kugenzurwa"
       },
       "red": {
-        "title": "Akagari g'umutuku (0-49%)",
-        "desc": "Akaga gakomeye - gisaba kubakirwa ako kanya"
+        "title": "Akazu gatukura - Igikorwa cyihutirwa",
+        "desc": "Agaciro kagabanutse cyane, bisaba gukiranwa"
       }
     },
-    "testimonialsSection": {
-      "title": "Twizerwa n'abaturanyi bacu",
-      "subtitle": "Ababyeyi, abarezi n'abakozi bavuga iby'Ishuri"
-    },
     "testimonials": {
-      "parent": "Ubu nshobora gukurikirana iterambere ry'umwana wanjye mu buryo busanzwe. Ubutumwa bwo mu kanya bumpa amakuru y'ibintu byose bibaho ku ishuri.",
-      "teacher": "Umufasha mu gutanga amanota wa AI ambika amasaha y'akazi. Nshobora kwibanda ku myigishirize aho gutanga amakuru ku mpapuro.",
-      "director": "Urubuga ruhinduye uko ducunga ishuri ryacu. Ibintu byose kuva ku misoro kugeza ku raporo ubu ni ibya digitale.",
-      "directorRole": "Muyobozi w'ishuri"
+      "parent": "Nk'umubyeyi, ndashobora gukurikira byoroshye iterambere ry'umwana wanjye no kuvugana n'abarimu. Amakuru akiri make ampa ibyo uri hose biba mu ishuri.",
+      "teacher": "Ubushishozi bwa tekinoroji bumfasha kumenya abanyeshuri bari mu kaga hakiri kare. Ibyo wandika amanota bihita bikora kandi raporo zikora zikabyara.",
+      "director": "Gucungira ishuri ryacu ntibyarigeze bworoshya gutya. Kuva amasomo kugeza ku by'amasomo, byose biri ahantu hamwe.",
+      "directorRole": "Umuyobozi w'ishuri"
+    },
+    "testimonialsSection": {
+      "title": "Twizerwa n'abanyamuryango bacu",
+      "subtitle": "Urumva ibyo abakoresha bacu bavuga"
     },
     "chart": {
-      "title": "Imyitwarire y'ibyagezweho mu masomo",
-      "classAverage": "Agereranywa ry'ishuri (%)",
-      "atRisk": "Abanyeshuli bari mu kaga",
-      "attendance": "Agereranywa ry'itabere mu ishuri (%)"
+      "classAverage": "Urugero rw'amanota y'ishuri",
+      "atRisk": "Abanyeshuri bari mu kaga",
+      "attendance": "Urwego rw'itabaza",
+      "title": "Imikorere mu gihe cy'amasomo"
     },
     "cta": {
-      "title": "Witeguye guhindura ishuri ryawe?",
-      "subtitle": "Injira mu magana y'amashuri akoresha Ishuri gusa kunoza imiyoborere yayo.",
-      "signIn": "Injiramo kuri dashboard",
-      "contact": "Duhuze",
-      "note": "Dermo y'ubusa iboneka ku bayobozi"
-    },
-    "login": {
-      "title": "Uraza",
-      "subtitle": "Injiramo muri konti yawe",
-      "username": "Izina ry'ukoresha",
-      "usernamePlaceholder": "Shyiramo izina ry'ukoresha",
-      "password": "Ijambobanga",
-      "passwordPlaceholder": "Shyiramo ijambobanga ryawe",
-      "role": "Hitamo inshingano",
-      "selectRole": "Nyamuneka hitamo inshingano",
-      "forgotPassword": "Wibagiwe ijambobanga?",
-      "signIn": "Injiramo",
-      "welcome": "Murakaza nega!",
-      "invalidCredentials": "Izina ry'ukoresha, ijambobanga, cyangwa inshingano si byo",
-      "adminNote": "Gihuza n'ubuyobozi bw'ishuri ryawe niba ukeneye konti"
-    },
-    "forgotPassword": {
-      "title": "Subiramo ijambobanga",
-      "subtitle": "Tuzakohereza umudongoranko watuma usubiramo ijambobanga",
-      "emailLabel": "Aderesi ya imeli",
-      "emailPlaceholder": "Shyiramo aderesi yawe ya imeli",
-      "sendReset": "Ohereza umudongoranko wo gusubiramo",
-      "sentMessage": "Suzuma imeli yawe kugira ubone umudongoranko wo gusubiramo ijambobanga.",
-      "backToSignIn": "Subira mu kwinjiramo"
+      "title": "Uriteguye guhindura ishuri ryawe?",
+      "subtitle": "Injira mu mashuri amaze gukoresha Ishuri kugira ngo ujye ubona ibikorwa byoroshye.",
+      "signIn": "Injira muri konti yawe",
+      "contact": "Twandikire kugura",
+      "note": "Kubuntu ku banyeshuri, ababyeyi n'abakozi ba Les Hirondelles de Don Bosco"
     },
     "footer": {
-      "description": "Urubuga rwa kijyambere rwo gucunga amashuri kuri Les Hirondelles de Don Bosco, Ndera, Rwanda.",
-      "quickLinks": "Ihuza ryihuse",
-      "contact": "Guhuza",
+      "description": "Sisitemu y'ubucungiramashuri ya Les Hirondelles de Don Bosco.",
+      "quickLinks": "Ibyo ukenera",
+      "contact": "Twandikire",
       "resources": "Ibikoresho",
       "schoolWebsite": "Urubuga rw'ishuri",
-      "documentation": "Inyandiko z’ibisobanuro",
+      "documentation": "Inyandiko",
       "support": "Ubufasha",
-      "rights": "Uburenganzira bwose ni ubwacu.",
-      "tagline": "Gushyigikira uburezi binyuze mu ikoranabuhanga"
+      "rights": "Uburenganzira bwose buragengwa.",
+      "tagline": "Guteza imbere uburezi binyuze mu ikoranabuhanga"
     },
-    "common": {
-      "loading": "Birimo birahaguruka..."
+    "login": {
+      "title": "Murakaza neza",
+      "subtitle": "Injira muri konti yawe",
+      "username": "Izina rya konti",
+      "password": "Ijambo ry'ibanga",
+      "usernamePlaceholder": "Andika izina rya konti yawe",
+      "passwordPlaceholder": "Andika ijambo ry'ibanga",
+      "forgotPassword": "Wibagiwe ijambo ry'ibanga?",
+      "signIn": "Injira",
+      "adminNote": "Twandikire ubuyobozi bw'ishuri niba ukeneye konti",
+      "usernameRequired": "Izina rya konti birakenewe",
+      "passwordRequired": "Ijambo ry'ibanga rirakenewe",
+      "invalidCredentials": "Izina rya konti cyangwa ijambo ry'ibanga si byo",
+      "welcome": "Murakaza nega!"
+    },
+    "forgotPassword": {
+      "title": "Hindura ijambo ry'ibanga",
+      "subtitle": "Andika izina rya konti yawe kugira ngo tubanze turebe niba ibaho",
+      "resetTitle": "Kora ijambo ry'ibanga rishya",
+      "resetSubtitle": "Hitamo ijambo ry'ibanga rikomeye kuri konti yawe",
+      "usernameLabel": "Izina rya konti",
+      "usernamePlaceholder": "Andika izina rya konti yawe",
+      "usernameRequired": "Izina rya konti birakenewe",
+      "usernameFound": "Izina rya konti rirahari! Andika ijambo ry'ibanga rishya.",
+      "usernameNotFound": "Izina rya konti ntiriboneka. Gerageza noneho.",
+      "verifyUsername": "Genzura izina rya konti",
+      "newPassword": "Ijambo ry'ibanga rishya",
+      "newPasswordPlaceholder": "Andika ijambo ry'ibanga rishya",
+      "confirmPassword": "Emeza ijambo ry'ibanga",
+      "confirmPasswordPlaceholder": "Emeza ijambo ry'ibanga rishya",
+      "resetPassword": "Hindura ijambo ry'ibanga",
+      "passwordsDoNotMatch": "Ijambo ry'ibanga n'iryemeza ntabwo bihuye",
+      "passwordResetSuccess": "Ijambo ry'ibanga ryahinduwe! Turakwinjiza...",
+      "resetSuccess": "Ijambo ry'ibanga ryahinduwe! Injira muri konti yawe.",
+      "resetFailed": "Ijambo ry'ibanga nti ryahinduwe. Gerageza noneho.",
+      "loginSuccess": "Ijambo ry'ibanga ryahinduwe! Turakwinjiza...",
+      "resettingFor": "Uhinduwe ijambo ry'ibanga",
+      "backToSignIn": "Garuka mu winjira",
+      "backToUsername": "Garuka mu igenzura ry'izina rya konti"
+    },
+    "passwordValidation": {
+      "title": "Ijambo ry'ibanga rikgomba kugirimo:",
+      "strength": "Imbaraga z'ijambo ry'ibanga",
+      "minLength": "Inyuguti 6 byibuze",
+      "uppercase": "Inyuguti nkuru imwe byibuze",
+      "lowercase": "Inyuguti ntoya imwe byibuze",
+      "number": "Imibare imwe byibuze",
+      "specialChar": "Ikimenyetso kimwe byibuze (!@#$%^&*)",
+      "requirements": "Ibikenewe mu ijambo ry'ibanga:"
     },
     "addParent": {
-      "title": "Ongeramo umubyeyi/umurinzi",
-      "subtitle": "Huza umubyeyi na konti y'umunyeshuli wawe",
+      "title": "Ongeraho umubyeyi/umurinzi",
+      "subtitle": "Ongeraho byibuze umubyeyi umwe cyangwa umurinzi kuri konti yawe",
       "fullName": "Izina ryuzuye",
-      "fullNamePlaceholder": "Shyiramo izina ryuzuye ry'umubyeyi",
+      "fullNamePlaceholder": "Andika izina ryuzuye ry'umubyeyi",
       "phoneNumber": "Nimero ya terefone",
-      "email": "Aderesi ya imeli",
-      "physicalAddress": "Aho utuye",
-      "addressPlaceholder": "Shyiramo aho umubyeyi atuye",
+      "email": "Aderesi ya imeri",
+      "physicalAddress": "Aho atuye",
+      "addressPlaceholder": "Andika aho atuye",
       "relationshipType": "Isano",
-      "submit": "Ongeramo umubyeyi",
+      "submit": "Ongeraho umubyeyi",
       "cancel": "Hagarika",
-      "error": "Kongeramo umubyeyi byananiranye",
-      "success": "Umubyeyi yongewe neza",
-      "fullNameRequired": "Izina ryuzuye rirakenewe",
+      "fullNameRequired": "Izina ry'umubyeyi rirakenewe",
       "phoneRequired": "Nimero ya terefone irakenewe",
-      "emailRequired": "Aderesi ya imeli irakenewe"
+      "emailRequired": "Aderesi ya imeri irakenewe",
+      "success": "Umubyeyi yongeweho!",
+      "error": "Umubyeyi ntiyongeweho. Gerageza noneho."
     },
     "addRelationship": {
       "father": "Data",
@@ -222,24 +242,16 @@
       "guardian": "Umurinzi",
       "other": "Ibindi"
     },
-    "passwordValidation": {
-      "title": "Ijambobanga rigomba kugira:",
-      "minLength": "Inyuguti 6 byibuze",
-      "uppercase": "Ibyuguti byibuze imwe nkuru",
-      "lowercase": "Ibyuguti byibuze imwe ntoya",
-      "number": "Imibare byibuze umwe",
-      "specialChar": "Inyuguti idasanzwe byibuze imwe (!@#$%^&*...)"
+    "common": {
+      "loading": "Birakora..."
     },
     "errors": {
-      "networkError": "Ikosa ry'umuyagamo. Nyamuneka suzuma isano yawe.",
-      "somethingWentWrong": "Ikintu gitagenda neza. Nyamuneka ongera ugerageze.",
-      "invalidCredentials": "Izina ry'ukoresha cyangwa ijambobanga si byo",
-      "accountInactive": "Konti yawe nkora. Nyamuneka uhuze n'ubuyobozi.",
-      "accountSuspended": "Konti yawe yahagaritswe. Nyamuneka uhuze n'ubuyobozi.",
-      "invalidRole": "Inshingano ntayo. Konti yanditswe nka {role}.",
-      "permissionDenied": "Ntaburenganzira. Nta bubasha ufite bwo kugera kuri uru rubuga."
+      "networkError": "Ikibazo cy'ubucuruzi bw'umurongo. Gerageza urebe niba umeze neza.",
+      "somethingWentWrong": "Ikintu gitagenda neza. Gerageza noneho.",
+      "invalidCredentials": "Izina rya konti cyangwa ijambo ry'ibanga si byo"
     }
   },
+
   
   "teachers": {
     "title": "Gucunga Abarimu",
@@ -1162,250 +1174,298 @@
     }
   },
   
+  
   "academics": {
-    "title": "Imicungire y'Amashuri",
-    "subtitle": "Cungira imiterere y'amashuri",
-    "subtitleWithYear": "Umwaka w'Amashuri: {{year}}",
+    "title": "Gestioni y'Amasomo",
+    "subtitle": "Genzura imiterere y'amasomo y'ishuri",
+    "subtitleWithYear": "Genzura amasomo ya {{year}}",
     "tabs": {
-      "academicYears": "Imyaka y'Amashuri",
-      "terms": "Ibihembwe",
-      "schoolLevels": "Ibyiciro by'Amashuri",
-      "classLevels": "Ibyiciro by'Ishuri",
-      "classrooms": "Ibyumba",
-      "subjects": "Ibyigisho",
-      "assignments": "Imyigishirizo",
-      "paymentTypes": "Ubwoko bw'Ubwishyu",
-      "feeStructures": "Ibiciro",
+      "academicYears": "Imyaka y'Amasomo",
+      "terms": "Ibihame",
+      "schoolLevels": "Urwego rw'Ishuri",
+      "classLevels": "Amabanga",
+      "classrooms": "Ibyumba by'Isomo",
+      "subjects": "Ibisobanuro",
+      "assignments": "Ibikorwa",
+      "paymentTypes": "Ubwoko bw'Insimburwa",
+      "feeStructures": "Imiterere y'Insimburwa",
       "daySettings": "Igenamiterere ry'Umunsi",
-      "classroomAssignments": "Ibyumba byahariwe",
       "schoolBreaks": "Ikiruhuko cy'Ishuri",
-      "holidays": "Iminsi y'Ikiruhuko"
+      "holidays": "Iminsi mikuru"
     },
     "stats": {
       "academicYears": "Imyaka",
-      "terms": "Ibihembwe",
-      "schoolLevels": "Ibyiciro",
-      "classLevels": "Amaklasi",
+      "terms": "Ibihame",
+      "schoolLevels": "Urwego",
+      "classLevels": "Amabanga",
       "classrooms": "Ibyumba",
-      "subjects": "Ibyigisho",
-      "feeStructures": "Ibiciro",
+      "subjects": "Ibisobanuro",
+      "feeStructures": "Insimburwa",
       "schoolBreaks": "Ikiruhuko",
-      "holidays": "Iminsi y'Ikiruhuko"
-    },
-    "form": {
-      "yearName": "Izina ry'Umwaka",
-      "startDate": "Itariki y'Itangiriro",
-      "endDate": "Itariki y'Impera",
-      "setAsCurrent": "Shyira nk'urikoreshwa",
-      "academicYear": "Umwaka w'Amashuri",
-      "termNumber": "Nomero y'Igihembwe",
-      "termName": "Izina ry'Igihembwe",
-      "levelName": "Izina ry'Urwego",
-      "dailyStartTime": "Igihe cy'Itangiriro rya buri munsi",
-      "dailyEndTime": "Igihe cy'Impera ya buri munsi",
-      "dailyStartTimeHint": "Igihe amasomo atangirira buri munsi (urugero: 08:00)",
-      "dailyEndTimeHint": "Igihe amasomo arangirira buri munsi (urugero: 16:00)",
-      "className": "Izina ry'Ishuri",
-      "classCode": "Kode y'Ishuri",
-      "schoolLevel": "Urwego rw'Amashuri",
-      "schoolLevelOptional": "Urwego rw'Amashuri (Bishoboka)",
-      "allSchoolLevels": "Ibyiciro Byose",
-      "roomName": "Izina ry'Icyumba",
-      "roomCode": "Kode y'Icyumba",
-      "roomType": "Ubwoko bw'Icyumba",
-      "capacity": "Ubushobozi",
-      "status": "Imiterere",
-      "subjectName": "Izina ry'Icyigisho",
-      "subjectCode": "Kode y'Icyigisho",
-      "passScore": "Amanota yo gutsinda",
-      "classLevel": "Urwego rw'Ishuri",
-      "subject": "Icyigisho",
-      "teachingFrequency": "Inshuro zo kwigisha",
-      "hoursPerWeek": "Amasaha ku cyumweru",
-      "compulsory": "Nibyateganyijwe",
-      "paymentTypeName": "Izina ry'Ubwoko bw'Ubwishyu",
-      "paymentTypeCode": "Kode y'Ubwoko bw'Ubwishyu",
-      "feeName": "Izina ry'Ibiciro",
-      "paymentType": "Ubwoko bw'Ubwishyu",
-      "amount": "Amafaranga",
-      "mandatory": "Nibyateganyijwe",
-      "dayType": "Ubwoko bw'Umunsi",
-      "weekday": "Umunsi w'Icyumweru",
-      "specificDate": "Itariki Runaka",
-      "term": "Igihembwe",
-      "classroom": "Icyumba",
-      "isPrimaryClassroom": "Icyumba nyamukuru",
-      "breakName": "Izina ry'Ikiruhuko",
-      "breakType": "Ubwoko bw'Ikiruhuko",
-      "startTime": "Igihe kitangirira",
-      "endTime": "Igihe kirangirira",
-      "holidayName": "Izina ry'Ikiruhuko",
-      "holidayDate": "Itariki y'Ikiruhuko",
-      "recurringYearly": "Ngaruka buri mwaka",
-      "description": "Ibisobanuro",
-      "selectOption": "Hitamo {{label}}",
-      "schoolLevelHoursHint": "Amasaha: {{start}} - {{end}}",
-      "breakConstraintHint": "● Ikiruhuko kigomba kuba nyuma y'iminota 5 nyuma y'itangiriro ● Min 5 min, Max 60 min",
-      "age":"Imyaka",
-      "selectSchoolLevel": "Hitamo urwego rw'ishuri",
-      "selectClassLevel": "Hitamo icyiciro cy'ishuri",
-      "selectSchoolLevelFirst": "Hitamo urwego rw'ishuri mbere",
-      "selectTermFirst": "Hitamo igihembwe mbere",
-      "selectClassLevelFirst": "Hitamo icyiciro cy'ishuri mbere",
-      "selectSubjectFirst": "Hitamo isomo mbere"
-    },
-    "table": {
-      "yearName": "Umwaka",
-      "startDate": "Itangiriro",
-      "endDate": "Impera",
-      "current": "Koreshwa",
-      "academicYear": "Umwaka",
-      "termName": "Igihembwe",
-      "levelName": "Urwego",
-      "dailyHours": "Amasaha ya buri munsi",
-      "description": "Ibisobanuro",
-      "active": "Gikora",
-      "className": "Ishuri",
-      "classCode": "Kode",
-      "schoolLevel": "Urwego",
-      "roomName": "Icyumba",
-      "roomCode": "Kode",
-      "assignedClassLevel": "Ishuri ryahawe",
-      "roomType": "Ubwoko",
-      "capacity": "Ubushobozi",
-      "status": "Imiterere",
-      "subjectName": "Icyigisho",
-      "subjectCode": "Kode",
-      "passScore": "Amanota",
-      "frequency": "Inshuro",
-      "hoursPerWeek": "Amasaha/Cyum",
-      "compulsory": "Biteganyijwe",
-      "paymentTypeName": "Ubwoko bw'Ubwishyu",
-      "paymentTypeCode": "Kode",
-      "feeName": "Ibiciro",
-      "paymentType": "Ubwoko bw'Ubwishyu",
-      "amount": "Amafaranga",
-      "mandatory": "Biteganyijwe",
-      "dayType": "Umunsi",
-      "weekdayOrDate": "Umunsi/Itariki",
-      "primary": "Nyamukuru",
-      "breakName": "Ikiruhuko",
-      "breakType": "Ubwoko",
-      "duration": "Igihe",
-      "date": "Itariki",
-      "recurring": "Ngaruka",
-      "holidayName": "Ikiruhuko",
-      "actions": "Ibikorwa",
-      "age": "Imyaka",
-      "noData": "Nta makuru abonetse",
-      "term": "Igihembwe",
-      "classroom": "Icyumba",
-      "classLevel": "Ishuri",
-      "subject": "Icyigisho",
-      "startTime": "Itangiriro",
-      "endTime": "Impera",
-      "assign": "Ishuri ryahawe",
-      "assignedRoom": "Icyumba cyahawe"
-    },
-    "labels": {
-      "primary": "Nyamukuru",
-      "required": "Biteganyijwe",
-      "optional": "Bishoboka",
-      "mandatory": "Biteganyijwe",
-      "allLevels": "Ibyiciro Byose",
-      "yearly": "Ngaruka",
-      "once": "Rimwe"
+      "holidays": "Iminsi mikuru"
     },
     "status": {
-      "active": "Gikora",
+      "active": "Igikora",
       "inactive": "Ntigikora"
     },
-    "terms": {
-      "first": "Igihembwe cya Mbere",
-      "second": "Igihembwe cya Kabiri",
-      "third": "Igihembwe cya Gatatu"
-    },
     "roomTypes": {
-      "standard": "Risanzwe",
+      "standard": "Isanzwe",
       "laboratory": "Laboratoire",
-      "workshop": "Akarorero",
-      "auditorium": "Auditorium"
+      "workshop": "Aho bikorera",
+      "auditorium": "Inzu nini"
+    },
+    "dayTypes": {
+      "learning": "Umunsi w'Imyigire",
+      "dayOff": "Umunsi w'Ikiruhuko",
+      "special": "Umunsi wihariye"
+    },
+    "breakTypes": {
+      "shortBreak": "Ikiruhuko gito",
+      "lunch": "Ibiryo bya Masaa",
+      "recess": "Ikiruhuko cyo ku masaa",
+      "other": "Ikindi",
+      "short_break": "Ikiruhuko gito"
+    },
+    "terms": {
+      "first": "Icya mbere",
+      "second": "Icya kabiri",
+      "third": "Icya gatatu"
     },
     "frequency": {
       "daily": "Buri munsi",
       "weekly": "Buri cyumweru"
     },
-    "dayTypes": {
-      "learning": "Umunsi wo Kwiga",
-      "day_off": "Umunsi wo Kuruhuka",
-      "special": "Umunsi w'Ikiganiro",
-      "dayOff": "Umunsi wo Kuruhuka"
-    },
-    "breakTypes": {
-      "short_break": "Ikiruhuko Gito",
-      "lunch": "Ikiruhuko cyo kurya",
-      "recess": "Umukino",
-      "other": "Ikindi"
-    },
     "weekdays": {
-      "monday": "Kuwa Mbere",
-      "tuesday": "Kuwa Kabiri",
-      "wednesday": "Kuwa Gatatu",
-      "thursday": "Kuwa Kane",
-      "friday": "Kuwa Gatanu",
-      "saturday": "Kuwa Gatandatu",
-      "sunday": "Ku Cyumweru"
+      "monday": "Kuwa mbere",
+      "tuesday": "Kuwa kabiri",
+      "wednesday": "Kuwa gatatu",
+      "thursday": "Kuwa kane",
+      "friday": "Kuwa gatanu",
+      "saturday": "Kuwa gatandatu",
+      "sunday": "Ku cyumweru"
+    },
+    "labels": {
+      "required": "Birakenewe",
+      "optional": "Bihitamo",
+      "mandatory": "Bitegetswe",
+      "yearly": "Buri mwaka",
+      "once": "Rimwe",
+      "allLevels": "Amabanga yose"
+    },
+    "form": {
+      "yearName": "Izina ry'Umwaka",
+      "startDate": "Itariki Itangira",
+      "endDate": "Itariki Iherezo",
+      "setAsCurrent": "Shiraho nk'uyu mwaka",
+      "academicYear": "Umwaka w'Amasomo",
+      "termNumber": "Nomero y'Igihembwe",
+      "termName": "Izina ry'Igihembwe",
+      "levelName": "Izina ry'Urwego",
+      "description": "Ibisobanuro",
+      "dailyStartTime": "Igihe cyo Gutangira buri munsi",
+      "dailyStartTimeHint": "Urugero: 08h00",
+      "dailyEndTime": "Igihe cyo Gusoza buri munsi",
+      "dailyEndTimeHint": "Urugero: 15h00",
+      "className": "Izina ry'Ibanga",
+      "classCode": "Kode y'Ibanga",
+      "schoolLevel": "Urwego rw'Ishuri",
+      "roomName": "Izina ry'Icyumba",
+      "roomCode": "Kode y'Icyumba",
+      "roomType": "Ubwoko bw'Icyumba",
+      "capacity": "Ubushobozi",
+      "status": "Imiterere",
+      "subjectName": "Izina ry'Isomo",
+      "subjectCode": "Kode y'Isomo",
+      "passScore": "Amanota yo gutsinda",
+      "teachingFrequency": "Insimburangingo y'Igisho",
+      "hoursPerWeek": "Amasaha mu cyumweru",
+      "compulsory": "Birakenewe",
+      "paymentTypeName": "Izina ry'Ubwoko bw'Insimburwa",
+      "paymentTypeCode": "Kode y'Ubwoko bw'Insimburwa",
+      "feeName": "Izina ry'Insimburwa",
+      "amount": "Amafaranga",
+      "mandatory": "Bitegetswe",
+      "dayType": "Ubwoko bw'Umunsi",
+      "weekday": "Umunsi w'Icyumweru",
+      "specificDate": "Itariki runaka",
+      "breakName": "Izina ry'Ikiruhuko",
+      "breakType": "Ubwoko bw'Ikiruhuko",
+      "startTime": "Igihe kitangira",
+      "endTime": "Igihe kihereza",
+      "holidayName": "Izina ry'Umunsi mukuru",
+      "holidayDate": "Itariki",
+      "schoolLevelOptional": "Urwego rw'Ishuri (Ntakibanza)",
+      "allSchoolLevels": "Amabanga yose",
+      "recurringYearly": "Buri mwaka",
+      "selectOption": "Hitamo {{label}}",
+      "classroom": "Icyumba cy'Isomo",
+      "selectSchoolLevel": "Hitamo urwego rw'ishuri",
+      "selectClassLevel": "Hitamo ibanga",
+      "selectSchoolLevelFirst": "Hitamo urwego mbere",
+      "schoolLevelHoursHint": "Amasaha y'ishuri: {{start}} – {{end}}",
+      "breakConstraintHint": "Ikiruhuko kigomba kujya mu masaha y'ishuri",
+      "subject": "Isomo",
+      "classLevel": "Icyiciro cy'Ishuri"
+    },
+    "table": {
+      "yearName": "Umwaka",
+      "startDate": "Itangira",
+      "endDate": "Iherezo",
+      "current": "Kuri ubu",
+      "actions": "Ibikorwa",
+      "academicYear": "Umwaka w'Amasomo",
+      "termName": "Igihembwe",
+      "levelName": "Urwego",
+      "dailyHours": "Amasaha ya buri munsi",
+      "className": "Ibanga",
+      "classCode": "Kode",
+      "schoolLevel": "Urwego",
+      "roomName": "Icyumba",
+      "roomCode": "Kode",
+      "assignedClassLevel": "Ibanga ryashyizweho",
+      "roomType": "Ubwoko",
+      "capacity": "Ubushobozi",
+      "subjectName": "Isomo",
+      "subjectCode": "Kode",
+      "passScore": "Amanota yo gutsinda",
+      "frequency": "Insimburangingo",
+      "hoursPerWeek": "Masaha/cyumweru",
+      "compulsory": "Birakenewe",
+      "paymentTypeName": "Ubwoko",
+      "paymentTypeCode": "Kode",
+      "feeName": "Insimburwa",
+      "paymentType": "Ubwoko bw'Insimburwa",
+      "amount": "Amafaranga",
+      "mandatory": "Bitegetswe",
+      "weekdayOrDate": "Umunsi / Itariki",
+      "breakName": "Ikiruhuko",
+      "breakType": "Ubwoko",
+      "startTime": "Itangira",
+      "endTime": "Iherezo",
+      "duration": "Uburebure",
+      "holidayName": "Umunsi mukuru",
+      "date": "Itariki",
+      "recurring": "Buri mwaka",
+      "status": "Imiterere",
+      "subject": "Isomo",
+      "classLevel": "Icyiciro cy'Ishuri"
     },
     "actions": {
       "add": "Ongeraho {{name}}",
-      "edit": "Hindura",
-      "delete": "Siba",
-      "view": "Reba",
-      "viewDetails": "Reba Ibyuzuye",
       "search": "Shakisha {{name}}",
-      "filters": "Ibyo ukuraho",
+      "filters": "Ibyunguruzo",
       "refresh": "Vugurura",
-      "clearFilters": "Kuraho ibyo ukuraho",
-      "create": "Kora",
-      "update": "Vugurura",
-      "cancel": "Hagarika",
-      "close": "Funga",
-      "assign": "Shyiraho Ishuri",
-      "assignClassroom": "Shyiraho Icyumba",
+      "clearFilters": "Hanagura ibyunguruzo",
+      "view": "Reba",
+      "edit": "Hindura",
+      "delete": "Hanagura",
+      "assign": "Shyiraho",
       "unassign": "Kuraho",
-      "assigning": "Gushyiraho...",
-       "noAssignableClassrooms": "Nta byumba bishoboka byo gushyiraho kuri iri shuri.",
-       "generating": "Gukora..."
+      "assignClassroom": "Shyiraho icyumba",
+      "create": "Kurema",
+      "update": "Kuvugurura",
+      "cancel": "Guhagarika",
+      "close": "Gufunga",
+      "viewDetails": "Reba ibyangombwa"
+    },
+    "filters": {
+      "allStatus": "Imiterere yose",
+      "current": "Kuri ubu",
+      "notCurrent": "Ntabwo iriho",
+      "allAcademicYears": "Imyaka yose",
+      "active": "Igikora",
+      "inactive": "Ntigikora",
+      "allSchoolLevels": "Amabanga yose",
+      "allRoomTypes": "Ubwoko bwose",
+      "assigned": "Byashyizweho",
+      "unassigned": "Bitashyizweho",
+      "allClassrooms": "Ibyumba byose",
+      "allClassLevels": "Amabanga yose",
+      "allSubjects": "Ibisobanuro byose",
+      "compulsory": "Birakenewe",
+      "optional": "Bihitamo",
+      "allFees": "Insimburwa zose",
+      "allDayTypes": "Ubwoko bwose bw'umunsi",
+      "allBreakTypes": "Ikiruhuko cyose",
+      "allHolidays": "Iminsi mikuru yose",
+      "recurring": "Buri mwaka",
+      "oneTime": "Rimwe",
+      "filterOptions": "Amahitamo y'ibyunguruzo"
     },
     "messages": {
-      "loading": "Biragenda...",
-      "noData": "Nta makuru abonetse",
-      "dataLoaded": "Ibintu {{count}} byakusanyijwe neza",
-      "fetchError": "Kubura amakuru byananiwe",
-      "createSuccess": "Byakozwe neza",
-      "createError": "Kurema byananiwe",
-      "updateSuccess": "Byahinduwe neza",
-      "updateError": "Kuvugurura byananiwe",
-      "deleteSuccess": "Byasibwe neza",
-      "deleteError": "Gusiba byananiwe",
-      "statusError": "Kuvugurura imiterere byananiwe",
-      "updateNotSupported": "Kuvugurura ntibishoboka kuri ubu bwoko",
-      "selectedClassrooms": "Ibyumba byatoranijwe",
-      "assignSuccess": "Ishuri ryahawe neza",
-      "selectedClassroom": "Icyumba cyatoranijwe"
+      "dataLoaded": "{{count}} byanditswe byakuwe",
+      "fetchError": "Kupakasha kunaniwe",
+      "selectClassLevel": "Hitamo ibanga",
+      "assignSuccess": "Icyumba cyashyizweho neza",
+      "assignError": "Kushyiraho kunaniwe",
+      "unassignSuccess": "Icyumba cyakuweho neza",
+      "unassignError": "Kukuramo kunaniwe",
+      "createSuccess": "Ibyanditswe byaremwe neza",
+      "createError": "Kurema kunaniwe",
+      "updateSuccess": "Ibyanditswe byavuguruwe neza",
+      "updateError": "Kuvugurura kunaniwe",
+      "updateNotSupported": "Kuvugurura ntibishoboka kuri iki kintu",
+      "deleteSuccess": "Ibyanditswe byahanaguwe neza",
+      "deleteError": "Kuhanagura kunaniwe",
+      "statusError": "Kuvugurura imiterere kunaniwe",
+      "loading": "Birimo...",
+      "noData": "Nta makuru aboneka",
+      "noClassLevelsInSchoolLevel": "Nta banga biboneka muri uru rwego",
+      "selectedClassLevel": "Ibanga ryahiswemo",
+      "assigning": "Bishyirwaho...",
+      "unassigning": "Bikurawaho..."
     },
     "pagination": {
       "show": "Erekana",
-      "ofTotal": "biva ku {{count}} byose",
-      "page": "Urukurikirane {{current}} rwa {{total}}"
+      "ofTotal": "muri {{count}}",
+      "page": "Urupapuro {{current}} rwa {{total}}"
     },
     "delete": {
-      "title": "Emeza Gusiba",
-      "confirmation": "Urahatiye ko ushaka gusiba?",
-      "itemName": "Izina ry'Ikintu"
+      "title": "Emeza kuhanagura",
+      "confirmation": "Urahatiye kuhanagura iki kintu?",
+      "itemName": "Ikintu"
+    },
+    "unassign": {
+      "title": "Emeza kukuramo",
+      "confirmation": "Urahatiye kukuramo iki cyumba?",
+      "classroom": "Icyumba",
+      "currentAssignment": "Ikiriho"
     },
     "view": {
-      "basicInfo": "Amakuru y'Iterambere"
+      "basicInfo": "Amakuru y'ibanze"
+    }
+  },
+
+
+  "teacher_layout": {
+    "greeting": {
+      "morning": "Good morning",
+      "afternoon": "Muraho nimugoroba",
+      "evening": "Mwiriwe",
+      "teacher": "Umwarimu"
+    },
+    "header": {
+      "notifications": "Imenyesha",
+      "messages": "Ubutumwa",
+      "profile": "Umwirondoro wanjye",
+      "logout": "Sohoka"
+    },
+    "nav": {
+      "menu": "Menyu Nyamukuru",
+      "dashboard": "Ikibaho",
+      "grades": "Amanota",
+      "attendances": "Ubwitegura",
+      "assignments": "Imirimo",
+      "myStudents": "Abanyeshuri Banjye",
+      "chats": "Inyinganwe",
+      "profile": "Umwirondoro"
+    },
+    "common": {
+      "loading": "Gutegura umwanya wawe…",
+      "role": "Umwarimu"
+    },
+    "messages": {
+      "logoutSuccess": "Wasohowe neza."
     }
   }
 }

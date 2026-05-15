@@ -9,6 +9,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 
 from accounts.models import User
+from django.core.exceptions import ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -130,3 +131,68 @@ def send_parent_credentials(parent, raw_password: str):
     except Exception as e:
         logger.error(f"[ParentUtils] Failed to send credentials email: {e}")
         print(f"[ParentUtils] Failed to send credentials email: {e}")
+        
+        
+        
+        
+        
+def auto_assign_student_to_classroom(student, academic_year, class_level, school_level, assigned_by=None, term=None):
+    """
+    Automatically assign a student to a classroom in the given class level.
+    Uses round-robin based on student count in each classroom.
+    
+    Returns the assigned classroom.
+    """
+    from academics.models import ClassRoom
+    from django.db.models import Count
+    
+    # Get all active classrooms assigned to this class level
+    classrooms = ClassRoom.objects.filter(
+        assigned_class_level=class_level,
+        status=ClassRoom.RoomStatus.ACTIVE
+    )
+    
+    if not classrooms.exists():
+        # No classroom assigned to this class level - create a default one?
+        raise ValidationError(
+            ('No active classroom assigned to class level "{cl}". Please assign a classroom first.').format(
+                cl=class_level.name
+            )
+        )
+    
+    # Count current students per classroom for this academic year
+    from students.models import StudentClassroomAssignment
+    
+    classroom_counts = {}
+    for classroom in classrooms:
+        count = StudentClassroomAssignment.objects.filter(
+            classroom=classroom,
+            academic_year=academic_year,
+            status=StudentClassroomAssignment.Status.ACTIVE
+        ).count()
+        classroom_counts[classroom.id] = count
+    
+    # Find classroom with lowest student count
+    min_count = min(classroom_counts.values()) if classroom_counts else 0
+    eligible_classrooms = [
+        classroom for classroom in classrooms 
+        if classroom_counts.get(classroom.id, 0) == min_count
+    ]
+    
+    # If multiple have same count, pick randomly
+    import random
+    selected_classroom = random.choice(eligible_classrooms) if eligible_classrooms else classrooms.first()
+    
+    # Create the assignment
+    assignment = StudentClassroomAssignment.objects.create(
+        student=student,
+        classroom=selected_classroom,
+        academic_year=academic_year,
+        term=term,
+        school_level=school_level,
+        class_level=class_level,
+        status=StudentClassroomAssignment.Status.ACTIVE,
+        assigned_by=assigned_by
+    )
+    
+    return selected_classroom
