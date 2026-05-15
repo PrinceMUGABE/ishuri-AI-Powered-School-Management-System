@@ -311,7 +311,9 @@
       "classroom": "Icyumba",
       "term": "Igihembwe",
       "editTeacher": "Hindura umwarimu",
-      "age": "Imyaka"
+      "age": "Imyaka",
+      "selectAcademicYearFirst": "Hitamo Umwaka w'Amashuri",
+      "selectSchoolLevelFirst":"Hitamo urwego rw'ishuri"
     },
     "gender": {
       "male": "Gabo",
@@ -371,7 +373,8 @@
       "allTerms": "Ibihembwe byose",
       "allWeeks": "Ibyumweru byose",
       "allDays": "Iminsi yose",
-      "weekPrefix": "Icyumweru"
+      "weekPrefix": "Icyumweru",
+      "current": "Koreshwa"
     },
     "pagination": {
       "showing": "Kwerekana",
@@ -1243,7 +1246,13 @@
       "selectOption": "Hitamo {{label}}",
       "schoolLevelHoursHint": "Amasaha: {{start}} - {{end}}",
       "breakConstraintHint": "● Ikiruhuko kigomba kuba nyuma y'iminota 5 nyuma y'itangiriro ● Min 5 min, Max 60 min",
-      "age":"Imyaka"
+      "age":"Imyaka",
+      "selectSchoolLevel": "Hitamo urwego rw'ishuri",
+      "selectClassLevel": "Hitamo icyiciro cy'ishuri",
+      "selectSchoolLevelFirst": "Hitamo urwego rw'ishuri mbere",
+      "selectTermFirst": "Hitamo igihembwe mbere",
+      "selectClassLevelFirst": "Hitamo icyiciro cy'ishuri mbere",
+      "selectSubjectFirst": "Hitamo isomo mbere"
     },
     "table": {
       "yearName": "Umwaka",
@@ -1294,7 +1303,9 @@
       "classLevel": "Ishuri",
       "subject": "Icyigisho",
       "startTime": "Itangiriro",
-      "endTime": "Impera"
+      "endTime": "Impera",
+      "assign": "Ishuri ryahawe",
+      "assignedRoom": "Icyumba cyahawe"
     },
     "labels": {
       "primary": "Nyamukuru",
@@ -1358,7 +1369,13 @@
       "create": "Kora",
       "update": "Vugurura",
       "cancel": "Hagarika",
-      "close": "Funga"
+      "close": "Funga",
+      "assign": "Shyiraho Ishuri",
+      "assignClassroom": "Shyiraho Icyumba",
+      "unassign": "Kuraho",
+      "assigning": "Gushyiraho...",
+       "noAssignableClassrooms": "Nta byumba bishoboka byo gushyiraho kuri iri shuri.",
+       "generating": "Gukora..."
     },
     "messages": {
       "loading": "Biragenda...",
@@ -1372,7 +1389,10 @@
       "deleteSuccess": "Byasibwe neza",
       "deleteError": "Gusiba byananiwe",
       "statusError": "Kuvugurura imiterere byananiwe",
-      "updateNotSupported": "Kuvugurura ntibishoboka kuri ubu bwoko"
+      "updateNotSupported": "Kuvugurura ntibishoboka kuri ubu bwoko",
+      "selectedClassrooms": "Ibyumba byatoranijwe",
+      "assignSuccess": "Ishuri ryahawe neza",
+      "selectedClassroom": "Icyumba cyatoranijwe"
     },
     "pagination": {
       "show": "Erekana",

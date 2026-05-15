@@ -11,7 +11,7 @@ import {
   Sun, Moon, ChevronDown, Bell, User, Settings, LogOut,
   SlidersHorizontal, BarChart3, Layers, Hash,
   Tag, Repeat, SunMedium, CalendarDays, Timer, Coffee,
-  Utensils, Gift, Calendar as CalendarIcon
+  Utensils, Gift, Calendar as CalendarIcon, Link2, Unlink
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -83,7 +83,10 @@ const AcademicsManagement = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [showUnassignModal, setShowUnassignModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedClassroom, setSelectedClassroom] = useState(null);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -100,18 +103,40 @@ const AcademicsManagement = () => {
   const [paymentTypes, setPaymentTypes] = useState([]);
   const [costs, setCosts] = useState([]);
   const [daySettings, setDaySettings] = useState([]);
-  const [classroomAssignments, setClassroomAssignments] = useState([]);
   const [schoolBreaks, setSchoolBreaks] = useState([]);
   const [holidays, setHolidays] = useState([]);
 
-  // Additional data for cascading dropdowns
-  const [filteredClassLevels, setFilteredClassLevels] = useState([]);
-  const [filteredClassrooms, setFilteredClassrooms] = useState([]);
-  const [classroomAssignmentDetails, setClassroomAssignmentDetails] = useState({});
+  // Filter states for each tab
+  const [tabFilters, setTabFilters] = useState({
+    'academic-years': { is_current: '' },
+    'terms': { academic_year: '', is_current: '' },
+    'school-levels': { is_active: '' },
+    'class-levels': { school_level: '', is_active: '' },
+    'classrooms': { status: '', room_type: '', assigned: '' },
+    'subjects': { status: '' },
+    'assignments': { class_level: '', is_compulsory: '' },
+    'payment-types': { is_active: '' },
+    'costs': { class_level: '', academic_year: '', is_mandatory: '' },
+    'day-settings': { academic_year: '', day_type: '' },
+    'school-breaks': { school_level: '', break_type: '', is_active: '' },
+    'holidays': { academic_year: '', school_level: '', is_recurring: '' },
+  });
 
   // Form states
   const [newItem, setNewItem] = useState({});
   const [editItem, setEditItem] = useState({});
+  const [assignData, setAssignData] = useState({
+    classroom_id: null,
+    school_level_id: null,
+    class_level_id: null
+  });
+
+  // Cascading dropdown states for forms
+  const [filteredClassLevelsForAssign, setFilteredClassLevelsForAssign] = useState([]);
+  const [filteredClassLevelsForAssignment, setFilteredClassLevelsForAssignment] = useState([]);
+  const [filteredClassLevelsForCost, setFilteredClassLevelsForCost] = useState([]);
+  const [selectedSchoolLevelForAssignment, setSelectedSchoolLevelForAssignment] = useState('');
+  const [selectedSchoolLevelForCost, setSelectedSchoolLevelForCost] = useState('');
 
   // Stats
   const [dashboardStats, setDashboardStats] = useState({
@@ -140,14 +165,13 @@ const AcademicsManagement = () => {
     { id: 'payment-types', labelKey: 'academics.tabs.paymentTypes', icon: Tag },
     { id: 'costs', labelKey: 'academics.tabs.feeStructures', icon: Wallet },
     { id: 'day-settings', labelKey: 'academics.tabs.daySettings', icon: SunMedium },
-    { id: 'classroom-assignments', labelKey: 'academics.tabs.classroomAssignments', icon: CalendarDays },
     { id: 'school-breaks', labelKey: 'academics.tabs.schoolBreaks', icon: Coffee },
-    { id: 'holidays', labelKey: 'academics.tabs.holidays', icon: Gift },  // Add this line
+    { id: 'holidays', labelKey: 'academics.tabs.holidays', icon: Gift },
   ];
 
   const currentTabInfo = tabs.find(tab => tab.id === activeTab);
 
-  // ─── Helper: get selected school level's hours (for breaks form hint) ───────
+  // ── Helper: get selected school level's hours (for breaks form hint) ───────
   const getSelectedSchoolLevelHours = (schoolLevelId) => {
     if (!schoolLevelId) return null;
     const sl = schoolLevels.find(s => s.id === parseInt(schoolLevelId));
@@ -198,30 +222,6 @@ const AcademicsManagement = () => {
     }
   }, []);
 
-  // ── Fetch classroom assignment details ────────────────────────────────────
-  const fetchClassroomAssignmentDetails = useCallback(async () => {
-    try {
-      const response = await apiClient.get('/classroom-assignments/');
-      if (response.data.success) {
-        const asgns = response.data.data;
-        const details = {};
-        asgns.forEach(a => {
-          details[a.classroom] = {
-            class_level_name: a.class_level_name,
-            class_level_id: a.class_level,
-            term_name: a.term_name,
-            term_id: a.term,
-            academic_year_name: a.academic_year_name,
-            is_primary: a.is_primary,
-          };
-        });
-        setClassroomAssignmentDetails(details);
-      }
-    } catch (error) {
-      console.error('[Classroom Assignment Details Error]', error);
-    }
-  }, []);
-
   // ── Fetch tab data ─────────────────────────────────────────────────────────
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -229,6 +229,12 @@ const AcademicsManagement = () => {
     try {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
+      
+      // Add filter params for the current tab
+      const currentFilters = tabFilters[activeTab] || {};
+      Object.entries(currentFilters).forEach(([key, value]) => {
+        if (value) params.append(key, value);
+      });
 
       const urlMap = {
         'academic-years': '/academic-years/',
@@ -241,9 +247,8 @@ const AcademicsManagement = () => {
         'payment-types': '/payment-types/',
         'costs': '/class-level-costs/',
         'day-settings': '/day-settings/',
-        'classroom-assignments': '/classroom-assignments/',
         'school-breaks': '/school-breaks/',
-        'holidays': '/holidays/',  // Add this line
+        'holidays': '/holidays/',
       };
 
       const url = `${urlMap[activeTab]}${params.toString() ? '?' + params.toString() : ''}`;
@@ -264,9 +269,8 @@ const AcademicsManagement = () => {
           'payment-types': setPaymentTypes,
           'costs': setCosts,
           'day-settings': setDaySettings,
-          'classroom-assignments': setClassroomAssignments,
           'school-breaks': setSchoolBreaks,
-          'holidays': setHolidays,  // Add this line
+          'holidays': setHolidays,
         };
         setters[activeTab]?.(results);
 
@@ -282,55 +286,51 @@ const AcademicsManagement = () => {
     } finally {
       setLoading(false);
     }
-  }, [activeTab, searchTerm, t]);
-
-  // ── Cascading dropdown handlers ───────────────────────────────────────────
-  const handleSchoolLevelChange = (schoolLevelId) => {
-    const filtered = classLevels.filter(cl => cl.school_level === parseInt(schoolLevelId));
-    setFilteredClassLevels(filtered);
-    setNewItem({ ...newItem, school_level: schoolLevelId, class_level: '', classroom: '' });
-    if (newItem.term) {
-      const available = classrooms.filter(c =>
-        !classroomAssignments.some(a => a.classroom === c.id && a.term === parseInt(newItem.term))
-      );
-      setFilteredClassrooms(available);
-    } else {
-      setFilteredClassrooms([]);
-    }
-  };
-
-  const handleClassLevelChange = (classLevelId) => {
-    const available = classrooms.filter(c =>
-      !classroomAssignments.some(a => a.classroom === c.id && a.term === parseInt(newItem.term))
-    );
-    setFilteredClassrooms(available);
-    setNewItem({ ...newItem, class_level: classLevelId, classroom: '' });
-  };
-
-  const handleTermChange = (termId) => {
-    const available = classrooms.filter(c =>
-      !classroomAssignments.some(a => a.classroom === c.id && a.term === parseInt(termId))
-    );
-    setFilteredClassrooms(available);
-    setNewItem({ ...newItem, term: termId });
-  };
-
-  const handleAcademicYearChange = (academicYearId) => {
-    setNewItem({ ...newItem, academic_year: academicYearId, term: '', class_level: '', classroom: '' });
-    setFilteredClassLevels(classLevels);
-    setFilteredClassrooms([]);
-  };
+  }, [activeTab, searchTerm, tabFilters, t]);
 
   useEffect(() => {
     fetchDropdownData();
     fetchDashboardStats();
-    fetchClassroomAssignmentDetails();
   }, []);
 
   useEffect(() => {
     fetchData();
     setCurrentPage(1);
-  }, [activeTab]);
+  }, [activeTab, tabFilters]);
+
+  // Update filtered class levels when school level changes in assign modal
+  useEffect(() => {
+    if (assignData.school_level_id) {
+      const filtered = classLevels.filter(
+        cl => cl.school_level === parseInt(assignData.school_level_id) && cl.is_active
+      );
+      setFilteredClassLevelsForAssign(filtered);
+      setAssignData(prev => ({ ...prev, class_level_id: null }));
+    } else {
+      setFilteredClassLevelsForAssign([]);
+      setAssignData(prev => ({ ...prev, class_level_id: null }));
+    }
+  }, [assignData.school_level_id, classLevels]);
+
+  // Handle school level change for assignment form
+  const handleSchoolLevelChangeForAssignment = (schoolLevelId) => {
+    setSelectedSchoolLevelForAssignment(schoolLevelId);
+    const filtered = classLevels.filter(
+      cl => cl.school_level === parseInt(schoolLevelId) && cl.is_active
+    );
+    setFilteredClassLevelsForAssignment(filtered);
+    setNewItem(prev => ({ ...prev, school_level: schoolLevelId, class_level: '' }));
+  };
+
+  // Handle school level change for cost form
+  const handleSchoolLevelChangeForCost = (schoolLevelId) => {
+    setSelectedSchoolLevelForCost(schoolLevelId);
+    const filtered = classLevels.filter(
+      cl => cl.school_level === parseInt(schoolLevelId) && cl.is_active
+    );
+    setFilteredClassLevelsForCost(filtered);
+    setNewItem(prev => ({ ...prev, school_level: schoolLevelId, class_level: '' }));
+  };
 
   // ── Client-side filtering & pagination ────────────────────────────────────
   const filterData = (data) => {
@@ -345,14 +345,75 @@ const AcademicsManagement = () => {
     'academic-years': academicYears, 'terms': terms, 'school-levels': schoolLevels,
     'class-levels': classLevels, 'classrooms': classrooms, 'subjects': subjects,
     'assignments': assignments, 'payment-types': paymentTypes, 'costs': costs,
-    'day-settings': daySettings, 'classroom-assignments': classroomAssignments,
-    'school-breaks': schoolBreaks, 'holidays': holidays,  // Add this line
+    'day-settings': daySettings, 'school-breaks': schoolBreaks, 'holidays': holidays,
   };
 
   const rawData = dataMap[activeTab] ?? [];
   const filteredData = filterData(rawData);
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const paginatedData = filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  // ── Classroom Assignment Handlers ──────────────────────────────────────────
+  const handleAssignClassroom = async () => {
+    if (!assignData.classroom_id || !assignData.class_level_id) {
+      toast.error(t('academics.messages.selectClassLevel'));
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await apiClient.post(`/classrooms/${assignData.classroom_id}/assign/`, {
+        class_level_id: assignData.class_level_id
+      });
+
+      if (response.data.success) {
+        toast.success(response.data.message || t('academics.messages.assignSuccess'));
+        setShowAssignModal(false);
+        setAssignData({ classroom_id: null, school_level_id: null, class_level_id: null });
+        setFilteredClassLevelsForAssign([]);
+        fetchData();
+        fetchDropdownData();
+      } else {
+        toast.error(response.data.message || t('academics.messages.assignError'));
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || t('academics.messages.assignError'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUnassignClassroom = async () => {
+    if (!selectedClassroom) return;
+    setLoading(true);
+    try {
+      const response = await apiClient.post(`/classrooms/${selectedClassroom.id}/unassign/`);
+
+      if (response.data.success) {
+        toast.success(response.data.message || t('academics.messages.unassignSuccess'));
+        setShowUnassignModal(false);
+        setSelectedClassroom(null);
+        fetchData();
+        fetchDropdownData();
+      } else {
+        toast.error(response.data.message || t('academics.messages.unassignError'));
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || t('academics.messages.unassignError'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const openAssignModal = (classroom) => {
+    setAssignData({
+      classroom_id: classroom.id,
+      school_level_id: null,
+      class_level_id: null
+    });
+    setFilteredClassLevelsForAssign([]);
+    setShowAssignModal(true);
+  };
 
   // ── CRUD handlers ──────────────────────────────────────────────────────────
   const handleCreate = async () => {
@@ -364,8 +425,7 @@ const AcademicsManagement = () => {
         'classrooms': '/class-rooms/', 'subjects': '/subjects/',
         'assignments': '/class-level-subjects/', 'payment-types': '/payment-types/',
         'costs': '/class-level-costs/', 'day-settings': '/day-settings/',
-        'classroom-assignments': '/classroom-assignments/', 'school-breaks': '/school-breaks/',
-        'holidays': '/holidays/',  // Add this line
+        'school-breaks': '/school-breaks/', 'holidays': '/holidays/',
       };
 
       const payload = { ...newItem };
@@ -375,15 +435,23 @@ const AcademicsManagement = () => {
       if (activeTab === 'day-settings') payload.is_active = true;
       if (activeTab === 'school-breaks') payload.is_active = true;
 
+      // Remove school_level from payload if it exists (it's not a model field)
+      if (activeTab === 'assignments' || activeTab === 'costs') {
+        delete payload.school_level;
+      }
+
       const response = await apiClient.post(urlMap[activeTab], payload);
       if (response.data.success) {
         toast.success(response.data.message || t('academics.messages.createSuccess'));
         setShowAddModal(false);
         setNewItem({});
+        setSelectedSchoolLevelForAssignment('');
+        setSelectedSchoolLevelForCost('');
+        setFilteredClassLevelsForAssignment([]);
+        setFilteredClassLevelsForCost([]);
         fetchData();
         fetchDropdownData();
         fetchDashboardStats();
-        if (activeTab === 'classroom-assignments') fetchClassroomAssignmentDetails();
       } else {
         const errors = response.data.errors || response.data.error;
         const errMsg = Object.values(errors || {}).flat()[0] || response.data.message || t('academics.messages.createError');
@@ -410,7 +478,7 @@ const AcademicsManagement = () => {
         'costs': `/class-level-costs/${editItem.id}/`,
         'day-settings': `/day-settings/${editItem.id}/`,
         'school-breaks': `/school-breaks/${editItem.id}/`,
-        'holidays': `/holidays/${editItem.id}/`,  // Add this line
+        'holidays': `/holidays/${editItem.id}/`,
       };
 
       if (!urlMap[activeTab]) {
@@ -456,9 +524,8 @@ const AcademicsManagement = () => {
         'payment-types': `/payment-types/${selectedItem.id}/`,
         'costs': `/class-level-costs/${selectedItem.id}/`,
         'day-settings': `/day-settings/${selectedItem.id}/`,
-        'classroom-assignments': `/classroom-assignments/${selectedItem.id}/`,
         'school-breaks': `/school-breaks/${selectedItem.id}/`,
-        'holidays': `/holidays/${selectedItem.id}/`,  // Add this line
+        'holidays': `/holidays/${selectedItem.id}/`,
       };
 
       const response = await apiClient.delete(urlMap[activeTab]);
@@ -469,7 +536,6 @@ const AcademicsManagement = () => {
         fetchData();
         fetchDropdownData();
         fetchDashboardStats();
-        if (activeTab === 'classroom-assignments') fetchClassroomAssignmentDetails();
       } else {
         toast.error(response.data.message || t('academics.messages.deleteError'));
       }
@@ -505,9 +571,347 @@ const AcademicsManagement = () => {
     }
   };
 
-  const resetFilters = () => setSearchTerm('');
+  const resetFilters = () => {
+    setSearchTerm('');
+    setTabFilters(prev => ({
+      ...prev,
+      [activeTab]: {}
+    }));
+  };
 
-  // ── Form fields configuration ──────────────────────────────────────────────
+  // Helper function to get school level name from class level
+  const getSchoolLevelForClassLevel = useCallback((classLevelId, className) => {
+    let classLevel = classLevels.find(cl => cl.id === classLevelId);
+    if (!classLevel && className) {
+      classLevel = classLevels.find(cl => cl.name === className);
+    }
+    if (classLevel && classLevel.school_level) {
+      const schoolLevel = schoolLevels.find(sl => sl.id === classLevel.school_level);
+      return schoolLevel ? schoolLevel.name : null;
+    }
+    return null;
+  }, [classLevels, schoolLevels]);
+
+  // ── Render filter bar for current tab ──────────────────────────────────────
+  const renderFilterBar = () => {
+    const filters = tabFilters[activeTab] || {};
+    const updateFilter = (key, value) => {
+      setTabFilters(prev => ({
+        ...prev,
+        [activeTab]: { ...prev[activeTab], [key]: value }
+      }));
+      setCurrentPage(1);
+    };
+
+    switch (activeTab) {
+      case 'academic-years':
+        return (
+          <div className="flex gap-2">
+            <select
+              value={filters.is_current || ''}
+              onChange={(e) => updateFilter('is_current', e.target.value)}
+              className="px-3 py-2 text-sm border rounded-lg dark:bg-gray-700"
+            >
+              <option value="">{t('academics.filters.allStatus')}</option>
+              <option value="true">{t('academics.filters.current')}</option>
+              <option value="false">{t('academics.filters.notCurrent')}</option>
+            </select>
+          </div>
+        );
+
+      case 'terms':
+        return (
+          <div className="flex gap-2">
+            <select
+              value={filters.academic_year || ''}
+              onChange={(e) => updateFilter('academic_year', e.target.value)}
+              className="px-3 py-2 text-sm border rounded-lg dark:bg-gray-700"
+            >
+              <option value="">{t('academics.filters.allAcademicYears')}</option>
+              {academicYears.map(year => (
+                <option key={year.id} value={year.id}>{year.name}</option>
+              ))}
+            </select>
+            <select
+              value={filters.is_current || ''}
+              onChange={(e) => updateFilter('is_current', e.target.value)}
+              className="px-3 py-2 text-sm border rounded-lg dark:bg-gray-700"
+            >
+              <option value="">{t('academics.filters.allStatus')}</option>
+              <option value="true">{t('academics.filters.current')}</option>
+              <option value="false">{t('academics.filters.notCurrent')}</option>
+            </select>
+          </div>
+        );
+
+      case 'school-levels':
+        return (
+          <div className="flex gap-2">
+            <select
+              value={filters.is_active || ''}
+              onChange={(e) => updateFilter('is_active', e.target.value)}
+              className="px-3 py-2 text-sm border rounded-lg dark:bg-gray-700"
+            >
+              <option value="">{t('academics.filters.allStatus')}</option>
+              <option value="true">{t('academics.filters.active')}</option>
+              <option value="false">{t('academics.filters.inactive')}</option>
+            </select>
+          </div>
+        );
+
+      case 'class-levels':
+        return (
+          <div className="flex gap-2">
+            <select
+              value={filters.school_level || ''}
+              onChange={(e) => updateFilter('school_level', e.target.value)}
+              className="px-3 py-2 text-sm border rounded-lg dark:bg-gray-700"
+            >
+              <option value="">{t('academics.filters.allSchoolLevels')}</option>
+              {schoolLevels.map(level => (
+                <option key={level.id} value={level.id}>{level.name}</option>
+              ))}
+            </select>
+            <select
+              value={filters.is_active || ''}
+              onChange={(e) => updateFilter('is_active', e.target.value)}
+              className="px-3 py-2 text-sm border rounded-lg dark:bg-gray-700"
+            >
+              <option value="">{t('academics.filters.allStatus')}</option>
+              <option value="true">{t('academics.filters.active')}</option>
+              <option value="false">{t('academics.filters.inactive')}</option>
+            </select>
+          </div>
+        );
+
+      case 'classrooms':
+        return (
+          <div className="flex gap-2 flex-wrap">
+            <select
+              value={filters.status || ''}
+              onChange={(e) => updateFilter('status', e.target.value)}
+              className="px-3 py-2 text-sm border rounded-lg dark:bg-gray-700"
+            >
+              <option value="">{t('academics.filters.allStatus')}</option>
+              <option value="active">{t('academics.status.active')}</option>
+              <option value="inactive">{t('academics.status.inactive')}</option>
+            </select>
+            <select
+              value={filters.room_type || ''}
+              onChange={(e) => updateFilter('room_type', e.target.value)}
+              className="px-3 py-2 text-sm border rounded-lg dark:bg-gray-700"
+            >
+              <option value="">{t('academics.filters.allRoomTypes')}</option>
+              <option value="standard">{t('academics.roomTypes.standard')}</option>
+              <option value="laboratory">{t('academics.roomTypes.laboratory')}</option>
+              <option value="workshop">{t('academics.roomTypes.workshop')}</option>
+              <option value="auditorium">{t('academics.roomTypes.auditorium')}</option>
+            </select>
+            <select
+              value={filters.assigned || ''}
+              onChange={(e) => updateFilter('assigned', e.target.value)}
+              className="px-3 py-2 text-sm border rounded-lg dark:bg-gray-700"
+            >
+              <option value="">{t('academics.filters.allClassrooms')}</option>
+              <option value="true">{t('academics.filters.assigned')}</option>
+              <option value="false">{t('academics.filters.unassigned')}</option>
+            </select>
+          </div>
+        );
+
+      case 'subjects':
+        return (
+          <div className="flex gap-2">
+            <select
+              value={filters.status || ''}
+              onChange={(e) => updateFilter('status', e.target.value)}
+              className="px-3 py-2 text-sm border rounded-lg dark:bg-gray-700"
+            >
+              <option value="">{t('academics.filters.allStatus')}</option>
+              <option value="active">{t('academics.status.active')}</option>
+              <option value="inactive">{t('academics.status.inactive')}</option>
+            </select>
+          </div>
+        );
+
+      case 'assignments':
+        return (
+          <div className="flex gap-2">
+            <select
+              value={filters.class_level || ''}
+              onChange={(e) => updateFilter('class_level', e.target.value)}
+              className="px-3 py-2 text-sm border rounded-lg dark:bg-gray-700"
+            >
+              <option value="">{t('academics.filters.allClassLevels')}</option>
+              {classLevels.map(cl => (
+                <option key={cl.id} value={cl.id}>{cl.name}</option>
+              ))}
+            </select>
+            <select
+              value={filters.is_compulsory || ''}
+              onChange={(e) => updateFilter('is_compulsory', e.target.value)}
+              className="px-3 py-2 text-sm border rounded-lg dark:bg-gray-700"
+            >
+              <option value="">{t('academics.filters.allSubjects')}</option>
+              <option value="true">{t('academics.filters.compulsory')}</option>
+              <option value="false">{t('academics.filters.optional')}</option>
+            </select>
+          </div>
+        );
+
+      case 'payment-types':
+        return (
+          <div className="flex gap-2">
+            <select
+              value={filters.is_active || ''}
+              onChange={(e) => updateFilter('is_active', e.target.value)}
+              className="px-3 py-2 text-sm border rounded-lg dark:bg-gray-700"
+            >
+              <option value="">{t('academics.filters.allStatus')}</option>
+              <option value="true">{t('academics.filters.active')}</option>
+              <option value="false">{t('academics.filters.inactive')}</option>
+            </select>
+          </div>
+        );
+
+      case 'costs':
+        return (
+          <div className="flex gap-2 flex-wrap">
+            <select
+              value={filters.class_level || ''}
+              onChange={(e) => updateFilter('class_level', e.target.value)}
+              className="px-3 py-2 text-sm border rounded-lg dark:bg-gray-700"
+            >
+              <option value="">{t('academics.filters.allClassLevels')}</option>
+              {classLevels.map(cl => (
+                <option key={cl.id} value={cl.id}>{cl.name}</option>
+              ))}
+            </select>
+            <select
+              value={filters.academic_year || ''}
+              onChange={(e) => updateFilter('academic_year', e.target.value)}
+              className="px-3 py-2 text-sm border rounded-lg dark:bg-gray-700"
+            >
+              <option value="">{t('academics.filters.allAcademicYears')}</option>
+              {academicYears.map(year => (
+                <option key={year.id} value={year.id}>{year.name}</option>
+              ))}
+            </select>
+            <select
+              value={filters.is_mandatory || ''}
+              onChange={(e) => updateFilter('is_mandatory', e.target.value)}
+              className="px-3 py-2 text-sm border rounded-lg dark:bg-gray-700"
+            >
+              <option value="">{t('academics.filters.allFees')}</option>
+              <option value="true">{t('academics.filters.mandatory')}</option>
+              <option value="false">{t('academics.filters.optional')}</option>
+            </select>
+          </div>
+        );
+
+      case 'day-settings':
+        return (
+          <div className="flex gap-2">
+            <select
+              value={filters.academic_year || ''}
+              onChange={(e) => updateFilter('academic_year', e.target.value)}
+              className="px-3 py-2 text-sm border rounded-lg dark:bg-gray-700"
+            >
+              <option value="">{t('academics.filters.allAcademicYears')}</option>
+              {academicYears.map(year => (
+                <option key={year.id} value={year.id}>{year.name}</option>
+              ))}
+            </select>
+            <select
+              value={filters.day_type || ''}
+              onChange={(e) => updateFilter('day_type', e.target.value)}
+              className="px-3 py-2 text-sm border rounded-lg dark:bg-gray-700"
+            >
+              <option value="">{t('academics.filters.allDayTypes')}</option>
+              <option value="learning">{t('academics.dayTypes.learning')}</option>
+              <option value="day_off">{t('academics.dayTypes.dayOff')}</option>
+              <option value="special">{t('academics.dayTypes.special')}</option>
+            </select>
+          </div>
+        );
+
+      case 'school-breaks':
+        return (
+          <div className="flex gap-2">
+            <select
+              value={filters.school_level || ''}
+              onChange={(e) => updateFilter('school_level', e.target.value)}
+              className="px-3 py-2 text-sm border rounded-lg dark:bg-gray-700"
+            >
+              <option value="">{t('academics.filters.allSchoolLevels')}</option>
+              {schoolLevels.map(level => (
+                <option key={level.id} value={level.id}>{level.name}</option>
+              ))}
+            </select>
+            <select
+              value={filters.break_type || ''}
+              onChange={(e) => updateFilter('break_type', e.target.value)}
+              className="px-3 py-2 text-sm border rounded-lg dark:bg-gray-700"
+            >
+              <option value="">{t('academics.filters.allBreakTypes')}</option>
+              <option value="short_break">{t('academics.breakTypes.shortBreak')}</option>
+              <option value="lunch">{t('academics.breakTypes.lunch')}</option>
+              <option value="recess">{t('academics.breakTypes.recess')}</option>
+              <option value="other">{t('academics.breakTypes.other')}</option>
+            </select>
+            <select
+              value={filters.is_active || ''}
+              onChange={(e) => updateFilter('is_active', e.target.value)}
+              className="px-3 py-2 text-sm border rounded-lg dark:bg-gray-700"
+            >
+              <option value="">{t('academics.filters.allStatus')}</option>
+              <option value="true">{t('academics.filters.active')}</option>
+              <option value="false">{t('academics.filters.inactive')}</option>
+            </select>
+          </div>
+        );
+
+      case 'holidays':
+        return (
+          <div className="flex gap-2">
+            <select
+              value={filters.academic_year || ''}
+              onChange={(e) => updateFilter('academic_year', e.target.value)}
+              className="px-3 py-2 text-sm border rounded-lg dark:bg-gray-700"
+            >
+              <option value="">{t('academics.filters.allAcademicYears')}</option>
+              {academicYears.map(year => (
+                <option key={year.id} value={year.id}>{year.name}</option>
+              ))}
+            </select>
+            <select
+              value={filters.school_level || ''}
+              onChange={(e) => updateFilter('school_level', e.target.value)}
+              className="px-3 py-2 text-sm border rounded-lg dark:bg-gray-700"
+            >
+              <option value="">{t('academics.filters.allSchoolLevels')}</option>
+              {schoolLevels.map(level => (
+                <option key={level.id} value={level.id}>{level.name}</option>
+              ))}
+            </select>
+            <select
+              value={filters.is_recurring || ''}
+              onChange={(e) => updateFilter('is_recurring', e.target.value)}
+              className="px-3 py-2 text-sm border rounded-lg dark:bg-gray-700"
+            >
+              <option value="">{t('academics.filters.allHolidays')}</option>
+              <option value="true">{t('academics.filters.recurring')}</option>
+              <option value="false">{t('academics.filters.oneTime')}</option>
+            </select>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  // ── Form fields configuration with cascading dropdowns ─────────────────────
   const getFieldSets = () => ({
     'academic-years': [
       { name: 'name', label: t('academics.form.yearName'), type: 'text', required: true, placeholder: '2024-2025' },
@@ -523,7 +927,6 @@ const AcademicsManagement = () => {
       { name: 'end_date', label: t('academics.form.endDate'), type: 'date', required: true },
       { name: 'is_current', label: t('academics.form.setAsCurrent'), type: 'checkbox' },
     ],
-    // ── School Levels: now includes start_time & end_time ──────────────────
     'school-levels': [
       { name: 'name', label: t('academics.form.levelName'), type: 'text', required: true, placeholder: 'Primary School' },
       { name: 'description', label: t('academics.form.description'), type: 'textarea', placeholder: 'Description...' },
@@ -551,7 +954,8 @@ const AcademicsManagement = () => {
       { name: 'description', label: t('academics.form.description'), type: 'textarea', placeholder: 'Description...' },
     ],
     'assignments': [
-      { name: 'class_level', label: t('academics.form.classLevel'), type: 'select', required: true, options: classLevels.filter(c => c.is_active !== false).map(c => ({ value: c.id, label: c.name })) },
+      { name: 'school_level', label: t('academics.form.schoolLevel'), type: 'select', required: true, options: schoolLevels.map(s => ({ value: s.id, label: s.name })), onChange: handleSchoolLevelChangeForAssignment },
+      { name: 'class_level', label: t('academics.form.classLevel'), type: 'select', required: true, options: filteredClassLevelsForAssignment.map(c => ({ value: c.id, label: `${c.name} (${c.code})` })) },
       { name: 'subject', label: t('academics.form.subject'), type: 'select', required: true, options: subjects.filter(s => s.status === 'active').map(s => ({ value: s.id, label: s.name })) },
       { name: 'teaching_frequency', label: t('academics.form.teachingFrequency'), type: 'select', required: true, options: [{ value: 'daily', label: t('academics.frequency.daily') }, { value: 'weekly', label: t('academics.frequency.weekly') }] },
       { name: 'hours_per_week', label: t('academics.form.hoursPerWeek'), type: 'number', required: true, placeholder: '4' },
@@ -565,7 +969,8 @@ const AcademicsManagement = () => {
     'costs': [
       { name: 'name', label: t('academics.form.feeName'), type: 'text', required: true, placeholder: 'Tuition Fee' },
       { name: 'academic_year', label: t('academics.form.academicYear'), type: 'select', required: true, options: academicYears.map(y => ({ value: y.id, label: y.name })) },
-      { name: 'class_level', label: t('academics.form.classLevel'), type: 'select', required: true, options: classLevels.map(c => ({ value: c.id, label: c.name })) },
+      { name: 'school_level', label: t('academics.form.schoolLevel'), type: 'select', required: true, options: schoolLevels.map(s => ({ value: s.id, label: s.name })), onChange: handleSchoolLevelChangeForCost },
+      { name: 'class_level', label: t('academics.form.classLevel'), type: 'select', required: true, options: filteredClassLevelsForCost.map(c => ({ value: c.id, label: `${c.name} (${c.code})` })) },
       { name: 'payment_type', label: t('academics.form.paymentType'), type: 'select', required: true, options: paymentTypes.map(p => ({ value: p.id, label: p.name })) },
       { name: 'amount', label: t('academics.form.amount'), type: 'number', required: true, placeholder: '50000' },
       { name: 'is_mandatory', label: t('academics.form.mandatory'), type: 'checkbox' },
@@ -578,15 +983,6 @@ const AcademicsManagement = () => {
       { name: 'specific_date', label: t('academics.form.specificDate'), type: 'date' },
       { name: 'description', label: t('academics.form.description'), type: 'textarea', placeholder: 'Description...' },
     ],
-    'classroom-assignments': [
-      { name: 'academic_year', label: t('academics.form.academicYear'), type: 'select', required: true, options: academicYears.map(y => ({ value: y.id, label: y.name })) },
-      { name: 'term', label: t('academics.form.term'), type: 'select', required: true, options: terms.filter(term => !newItem.academic_year || term.academic_year === parseInt(newItem.academic_year)).map(t => ({ value: t.id, label: t.name })) },
-      { name: 'school_level', label: t('academics.form.schoolLevel'), type: 'select', required: true, options: schoolLevels.map(s => ({ value: s.id, label: s.name })) },
-      { name: 'class_level', label: t('academics.form.classLevel'), type: 'select', required: true, options: filteredClassLevels.map(c => ({ value: c.id, label: c.name })) },
-      { name: 'classroom', label: t('academics.form.classroom'), type: 'select', required: true, options: filteredClassrooms.map(c => ({ value: c.id, label: `${c.name} (${c.code}) — Capacity: ${c.capacity}` })) },
-      { name: 'is_primary', label: t('academics.form.isPrimaryClassroom'), type: 'checkbox' },
-    ],
-    // ── School Breaks: shows school level hours as a contextual hint panel ──
     'school-breaks': [
       { name: 'name', label: t('academics.form.breakName'), type: 'text', required: true, placeholder: 'Morning Break' },
       { name: 'break_type', label: t('academics.form.breakType'), type: 'select', required: true, options: [{ value: 'short_break', label: t('academics.breakTypes.shortBreak') }, { value: 'lunch', label: t('academics.breakTypes.lunch') }, { value: 'recess', label: t('academics.breakTypes.recess') }, { value: 'other', label: t('academics.breakTypes.other') }] },
@@ -595,7 +991,6 @@ const AcademicsManagement = () => {
       { name: 'end_time', label: t('academics.form.endTime'), type: 'time', required: true },
       { name: 'description', label: t('academics.form.description'), type: 'textarea', placeholder: 'Break description...' },
     ],
-    // ── Holidays: includes recurring option and school level association ───────
     'holidays': [
       { name: 'name', label: t('academics.form.holidayName'), type: 'text', required: true, placeholder: 'Christmas Holiday' },
       { name: 'date', label: t('academics.form.holidayDate'), type: 'date', required: true },
@@ -612,15 +1007,6 @@ const AcademicsManagement = () => {
     const fields = fieldSets[activeTab] || [];
 
     return fields.map(field => {
-      let customOnChange = field.onChange;
-      if (activeTab === 'classroom-assignments') {
-        if (field.name === 'school_level') customOnChange = (e) => handleSchoolLevelChange(e.target.value);
-        else if (field.name === 'class_level') customOnChange = (e) => handleClassLevelChange(e.target.value);
-        else if (field.name === 'term') customOnChange = (e) => handleTermChange(e.target.value);
-        else if (field.name === 'academic_year') customOnChange = (e) => handleAcademicYearChange(e.target.value);
-      }
-
-      // School Level Hours hint panel (rendered after the school_level select in breaks form)
       const hoursHintPanel = field.showHoursHint && item[field.name]
         ? (() => {
           const slHours = getSelectedSchoolLevelHours(item[field.name]);
@@ -642,6 +1028,13 @@ const AcademicsManagement = () => {
           );
         })()
         : null;
+
+      let customOnChange = field.onChange;
+      if (field.name === 'school_level' && activeTab === 'assignments') {
+        customOnChange = (e) => handleSchoolLevelChangeForAssignment(e.target.value);
+      } else if (field.name === 'school_level' && activeTab === 'costs') {
+        customOnChange = (e) => handleSchoolLevelChangeForCost(e.target.value);
+      }
 
       return (
         <div key={field.name} className="space-y-1">
@@ -718,7 +1111,6 @@ const AcademicsManagement = () => {
   const getHeaders = () => ({
     'academic-years': [t('academics.table.yearName'), t('academics.table.startDate'), t('academics.table.endDate'), t('academics.table.current'), t('academics.table.actions')],
     'terms': [t('academics.table.academicYear'), t('academics.table.termName'), t('academics.table.startDate'), t('academics.table.endDate'), t('academics.table.current'), t('academics.table.actions')],
-    // ── School Levels: added daily hours column ──────────────────────────────
     'school-levels': [t('academics.table.levelName'), t('academics.table.dailyHours'), t('academics.table.description'), t('academics.table.active'), t('academics.table.actions')],
     'class-levels': [t('academics.table.className'), t('academics.table.classCode'), t('academics.table.schoolLevel'), t('academics.table.description'), t('academics.table.active'), t('academics.table.actions')],
     'classrooms': [t('academics.table.roomName'), t('academics.table.roomCode'), t('academics.table.assignedClassLevel'), t('academics.table.roomType'), t('academics.table.capacity'), t('academics.table.status'), t('academics.table.actions')],
@@ -727,7 +1119,6 @@ const AcademicsManagement = () => {
     'payment-types': [t('academics.table.paymentTypeName'), t('academics.table.paymentTypeCode'), t('academics.table.description'), t('academics.table.status'), t('academics.table.actions')],
     'costs': [t('academics.table.feeName'), t('academics.table.academicYear'), t('academics.table.classLevel'), t('academics.table.paymentType'), t('academics.table.amount'), t('academics.table.mandatory'), t('academics.table.actions')],
     'day-settings': [t('academics.table.academicYear'), t('academics.table.dayType'), t('academics.table.weekdayOrDate'), t('academics.table.description'), t('academics.table.actions')],
-    'classroom-assignments': [t('academics.table.academicYear'), t('academics.table.term'), t('academics.table.classLevel'), t('academics.table.classroom'), t('academics.table.primary'), t('academics.table.actions')],
     'school-breaks': [t('academics.table.breakName'), t('academics.table.breakType'), t('academics.table.schoolLevel'), t('academics.table.startTime'), t('academics.table.endTime'), t('academics.table.duration'), t('academics.table.actions')],
     'holidays': [t('academics.table.holidayName'), t('academics.table.date'), t('academics.table.academicYear'), t('academics.table.schoolLevel'), t('academics.table.recurring'), t('academics.table.actions')],
   });
@@ -738,7 +1129,7 @@ const AcademicsManagement = () => {
       <div className="flex items-center gap-1">
         <ActionBtn onClick={() => { setSelectedItem(item); setShowViewModal(true); }}
           title={t('academics.actions.view')} color="hover:bg-green-50 dark:hover:bg-green-900/20 text-green-600" Icon={Eye} />
-        {activeTab !== 'assignments' && activeTab !== 'classroom-assignments' && (
+        {activeTab !== 'assignments' && (
           <ActionBtn onClick={() => { setEditItem(item); setShowEditModal(true); }}
             title={t('academics.actions.edit')} color="hover:bg-amber-50 dark:hover:bg-amber-900/20 text-amber-600" Icon={Edit} />
         )}
@@ -774,7 +1165,6 @@ const AcademicsManagement = () => {
           </tr>
         );
 
-      // ── School Levels: show daily hours column ─────────────────────────────
       case 'school-levels':
         return (
           <tr key={item.id} className="hover:bg-green-50/50 dark:hover:bg-green-900/10 transition-colors border-b border-gray-100 dark:border-gray-700">
@@ -805,20 +1195,41 @@ const AcademicsManagement = () => {
         );
 
       case 'classrooms': {
-        const assignmentDetail = classroomAssignmentDetails[item.id];
-        const assignedClassLevel = assignmentDetail ? (
+        const assignedClassLevel = item.assigned_class_level_name ? (
           <div className="space-y-1">
-            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">
-              {assignmentDetail.class_level_name}
-            </span>
-            {assignmentDetail.is_primary && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 ml-1">
-                {t('academics.labels.primary')}
+            <div className="flex flex-wrap items-center gap-1.5">
+              {(() => {
+                const classLevel = classLevels.find(cl => cl.name === item.assigned_class_level_name || cl.id === item.assigned_class_level);
+                const schoolLevel = classLevel ? schoolLevels.find(sl => sl.id === classLevel.school_level) : null;
+                return schoolLevel ? (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-300">
+                    {schoolLevel.name}
+                  </span>
+                ) : null;
+              })()}
+              <span className="text-xs text-gray-400">→</span>
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">
+                {item.assigned_class_level_name}
               </span>
-            )}
-            <div className="text-xs text-gray-500">{assignmentDetail.term_name} ({assignmentDetail.academic_year_name})</div>
+            </div>
+            <div className="flex gap-1 mt-1">
+              <button
+                onClick={() => { setSelectedClassroom(item); setShowUnassignModal(true); }}
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                title={t('academics.actions.unassign')}
+              >
+                <Unlink className="w-3 h-3" /> {t('academics.actions.unassign')}
+              </button>
+            </div>
           </div>
-        ) : <span className="text-xs text-gray-400">—</span>;
+        ) : (
+          <button
+            onClick={() => openAssignModal(item)}
+            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors"
+          >
+            <Link2 className="w-3 h-3" /> {t('academics.actions.assign')}
+          </button>
+        );
 
         return (
           <tr key={item.id} className="hover:bg-green-50/50 dark:hover:bg-green-900/10 transition-colors border-b border-gray-100 dark:border-gray-700">
@@ -895,19 +1306,6 @@ const AcademicsManagement = () => {
           </tr>
         );
 
-      case 'classroom-assignments':
-        return (
-          <tr key={item.id} className="hover:bg-green-50/50 dark:hover:bg-green-900/10 transition-colors border-b border-gray-100 dark:border-gray-700">
-            <td className={tdClass}>{item.academic_year_name || item.academic_year}</td>
-            <td className={tdClass}>{item.term_name || item.term}</td>
-            <td className={tdBold}>{item.class_level_name || item.class_level}</td>
-            <td className={tdClass}>{item.classroom_name || item.classroom} ({item.classroom_code})</td>
-            <td className="px-4 py-3">{item.is_primary && <span className="px-2 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">{t('academics.labels.primary')}</span>}</td>
-            <td className="px-4 py-3">{actionGroup}</td>
-          </tr>
-        );
-
-      // ── School Breaks: shows school level name with its hours ──────────────
       case 'school-breaks': {
         const slForBreak = schoolLevels.find(s => s.id === item.school_level);
         return (
@@ -1018,10 +1416,10 @@ const AcademicsManagement = () => {
     { labelKey: 'academics.stats.subjects', value: dashboardStats.total_subjects, icon: BookOpen },
     { labelKey: 'academics.stats.feeStructures', value: dashboardStats.total_fee_structures, icon: Wallet },
     { labelKey: 'academics.stats.schoolBreaks', value: schoolBreaks.length, icon: Coffee },
-    { labelKey: 'academics.stats.holidays', value: holidays.length, icon: Gift },  // Add this line
+    { labelKey: 'academics.stats.holidays', value: holidays.length, icon: Gift },
   ];
 
-  const activeFilterCount = searchTerm ? 1 : 0;
+  const activeFilterCount = searchTerm || Object.values(tabFilters[activeTab] || {}).some(v => v) ? 1 : 0;
 
   return (
     <div className={darkMode ? 'dark' : ''}>
@@ -1040,7 +1438,14 @@ const AcademicsManagement = () => {
               </p>
             </div>
             <button
-              onClick={() => { setNewItem({}); setShowAddModal(true); }}
+              onClick={() => { 
+                setNewItem({}); 
+                setSelectedSchoolLevelForAssignment('');
+                setSelectedSchoolLevelForCost('');
+                setFilteredClassLevelsForAssignment([]);
+                setFilteredClassLevelsForCost([]);
+                setShowAddModal(true); 
+              }}
               className="px-4 py-2.5 bg-green-700 hover:bg-green-800 text-white text-sm font-semibold rounded-xl flex items-center gap-2 shadow-md transition-all"
             >
               <Plus className="w-4 h-4" />
@@ -1049,7 +1454,7 @@ const AcademicsManagement = () => {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-9 gap-3">
             {statCards.map(({ labelKey, value, icon: Icon }) => (
               <div key={labelKey} className="bg-gradient-to-br from-green-700 to-green-900 rounded-2xl p-3.5 text-white shadow-sm cursor-default">
                 <div className="flex justify-between items-start">
@@ -1129,10 +1534,8 @@ const AcademicsManagement = () => {
             <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 shadow-sm">
               <div className="flex flex-wrap gap-4 items-end">
                 <div className="flex flex-col gap-1 min-w-[120px]">
-                  <label className="text-xs font-semibold uppercase tracking-wider text-gray-400">{t('academics.filters.searchInfo')}</label>
-                  <div className="text-sm text-gray-500">
-                    {t('academics.filters.clientSideSearch', { count: rawData.length, filtered: filteredData.length })}
-                  </div>
+                  <label className="text-xs font-semibold uppercase tracking-wider text-gray-400">{t('academics.filters.filterOptions')}</label>
+                  {renderFilterBar()}
                 </div>
                 <div className="flex flex-col gap-1 min-w-[120px]">
                   <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 opacity-0">—</label>
@@ -1268,6 +1671,155 @@ const AcademicsManagement = () => {
                 <div className="flex gap-3 px-6 pb-6">
                   <button onClick={handleDelete} disabled={loading} className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl disabled:opacity-50 transition-colors">{t('academics.actions.delete')}</button>
                   <button onClick={() => setShowDeleteModal(false)} className="flex-1 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl transition-colors">{t('academics.actions.cancel')}</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Assign Classroom Modal with Cascading Dropdowns */}
+          {showAssignModal && (
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md">
+                <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                    {t('academics.actions.assignClassroom')}
+                  </h2>
+                  <button onClick={() => setShowAssignModal(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl">
+                    <X className="w-5 h-5 text-gray-500" />
+                  </button>
+                </div>
+
+                <div className="px-6 py-4 space-y-4">
+                  <div className="p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t('academics.form.classroom')}</p>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                      {classrooms.find(c => c.id === assignData.classroom_id)?.name || ''}
+                      <span className="text-xs text-gray-500 ml-2">
+                        ({classrooms.find(c => c.id === assignData.classroom_id)?.code || ''})
+                      </span>
+                    </p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                      {t('academics.form.schoolLevel')} <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={assignData.school_level_id || ''}
+                      onChange={e => setAssignData({ ...assignData, school_level_id: parseInt(e.target.value) })}
+                      className="w-full px-3 py-2.5 text-sm border border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 focus:border-transparent transition-all"
+                    >
+                      <option value="">{t('academics.form.selectSchoolLevel')}</option>
+                      {schoolLevels.filter(sl => sl.is_active).map(sl => (
+                        <option key={sl.id} value={sl.id}>{sl.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                      {t('academics.form.classLevel')} <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={assignData.class_level_id || ''}
+                      onChange={e => setAssignData({ ...assignData, class_level_id: parseInt(e.target.value) })}
+                      disabled={!assignData.school_level_id}
+                      className={`w-full px-3 py-2.5 text-sm border rounded-xl transition-all ${!assignData.school_level_id
+                        ? 'bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-400 cursor-not-allowed'
+                        : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 focus:border-transparent'
+                        }`}
+                    >
+                      <option value="">
+                        {assignData.school_level_id
+                          ? t('academics.form.selectClassLevel')
+                          : t('academics.form.selectSchoolLevelFirst')}
+                      </option>
+                      {filteredClassLevelsForAssign.map(cl => (
+                        <option key={cl.id} value={cl.id}>
+                          {cl.name} ({cl.code})
+                        </option>
+                      ))}
+                    </select>
+                    {assignData.school_level_id && filteredClassLevelsForAssign.length === 0 && (
+                      <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                        {t('academics.messages.noClassLevelsInSchoolLevel')}
+                      </p>
+                    )}
+                  </div>
+
+                  {assignData.class_level_id && (
+                    <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800">
+                      <p className="text-xs text-green-700 dark:text-green-300 flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3" />
+                        {t('academics.messages.selectedClassLevel')}
+                      </p>
+                      <p className="text-sm font-semibold text-green-800 dark:text-green-200 mt-1">
+                        {classLevels.find(cl => cl.id === assignData.class_level_id)?.name || ''}
+                        <span className="text-xs text-green-600 dark:text-green-400 ml-2">
+                          ({classLevels.find(cl => cl.id === assignData.class_level_id)?.code || ''})
+                        </span>
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+                  <button
+                    onClick={handleAssignClassroom}
+                    disabled={loading || !assignData.class_level_id}
+                    className="flex-1 py-2.5 bg-green-700 hover:bg-green-800 text-white rounded-xl disabled:opacity-50 transition-colors"
+                  >
+                    {loading ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        {t('academics.messages.assigning')}
+                      </div>
+                    ) : (
+                      t('academics.actions.assign')
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setShowAssignModal(false)}
+                    className="flex-1 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl transition-colors"
+                  >
+                    {t('academics.actions.cancel')}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Unassign Classroom Modal */}
+          {showUnassignModal && selectedClassroom && (
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm">
+                <div className="p-6 text-center">
+                  <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <Unlink className="w-8 h-8 text-amber-600" />
+                  </div>
+                  <h2 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">{t('academics.unassign.title')}</h2>
+                  <p className="text-sm text-gray-500 mb-4">{t('academics.unassign.confirmation')}</p>
+                  <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/30 rounded-xl p-3 mb-4">
+                    <p className="text-sm text-amber-800 dark:text-amber-300">
+                      <strong>{t('academics.unassign.classroom')}:</strong> {selectedClassroom.name} ({selectedClassroom.code})<br />
+                      <strong>{t('academics.unassign.currentAssignment')}:</strong> {selectedClassroom.assigned_class_level_name || 'Unknown'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-3 px-6 pb-6">
+                  <button onClick={handleUnassignClassroom} disabled={loading} className="flex-1 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl disabled:opacity-50 transition-colors">
+                    {loading ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        {t('academics.messages.unassigning')}
+                      </div>
+                    ) : (
+                      t('academics.actions.unassign')
+                    )}
+                  </button>
+                  <button onClick={() => setShowUnassignModal(false)} className="flex-1 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl transition-colors">
+                    {t('academics.actions.cancel')}
+                  </button>
                 </div>
               </div>
             </div>

@@ -54,8 +54,10 @@ urlpatterns = [
     path('day-settings/<int:pk>/', views.school_day_setting_detail, name='day_setting'),
     
     # Classroom Assignments
-    path('classroom-assignments/', views.classroom_assignment_list_create, name='classroom_assignments'),
-    path('classroom-assignments/<int:pk>/', views.classroom_assignment_delete, name='classroom_assignment_delete'),
+    path('classrooms/<int:classroom_id>/assign/', views.assign_classroom_to_class_level, name='assign-classroom'),
+    path('classrooms/<int:classroom_id>/unassign/', views.unassign_classroom, name='unassign-classroom'),
+    path('class-levels/<int:class_level_id>/classrooms/', views.get_classrooms_by_class_level, name='classrooms-by-class-level'),
+    path('classrooms/unassigned/', views.get_unassigned_classrooms, name='unassigned-classrooms'),
     
     # Utility
     path('learning-days/', views.get_learning_days, name='learning_days'),

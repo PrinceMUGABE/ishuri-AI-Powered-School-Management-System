@@ -314,7 +314,9 @@
       "qualifications": "Qualifications",
       "classroom": "Classroom",
       "term": "Term",
-      "age": "Age"
+      "age": "Age",
+      "selectAcademicYearFirst": "Select Academic Year First",
+      "selectSchoolLevelFirst": "Select a School Level First"
     },
     "gender": {
       "male": "Male",
@@ -374,7 +376,8 @@
       "allTerms": "All Terms",
       "allWeeks": "All Weeks",
       "allDays": "All Days",
-      "weekPrefix": "Week"
+      "weekPrefix": "Week",
+      "current": "Current"
     },
     "pagination": {
       "showing": "Showing",
@@ -1274,7 +1277,23 @@
       "selectOption": "Select {{label}}",
       "schoolLevelHoursHint": "Operating hours: {{start}} - {{end}}",
       "breakConstraintHint": "● Breaks must be at least 5 min after start and before end ● Min 5 min, Max 60 min",
-      "age": "Age"
+      "age": "Age",
+      "selectSchoolLevel": "Select School Level",
+      "selectSchoolLevelFirst": "Please select a school level first to filter class levels",
+      "selectClassLevel": "Select Class Level",
+      "selectClassLevelFirst": "Please select a class level first to filter subjects",
+      "selectTerm": "Select Term",
+      "selectTermFirst": "Please select a term first to filter classrooms",
+      "selectClassroom": "Select Classroom",
+      "selectClassroomFirst": "Please select a classroom first to filter available time slots",
+      "selectSubject": "Select Subject",
+      "selectSubjectFirst": "Please select a subject first to filter available teachers",
+      "selectPaymentType": "Select Payment Type",
+      "selectPaymentTypeFirst": "Please select a payment type first to filter available fee structures",
+      "selectDayType": "Select Day Type",
+      "selectBreakType": "Select Break Type",
+      "selectWeekday": "Select Weekday",
+      "selectFrequency": "Select Frequency"
     },
     "table": {
       "yearName": "Year Name",
@@ -1325,7 +1344,8 @@
       "classLevel": "Class Level",
       "subject": "Subject",
       "startTime": "Start Time",
-      "endTime": "End Time"
+      "endTime": "End Time",
+      "assign": "Assign"
     },
     "labels": {
       "primary": "Primary",
@@ -1389,7 +1409,13 @@
       "create": "Create",
       "update": "Update",
       "cancel": "Cancel",
-      "close": "Close"
+      "close": "Close",
+      "assign": "Assign",
+      "assignClassroom": "Assign Classroom",
+      "generateTimetable": "Generate Timetable",
+      "unassign": "Unassign",
+      "assigning": "Assigning...",
+      "generating": "Generating..."
     },
     "messages": {
       "loading": "Loading...",
@@ -1403,7 +1429,17 @@
       "deleteSuccess": "Deleted successfully",
       "deleteError": "Failed to delete",
       "statusError": "Failed to update status",
-      "updateNotSupported": "Updates not supported for this item type"
+      "updateNotSupported": "Updates not supported for this item type",
+      "selectNewDate": "Please select a new date",
+      "selectNewTime": "Please select a new time",
+      "generateSuccess": "Timetable generated successfully",
+      "generateError": "Failed to generate timetable. Please check your assignments and try again.",
+      "selectedClassroom": "Selected classroom",
+      "amountExceeds": "Amount exceeds remaining balance of",
+      "noAvailableClassrooms": "No available classrooms found for the selected term and time slot. Please adjust your filters and try again.",
+      "noAvailableTimeSlots": "No available time slots found for the selected term and classroom. Please adjust your filters and try again.",
+      "noAvailableTeachers": "No available teachers found for the selected subject and time slot. Please adjust your filters and try again.",
+      "noAvailableFeeStructures": "No available fee structures found for the selected payment type and class level. Please adjust your filters and try again."
     },
     "pagination": {
       "show": "Show",

@@ -315,7 +315,9 @@
       "classroom": "Salle de Classe",
       "term": "Trimestre",
       "editTeacher": "Modifier l'enseignant",
-      "age": "Âge"
+      "age": "Âge",
+      "selectSchoolLevelFirst":"Veuillez sélectionner un cycle scolaire pour charger les niveaux de classe disponibles",
+      "selectAcademicYearFirst": "Sélectionner l'année académique"
     },
     "gender": {
       "male": "Masculin",
@@ -375,7 +377,8 @@
       "allTerms": "Tous les trimestres",
       "allWeeks": "Toutes les semaines",
       "allDays": "Tous les jours",
-      "weekPrefix": "Semaine"
+      "weekPrefix": "Semaine",
+      "current": "Actuelle"
     },
     "pagination": {
       "showing": "Affichage",
@@ -1270,7 +1273,12 @@
       "selectOption": "Sélectionner {{label}}",
       "schoolLevelHoursHint": "Horaires : {{start}} - {{end}}",
       "breakConstraintHint": "● Pause min 5 min après début et avant fin ● Min 5 min, Max 60 min",
-      "age": "Âge"
+      "age": "Âge",
+      "selectSchoolLevel":"Sélectionner un cycle",
+      "selectSchoolLevelFirst": "Veuillez sélectionner un cycle scolaire pour charger les niveaux de classe disponibles",
+      "selectClassLevel": "Sélectionner un niveau de classe",
+      "selectClassLevelFirst": "Veuillez sélectionner un niveau de classe pour charger les matières disponibles",
+      "selectSubject": "Sélectionner une matière"
     },
     "table": {
       "yearName": "Année",
@@ -1321,7 +1329,8 @@
        "subject": "Matière",
        "term":"Trimestre",
        "startTime": "Heure de Début",
-       "endTime": "Heure de Fin"
+       "endTime": "Heure de Fin",
+       "assign": "Attribuer"
     },
     "labels": {
       "primary": "Principal",
@@ -1385,7 +1394,15 @@
       "create": "Créer",
       "update": "Mettre à Jour",
       "cancel": "Annuler",
-      "close": "Fermer"
+      "close": "Fermer",
+      "assign": "Attribuer",
+      "assignClassroom": "Attribuer une Salle",
+      "generateReport": "Générer un Rapport",
+      "unassign": "Désattribuer",
+      "assigning": "Attribution en cours...",
+      "generateTimetable": "Générer l'Emploi du Temps",
+      "generatingTimetable": "Génération de l'emploi du temps en cours...",
+      "generating": "Génération ....."
     },
     "messages": {
       "loading": "Chargement...",
@@ -1399,7 +1416,11 @@
       "deleteSuccess": "Supprimé avec succès",
       "deleteError": "Échec de la suppression",
       "statusError": "Échec mise à jour statut",
-      "updateNotSupported": "Mise à jour non supportée"
+      "updateNotSupported": "Mise à jour non supportée",
+      "selectedClassroom": "Salle sélectionnée",
+      "noClassroomsAvailable": "Aucune salle disponible pour les critères sélectionnés",
+      "reportGenerated": "Rapport généré avec succès",
+      "reportError": "Échec de la génération du rapport"
     },
     "pagination": {
       "show": "Afficher",

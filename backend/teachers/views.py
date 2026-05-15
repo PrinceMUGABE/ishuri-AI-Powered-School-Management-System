@@ -1,8 +1,15 @@
-from datetime import date, datetime, timedelta
+# teachers/views.py
+"""
+All responses use unified format:
+    Success: {'success': True, 'data': ..., 'message': <str>}
+    Error: {'success': False, 'message': <str>}
+"""
+
 import traceback
 import re
-import os
-from decimal import Decimal
+import json
+from datetime import date, datetime
+from functools import wraps
 
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -13,1969 +20,1448 @@ from django.db import IntegrityError, transaction
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.contrib.auth import authenticate
-from django.core.files.base import ContentFile
 from django.db import models as django_models
-from django.db import models
 
-from .models import (
-    Teacher, TeacherDocument, TeacherAssignment, TeacherTimetable
-)
+from .models import Teacher, TeacherDocument, TeacherAssignment, TeacherTimetable
 from .serializers import (
     TeacherSerializer, TeacherCreateSerializer, TeacherProfileUpdateSerializer,
     TeacherDocumentSerializer, TeacherAssignmentSerializer, TeacherTimetableSerializer,
-    ChangePasswordSerializer, HolidaySerializer, SchoolDaySettingSerializer
+    ChangePasswordSerializer, HolidaySerializer, SchoolDaySettingSerializer,
 )
 from .translations import get_translation, get_notification_title, get_notification_message
-from .services import create_teacher_user_account, generate_username, send_teacher_welcome_email, generate_password
-from academics.models import AcademicYear, SchoolLevel, ClassLevel, Subject, ClassRoom, Term, SchoolBreak, SchoolDaySetting
+from .services import (
+    create_teacher_user_account, generate_username,
+    send_teacher_welcome_email, generate_password,
+)
+from .timetable_generator import generate_timetable_for_term
+from academics.models import (
+    AcademicYear, SchoolLevel, ClassLevel, Subject, ClassRoom,
+    Term, SchoolBreak, SchoolDaySetting, Holiday,
+)
 from notifications.services import NotificationService
 from accounts.models import User
 
 
+# ---------------------------------------------------------------------------
+# Logging Utility
+# ---------------------------------------------------------------------------
+
+def log_request_response(func):
+    """Decorator to log request data and response data to terminal."""
+    @wraps(func)
+    def wrapper(request, *args, **kwargs):
+        # Log request
+        print("\n" + "="*80)
+        print(f"[REQUEST] {request.method} {request.path}")
+        print(f"[TIMESTAMP] {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"[USER] {request.user.username if request.user.is_authenticated else 'Anonymous'}")
+        print(f"[USER_ROLE] {request.user.role if request.user.is_authenticated else 'None'}")
+        
+        # Log request data
+        if request.method == 'GET':
+            print(f"[QUERY_PARAMS] {dict(request.query_params)}")
+        elif request.method in ['POST', 'PUT', 'PATCH']:
+            try:
+                if request.content_type == 'application/json':
+                    print(f"[REQUEST_BODY] {json.dumps(request.data, indent=2, default=str)}")
+                else:
+                    print(f"[REQUEST_DATA] {request.data}")
+            except Exception as e:
+                print(f"[REQUEST_BODY_ERROR] {str(e)}")
+        
+        # Execute view
+        try:
+            response = func(request, *args, **kwargs)
+            
+            # Log response
+            print(f"\n[RESPONSE_STATUS] {response.status_code}")
+            try:
+                if hasattr(response, 'data'):
+                    print(f"[RESPONSE_DATA] {json.dumps(response.data, indent=2, default=str)}")
+                else:
+                    print(f"[RESPONSE] {response}")
+            except Exception as e:
+                print(f"[RESPONSE_DATA_ERROR] {str(e)}")
+            
+            print("="*80 + "\n")
+            return response
+            
+        except Exception as e:
+            # Log unhandled exception
+            print(f"\n[UNHANDLED_EXCEPTION] {type(e).__name__}: {str(e)}")
+            print(f"[TRACEBACK] {traceback.format_exc()}")
+            print("="*80 + "\n")
+            
+            return Response({
+                'success': False,
+                'message': f'An unexpected error occurred: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    return wrapper
+
+
+def print_error(message, exc=None):
+    """Print error to terminal."""
+    print(f"[ERROR] {message}")
+    if exc:
+        print(f"[EXCEPTION] {type(exc).__name__}: {str(exc)}")
+        print(f"[TRACEBACK] {traceback.format_exc()}")
+
+
+def print_success(message, data=None):
+    """Print success to terminal."""
+    print(f"[SUCCESS] {message}")
+    if data:
+        print(f"[DATA] {data}")
+
+
+def _err(message, http_status=status.HTTP_400_BAD_REQUEST):
+    """Unified error response - no objects, just message."""
+    print_error(message)
+    return Response({'success': False, 'message': str(message)}, status=http_status)
+
+
+def _ok(data=None, message='', http_status=status.HTTP_200_OK):
+    """Unified success response."""
+    print_success(message, data)
+    response_data = {'success': True, 'message': message}
+    if data is not None:
+        response_data['data'] = data
+    return Response(response_data, status=http_status)
+
+
 def is_admin(user):
-    """Check if user is admin"""
     return user.is_authenticated and user.role == 'admin'
 
 
 def is_teacher(user):
-    """Check if user is teacher"""
     return user.is_authenticated and user.role == 'teacher'
 
 
-def get_request_language(request):
-    """Extract language from request headers"""
+def get_lang(request):
     lang = request.headers.get('X-Language', 'en')
-    if lang not in ['en', 'fr', 'rw']:
-        lang = 'en'
-    return lang
+    return lang if lang in ('en', 'fr', 'rw') else 'en'
 
 
-def log_request(view_name, request, extra_data=None):
-    """Log request details for debugging"""
-    print("\n" + "="*80)
-    print(f"  ▶  REQUEST  |  {view_name}  |  {request.method}")
-    print("="*80)
-    print(f"  User       : {request.user} (ID: {getattr(request.user, 'id', 'N/A')}, Role: {getattr(request.user, 'role', 'N/A')})")
-    print(f"  Path       : {request.path}")
-    print(f"  Method     : {request.method}")
-    print(f"  Language   : {get_request_language(request)}")
-    
-    if request.query_params:
-        print(f"  Query Params: {dict(request.query_params)}")
-    
-    if request.data and request.data != {}:
-        safe_data = {}
-        for k, v in request.data.items():
-            if 'password' in k.lower() or 'token' in k.lower() or 'confirm' in k.lower():
-                safe_data[k] = '***'
-            elif isinstance(v, str) and len(v) > 100:
-                safe_data[k] = v[:100] + '...'
-            else:
-                safe_data[k] = v
-        print(f"  Body       : {safe_data}")
-    
-    if extra_data:
-        for key, value in extra_data.items():
-            print(f"  {key} : {value}")
-    
-    print("-"*80)
-
-
-def log_response(view_name, status_code, message, data=None, error=None):
-    """Log response details for debugging"""
-    symbol = "✔" if status_code < 400 else "✘"
-    print(f"\n  {symbol}  RESPONSE |  {view_name}  |  HTTP {status_code}")
-    print(f"  Message    : {message}")
-    if data:
-        print(f"  Data       : {data if isinstance(data, str) else 'Data returned'}")
-    if error:
-        print(f"  Error      : {error}")
-    print("="*80 + "\n")
-
-
-def log_error(view_name, step, error, lang='en', error_type="ERROR"):
-    """Log error details with translation support"""
-    print(f"\n  ✘  {error_type}  |  {view_name}  |  {step}")
-    print(f"     Message   : {str(error)}")
-    print(f"     Type      : {type(error).__name__}")
-    if hasattr(error, '__traceback__') and error.__traceback__:
-        print(f"     Line      : {error.__traceback__.tb_lineno}")
-        print(f"     Traceback : {traceback.format_exc()}")
-    print("-"*80)
-
-
-def handle_api_exception(e, view_name, step, lang, default_message_key='operation_failed'):
-    """Handle exceptions uniformly and return appropriate response"""
-    error_msg = str(e)
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    
-    if isinstance(e, ValidationError):
-        status_code = status.HTTP_400_BAD_REQUEST
-        log_error(view_name, step, e, lang, "VALIDATION_ERROR")
-    elif isinstance(e, IntegrityError):
-        status_code = status.HTTP_400_BAD_REQUEST
-        log_error(view_name, step, e, lang, "INTEGRITY_ERROR")
-        error_msg = get_translation('integrity_error', lang)
-    elif isinstance(e, Teacher.DoesNotExist) or isinstance(e, TeacherAssignment.DoesNotExist):
-        status_code = status.HTTP_404_NOT_FOUND
-        error_msg = get_translation('teacher_not_found', lang)
-    else:
-        log_error(view_name, step, e, lang, "UNEXPECTED_ERROR")
-        error_msg = get_translation(default_message_key, lang)
-    
-    return Response({
-        'success': False,
-        'message': error_msg,
-        'error_type': type(e).__name__
-    }, status=status_code)
-
-
-# ==================== TEACHER CRUD ====================
+# ---------------------------------------------------------------------------
+# Teacher CRUD
+# ---------------------------------------------------------------------------
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
+@log_request_response
 def teacher_list_create(request):
-    """List all teachers or create a new teacher"""
-    view_name = "TeacherListCreate"
-    log_request(view_name, request)
-    lang = get_request_language(request)
-    
+    lang = get_lang(request)
+
     try:
         if request.method == 'GET':
             try:
-                queryset = Teacher.objects.all()
-                
-                # Apply filters
-                status_filter = request.query_params.get('status')
-                if status_filter:
-                    queryset = queryset.filter(status=status_filter)
+                qs = Teacher.objects.all()
+                s = request.query_params.get('status')
+                if s:
+                    qs = qs.filter(status=s)
+                    print(f"[FILTER] status={s}")
                 
                 search = request.query_params.get('search')
                 if search:
-                    queryset = queryset.filter(
-                        models.Q(first_name__icontains=search) |
-                        models.Q(last_name__icontains=search) |
-                        models.Q(email__icontains=search) |
-                        models.Q(phone_number__icontains=search)
+                    qs = qs.filter(
+                        django_models.Q(first_name__icontains=search) |
+                        django_models.Q(last_name__icontains=search) |
+                        django_models.Q(email__icontains=search) |
+                        django_models.Q(phone_number__icontains=search)
                     )
+                    print(f"[FILTER] search={search}")
                 
                 school_level = request.query_params.get('school_level')
                 if school_level:
-                    queryset = queryset.filter(assignments__school_level_id=school_level, assignments__status='active').distinct()
-                
-                serializer = TeacherSerializer(queryset, many=True, context={'request': request})
-                log_response(view_name, 200, "Teachers retrieved successfully")
-                return Response({'success': True, 'data': serializer.data})
+                    qs = qs.filter(
+                        assignments__school_level_id=school_level,
+                        assignments__status='active'
+                    ).distinct()
+                    print(f"[FILTER] school_level={school_level}")
+
+                serializer = TeacherSerializer(qs, many=True, context={'request': request})
+                return _ok(serializer.data, get_translation('teachers_retrieved', lang))
                 
             except Exception as e:
-                return handle_api_exception(e, view_name, "GET database query", lang, 'database_error')
-        
-        elif request.method == 'POST':
-            # Check admin permissions
+                print_error(f"Error in GET teacher_list_create: {str(e)}", e)
+                return _err(get_translation('database_error', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # POST method
+        try:
             if not is_admin(request.user):
-                msg = get_translation('admin_access_required', lang)
-                log_response(view_name, 403, msg)
-                return Response({'success': False, 'message': msg}, status=status.HTTP_403_FORBIDDEN)
+                return _err(get_translation('admin_access_required', lang), status.HTTP_403_FORBIDDEN)
+
+            serializer = TeacherCreateSerializer(data=request.data)
+            if not serializer.is_valid():
+                print(f"[VALIDATION_ERRORS] {serializer.errors}")
+                return _err(f"Validation failed: {', '.join([str(v) for v in serializer.errors.values()])}")
+
+            with transaction.atomic():
+                password = generate_password()
+                username = generate_username(
+                    f"{serializer.validated_data.get('first_name', '')} "
+                    f"{serializer.validated_data.get('last_name', '')}"
+                )
+                
+                print(f"[CREATE_USER] username={username}, email={serializer.validated_data['email']}")
+                
+                user = User.objects.create(
+                    username=username,
+                    email=serializer.validated_data['email'],
+                    role='teacher',
+                    status='active',
+                )
+                user.set_password(password)
+                user.save()
+
+                vd = dict(serializer.validated_data)
+                specializations = vd.pop('specializations', [])
+                teacher = Teacher.objects.create(user=user, created_by=request.user, **vd)
+
+                if specializations:
+                    teacher.specializations.set(specializations)
+                
+                print(f"[TEACHER_CREATED] id={teacher.id}, name={teacher.full_name}")
+
+            email_sent = send_teacher_welcome_email(teacher, password, lang)
             
             try:
-                print(f"[{view_name}] Validating teacher data...")
-                serializer = TeacherCreateSerializer(data=request.data)
-                
-                if serializer.is_valid():
-                    print(f"[{view_name}] Data is valid, creating user account...")
-                    
-                    with transaction.atomic():
-                        # Generate password and create user account
-                        password = generate_password()
-                        username = generate_username(
-                            f"{serializer.validated_data.get('first_name', '')} {serializer.validated_data.get('last_name', '')}"
-                        )
-                        
-                        # Create the user account
-                        user = User.objects.create(
-                            username=username,
-                            email=serializer.validated_data['email'],
-                            role='teacher',
-                            status='active'
-                        )
-                        user.set_password(password)
-                        user.save()
-                        
-                        print(f"[{view_name}] User account created: {username}")
-                        
-                        # Create teacher with the user
-                        teacher = Teacher.objects.create(
-                            user=user,
-                            created_by=request.user,
-                            **serializer.validated_data
-                        )
-                        
-                        # Handle specializations if provided
-                        if 'specializations_ids' in serializer.validated_data:
-                            teacher.specializations.set(serializer.validated_data['specializations_ids'])
-                        
-                        print(f"[{view_name}] Teacher created successfully: ID={teacher.id}")
-                        
-                        # Send welcome email
-                        email_sent = send_teacher_welcome_email(teacher, password, lang)
-                        
-                        if not email_sent:
-                            print(f"[{view_name}] WARNING: Failed to send welcome email to {teacher.email}")
-                    
-                    # Create notifications
-                    try:
-                        # Admin notification
-                        admin_title = get_notification_title('teacher_created', lang)
-                        admin_message = get_notification_message('teacher_created_notification', lang, name=teacher.full_name)
-                        NotificationService.create_academic_notification(
-                            user=request.user,
-                            notification_type='teacher_created',
-                            title=admin_title,
-                            message=admin_message,
-                            created_by=request.user,
-                            extra_data={'teacher_id': teacher.id, 'teacher_name': teacher.full_name},
-                            action_url='/app/teachers',
-                            priority='medium'
-                        )
-                        
-                        # Teacher notification
-                        teacher_title = get_notification_title('teacher_created', lang)
-                        teacher_message = get_notification_message('teacher_welcome_notification', lang, name=teacher.full_name)
-                        NotificationService.create_academic_notification(
-                            user=user,
-                            notification_type='teacher_created',
-                            title=teacher_title,
-                            message=teacher_message,
-                            created_by=request.user,
-                            extra_data={'teacher_id': teacher.id},
-                            action_url='/app/teacher/profile',
-                            priority='high'
-                        )
-                        print(f"[{view_name}] Notifications created successfully")
-                    except Exception as e:
-                        print(f"[{view_name}] WARNING: Failed to create notifications: {str(e)}")
-                    
-                    # Prepare response data
-                    response_data = TeacherSerializer(teacher, context={'request': request}).data
-                    response_data['username'] = user.username
-                    if email_sent:
-                        response_data['message'] = get_translation('teacher_password_generated', lang, email=teacher.email)
-                    else:
-                        response_data['warning'] = f"Password: {password}. Could not send email to {teacher.email}"
-                    
-                    msg = get_translation('teacher_create_success', lang, name=teacher.full_name)
-                    log_response(view_name, 201, msg)
-                    return Response({'success': True, 'data': response_data, 'message': msg}, status=status.HTTP_201_CREATED)
-                else:
-                    print(f"[{view_name}] Validation FAILED! Errors: {serializer.errors}")
-                    msg = get_translation('validation_failed', lang)
-                    return Response({
-                        'success': False,
-                        'errors': serializer.errors,
-                        'message': msg
-                    }, status=status.HTTP_400_BAD_REQUEST)
-                    
-            except IntegrityError as e:
-                print(f"[{view_name}] IntegrityError: {str(e)}")
-                if 'email' in str(e).lower():
-                    return Response({'success': False, 'message': get_translation('email_already_exists', lang)}, status=status.HTTP_400_BAD_REQUEST)
-                elif 'phone_number' in str(e).lower():
-                    return Response({'success': False, 'message': get_translation('phone_already_exists', lang)}, status=status.HTTP_400_BAD_REQUEST)
-                return Response({'success': False, 'message': get_translation('teacher_already_exists', lang)}, status=status.HTTP_400_BAD_REQUEST)
+                NotificationService.create_academic_notification(
+                    user=request.user,
+                    notification_type='teacher_created',
+                    title=get_notification_title('teacher_created', lang),
+                    message=get_notification_message('teacher_created_notification', lang, name=teacher.full_name),
+                    created_by=request.user,
+                    extra_data={'teacher_id': teacher.id, 'teacher_name': teacher.full_name},
+                    action_url='/app/teachers',
+                    priority='medium',
+                )
+                NotificationService.create_academic_notification(
+                    user=user,
+                    notification_type='teacher_created',
+                    title=get_notification_title('teacher_created', lang),
+                    message=get_notification_message('teacher_welcome_notification', lang, name=teacher.full_name),
+                    created_by=request.user,
+                    extra_data={'teacher_id': teacher.id},
+                    action_url='/app/teacher/profile',
+                    priority='high',
+                )
             except Exception as e:
-                traceback.print_exc()
-                return handle_api_exception(e, view_name, "POST create", lang, 'operation_failed')
-    
+                print_error(f"Notification failed: {str(e)}", e)
+
+            response_data = TeacherSerializer(teacher, context={'request': request}).data
+            response_data['username'] = user.username
+            if not email_sent:
+                response_data['warning'] = f'Password: {password}. Could not send email to {teacher.email}'
+
+            return _ok(
+                response_data,
+                get_translation('teacher_create_success', lang, name=teacher.full_name),
+                status.HTTP_201_CREATED,
+            )
+
+        except IntegrityError as e:
+            print_error(f"IntegrityError in POST teacher_list_create: {str(e)}", e)
+            if 'email' in str(e).lower():
+                return _err(get_translation('email_already_exists', lang))
+            elif 'phone' in str(e).lower():
+                return _err(get_translation('phone_already_exists', lang))
+            return _err(get_translation('teacher_already_exists', lang))
+            
+        except Exception as e:
+            print_error(f"Error in POST teacher_list_create: {str(e)}", e)
+            return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     except Exception as e:
-        traceback.print_exc()
-        return handle_api_exception(e, view_name, "main", lang, 'server_error')
+        print_error(f"Unhandled error in teacher_list_create: {str(e)}", e)
+        return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([IsAuthenticated])
+@log_request_response
 def teacher_detail(request, pk):
-    """Get, update or delete a specific teacher"""
-    view_name = "TeacherDetail"
-    log_request(view_name, request, extra_data={"teacher_id": pk})
-    lang = get_request_language(request)
+    lang = get_lang(request)
     
     try:
         teacher = get_object_or_404(Teacher, id=pk)
-        print(f"[{view_name}] Found teacher: {teacher.full_name}")
+        print(f"[TEACHER_FOUND] id={teacher.id}, name={teacher.full_name}")
     except Exception as e:
-        return handle_api_exception(e, view_name, "get_object", lang, 'teacher_not_found')
-    
-    if request.method == 'GET':
-        try:
-            # Check if requesting own profile or admin
-            if not is_admin(request.user) and request.user.id != teacher.user.id:
-                msg = get_translation('teacher_access_required', lang)
-                log_response(view_name, 403, msg)
-                return Response({'success': False, 'message': msg}, status=status.HTTP_403_FORBIDDEN)
+        print_error(f"Teacher not found with id={pk}", e)
+        return _err(get_translation('teacher_not_found', lang), status.HTTP_404_NOT_FOUND)
+
+    try:
+        if request.method == 'GET':
+            if not is_admin(request.user) and request.user.id != teacher.user_id:
+                return _err(get_translation('teacher_access_required', lang), status.HTTP_403_FORBIDDEN)
             
             serializer = TeacherSerializer(teacher, context={'request': request})
-            log_response(view_name, 200, "Teacher retrieved successfully")
-            return Response({'success': True, 'data': serializer.data})
-        except Exception as e:
-            return handle_api_exception(e, view_name, "serialization", lang, 'database_error')
-    
-    elif request.method == 'PUT':
+            return _ok(serializer.data, get_translation('teacher_retrieved', lang))
+
         if not is_admin(request.user):
-            msg = get_translation('admin_access_required', lang)
-            log_response(view_name, 403, msg)
-            return Response({'success': False, 'message': msg}, status=status.HTTP_403_FORBIDDEN)
-        
-        try:
-            print(f"[{view_name}] Update data: {request.data}")
-            serializer = TeacherSerializer(teacher, data=request.data, partial=True, context={'request': request})
-            
-            if serializer.is_valid():
+            return _err(get_translation('admin_access_required', lang), status.HTTP_403_FORBIDDEN)
+
+        if request.method == 'PUT':
+            try:
+                serializer = TeacherSerializer(teacher, data=request.data, partial=True, context={'request': request})
+                if not serializer.is_valid():
+                    print(f"[VALIDATION_ERRORS] {serializer.errors}")
+                    return _err(f"Validation failed: {', '.join([str(v) for v in serializer.errors.values()])}")
+                
                 old_name = teacher.full_name
                 with transaction.atomic():
-                    updated_teacher = serializer.save()
+                    serializer.save()
+                    print(f"[TEACHER_UPDATED] id={teacher.id}, old_name={old_name}, new_name={teacher.full_name}")
                 
-                print(f"[{view_name}] Teacher updated successfully")
-                
-                # Create notification
                 try:
-                    title = get_notification_title('teacher_updated', lang)
-                    message = get_notification_message('teacher_updated_notification', lang, name=old_name)
                     NotificationService.create_academic_notification(
                         user=request.user,
                         notification_type='teacher_updated',
-                        title=title,
-                        message=message,
+                        title=get_notification_title('teacher_updated', lang),
+                        message=get_notification_message('teacher_updated_notification', lang, name=old_name),
                         created_by=request.user,
-                        extra_data={'teacher_id': teacher.id, 'teacher_name': teacher.full_name},
+                        extra_data={'teacher_id': teacher.id},
                         action_url=f'/app/teachers/{teacher.id}',
-                        priority='low'
+                        priority='low',
                     )
                 except Exception as e:
-                    print(f"[{view_name}] WARNING: Failed to create notification: {str(e)}")
+                    print_error(f"Notification failed: {str(e)}", e)
                 
-                msg = get_translation('teacher_update_success', lang, name=old_name)
-                log_response(view_name, 200, msg)
-                return Response({'success': True, 'data': serializer.data, 'message': msg})
-            else:
-                print(f"[{view_name}] Validation FAILED! Errors: {serializer.errors}")
-                msg = get_translation('validation_failed', lang)
-                return Response({'success': False, 'errors': serializer.errors, 'message': msg}, status=status.HTTP_400_BAD_REQUEST)
+                return _ok(serializer.data, get_translation('teacher_update_success', lang, name=old_name))
                 
-        except IntegrityError as e:
-            log_error(view_name, "update_integrity", e, lang)
-            if 'email' in str(e).lower():
-                return Response({'success': False, 'message': get_translation('email_already_exists', lang)}, status=status.HTTP_400_BAD_REQUEST)
-            elif 'phone_number' in str(e).lower():
-                return Response({'success': False, 'message': get_translation('phone_already_exists', lang)}, status=status.HTTP_400_BAD_REQUEST)
-            return Response({'success': False, 'message': get_translation('integrity_error', lang)}, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return handle_api_exception(e, view_name, "update", lang, 'operation_failed')
-    
-    elif request.method == 'DELETE':
-        if not is_admin(request.user):
-            msg = get_translation('admin_access_required', lang)
-            log_response(view_name, 403, msg)
-            return Response({'success': False, 'message': msg}, status=status.HTTP_403_FORBIDDEN)
-        
+            except IntegrityError as e:
+                print_error(f"IntegrityError in PUT: {str(e)}", e)
+                if 'email' in str(e).lower():
+                    return _err(get_translation('email_already_exists', lang))
+                return _err(get_translation('integrity_error', lang))
+            except Exception as e:
+                print_error(f"Error in PUT teacher_detail: {str(e)}", e)
+                return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # DELETE method
         try:
-            teacher_name = teacher.full_name
-            print(f"[{view_name}] Deleting teacher: {teacher_name}")
-            
-            # Check for active assignments
             if teacher.assignments.filter(status='active').exists():
-                msg = get_translation('cannot_delete_has_assignments', lang)
-                return Response({'success': False, 'message': msg}, status=status.HTTP_400_BAD_REQUEST)
+                return _err(get_translation('cannot_delete_has_assignments', lang))
             
-            # Delete associated user account
-            user_to_delete = teacher.user
+            name = teacher.full_name
+            user_to_del = teacher.user
             teacher.delete()
+            if user_to_del:
+                user_to_del.delete()
             
-            if user_to_delete:
-                user_to_delete.delete()
+            print(f"[TEACHER_DELETED] id={pk}, name={name}")
             
-            # Create notification
             try:
-                title = get_notification_title('teacher_deleted', lang)
-                message = get_notification_message('teacher_deleted_notification', lang, name=teacher_name)
                 NotificationService.create_academic_notification(
                     user=request.user,
                     notification_type='teacher_deleted',
-                    title=title,
-                    message=message,
+                    title=get_notification_title('teacher_deleted', lang),
+                    message=get_notification_message('teacher_deleted_notification', lang, name=name),
                     created_by=request.user,
-                    extra_data={'teacher_name': teacher_name},
+                    extra_data={'teacher_name': name},
                     action_url='/app/teachers',
-                    priority='medium'
+                    priority='medium',
                 )
             except Exception as e:
-                print(f"[{view_name}] WARNING: Failed to create notification: {str(e)}")
+                print_error(f"Notification failed: {str(e)}", e)
             
-            msg = get_translation('teacher_delete_success', lang, name=teacher_name)
-            log_response(view_name, 200, msg)
-            return Response({'success': True, 'message': msg})
+            return _ok(message=get_translation('teacher_delete_success', lang, name=name))
             
         except Exception as e:
-            return handle_api_exception(e, view_name, "delete", lang, 'operation_failed')
+            print_error(f"Error in DELETE teacher_detail: {str(e)}", e)
+            return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    except Exception as e:
+        print_error(f"Unhandled error in teacher_detail: {str(e)}", e)
+        return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ---------------------------------------------------------------------------
+# Teacher profile (self-service)
+# ---------------------------------------------------------------------------
 
 @api_view(['GET', 'PUT'])
 @permission_classes([IsAuthenticated])
+@log_request_response
 def teacher_profile(request):
-    """Get or update the logged-in teacher's profile"""
-    view_name = "TeacherProfile"
-    log_request(view_name, request)
-    lang = get_request_language(request)
-    
-    if not is_teacher(request.user):
-        msg = get_translation('teacher_access_required', lang)
-        log_response(view_name, 403, msg)
-        return Response({'success': False, 'message': msg}, status=status.HTTP_403_FORBIDDEN)
+    lang = get_lang(request)
     
     try:
-        teacher = get_object_or_404(Teacher, user=request.user)
-    except Exception as e:
-        return handle_api_exception(e, view_name, "get_teacher", lang, 'teacher_not_found')
-    
-    if request.method == 'GET':
-        try:
-            serializer = TeacherSerializer(teacher, context={'request': request})
-            # Add user info to response
-            user_data = {
-                'id': request.user.id,
-                'username': request.user.username,
-                'email': request.user.email,
-                'role': request.user.role,
-                'status': request.user.status,
-                'language': request.user.language
-            }
-            log_response(view_name, 200, "Profile retrieved successfully")
-            return Response({
-                'success': True, 
-                'data': serializer.data,
-                'user': user_data
-            })
-        except Exception as e:
-            return handle_api_exception(e, view_name, "serialization", lang, 'database_error')
-    
-    elif request.method == 'PUT':
-        try:
-            print(f"[{view_name}] Profile update data: {request.data}")
-            serializer = TeacherProfileUpdateSerializer(teacher, data=request.data, partial=True)
-            
-            if serializer.is_valid():
-                with transaction.atomic():
-                    updated_teacher = serializer.save()
-                
-                print(f"[{view_name}] Profile updated successfully")
-                
-                # Create notification
-                try:
-                    title = get_notification_title('profile_updated', lang)
-                    message = get_notification_message('teacher_profile_updated_notification', lang)
-                    NotificationService.create_academic_notification(
-                        user=request.user,
-                        notification_type='profile_updated',
-                        title=title,
-                        message=message,
-                        created_by=request.user,
-                        extra_data={},
-                        action_url='/app/teacher/profile',
-                        priority='low'
-                    )
-                except Exception as e:
-                    print(f"[{view_name}] WARNING: Failed to create notification: {str(e)}")
-                
-                msg = get_translation('profile_update_success', lang)
-                log_response(view_name, 200, msg)
-                return Response({'success': True, 'data': serializer.data, 'message': msg})
-            else:
-                print(f"[{view_name}] Validation FAILED! Errors: {serializer.errors}")
-                msg = get_translation('validation_failed', lang)
-                return Response({'success': False, 'errors': serializer.errors, 'message': msg}, status=status.HTTP_400_BAD_REQUEST)
-                
-        except Exception as e:
-            return handle_api_exception(e, view_name, "update", lang, 'profile_update_failed')
-
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def change_password(request):
-    """Change teacher's password"""
-    view_name = "ChangePassword"
-    log_request(view_name, request)
-    lang = get_request_language(request)
-    
-    if not is_teacher(request.user) and not is_admin(request.user):
-        msg = get_translation('teacher_access_required', lang)
-        log_response(view_name, 403, msg)
-        return Response({'success': False, 'message': msg}, status=status.HTTP_403_FORBIDDEN)
-    
-    try:
-        serializer = ChangePasswordSerializer(data=request.data)
+        if not is_teacher(request.user):
+            return _err(get_translation('teacher_access_required', lang), status.HTTP_403_FORBIDDEN)
         
-        if serializer.is_valid():
-            current_password = serializer.validated_data['current_password']
-            new_password = serializer.validated_data['new_password']
-            
-            # Verify current password
-            user = authenticate(username=request.user.username, password=current_password)
-            if not user:
-                msg = get_translation('current_password_incorrect', lang)
-                log_response(view_name, 400, msg)
-                return Response({'success': False, 'message': msg}, status=status.HTTP_400_BAD_REQUEST)
-            
-            # Change password
-            request.user.set_password(new_password)
-            request.user.save()
-            
-            print(f"[{view_name}] Password changed successfully for user: {request.user.username}")
-            
-            # Create notification
+        try:
+            teacher = Teacher.objects.get(user=request.user)
+            print(f"[TEACHER_FOUND] id={teacher.id}, name={teacher.full_name}")
+        except Teacher.DoesNotExist:
+            return _err(get_translation('teacher_not_found', lang), status.HTTP_404_NOT_FOUND)
+
+        if request.method == 'GET':
             try:
-                title = get_notification_title('password_changed', lang)
-                message = get_translation('password_change_success', lang)
+                serializer = TeacherSerializer(teacher, context={'request': request})
+                return _ok({
+                    'teacher': serializer.data,
+                    'user': {
+                        'id': request.user.id,
+                        'username': request.user.username,
+                        'email': request.user.email,
+                        'role': request.user.role,
+                        'status': request.user.status,
+                        'language': request.user.language,
+                    }
+                }, get_translation('profile_retrieved', lang))
+            except Exception as e:
+                print_error(f"Error in GET teacher_profile: {str(e)}", e)
+                return _err(get_translation('database_error', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # PUT method
+        try:
+            serializer = TeacherProfileUpdateSerializer(teacher, data=request.data, partial=True)
+            if not serializer.is_valid():
+                print(f"[VALIDATION_ERRORS] {serializer.errors}")
+                return _err(f"Validation failed: {', '.join([str(v) for v in serializer.errors.values()])}")
+            
+            with transaction.atomic():
+                serializer.save()
+                print(f"[PROFILE_UPDATED] teacher_id={teacher.id}")
+            
+            try:
                 NotificationService.create_academic_notification(
                     user=request.user,
-                    notification_type='password_changed',
-                    title=title,
-                    message=message,
+                    notification_type='profile_updated',
+                    title=get_notification_title('profile_updated', lang),
+                    message=get_notification_message('teacher_profile_updated_notification', lang),
                     created_by=request.user,
                     extra_data={},
                     action_url='/app/teacher/profile',
-                    priority='high'
+                    priority='low',
                 )
             except Exception as e:
-                print(f"[{view_name}] WARNING: Failed to create notification: {str(e)}")
+                print_error(f"Notification failed: {str(e)}", e)
             
-            msg = get_translation('password_change_success', lang)
-            log_response(view_name, 200, msg)
-            return Response({'success': True, 'message': msg})
-        else:
-            print(f"[{view_name}] Validation FAILED! Errors: {serializer.errors}")
-            return Response({'success': False, 'errors': serializer.errors, 'message': get_translation('validation_failed', lang)}, status=status.HTTP_400_BAD_REQUEST)
+            return _ok(serializer.data, get_translation('profile_update_success', lang))
             
+        except Exception as e:
+            print_error(f"Error in PUT teacher_profile: {str(e)}", e)
+            return _err(get_translation('profile_update_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     except Exception as e:
-        return handle_api_exception(e, view_name, "change_password", lang, 'password_change_failed')
+        print_error(f"Unhandled error in teacher_profile: {str(e)}", e)
+        return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-# ==================== TEACHER DOCUMENTS ====================
+# ---------------------------------------------------------------------------
+# Change password
+# ---------------------------------------------------------------------------
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@log_request_response
+def change_password(request):
+    lang = get_lang(request)
+    
+    try:
+        if not is_teacher(request.user) and not is_admin(request.user):
+            return _err(get_translation('teacher_access_required', lang), status.HTTP_403_FORBIDDEN)
+
+        serializer = ChangePasswordSerializer(data=request.data)
+        if not serializer.is_valid():
+            print(f"[VALIDATION_ERRORS] {serializer.errors}")
+            return _err(f"Validation failed: {', '.join([str(v) for v in serializer.errors.values()])}")
+
+        user = authenticate(
+            username=request.user.username,
+            password=serializer.validated_data['current_password']
+        )
+        if not user:
+            return _err(get_translation('current_password_incorrect', lang))
+
+        request.user.set_password(serializer.validated_data['new_password'])
+        request.user.save()
+        print(f"[PASSWORD_CHANGED] user_id={request.user.id}, username={request.user.username}")
+
+        try:
+            NotificationService.create_academic_notification(
+                user=request.user,
+                notification_type='password_changed',
+                title=get_notification_title('password_changed', lang),
+                message=get_translation('password_change_success', lang),
+                created_by=request.user,
+                extra_data={},
+                action_url='/app/teacher/profile',
+                priority='high',
+            )
+        except Exception as e:
+            print_error(f"Notification failed: {str(e)}", e)
+
+        return _ok(message=get_translation('password_change_success', lang))
+        
+    except Exception as e:
+        print_error(f"Error in change_password: {str(e)}", e)
+        return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ---------------------------------------------------------------------------
+# Teacher Documents
+# ---------------------------------------------------------------------------
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
+@log_request_response
 def teacher_documents(request, teacher_id=None):
-    """Get documents for a teacher or upload new document"""
-    view_name = "TeacherDocuments"
-    log_request(view_name, request, extra_data={"teacher_id": teacher_id})
-    lang = get_request_language(request)
-    
-    # Determine which teacher
-    if teacher_id:
-        if not is_admin(request.user):
-            msg = get_translation('admin_access_required', lang)
-            return Response({'success': False, 'message': msg}, status=status.HTTP_403_FORBIDDEN)
-        try:
-            teacher = get_object_or_404(Teacher, id=teacher_id)
-        except Exception as e:
-            return handle_api_exception(e, view_name, "get_teacher", lang, 'teacher_not_found')
-    else:
-        if not is_teacher(request.user):
-            msg = get_translation('teacher_access_required', lang)
-            return Response({'success': False, 'message': msg}, status=status.HTTP_403_FORBIDDEN)
-        teacher = get_object_or_404(Teacher, user=request.user)
-    
-    if request.method == 'GET':
-        try:
-            documents = teacher.documents.all()
-            serializer = TeacherDocumentSerializer(documents, many=True, context={'request': request})
-            return Response({'success': True, 'data': serializer.data})
-        except Exception as e:
-            return handle_api_exception(e, view_name, "GET documents", lang, 'database_error')
-    
-    elif request.method == 'POST':
+    lang = get_lang(request)
+
+    try:
+        if teacher_id:
+            if not is_admin(request.user):
+                return _err(get_translation('admin_access_required', lang), status.HTTP_403_FORBIDDEN)
+            try:
+                teacher = Teacher.objects.get(id=teacher_id)
+                print(f"[TEACHER_FOUND] id={teacher.id} for documents")
+            except Teacher.DoesNotExist:
+                return _err(get_translation('teacher_not_found', lang), status.HTTP_404_NOT_FOUND)
+        else:
+            if not is_teacher(request.user):
+                return _err(get_translation('teacher_access_required', lang), status.HTTP_403_FORBIDDEN)
+            try:
+                teacher = Teacher.objects.get(user=request.user)
+            except Teacher.DoesNotExist:
+                return _err(get_translation('teacher_not_found', lang), status.HTTP_404_NOT_FOUND)
+
+        if request.method == 'GET':
+            try:
+                docs = teacher.documents.all()
+                serializer = TeacherDocumentSerializer(docs, many=True, context={'request': request})
+                return _ok(serializer.data, get_translation('documents_retrieved', lang))
+            except Exception as e:
+                print_error(f"Error in GET teacher_documents: {str(e)}", e)
+                return _err(get_translation('database_error', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # POST method
         try:
             serializer = TeacherDocumentSerializer(data=request.data, context={'request': request})
-            if serializer.is_valid():
-                with transaction.atomic():
-                    document = serializer.save(teacher=teacher)
-                
-                print(f"[{view_name}] Document uploaded: {document.title}")
-                
-                msg = get_translation('document_upload_success', lang, title=document.title)
-                return Response({'success': True, 'data': serializer.data, 'message': msg}, status=status.HTTP_201_CREATED)
-            else:
-                return Response({'success': False, 'errors': serializer.errors, 'message': get_translation('validation_failed', lang)}, status=status.HTTP_400_BAD_REQUEST)
+            if not serializer.is_valid():
+                print(f"[VALIDATION_ERRORS] {serializer.errors}")
+                return _err(f"Validation failed: {', '.join([str(v) for v in serializer.errors.values()])}")
+            
+            with transaction.atomic():
+                doc = serializer.save(teacher=teacher)
+                print(f"[DOCUMENT_UPLOADED] id={doc.id}, title={doc.title}, teacher_id={teacher.id}")
+            
+            return _ok(
+                serializer.data,
+                get_translation('document_upload_success', lang, title=doc.title),
+                status.HTTP_201_CREATED,
+            )
+            
         except Exception as e:
-            return handle_api_exception(e, view_name, "POST document", lang, 'operation_failed')
+            print_error(f"Error in POST teacher_documents: {str(e)}", e)
+            return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    except Exception as e:
+        print_error(f"Unhandled error in teacher_documents: {str(e)}", e)
+        return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
+@log_request_response
 def teacher_document_delete(request, document_id):
-    """Delete a teacher document"""
-    view_name = "TeacherDocumentDelete"
-    log_request(view_name, request, extra_data={"document_id": document_id})
-    lang = get_request_language(request)
+    lang = get_lang(request)
     
     try:
-        document = get_object_or_404(TeacherDocument, id=document_id)
-        
-        # Check permissions
-        if not is_admin(request.user) and document.teacher.user.id != request.user.id:
-            msg = get_translation('permission_denied', lang)
-            return Response({'success': False, 'message': msg}, status=status.HTTP_403_FORBIDDEN)
-        
-        document_title = document.title
-        document.delete()
-        
-        msg = get_translation('document_delete_success', lang)
-        log_response(view_name, 200, msg)
-        return Response({'success': True, 'message': msg})
+        doc = TeacherDocument.objects.get(id=document_id)
+        print(f"[DOCUMENT_FOUND] id={doc.id}, title={doc.title}")
+    except TeacherDocument.DoesNotExist:
+        return _err(get_translation('document_not_found', lang), status.HTTP_404_NOT_FOUND)
+
+    try:
+        if not is_admin(request.user) and doc.teacher.user_id != request.user.id:
+            return _err(get_translation('permission_denied', lang), status.HTTP_403_FORBIDDEN)
+
+        doc.delete()
+        print(f"[DOCUMENT_DELETED] id={document_id}")
+        return _ok(message=get_translation('document_delete_success', lang))
         
     except Exception as e:
-        return handle_api_exception(e, view_name, "delete", lang, 'operation_failed')
+        print_error(f"Error in teacher_document_delete: {str(e)}", e)
+        return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-# ==================== TEACHER ASSIGNMENTS ====================
+# ---------------------------------------------------------------------------
+# Teacher Assignments
+# ---------------------------------------------------------------------------
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
+@log_request_response
 def assignment_list_create(request):
-    """List assignments or create a new assignment"""
-    view_name = "AssignmentListCreate"
-    log_request(view_name, request)
-    lang = get_request_language(request)
-    
-    if request.method == 'GET':
-        try:
-            queryset = TeacherAssignment.objects.all()
-            
-            # Apply filters
-            teacher_id = request.query_params.get('teacher')
-            if teacher_id:
-                queryset = queryset.filter(teacher_id=teacher_id)
-            
-            academic_year = request.query_params.get('academic_year')
-            if academic_year:
-                queryset = queryset.filter(academic_year_id=academic_year)
-            
-            term_id = request.query_params.get('term')
-            if term_id:
-                queryset = queryset.filter(term_id=term_id)
-            
-            status_filter = request.query_params.get('status')
-            if status_filter:
-                queryset = queryset.filter(status=status_filter)
-            
-            serializer = TeacherAssignmentSerializer(queryset, many=True)
-            log_response(view_name, 200, "Assignments retrieved successfully")
-            return Response({'success': True, 'data': serializer.data})
-            
-        except Exception as e:
-            return handle_api_exception(e, view_name, "GET database query", lang, 'database_error')
-    
-    elif request.method == 'POST':
-        if not is_admin(request.user):
-            msg = get_translation('admin_access_required', lang)
-            log_response(view_name, 403, msg)
-            return Response({'success': False, 'message': msg}, status=status.HTTP_403_FORBIDDEN)
-        
-        try:
-            print(f"[{view_name}] Validating assignment data...")
-            serializer = TeacherAssignmentSerializer(data=request.data)
-            
-            if serializer.is_valid():
-                with transaction.atomic():
-                    assignment = serializer.save(assigned_by=request.user)
-                
-                print(f"[{view_name}] Assignment created successfully for teacher: {assignment.teacher.full_name}")
-                
-                # Create notification for the teacher
-                try:
-                    title = get_notification_title('assignment_created', lang)
-                    message = get_notification_message('assignment_created_notification', lang, 
-                                                       subject=assignment.subject.name,
-                                                       class_level=assignment.class_level.name)
-                    NotificationService.create_academic_notification(
-                        user=assignment.teacher.user,
-                        notification_type='assignment_created',
-                        title=title,
-                        message=message,
-                        created_by=request.user,
-                        extra_data={
-                            'assignment_id': assignment.id,
-                            'subject': assignment.subject.name,
-                            'class_level': assignment.class_level.name
-                        },
-                        action_url='/app/teacher/assignments',
-                        priority='high'
-                    )
-                except Exception as e:
-                    print(f"[{view_name}] WARNING: Failed to create notification: {str(e)}")
-                
-                msg = get_translation('assignment_create_success', lang, teacher=assignment.teacher.full_name)
-                log_response(view_name, 201, msg)
-                return Response({'success': True, 'data': serializer.data, 'message': msg}, status=status.HTTP_201_CREATED)
-            else:
-                print(f"[{view_name}] Validation FAILED! Errors: {serializer.errors}")
-                return Response({'success': False, 'errors': serializer.errors, 'message': get_translation('validation_failed', lang)}, status=status.HTTP_400_BAD_REQUEST)
-                
-        except Exception as e:
-            return handle_api_exception(e, view_name, "create", lang, 'operation_failed')
+    lang = get_lang(request)
 
-
-@api_view(['PUT', 'DELETE'])
-@permission_classes([IsAuthenticated])
-def assignment_detail(request, pk):
-    """Update or delete a specific assignment"""
-    view_name = "AssignmentDetail"
-    log_request(view_name, request, extra_data={"assignment_id": pk})
-    lang = get_request_language(request)
-    
-    if not is_admin(request.user):
-        msg = get_translation('admin_access_required', lang)
-        log_response(view_name, 403, msg)
-        return Response({'success': False, 'message': msg}, status=status.HTTP_403_FORBIDDEN)
-    
     try:
-        assignment = get_object_or_404(TeacherAssignment, id=pk)
-    except Exception as e:
-        return handle_api_exception(e, view_name, "get_object", lang, 'assignment_not_found')
-    
-    if request.method == 'PUT':
-        try:
-            serializer = TeacherAssignmentSerializer(assignment, data=request.data, partial=True)
-            if serializer.is_valid():
-                with transaction.atomic():
-                    updated_assignment = serializer.save()
-                
-                print(f"[{view_name}] Assignment updated successfully")
-                msg = get_translation('assignment_update_success', lang, teacher=assignment.teacher.full_name)
-                return Response({'success': True, 'data': serializer.data, 'message': msg})
-            else:
-                return Response({'success': False, 'errors': serializer.errors, 'message': get_translation('validation_failed', lang)}, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return handle_api_exception(e, view_name, "update", lang, 'operation_failed')
-    
-    elif request.method == 'DELETE':
-        try:
-            teacher_name = assignment.teacher.full_name
-            subject_name = assignment.subject.name
-            assignment.delete()
-            
-            # Create notification for teacher
+        if request.method == 'GET':
             try:
-                title = get_notification_title('assignment_deleted', lang)
-                message = get_notification_message('assignment_deleted_notification', lang, 
-                                                   subject=subject_name,
-                                                   class_level=assignment.class_level.name)
+                qs = TeacherAssignment.objects.all()
+                filters = []
+                
+                for param, field in [
+                    ('teacher', 'teacher_id'),
+                    ('academic_year', 'academic_year_id'),
+                    ('term', 'term_id'),
+                    ('status', 'status'),
+                    ('school_level', 'school_level_id'),
+                ]:
+                    val = request.query_params.get(param)
+                    if val:
+                        qs = qs.filter(**{field: val})
+                        filters.append(f"{param}={val}")
+                
+                if filters:
+                    print(f"[FILTERS] {', '.join(filters)}")
+                
+                serializer = TeacherAssignmentSerializer(qs, many=True)
+                return _ok(serializer.data, get_translation('assignments_retrieved', lang))
+                
+            except Exception as e:
+                print_error(f"Error in GET assignment_list_create: {str(e)}", e)
+                return _err(get_translation('database_error', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # POST method
+        try:
+            if not is_admin(request.user):
+                return _err(get_translation('admin_access_required', lang), status.HTTP_403_FORBIDDEN)
+
+            serializer = TeacherAssignmentSerializer(data=request.data)
+            if not serializer.is_valid():
+                print(f"[VALIDATION_ERRORS] {serializer.errors}")
+                return _err(f"Validation failed: {', '.join([str(v) for v in serializer.errors.values()])}")
+
+            with transaction.atomic():
+                assignment = serializer.save(assigned_by=request.user)
+                print(f"[ASSIGNMENT_CREATED] id={assignment.id}, teacher={assignment.teacher.full_name}, subject={assignment.subject.name}")
+
+            _regenerate_timetable_after_change(
+                assignment.academic_year, assignment.term, request.user, lang
+            )
+
+            try:
                 NotificationService.create_academic_notification(
                     user=assignment.teacher.user,
-                    notification_type='assignment_deleted',
-                    title=title,
-                    message=message,
+                    notification_type='assignment_created',
+                    title=get_notification_title('assignment_created', lang),
+                    message=get_notification_message(
+                        'assignment_created_notification', lang,
+                        subject=assignment.subject.name,
+                        class_level=assignment.class_level.name,
+                    ),
                     created_by=request.user,
-                    extra_data={'subject': subject_name},
+                    extra_data={'assignment_id': assignment.id},
                     action_url='/app/teacher/assignments',
-                    priority='medium'
+                    priority='high',
                 )
             except Exception as e:
-                print(f"[{view_name}] WARNING: Failed to create notification: {str(e)}")
-            
-            msg = get_translation('assignment_delete_success', lang)
-            log_response(view_name, 200, msg)
-            return Response({'success': True, 'message': msg})
+                print_error(f"Notification failed: {str(e)}", e)
+
+            return _ok(
+                serializer.data,
+                get_translation('assignment_create_success', lang, teacher=assignment.teacher.full_name),
+                status.HTTP_201_CREATED,
+            )
             
         except Exception as e:
-            return handle_api_exception(e, view_name, "delete", lang, 'operation_failed')
+            print_error(f"Error in POST assignment_list_create: {str(e)}", e)
+            return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    except Exception as e:
+        print_error(f"Unhandled error in assignment_list_create: {str(e)}", e)
+        return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-# ==================== TIMETABLE GENERATION ====================
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])
+@log_request_response
+def assignment_detail(request, pk):
+    lang = get_lang(request)
 
-def get_available_time_slots(school_level, academic_year, term, day_of_week):
-    """Get available time slots for a school level on a specific day"""
-    from academics.models import SchoolBreak, SchoolDaySetting
-    
-    # Get school day settings
-    day_setting = SchoolDaySetting.objects.filter(
-        school_level=school_level,
-        academic_year=academic_year,
-        day_of_week=day_of_week,
-        is_school_day=True
-    ).first()
-    
-    if not day_setting or not day_setting.start_time or not day_setting.end_time:
-        return []
-    
-    # Get breaks for this school level
-    breaks = SchoolBreak.objects.filter(
-        school_level=school_level,
-        is_active=True
-    ).order_by('start_time')
-    
-    # Generate time slots (1-hour slots)
-    slots = []
-    current_time = datetime.combine(date.today(), day_setting.start_time)
-    end_time = datetime.combine(date.today(), day_setting.end_time)
-    slot_duration = timedelta(hours=1)
-    
-    while current_time + slot_duration <= end_time:
-        slot_end = current_time + slot_duration
-        slot_start_time = current_time.time()
-        slot_end_time = slot_end.time()
-        
-        # Check if slot overlaps with any break
-        is_break = False
-        for break_item in breaks:
-            break_start = datetime.combine(date.today(), break_item.start_time)
-            break_end = datetime.combine(date.today(), break_item.end_time)
-            if not (slot_end <= break_start or current_time >= break_end):
-                is_break = True
-                break
-        
-        if not is_break:
-            slots.append({
-                'start_time': slot_start_time,
-                'end_time': slot_end_time
-            })
-        
-        current_time = slot_end
-    
-    return slots
+    try:
+        if not is_admin(request.user):
+            return _err(get_translation('admin_access_required', lang), status.HTTP_403_FORBIDDEN)
+
+        try:
+            assignment = TeacherAssignment.objects.get(id=pk)
+            print(f"[ASSIGNMENT_FOUND] id={assignment.id}")
+        except TeacherAssignment.DoesNotExist:
+            return _err(get_translation('assignment_not_found', lang), status.HTTP_404_NOT_FOUND)
+
+        if request.method == 'GET':
+            try:
+                serializer = TeacherAssignmentSerializer(assignment)
+                return _ok(serializer.data, get_translation('assignment_retrieved', lang))
+            except Exception as e:
+                print_error(f"Error in GET assignment_detail: {str(e)}", e)
+                return _err(get_translation('database_error', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        if request.method == 'PUT':
+            try:
+                serializer = TeacherAssignmentSerializer(assignment, data=request.data, partial=True)
+                if not serializer.is_valid():
+                    print(f"[VALIDATION_ERRORS] {serializer.errors}")
+                    return _err(f"Validation failed: {', '.join([str(v) for v in serializer.errors.values()])}")
+                
+                with transaction.atomic():
+                    updated = serializer.save()
+                    print(f"[ASSIGNMENT_UPDATED] id={assignment.id}")
+                
+                _regenerate_timetable_after_change(
+                    updated.academic_year, updated.term, request.user, lang
+                )
+                
+                return _ok(
+                    serializer.data,
+                    get_translation('assignment_update_success', lang, teacher=assignment.teacher.full_name),
+                )
+                
+            except Exception as e:
+                print_error(f"Error in PUT assignment_detail: {str(e)}", e)
+                return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # DELETE method
+        try:
+            teacher_user = assignment.teacher.user
+            subj = assignment.subject.name
+            cl = assignment.class_level.name
+            academic_year = assignment.academic_year
+            term = assignment.term
+            
+            assignment.delete()
+            print(f"[ASSIGNMENT_DELETED] id={pk}, subject={subj}, class_level={cl}")
+
+            _regenerate_timetable_after_change(academic_year, term, request.user, lang)
+
+            try:
+                NotificationService.create_academic_notification(
+                    user=teacher_user,
+                    notification_type='assignment_deleted',
+                    title=get_notification_title('assignment_deleted', lang),
+                    message=get_notification_message(
+                        'assignment_deleted_notification', lang,
+                        subject=subj, class_level=cl,
+                    ),
+                    created_by=request.user,
+                    extra_data={'subject': subj},
+                    action_url='/app/teacher/assignments',
+                    priority='medium',
+                )
+            except Exception as e:
+                print_error(f"Notification failed: {str(e)}", e)
+
+            return _ok(message=get_translation('assignment_delete_success', lang))
+            
+        except Exception as e:
+            print_error(f"Error in DELETE assignment_detail: {str(e)}", e)
+            return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    except Exception as e:
+        print_error(f"Unhandled error in assignment_detail: {str(e)}", e)
+        return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ---------------------------------------------------------------------------
+# Timetable
+# ---------------------------------------------------------------------------
+
+def _regenerate_timetable_after_change(academic_year, term, user, lang):
+    """Helper - silently re-generates the timetable."""
+    try:
+        TeacherTimetable.objects.filter(academic_year=academic_year, term=term).delete()
+        entries, conflicts = generate_timetable_for_term(
+            academic_year, term, created_by=user
+        )
+        if entries:
+            TeacherTimetable.objects.bulk_create(entries)
+            print(f"[TIMETABLE_REGENERATED] {len(entries)} entries created")
+        if conflicts:
+            print(f"[TIMETABLE_CONFLICTS] {len(conflicts)} conflicts during auto-regen")
+    except Exception as e:
+        print_error(f"Error in _regenerate_timetable_after_change: {str(e)}", e)
 
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+@log_request_response
 def generate_timetable(request):
-    """
-    Generate term-based timetable for teachers based on assignments and school settings.
-    """
-    view_name = "GenerateTimetable"
-    log_request(view_name, request)
-    lang = get_request_language(request)
-    
-    if not is_admin(request.user):
-        msg = get_translation('admin_access_required', lang)
-        log_response(view_name, 403, msg)
-        return Response({'success': False, 'message': msg}, status=status.HTTP_403_FORBIDDEN)
+    lang = get_lang(request)
     
     try:
+        if not is_admin(request.user):
+            return _err(get_translation('admin_access_required', lang), status.HTTP_403_FORBIDDEN)
+
         academic_year_id = request.data.get('academic_year')
         term_id = request.data.get('term')
-        teacher_id = request.data.get('teacher_id')  # Optional: generate for specific teacher only
-        
-        print(f"[{view_name}] Generating timetable for Term ID: {term_id}, Academic Year ID: {academic_year_id}")
-        if teacher_id:
-            print(f"[{view_name}] Filtering for teacher ID: {teacher_id}")
-        
+        teacher_id = request.data.get('teacher_id')
+
         if not academic_year_id:
-            return Response({
-                'success': False,
-                'message': get_translation('academic_year_required', lang)
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
+            return _err('academic_year is required')
         if not term_id:
-            return Response({
-                'success': False,
-                'message': 'Term is required for timetable generation'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        academic_year = get_object_or_404(AcademicYear, id=academic_year_id)
-        term = get_object_or_404(Term, id=term_id, academic_year=academic_year)
-        
-        # Clear existing timetables for this term and academic year
-        timetable_filter = {
-            'academic_year': academic_year,
-            'term': term
-        }
-        if teacher_id:
-            timetable_filter['teacher_id'] = teacher_id
-        
-        deleted_count = TeacherTimetable.objects.filter(**timetable_filter).delete()[0]
-        print(f"[{view_name}] Deleted {deleted_count} existing timetable entries")
-        
-        # Get all active assignments for this term
-        assignments = TeacherAssignment.objects.filter(
-            status='active',
-            academic_year=academic_year,
-            term=term
-        ).select_related(
-            'teacher', 'school_level', 'class_level', 'subject', 'classroom'
-        )
-        
-        if teacher_id:
-            assignments = assignments.filter(teacher_id=teacher_id)
-        
-        if not assignments.exists():
-            return Response({
-                'success': False,
-                'message': get_translation('no_assignments_found', lang)
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        print(f"[{view_name}] Found {assignments.count()} active assignments")
-        
-        # Group assignments by teacher
-        assignments_by_teacher = {}
-        for assignment in assignments:
-            if assignment.teacher.id not in assignments_by_teacher:
-                assignments_by_teacher[assignment.teacher.id] = {
-                    'teacher': assignment.teacher,
-                    'assignments': [],
-                    'remaining_hours': float(assignment.teacher.work_hours_per_week)
-                }
-            assignments_by_teacher[assignment.teacher.id]['assignments'].append(assignment)
-        
-        # Generate timetable entries
-        timetable_entries = []
-        conflicts = []
-        days_of_week = [0, 1, 2, 3, 4]  # Monday to Friday (can include Saturday if needed)
-        
-        for teacher_id, teacher_data in assignments_by_teacher.items():
-            teacher = teacher_data['teacher']
-            teacher_assignments = teacher_data['assignments']
-            
-            print(f"[{view_name}] Processing teacher: {teacher.full_name}")
-            
-            for day in days_of_week:
-                # Get available time slots for each school level the teacher teaches
-                for assignment in teacher_assignments:
-                    school_level = assignment.school_level
-                    
-                    # Get available time slots for this day and school level
-                    slots = get_available_time_slots(school_level, academic_year, term, day)
-                    
-                    for slot in slots:
-                        # Check if teacher already has a class at this time on this day
-                        existing = TeacherTimetable.objects.filter(
-                            teacher=teacher,
-                            academic_year=academic_year,
-                            term=term,
-                            day_of_week=day,
-                            start_time=slot['start_time']
-                        ).exists()
-                        
-                        if existing:
-                            continue
-                        
-                        # Check if classroom is available at this time
-                        classroom_busy = TeacherTimetable.objects.filter(
-                            classroom=assignment.classroom,
-                            academic_year=academic_year,
-                            term=term,
-                            day_of_week=day,
-                            start_time__lt=slot['end_time'],
-                            end_time__gt=slot['start_time']
-                        ).exists()
-                        
-                        if classroom_busy:
-                            conflicts.append({
-                                'teacher': teacher.full_name,
-                                'classroom': assignment.classroom.name,
-                                'day': day,
-                                'time': f"{slot['start_time']} - {slot['end_time']}",
-                                'error': get_translation('classroom_conflict', lang)
-                            })
-                            continue
-                        
-                        # Create timetable entry
-                        timetable_entry = TeacherTimetable(
-                            teacher=teacher,
-                            assignment=assignment,
-                            academic_year=academic_year,
-                            term=term,
-                            day_of_week=day,
-                            start_time=slot['start_time'],
-                            end_time=slot['end_time'],
-                            week_number=1,  # Default week number
-                            subject=assignment.subject,
-                            class_level=assignment.class_level,
-                            classroom=assignment.classroom,
-                            school_level=school_level,
-                            created_by=request.user
-                        )
-                        
-                        try:
-                            timetable_entry.clean()
-                            timetable_entries.append(timetable_entry)
-                            print(f"[{view_name}] Created entry for {teacher.full_name} on day {day} at {slot['start_time']}")
-                            break  # Move to next assignment after scheduling
-                        except ValidationError as e:
-                            conflicts.append({
-                                'teacher': teacher.full_name,
-                                'day': day,
-                                'time': f"{slot['start_time']} - {slot['end_time']}",
-                                'error': str(e)
-                            })
-        
-        # Bulk create timetable entries
-        if timetable_entries:
-            TeacherTimetable.objects.bulk_create(timetable_entries)
-            print(f"[{view_name}] Successfully created {len(timetable_entries)} timetable entries")
-        
-        # Create notification
+            return _err('term is required')
+
         try:
-            title = get_notification_title('timetable_generated', lang)
-            message = get_notification_message('timetable_generated_notification', lang, week=1)
-            
-            # Notify admin
-            NotificationService.create_academic_notification(
-                user=request.user,
-                notification_type='timetable_generated',
-                title=title,
-                message=message,
+            academic_year = AcademicYear.objects.get(id=academic_year_id)
+            print(f"[ACADEMIC_YEAR_FOUND] id={academic_year.id}, name={academic_year.name}")
+        except AcademicYear.DoesNotExist:
+            return _err(get_translation('academic_year_not_found', lang), status.HTTP_404_NOT_FOUND)
+
+        try:
+            term = Term.objects.get(id=term_id, academic_year=academic_year)
+            print(f"[TERM_FOUND] id={term.id}, name={term.name}")
+        except Term.DoesNotExist:
+            return _err(get_translation('term_not_found', lang), status.HTTP_404_NOT_FOUND)
+
+        teacher_filter = None
+        if teacher_id:
+            try:
+                teacher_filter = Teacher.objects.get(id=teacher_id)
+                print(f"[TEACHER_FILTER] id={teacher_filter.id}, name={teacher_filter.full_name}")
+            except Teacher.DoesNotExist:
+                return _err(get_translation('teacher_not_found', lang), status.HTTP_404_NOT_FOUND)
+
+        try:
+            del_filter = {'academic_year': academic_year, 'term': term}
+            if teacher_filter:
+                del_filter['teacher'] = teacher_filter
+            deleted = TeacherTimetable.objects.filter(**del_filter).delete()[0]
+            print(f"[TIMETABLE_DELETED] {deleted} old entries")
+
+            entries, conflicts = generate_timetable_for_term(
+                academic_year, term,
+                teacher_filter=teacher_filter,
                 created_by=request.user,
-                extra_data={
+            )
+
+            if entries:
+                TeacherTimetable.objects.bulk_create(entries)
+                print(f"[TIMETABLE_CREATED] {len(entries)} entries")
+
+            try:
+                title = get_notification_title('timetable_generated', lang)
+                NotificationService.create_academic_notification(
+                    user=request.user,
+                    notification_type='timetable_generated',
+                    title=title,
+                    message=get_notification_message('timetable_generated_notification', lang, week=1),
+                    created_by=request.user,
+                    extra_data={
+                        'academic_year': academic_year.name,
+                        'term': term.name,
+                        'entries_count': len(entries),
+                    },
+                    action_url='/app/timetable',
+                    priority='medium',
+                )
+                
+                notified = set()
+                for e in entries:
+                    if e.teacher.user_id not in notified:
+                        NotificationService.create_academic_notification(
+                            user=e.teacher.user,
+                            notification_type='timetable_generated',
+                            title=title,
+                            message=get_notification_message('timetable_generated_notification', lang, week=1),
+                            created_by=request.user,
+                            extra_data={},
+                            action_url='/app/teacher/timetable',
+                            priority='high',
+                        )
+                        notified.add(e.teacher.user_id)
+                        print(f"[NOTIFICATION_SENT] to teacher_id={e.teacher.user_id}")
+            except Exception as e:
+                print_error(f"Notification failed: {str(e)}", e)
+
+            return _ok(
+                {
+                    'total_entries': len(entries),
+                    'conflicts': conflicts,
+                    'conflicts_count': len(conflicts),
                     'academic_year': academic_year.name,
                     'term': term.name,
-                    'entries_count': len(timetable_entries)
                 },
-                action_url='/app/timetable',
-                priority='medium'
+                get_translation('timetable_generate_success', lang, week=1),
             )
             
-            # Notify all teachers who got timetable entries
-            notified_teachers = set()
-            for entry in timetable_entries:
-                if entry.teacher.user.id not in notified_teachers:
-                    NotificationService.create_academic_notification(
-                        user=entry.teacher.user,
-                        notification_type='timetable_generated',
-                        title=get_notification_title('timetable_generated', lang),
-                        message=get_notification_message('timetable_generated_notification', lang, week=1),
-                        created_by=request.user,
-                        extra_data={},
-                        action_url='/app/teacher/timetable',
-                        priority='high'
-                    )
-                    notified_teachers.add(entry.teacher.user.id)
         except Exception as e:
-            print(f"[{view_name}] WARNING: Failed to create notifications: {str(e)}")
-        
-        result = {
-            'total_entries': len(timetable_entries),
-            'conflicts': conflicts,
-            'conflicts_count': len(conflicts),
-            'academic_year': academic_year.name,
-            'term': term.name,
-            'teacher_filter': teacher_id if teacher_id else 'all'
-        }
-        
-        msg = get_translation('timetable_generate_success', lang, week=1)
-        log_response(view_name, 200, msg)
-        return Response({
-            'success': True,
-            'data': result,
-            'message': msg
-        })
-        
+            print_error(f"Error generating timetable: {str(e)}", e)
+            return _err(get_translation('timetable_generate_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     except Exception as e:
-        traceback.print_exc()
-        return handle_api_exception(e, view_name, "generate", lang, 'timetable_generate_failed')
+        print_error(f"Unhandled error in generate_timetable: {str(e)}", e)
+        return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+@log_request_response
 def get_teacher_timetable(request, teacher_id=None):
-    """
-    Get term-based timetable for teachers.
-    """
-    view_name = "GetTeacherTimetable"
-    log_request(view_name, request)
-    lang = get_request_language(request)
-    
+    lang = get_lang(request)
+
     try:
         academic_year_id = request.query_params.get('academic_year')
         term_id = request.query_params.get('term')
-        day_filter = request.query_params.get('day')  # Optional: filter by day (0-6)
-        
-        # Determine which teacher(s) to show
-        if is_admin(request.user):
-            if teacher_id:
-                teacher = get_object_or_404(Teacher, id=teacher_id)
-                teachers = [teacher]
-                print(f"[{view_name}] Admin viewing timetable for teacher: {teacher.full_name}")
+        day_filter = request.query_params.get('day')
+        url_teacher_id = teacher_id or request.query_params.get('teacher_id')
+
+        try:
+            if academic_year_id:
+                academic_year = AcademicYear.objects.get(id=academic_year_id)
+                print(f"[ACADEMIC_YEAR] id={academic_year.id}, name={academic_year.name}")
             else:
-                teachers = Teacher.objects.filter(status='active')
-                print(f"[{view_name}] Admin viewing timetable for all {teachers.count()} teachers")
+                academic_year = AcademicYear.objects.filter(is_current=True).first()
+                if not academic_year:
+                    return _ok({
+                        'timetables': [], 'academic_year': None, 'term': None,
+                        'days_of_week': _day_names(),
+                        'message': 'No current academic year. Please select one.',
+                    }, get_translation('academic_year_not_found', lang))
+        except AcademicYear.DoesNotExist:
+            return _err(get_translation('academic_year_not_found', lang), status.HTTP_404_NOT_FOUND)
+
+        try:
+            if term_id:
+                term = Term.objects.get(id=term_id, academic_year=academic_year)
+                print(f"[TERM] id={term.id}, name={term.name}")
+            else:
+                term = Term.objects.filter(academic_year=academic_year, is_current=True).first()
+                if not term:
+                    return _ok({
+                        'timetables': [],
+                        'academic_year': {'id': academic_year.id, 'name': academic_year.name},
+                        'term': None,
+                        'days_of_week': _day_names(),
+                        'message': 'No current term. Please select one.',
+                    }, get_translation('term_not_found', lang))
+        except Term.DoesNotExist:
+            return _err(get_translation('term_not_found', lang), status.HTTP_404_NOT_FOUND)
+
+        if is_admin(request.user):
+            if url_teacher_id:
+                try:
+                    teachers = [Teacher.objects.get(id=url_teacher_id)]
+                    print(f"[TEACHER_FILTER] id={url_teacher_id}")
+                except Teacher.DoesNotExist:
+                    return _err(get_translation('teacher_not_found', lang), status.HTTP_404_NOT_FOUND)
+            else:
+                teachers = list(Teacher.objects.filter(status='active'))
+                print(f"[TEACHERS_COUNT] {len(teachers)} active teachers")
         else:
             if not is_teacher(request.user):
-                return Response({'success': False, 'message': get_translation('teacher_access_required', lang)}, status=status.HTTP_403_FORBIDDEN)
-            teacher = get_object_or_404(Teacher, user=request.user)
-            teachers = [teacher]
-            print(f"[{view_name}] Teacher viewing own timetable: {teacher.full_name}")
-        
-        # Get academic year and term
-        if academic_year_id:
-            academic_year = get_object_or_404(AcademicYear, id=academic_year_id)
-        else:
-            academic_year = AcademicYear.objects.filter(is_current=True).first()
-            if not academic_year:
-                return Response({
-                    'success': False,
-                    'message': 'No current academic year found. Please specify an academic year.'
-                }, status=status.HTTP_400_BAD_REQUEST)
-        
-        if term_id:
-            term = get_object_or_404(Term, id=term_id, academic_year=academic_year)
-        else:
-            term = Term.objects.filter(academic_year=academic_year, is_current=True).first()
-            if not term:
-                return Response({
-                    'success': False,
-                    'message': 'No current term found. Please specify a term.'
-                }, status=status.HTTP_400_BAD_REQUEST)
-        
-        print(f"[{view_name}] Academic Year: {academic_year.name}, Term: {term.name}")
-        
-        # Build the timetable data for all teachers
+                return _err(get_translation('teacher_access_required', lang), status.HTTP_403_FORBIDDEN)
+            try:
+                teachers = [Teacher.objects.get(user=request.user)]
+            except Teacher.DoesNotExist:
+                return _err(get_translation('teacher_not_found', lang), status.HTTP_404_NOT_FOUND)
+
+        days = _day_names()
         all_timetables = []
-        days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-        
+
         for teacher in teachers:
-            # Get timetable entries for this teacher
-            queryset = TeacherTimetable.objects.filter(
-                teacher=teacher,
-                term=term,
-                academic_year=academic_year
-            ).order_by('day_of_week', 'start_time')
-            
-            if day_filter is not None:
-                queryset = queryset.filter(day_of_week=int(day_filter))
-            
-            serializer = TeacherTimetableSerializer(queryset, many=True)
-            
-            # Group by day
-            grouped_timetable = {day: [] for day in days}
-            for entry in serializer.data:
-                day_name = days[entry['day_of_week']] if entry['day_of_week'] < len(days) else str(entry['day_of_week'])
-                grouped_timetable[day_name].append(entry)
-            
-            # Calculate teacher's weekly hours
-            total_hours = sum(
-                (datetime.combine(date.today(), datetime.strptime(entry['end_time'], '%H:%M:%S').time()) - 
-                 datetime.combine(date.today(), datetime.strptime(entry['start_time'], '%H:%M:%S').time())).seconds / 3600
-                for entry in serializer.data if entry.get('start_time') and entry.get('end_time')
-            )
-            
-            teacher_data = {
-                'teacher': TeacherSerializer(teacher, context={'request': request}).data,
-                'timetable': grouped_timetable,
-                'total_weekly_hours': round(total_hours, 1),
-                'total_entries': len(serializer.data)
-            }
-            
-            all_timetables.append(teacher_data)
-        
-        # Get holidays for the term
-        holidays = []
-        # You can add holiday filtering logic here
-        
+            try:
+                qs = TeacherTimetable.objects.filter(
+                    teacher=teacher, term=term, academic_year=academic_year
+                ).order_by('day_of_week', 'start_time')
+
+                if day_filter is not None:
+                    try:
+                        qs = qs.filter(day_of_week=int(day_filter))
+                        print(f"[DAY_FILTER] {day_filter}")
+                    except ValueError:
+                        pass
+
+                serializer = TeacherTimetableSerializer(qs, many=True)
+                grouped = {d: [] for d in days}
+                for entry in serializer.data:
+                    d_name = days[entry['day_of_week']] if entry['day_of_week'] < len(days) else str(entry['day_of_week'])
+                    grouped[d_name].append(entry)
+
+                total_mins = sum(e['duration_minutes'] for e in serializer.data if e.get('duration_minutes'))
+                all_timetables.append({
+                    'teacher': TeacherSerializer(teacher, context={'request': request}).data,
+                    'timetable': grouped,
+                    'total_weekly_hours': round(total_mins / 60, 1),
+                    'total_entries': len(serializer.data),
+                })
+            except Exception as e:
+                print_error(f"Error processing teacher {teacher.id}: {str(e)}", e)
+
         result = {
             'timetables': all_timetables,
-            'academic_year': {
-                'id': academic_year.id,
-                'name': academic_year.name
-            },
-            'term': {
-                'id': term.id,
-                'name': term.name
-            },
-            'holidays': holidays,
-            'days_of_week': days
+            'academic_year': {'id': academic_year.id, 'name': academic_year.name},
+            'term': {'id': term.id, 'name': term.name},
+            'days_of_week': days,
         }
-        
-        # Add summary statistics for admin view
-        if is_admin(request.user) and not teacher_id:
-            total_teachers = len(teachers)
-            teachers_with_timetable = len([t for t in all_timetables if t['total_entries'] > 0])
-            total_entries = sum(t['total_entries'] for t in all_timetables)
-            
+
+        if is_admin(request.user) and not url_teacher_id:
+            total_t = len(teachers)
+            with_tt = sum(1 for t in all_timetables if t['total_entries'] > 0)
+            total_e = sum(t['total_entries'] for t in all_timetables)
             result['summary'] = {
-                'total_teachers': total_teachers,
-                'teachers_with_timetable': teachers_with_timetable,
-                'teachers_without_timetable': total_teachers - teachers_with_timetable,
-                'total_timetable_entries': total_entries,
-                'average_entries_per_teacher': round(total_entries / total_teachers, 1) if total_teachers > 0 else 0
+                'total_teachers': total_t,
+                'teachers_with_timetable': with_tt,
+                'teachers_without_timetable': total_t - with_tt,
+                'total_timetable_entries': total_e,
+                'average_entries_per_teacher': round(total_e / total_t, 1) if total_t else 0,
             }
-        
-        log_response(view_name, 200, "Timetable retrieved successfully")
-        return Response({'success': True, 'data': result})
-        
+
+        return _ok(result, get_translation('timetable_retrieved', lang))
+
     except Exception as e:
-        traceback.print_exc()
-        return handle_api_exception(e, view_name, "get_timetable", lang, 'database_error')
+        print_error(f"Unhandled error in get_teacher_timetable: {str(e)}", e)
+        return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+@log_request_response
 def export_teacher_timetable(request, teacher_id=None):
-    """
-    Export timetable for a teacher in a formatted way.
-    """
-    view_name = "ExportTeacherTimetable"
-    log_request(view_name, request)
-    lang = get_request_language(request)
+    lang = get_lang(request)
     
     try:
         academic_year_id = request.query_params.get('academic_year')
         term_id = request.query_params.get('term')
-        
-        # Determine which teacher
+
         if teacher_id:
             if not is_admin(request.user):
-                return Response({'success': False, 'message': get_translation('admin_access_required', lang)}, status=status.HTTP_403_FORBIDDEN)
-            teacher = get_object_or_404(Teacher, id=teacher_id)
+                return _err(get_translation('admin_access_required', lang), status.HTTP_403_FORBIDDEN)
+            try:
+                teacher = Teacher.objects.get(id=teacher_id)
+                print(f"[TEACHER_FOUND] id={teacher.id}, name={teacher.full_name}")
+            except Teacher.DoesNotExist:
+                return _err(get_translation('teacher_not_found', lang), status.HTTP_404_NOT_FOUND)
         else:
             if not is_teacher(request.user):
-                return Response({'success': False, 'message': get_translation('teacher_access_required', lang)}, status=status.HTTP_403_FORBIDDEN)
-            teacher = get_object_or_404(Teacher, user=request.user)
-        
-        # Get academic year and term
-        if academic_year_id:
-            academic_year = get_object_or_404(AcademicYear, id=academic_year_id)
-        else:
-            academic_year = AcademicYear.objects.filter(is_current=True).first()
-            if not academic_year:
-                return Response({'success': False, 'message': 'No current academic year found'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        if term_id:
-            term = get_object_or_404(Term, id=term_id, academic_year=academic_year)
-        else:
-            term = Term.objects.filter(academic_year=academic_year, is_current=True).first()
-            if not term:
-                return Response({'success': False, 'message': 'No current term found'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Get timetable entries
-        queryset = TeacherTimetable.objects.filter(
-            teacher=teacher,
-            term=term,
-            academic_year=academic_year
+                return _err(get_translation('teacher_access_required', lang), status.HTTP_403_FORBIDDEN)
+            try:
+                teacher = Teacher.objects.get(user=request.user)
+            except Teacher.DoesNotExist:
+                return _err(get_translation('teacher_not_found', lang), status.HTTP_404_NOT_FOUND)
+
+        try:
+            if academic_year_id:
+                academic_year = AcademicYear.objects.get(id=academic_year_id)
+            else:
+                academic_year = AcademicYear.objects.filter(is_current=True).first()
+                if not academic_year:
+                    return _err('No current academic year found')
+        except AcademicYear.DoesNotExist:
+            return _err(get_translation('academic_year_not_found', lang), status.HTTP_404_NOT_FOUND)
+
+        try:
+            if term_id:
+                term = Term.objects.get(id=term_id, academic_year=academic_year)
+            else:
+                term = Term.objects.filter(academic_year=academic_year, is_current=True).first()
+                if not term:
+                    return _err('No current term found')
+        except Term.DoesNotExist:
+            return _err(get_translation('term_not_found', lang), status.HTTP_404_NOT_FOUND)
+
+        qs = TeacherTimetable.objects.filter(
+            teacher=teacher, term=term, academic_year=academic_year
         ).order_by('day_of_week', 'start_time')
-        
-        serializer = TeacherTimetableSerializer(queryset, many=True)
-        
-        # Format for export
-        days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-        export_data = {
+
+        days = _day_names()
+        rows = []
+        for entry in TeacherTimetableSerializer(qs, many=True).data:
+            rows.append({
+                'day': days[entry['day_of_week']] if entry['day_of_week'] < len(days) else str(entry['day_of_week']),
+                'start_time': entry['start_time'],
+                'end_time': entry['end_time'],
+                'duration_minutes': entry['duration_minutes'],
+                'subject': entry['subject_name'],
+                'class_level': entry['class_level_name'],
+                'classroom': entry['classroom_name'],
+                'school_level': entry['school_level_name'],
+            })
+
+        data = {
             'teacher': TeacherSerializer(teacher, context={'request': request}).data,
             'academic_year': academic_year.name,
             'term': term.name,
             'generated_on': timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'timetable': []
+            'timetable': rows,
         }
         
-        for entry in serializer.data:
-            day_name = days[entry['day_of_week']] if entry['day_of_week'] < len(days) else str(entry['day_of_week'])
-            export_data['timetable'].append({
-                'day': day_name,
-                'start_time': entry['start_time'],
-                'end_time': entry['end_time'],
-                'subject': entry['subject_name'],
-                'class_level': entry['class_level_name'],
-                'classroom': entry['classroom_name'],
-                'school_level': entry['school_level_name']
-            })
-        
-        log_response(view_name, 200, "Timetable exported successfully")
-        return Response({'success': True, 'data': export_data})
-        
+        return _ok(data, get_translation('timetable_exported', lang))
+
     except Exception as e:
-        traceback.print_exc()
-        return handle_api_exception(e, view_name, "export_timetable", lang, 'database_error')
+        print_error(f"Unhandled error in export_teacher_timetable: {str(e)}", e)
+        return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-# ==================== TEACHER REPORT ====================
+# ---------------------------------------------------------------------------
+# Teacher report
+# ---------------------------------------------------------------------------
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+@log_request_response
 def teacher_report(request):
-    """
-    Generate comprehensive report about teachers, assignments, and timetables.
-    """
-    view_name = "TeacherReport"
-    log_request(view_name, request)
-    lang = get_request_language(request)
-    
-    if not is_admin(request.user):
-        msg = get_translation('admin_access_required', lang)
-        log_response(view_name, 403, msg)
-        return Response({'success': False, 'message': msg}, status=status.HTTP_403_FORBIDDEN)
+    lang = get_lang(request)
     
     try:
-        academic_year_id = request.query_params.get('academic_year')
-        term_id = request.query_params.get('term')
-        
-        # Get academic year and term
-        if academic_year_id:
-            academic_year = get_object_or_404(AcademicYear, id=academic_year_id)
-        else:
-            academic_year = AcademicYear.objects.filter(is_current=True).first()
-        
-        if term_id and academic_year:
-            term = get_object_or_404(Term, id=term_id, academic_year=academic_year)
-        elif academic_year:
-            term = Term.objects.filter(academic_year=academic_year, is_current=True).first()
-        else:
+        if not is_admin(request.user):
+            return _err(get_translation('admin_access_required', lang), status.HTTP_403_FORBIDDEN)
+
+        try:
+            academic_year_id = request.query_params.get('academic_year')
+            term_id = request.query_params.get('term')
+
+            academic_year = (
+                AcademicYear.objects.get(id=academic_year_id)
+                if academic_year_id
+                else AcademicYear.objects.filter(is_current=True).first()
+            )
+            
             term = None
-        
-        # Teacher statistics
-        total_teachers = Teacher.objects.count()
-        active_teachers = Teacher.objects.filter(status='active').count()
-        inactive_teachers = Teacher.objects.filter(status='inactive').count()
-        on_leave_teachers = Teacher.objects.filter(status='on_leave').count()
-        
-        # Assignment statistics
-        assignment_stats = {}
-        if academic_year and term:
-            total_assignments = TeacherAssignment.objects.filter(
-                academic_year=academic_year,
-                term=term,
-                status='active'
-            ).count()
+            if academic_year:
+                term = (
+                    Term.objects.get(id=term_id, academic_year=academic_year)
+                    if term_id
+                    else Term.objects.filter(academic_year=academic_year, is_current=True).first()
+                )
+
+            total = Teacher.objects.count()
+            active = Teacher.objects.filter(status='active').count()
             
-            teachers_with_assignments = TeacherAssignment.objects.filter(
-                academic_year=academic_year,
-                term=term,
-                status='active'
-            ).values('teacher').distinct().count()
-            
-            assignment_stats = {
-                'total_assignments': total_assignments,
-                'teachers_with_assignments': teachers_with_assignments,
-                'teachers_without_assignments': active_teachers - teachers_with_assignments
+            report = {
+                'summary': {
+                    'total_teachers': total,
+                    'active_teachers': active,
+                    'inactive_teachers': Teacher.objects.filter(status='inactive').count(),
+                    'on_leave_teachers': Teacher.objects.filter(status='on_leave').count(),
+                    'active_percentage': round(active / total * 100, 1) if total else 0,
+                },
+                'gender_distribution': {
+                    g: Teacher.objects.filter(gender=g).count()
+                    for g in ('male', 'female', 'other')
+                },
+                'education_distribution': {
+                    label: Teacher.objects.filter(education_level=code).count()
+                    for code, label in Teacher.EducationLevel.choices
+                    if Teacher.objects.filter(education_level=code).exists()
+                },
             }
+
+            if academic_year and term:
+                active_assignments = TeacherAssignment.objects.filter(
+                    academic_year=academic_year, term=term, status='active'
+                )
+                teachers_with_asn = active_assignments.values('teacher').distinct().count()
+                report['assignment_stats'] = {
+                    'total_assignments': active_assignments.count(),
+                    'teachers_with_assignments': teachers_with_asn,
+                    'teachers_without_assignments': active - teachers_with_asn,
+                    'timetable_entries': TeacherTimetable.objects.filter(
+                        academic_year=academic_year, term=term
+                    ).count(),
+                }
+                report['academic_year'] = {'id': academic_year.id, 'name': academic_year.name}
+                report['term'] = {'id': term.id, 'name': term.name}
+
+            from django.db.models import Count
+            top_spec = Subject.objects.annotate(
+                tc=Count('specialized_teachers')
+            ).filter(tc__gt=0).order_by('-tc')[:10]
+            report['top_specializations'] = [
+                {'subject': s.name, 'teacher_count': s.tc} for s in top_spec
+            ]
+
+            return _ok(report, get_translation('report_generated', lang))
             
-            # Timetable statistics
-            timetable_entries = TeacherTimetable.objects.filter(
-                academic_year=academic_year,
-                term=term
-            ).count()
-            
-            assignment_stats['timetable_entries'] = timetable_entries
-        
-        # Gender distribution
-        gender_distribution = {
-            'male': Teacher.objects.filter(gender='male').count(),
-            'female': Teacher.objects.filter(gender='female').count(),
-            'other': Teacher.objects.filter(gender='other').count()
-        }
-        
-        # Education level distribution
-        education_distribution = {}
-        for level in Teacher.EducationLevel.choices:
-            count = Teacher.objects.filter(education_level=level[0]).count()
-            if count > 0:
-                education_distribution[level[1]] = count
-        
-        # Specializations (most common subjects)
-        specialization_stats = []
-        from django.db.models import Count
-        specializations = Subject.objects.annotate(
-            teacher_count=Count('specialized_teachers')
-        ).filter(teacher_count__gt=0).order_by('-teacher_count')[:10]
-        
-        for subject in specializations:
-            specialization_stats.append({
-                'subject': subject.name,
-                'teacher_count': subject.teacher_count
-            })
-        
-        report_data = {
-            'summary': {
-                'total_teachers': total_teachers,
-                'active_teachers': active_teachers,
-                'inactive_teachers': inactive_teachers,
-                'on_leave_teachers': on_leave_teachers,
-                'active_percentage': round((active_teachers / total_teachers * 100), 1) if total_teachers > 0 else 0
-            },
-            'gender_distribution': gender_distribution,
-            'education_distribution': education_distribution,
-            'top_specializations': specialization_stats,
-        }
-        
-        if assignment_stats:
-            report_data['assignment_stats'] = assignment_stats
-        
-        if academic_year:
-            report_data['academic_year'] = {
-                'id': academic_year.id,
-                'name': academic_year.name
-            }
-        
-        if term:
-            report_data['term'] = {
-                'id': term.id,
-                'name': term.name
-            }
-        
-        log_response(view_name, 200, "Report generated successfully")
-        return Response({'success': True, 'data': report_data})
-        
+        except Exception as e:
+            print_error(f"Error generating report: {str(e)}", e)
+            return _err(get_translation('database_error', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     except Exception as e:
-        traceback.print_exc()
-        return handle_api_exception(e, view_name, "generate_report", lang, 'database_error')
-    
-    
-    
+        print_error(f"Unhandled error in teacher_report: {str(e)}", e)
+        return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-# ==================== HOLIDAY CRUD ====================
-from academics.models import Holiday
-from academics.serializers import HolidaySerializer
+# ---------------------------------------------------------------------------
+# Holidays
+# ---------------------------------------------------------------------------
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
+@log_request_response
 def holiday_list_create(request):
-    """List holidays or create a new holiday"""
-    view_name = "HolidayListCreate"
-    log_request(view_name, request)
-    lang = get_request_language(request)
-    
-    if request.method == 'GET':
+    lang = get_lang(request)
+
+    try:
+        if request.method == 'GET':
+            try:
+                qs = Holiday.objects.select_related('school_level', 'academic_year')
+                filters = []
+                
+                for param, field in [
+                    ('academic_year', 'academic_year_id'),
+                    ('school_level', 'school_level_id'),
+                ]:
+                    val = request.query_params.get(param)
+                    if val:
+                        qs = qs.filter(**{field: val})
+                        filters.append(f"{param}={val}")
+                
+                is_rec = request.query_params.get('is_recurring')
+                if is_rec is not None:
+                    qs = qs.filter(is_recurring=is_rec.lower() == 'true')
+                    filters.append(f"is_recurring={is_rec}")
+                
+                start = request.query_params.get('start_date')
+                if start:
+                    qs = qs.filter(date__gte=start)
+                    filters.append(f"start_date={start}")
+                
+                end = request.query_params.get('end_date')
+                if end:
+                    qs = qs.filter(date__lte=end)
+                    filters.append(f"end_date={end}")
+                
+                if filters:
+                    print(f"[FILTERS] {', '.join(filters)}")
+                
+                serializer = HolidaySerializer(qs, many=True)
+                return _ok(serializer.data, get_translation('holidays_retrieved', lang))
+                
+            except Exception as e:
+                print_error(f"Error in GET holiday_list_create: {str(e)}", e)
+                return _err(get_translation('database_error', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # POST method
         try:
-            queryset = Holiday.objects.all().select_related('school_level', 'academic_year')
-            
-            # Apply filters
-            academic_year_id = request.query_params.get('academic_year')
-            if academic_year_id:
-                queryset = queryset.filter(academic_year_id=academic_year_id)
-            
-            school_level_id = request.query_params.get('school_level')
-            if school_level_id:
-                queryset = queryset.filter(school_level_id=school_level_id)
-            
-            is_recurring = request.query_params.get('is_recurring')
-            if is_recurring:
-                queryset = queryset.filter(is_recurring=is_recurring.lower() == 'true')
-            
-            # Filter by date range
-            start_date = request.query_params.get('start_date')
-            if start_date:
-                queryset = queryset.filter(date__gte=start_date)
-            
-            end_date = request.query_params.get('end_date')
-            if end_date:
-                queryset = queryset.filter(date__lte=end_date)
-            
-            serializer = HolidaySerializer(queryset, many=True)
-            log_response(view_name, 200, f"{queryset.count()} holiday(s) retrieved successfully")
-            return Response({'success': True, 'data': serializer.data})
-            
-        except Exception as e:
-            log_error(view_name, "GET database query", e, lang)
-            return Response({
-                'success': False, 
-                'message': get_translation('database_error', lang)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
-    elif request.method == 'POST':
-        if not is_admin(request.user):
-            msg = get_translation('admin_access_required', lang)
-            log_response(view_name, 403, msg)
-            return Response({'success': False, 'message': msg}, status=status.HTTP_403_FORBIDDEN)
-        
-        try:
-            print(f"[{view_name}] Validating holiday data...")
+            if not is_admin(request.user):
+                return _err(get_translation('admin_access_required', lang), status.HTTP_403_FORBIDDEN)
+
             serializer = HolidaySerializer(data=request.data)
+            if not serializer.is_valid():
+                print(f"[VALIDATION_ERRORS] {serializer.errors}")
+                return _err(f"Validation failed: {', '.join([str(v) for v in serializer.errors.values()])}")
             
-            if serializer.is_valid():
-                with transaction.atomic():
-                    holiday = serializer.save()
-                
-                print(f"[{view_name}] Holiday created successfully: {holiday.name}")
-                
-                # Create notification for admin
-                try:
-                    title = get_notification_title('holiday_created', lang)
-                    message = get_notification_message('holiday_created_notification', lang, name=holiday.name)
-                    NotificationService.create_academic_notification(
-                        user=request.user,
-                        notification_type='holiday_created',
-                        title=title,
-                        message=message,
-                        created_by=request.user,
-                        extra_data={'holiday_id': holiday.id, 'holiday_name': holiday.name},
-                        action_url='/app/holidays',
-                        priority='medium'
-                    )
-                except Exception as e:
-                    print(f"[{view_name}] WARNING: Failed to create notification: {str(e)}")
-                
-                msg = get_translation('holiday_create_success', lang, name=holiday.name)
-                log_response(view_name, 201, msg)
-                return Response({'success': True, 'data': serializer.data, 'message': msg}, status=status.HTTP_201_CREATED)
-            else:
-                print(f"[{view_name}] Validation FAILED! Errors: {serializer.errors}")
-                return Response({
-                    'success': False, 
-                    'errors': serializer.errors, 
-                    'message': get_translation('validation_failed', lang)
-                }, status=status.HTTP_400_BAD_REQUEST)
-                
-        except IntegrityError as e:
-            log_error(view_name, "create_integrity", e, lang)
-            return Response({
-                'success': False, 
-                'message': get_translation('integrity_error', lang)
-            }, status=status.HTTP_400_BAD_REQUEST)
+            with transaction.atomic():
+                holiday = serializer.save()
+                print(f"[HOLIDAY_CREATED] id={holiday.id}, name={holiday.name}, date={holiday.date}")
+            
+            return _ok(
+                serializer.data,
+                get_translation('holiday_create_success', lang, name=holiday.name),
+                status.HTTP_201_CREATED,
+            )
+            
         except Exception as e:
-            log_error(view_name, "create", e, lang)
-            return Response({
-                'success': False, 
-                'message': get_translation('operation_failed', lang)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            print_error(f"Error in POST holiday_list_create: {str(e)}", e)
+            return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    except Exception as e:
+        print_error(f"Unhandled error in holiday_list_create: {str(e)}", e)
+        return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([IsAuthenticated])
+@log_request_response
 def holiday_detail(request, pk):
-    """Get, update or delete a specific holiday"""
-    view_name = "HolidayDetail"
-    log_request(view_name, request, extra_data={"holiday_id": pk})
-    lang = get_request_language(request)
+    lang = get_lang(request)
     
     try:
-        holiday = get_object_or_404(Holiday, id=pk)
-    except Exception as e:
-        return Response({
-            'success': False, 
-            'message': get_translation('holiday_not_found', lang)
-        }, status=status.HTTP_404_NOT_FOUND)
-    
-    if request.method == 'GET':
-        try:
+        holiday = Holiday.objects.get(id=pk)
+        print(f"[HOLIDAY_FOUND] id={holiday.id}, name={holiday.name}")
+    except Holiday.DoesNotExist:
+        return _err(get_translation('holiday_not_found', lang), status.HTTP_404_NOT_FOUND)
+
+    try:
+        if request.method == 'GET':
             serializer = HolidaySerializer(holiday)
-            return Response({'success': True, 'data': serializer.data})
-        except Exception as e:
-            log_error(view_name, "serialization", e, lang)
-            return Response({
-                'success': False, 
-                'message': get_translation('database_error', lang)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
-    elif request.method == 'PUT':
+            return _ok(serializer.data, get_translation('holiday_retrieved', lang))
+
         if not is_admin(request.user):
-            msg = get_translation('admin_access_required', lang)
-            return Response({'success': False, 'message': msg}, status=status.HTTP_403_FORBIDDEN)
-        
-        try:
-            serializer = HolidaySerializer(holiday, data=request.data, partial=True)
-            if serializer.is_valid():
-                with transaction.atomic():
-                    updated_holiday = serializer.save()
+            return _err(get_translation('admin_access_required', lang), status.HTTP_403_FORBIDDEN)
+
+        if request.method == 'PUT':
+            try:
+                serializer = HolidaySerializer(holiday, data=request.data, partial=True)
+                if not serializer.is_valid():
+                    print(f"[VALIDATION_ERRORS] {serializer.errors}")
+                    return _err(f"Validation failed: {', '.join([str(v) for v in serializer.errors.values()])}")
                 
-                msg = get_translation('holiday_update_success', lang, name=updated_holiday.name)
-                return Response({'success': True, 'data': serializer.data, 'message': msg})
-            else:
-                return Response({
-                    'success': False, 
-                    'errors': serializer.errors, 
-                    'message': get_translation('validation_failed', lang)
-                }, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            log_error(view_name, "update", e, lang)
-            return Response({
-                'success': False, 
-                'message': get_translation('operation_failed', lang)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
-    elif request.method == 'DELETE':
-        if not is_admin(request.user):
-            msg = get_translation('admin_access_required', lang)
-            return Response({'success': False, 'message': msg}, status=status.HTTP_403_FORBIDDEN)
-        
+                with transaction.atomic():
+                    updated = serializer.save()
+                    print(f"[HOLIDAY_UPDATED] id={pk}, name={updated.name}")
+                
+                return _ok(serializer.data, get_translation('holiday_update_success', lang, name=updated.name))
+                
+            except Exception as e:
+                print_error(f"Error in PUT holiday_detail: {str(e)}", e)
+                return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # DELETE method
         try:
-            holiday_name = holiday.name
+            name = holiday.name
             holiday.delete()
+            print(f"[HOLIDAY_DELETED] id={pk}, name={name}")
+            return _ok(message=get_translation('holiday_delete_success', lang, name=name))
             
-            msg = get_translation('holiday_delete_success', lang, name=holiday_name)
-            return Response({'success': True, 'message': msg})
         except Exception as e:
-            log_error(view_name, "delete", e, lang)
-            return Response({
-                'success': False, 
-                'message': get_translation('operation_failed', lang)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            print_error(f"Error in DELETE holiday_detail: {str(e)}", e)
+            return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    except Exception as e:
+        print_error(f"Unhandled error in holiday_detail: {str(e)}", e)
+        return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
+@log_request_response
 def holiday_delete(request, pk):
-    """Delete a holiday (alias for consistency)"""
-    return holiday_detail(request, pk)
+    lang = get_lang(request)
+    
+    try:
+        holiday = Holiday.objects.get(id=pk)
+        print(f"[HOLIDAY_FOUND] id={holiday.id}, name={holiday.name}")
+    except Holiday.DoesNotExist:
+        return _err(get_translation('holiday_not_found', lang), status.HTTP_404_NOT_FOUND)
+
+    try:
+        if not is_admin(request.user):
+            return _err(get_translation('admin_access_required', lang), status.HTTP_403_FORBIDDEN)
+
+        name = holiday.name
+        holiday.delete()
+        print(f"[HOLIDAY_DELETED] id={pk}, name={name}")
+        return _ok(message=get_translation('holiday_delete_success', lang, name=name))
+        
+    except Exception as e:
+        print_error(f"Error in holiday_delete: {str(e)}", e)
+        return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-# ==================== SCHOOL DAY SETTINGS (if missing) ====================
+# ---------------------------------------------------------------------------
+# School Day Settings
+# ---------------------------------------------------------------------------
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
+@log_request_response
 def day_setting_list_create(request):
-    """List school day settings or create a new one"""
-    view_name = "DaySettingListCreate"
-    log_request(view_name, request)
-    lang = get_request_language(request)
-    
-    if request.method == 'GET':
-        try:
-            from academics.models import SchoolDaySetting
-            queryset = SchoolDaySetting.objects.all().select_related('school_level', 'academic_year')
-            
-            # Apply filters
-            school_level_id = request.query_params.get('school_level')
-            if school_level_id:
-                queryset = queryset.filter(school_level_id=school_level_id)
-            
-            academic_year_id = request.query_params.get('academic_year')
-            if academic_year_id:
-                queryset = queryset.filter(academic_year_id=academic_year_id)
-            
-            day_of_week = request.query_params.get('day_of_week')
-            if day_of_week:
-                queryset = queryset.filter(day_of_week=day_of_week)
-            
-            serializer = SchoolDaySettingSerializer(queryset, many=True)
-            return Response({'success': True, 'data': serializer.data})
-            
-        except Exception as e:
-            log_error(view_name, "GET database query", e, lang)
-            return Response({
-                'success': False, 
-                'message': get_translation('database_error', lang)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
-    elif request.method == 'POST':
-        if not is_admin(request.user):
-            msg = get_translation('admin_access_required', lang)
-            return Response({'success': False, 'message': msg}, status=status.HTTP_403_FORBIDDEN)
-        
-        try:
-            from academics.models import SchoolDaySetting
-            serializer = SchoolDaySettingSerializer(data=request.data)
-            if serializer.is_valid():
-                with transaction.atomic():
-                    day_setting = serializer.save()
+    lang = get_lang(request)
+
+    try:
+        if request.method == 'GET':
+            try:
+                qs = SchoolDaySetting.objects.select_related('academic_year')
+                filters = []
                 
-                msg = get_translation('day_setting_create_success', lang)
-                return Response({'success': True, 'data': serializer.data, 'message': msg}, status=status.HTTP_201_CREATED)
-            else:
-                return Response({
-                    'success': False, 
-                    'errors': serializer.errors, 
-                    'message': get_translation('validation_failed', lang)
-                }, status=status.HTTP_400_BAD_REQUEST)
+                for param, field in [
+                    ('academic_year', 'academic_year_id'),
+                    ('day_of_week', 'weekday'),
+                    ('day_type', 'day_type'),
+                ]:
+                    val = request.query_params.get(param)
+                    if val:
+                        qs = qs.filter(**{field: val})
+                        filters.append(f"{param}={val}")
+                
+                if filters:
+                    print(f"[FILTERS] {', '.join(filters)}")
+                
+                serializer = SchoolDaySettingSerializer(qs, many=True)
+                return _ok(serializer.data, get_translation('day_settings_retrieved', lang))
+                
+            except Exception as e:
+                print_error(f"Error in GET day_setting_list_create: {str(e)}", e)
+                return _err(get_translation('database_error', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # POST method
+        try:
+            if not is_admin(request.user):
+                return _err(get_translation('admin_access_required', lang), status.HTTP_403_FORBIDDEN)
+
+            serializer = SchoolDaySettingSerializer(data=request.data)
+            if not serializer.is_valid():
+                print(f"[VALIDATION_ERRORS] {serializer.errors}")
+                return _err(f"Validation failed: {', '.join([str(v) for v in serializer.errors.values()])}")
+            
+            with transaction.atomic():
+                setting = serializer.save()
+                print(f"[DAY_SETTING_CREATED] id={setting.id}")
+            
+            return _ok(
+                serializer.data,
+                get_translation('day_setting_create_success', lang),
+                status.HTTP_201_CREATED,
+            )
+            
         except Exception as e:
-            log_error(view_name, "create", e, lang)
-            return Response({
-                'success': False, 
-                'message': get_translation('operation_failed', lang)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            print_error(f"Error in POST day_setting_list_create: {str(e)}", e)
+            return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    except Exception as e:
+        print_error(f"Unhandled error in day_setting_list_create: {str(e)}", e)
+        return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([IsAuthenticated])
+@log_request_response
 def day_setting_detail(request, pk):
-    """Get, update or delete a specific school day setting"""
-    view_name = "DaySettingDetail"
-    log_request(view_name, request, extra_data={"day_setting_id": pk})
-    lang = get_request_language(request)
+    lang = get_lang(request)
     
     try:
-        from academics.models import SchoolDaySetting
-        day_setting = get_object_or_404(SchoolDaySetting, id=pk)
-    except Exception as e:
-        return Response({
-            'success': False, 
-            'message': get_translation('day_setting_not_found', lang)
-        }, status=status.HTTP_404_NOT_FOUND)
-    
-    if request.method == 'GET':
-        try:
-            from academics.serializers import SchoolDaySettingSerializer
-            serializer = SchoolDaySettingSerializer(day_setting)
-            return Response({'success': True, 'data': serializer.data})
-        except Exception as e:
-            return Response({
-                'success': False, 
-                'message': get_translation('database_error', lang)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
-    elif request.method == 'PUT':
-        if not is_admin(request.user):
-            msg = get_translation('admin_access_required', lang)
-            return Response({'success': False, 'message': msg}, status=status.HTTP_403_FORBIDDEN)
-        
-        try:
-            from academics.serializers import SchoolDaySettingSerializer
-            serializer = SchoolDaySettingSerializer(day_setting, data=request.data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                return Response({'success': True, 'data': serializer.data})
-            else:
-                return Response({
-                    'success': False, 
-                    'errors': serializer.errors, 
-                    'message': get_translation('validation_failed', lang)
-                }, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response({
-                'success': False, 
-                'message': get_translation('operation_failed', lang)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
-    elif request.method == 'DELETE':
-        if not is_admin(request.user):
-            msg = get_translation('admin_access_required', lang)
-            return Response({'success': False, 'message': msg}, status=status.HTTP_403_FORBIDDEN)
-        
-        try:
-            day_setting.delete()
-            return Response({'success': True, 'message': get_translation('day_setting_delete_success', lang)})
-        except Exception as e:
-            return Response({
-                'success': False, 
-                'message': get_translation('operation_failed', lang)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        setting = SchoolDaySetting.objects.get(id=pk)
+        print(f"[DAY_SETTING_FOUND] id={setting.id}")
+    except SchoolDaySetting.DoesNotExist:
+        return _err(get_translation('day_setting_not_found', lang), status.HTTP_404_NOT_FOUND)
 
+    try:
+        if request.method == 'GET':
+            serializer = SchoolDaySettingSerializer(setting)
+            return _ok(serializer.data, get_translation('day_setting_retrieved', lang))
 
-# ==================== TEACHER DOCUMENTS ====================
-
-@api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])
-def teacher_documents(request, teacher_id=None):
-    """Get documents for a teacher or upload new document"""
-    view_name = "TeacherDocuments"
-    log_request(view_name, request, extra_data={"teacher_id": teacher_id})
-    lang = get_request_language(request)
-    
-    # Determine which teacher
-    if teacher_id:
         if not is_admin(request.user):
-            msg = get_translation('admin_access_required', lang)
-            return Response({'success': False, 'message': msg}, status=status.HTTP_403_FORBIDDEN)
-        try:
-            teacher = get_object_or_404(Teacher, id=teacher_id)
-        except Exception as e:
-            return Response({
-                'success': False, 
-                'message': get_translation('teacher_not_found', lang)
-            }, status=status.HTTP_404_NOT_FOUND)
-    else:
-        if not is_teacher(request.user):
-            msg = get_translation('teacher_access_required', lang)
-            return Response({'success': False, 'message': msg}, status=status.HTTP_403_FORBIDDEN)
-        teacher = get_object_or_404(Teacher, user=request.user)
-    
-    if request.method == 'GET':
-        try:
-            documents = teacher.documents.all()
-            serializer = TeacherDocumentSerializer(documents, many=True, context={'request': request})
-            return Response({'success': True, 'data': serializer.data})
-        except Exception as e:
-            log_error(view_name, "GET documents", e, lang)
-            return Response({
-                'success': False, 
-                'message': get_translation('database_error', lang)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
-    elif request.method == 'POST':
-        try:
-            serializer = TeacherDocumentSerializer(data=request.data, context={'request': request})
-            if serializer.is_valid():
-                with transaction.atomic():
-                    document = serializer.save(teacher=teacher)
+            return _err(get_translation('admin_access_required', lang), status.HTTP_403_FORBIDDEN)
+
+        if request.method == 'PUT':
+            try:
+                serializer = SchoolDaySettingSerializer(setting, data=request.data, partial=True)
+                if not serializer.is_valid():
+                    print(f"[VALIDATION_ERRORS] {serializer.errors}")
+                    return _err(f"Validation failed: {', '.join([str(v) for v in serializer.errors.values()])}")
                 
-                print(f"[{view_name}] Document uploaded: {document.title}")
-                msg = get_translation('document_upload_success', lang, title=document.title)
-                return Response({'success': True, 'data': serializer.data, 'message': msg}, status=status.HTTP_201_CREATED)
-            else:
-                return Response({
-                    'success': False, 
-                    'errors': serializer.errors, 
-                    'message': get_translation('validation_failed', lang)
-                }, status=status.HTTP_400_BAD_REQUEST)
+                serializer.save()
+                print(f"[DAY_SETTING_UPDATED] id={pk}")
+                return _ok(serializer.data, get_translation('day_setting_update_success', lang))
+                
+            except Exception as e:
+                print_error(f"Error in PUT day_setting_detail: {str(e)}", e)
+                return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # DELETE method
+        try:
+            setting.delete()
+            print(f"[DAY_SETTING_DELETED] id={pk}")
+            return _ok(message=get_translation('day_setting_delete_success', lang))
+            
         except Exception as e:
-            log_error(view_name, "POST document", e, lang)
-            return Response({
-                'success': False, 
-                'message': get_translation('operation_failed', lang)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            print_error(f"Error in DELETE day_setting_detail: {str(e)}", e)
+            return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    except Exception as e:
+        print_error(f"Unhandled error in day_setting_detail: {str(e)}", e)
+        return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@api_view(['DELETE'])
-@permission_classes([IsAuthenticated])
-def teacher_document_delete(request, document_id):
-    """Delete a teacher document"""
-    view_name = "TeacherDocumentDelete"
-    log_request(view_name, request, extra_data={"document_id": document_id})
-    lang = get_request_language(request)
-    
-    try:
-        document = get_object_or_404(TeacherDocument, id=document_id)
-        
-        # Check permissions
-        if not is_admin(request.user) and document.teacher.user.id != request.user.id:
-            msg = get_translation('permission_denied', lang)
-            return Response({'success': False, 'message': msg}, status=status.HTTP_403_FORBIDDEN)
-        
-        document_title = document.title
-        document.delete()
-        
-        msg = get_translation('document_delete_success', lang)
-        log_response(view_name, 200, msg)
-        return Response({'success': True, 'message': msg})
-        
-    except Exception as e:
-        log_error(view_name, "delete", e, lang)
-        return Response({
-            'success': False, 
-            'message': get_translation('operation_failed', lang)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-        
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def get_teacher_timetable(request, teacher_id=None):
-    """
-    Get term-based timetable for teachers.
-    """
-    view_name = "GetTeacherTimetable"
-    log_request(view_name, request)
-    lang = get_request_language(request)
-    
-    try:
-        academic_year_id = request.query_params.get('academic_year')
-        term_id = request.query_params.get('term')
-        teacher_id_param = request.query_params.get('teacher_id')
-        
-        # Use teacher_id from URL or query param
-        effective_teacher_id = teacher_id or teacher_id_param
-        
-        # If no academic year specified, get current
-        if not academic_year_id:
-            academic_year = AcademicYear.objects.filter(is_current=True).first()
-            if not academic_year:
-                return Response({
-                    'success': True,
-                    'data': {
-                        'timetables': [],
-                        'academic_year': None,
-                        'term': None,
-                        'holidays': [],
-                        'days_of_week': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-                        'message': 'No current academic year found. Please select an academic year.'
-                    },
-                    'message': 'No academic year selected'
-                }, status=status.HTTP_200_OK)
-        else:
-            academic_year = get_object_or_404(AcademicYear, id=academic_year_id)
-        
-        # If no term specified, get current term for the academic year
-        if not term_id:
-            term = Term.objects.filter(academic_year=academic_year, is_current=True).first()
-            if not term:
-                return Response({
-                    'success': True,
-                    'data': {
-                        'timetables': [],
-                        'academic_year': {'id': academic_year.id, 'name': academic_year.name},
-                        'term': None,
-                        'holidays': [],
-                        'days_of_week': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-                        'message': 'No current term found. Please select a term.'
-                    },
-                    'message': 'No term selected'
-                }, status=status.HTTP_200_OK)
-        else:
-            term = get_object_or_404(Term, id=term_id, academic_year=academic_year)
-        
-        # Determine which teacher(s) to show
-        if is_admin(request.user):
-            if effective_teacher_id:
-                teacher = get_object_or_404(Teacher, id=effective_teacher_id)
-                teachers = [teacher]
-            else:
-                teachers = Teacher.objects.filter(status='active')
-        else:
-            if not is_teacher(request.user):
-                return Response({'success': False, 'message': get_translation('teacher_access_required', lang)}, status=status.HTTP_403_FORBIDDEN)
-            teacher = get_object_or_404(Teacher, user=request.user)
-            teachers = [teacher]
-        
-        # Build the timetable data
-        all_timetables = []
-        days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-        
-        for teacher in teachers:
-            # Get timetable entries for this teacher
-            queryset = TeacherTimetable.objects.filter(
-                teacher=teacher,
-                term=term,
-                academic_year=academic_year
-            ).order_by('day_of_week', 'start_time')
-            
-            serializer = TeacherTimetableSerializer(queryset, many=True)
-            
-            # Group by day
-            grouped_timetable = {day: [] for day in days}
-            for entry in serializer.data:
-                day_name = days[entry['day_of_week']] if entry['day_of_week'] < len(days) else str(entry['day_of_week'])
-                grouped_timetable[day_name].append(entry)
-            
-            # Calculate teacher's weekly hours
-            total_hours = 0
-            for entry in serializer.data:
-                if entry.get('start_time') and entry.get('end_time'):
-                    start = datetime.strptime(entry['start_time'], '%H:%M:%S')
-                    end = datetime.strptime(entry['end_time'], '%H:%M:%S')
-                    duration = (end - start).seconds / 3600
-                    total_hours += duration
-            
-            teacher_data = {
-                'teacher': TeacherSerializer(teacher, context={'request': request}).data,
-                'timetable': grouped_timetable,
-                'total_weekly_hours': round(total_hours, 1),
-                'total_entries': len(serializer.data)
-            }
-            all_timetables.append(teacher_data)
-        
-        result = {
-            'timetables': all_timetables,
-            'academic_year': {
-                'id': academic_year.id,
-                'name': academic_year.name
-            },
-            'term': {
-                'id': term.id,
-                'name': term.name
-            },
-            'holidays': [],
-            'days_of_week': days
-        }
-        
-        # Add summary statistics for admin view
-        if is_admin(request.user) and not effective_teacher_id:
-            total_teachers = len(teachers)
-            teachers_with_timetable = len([t for t in all_timetables if t['total_entries'] > 0])
-            total_entries = sum(t['total_entries'] for t in all_timetables)
-            
-            result['summary'] = {
-                'total_teachers': total_teachers,
-                'teachers_with_timetable': teachers_with_timetable,
-                'teachers_without_timetable': total_teachers - teachers_with_timetable,
-                'total_timetable_entries': total_entries,
-                'average_entries_per_teacher': round(total_entries / total_teachers, 1) if total_teachers > 0 else 0
-            }
-        
-        log_response(view_name, 200, "Timetable retrieved successfully")
-        return Response({'success': True, 'data': result})
-        
-    except Exception as e:
-        traceback.print_exc()
-        log_error(view_name, "get_timetable", e, lang)
-        return Response({
-            'success': False,
-            'data': {
-                'timetables': [],
-                'message': str(e)
-            },
-            'message': get_translation('database_error', lang)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+# ---------------------------------------------------------------------------
+# Utility
+# ---------------------------------------------------------------------------
+
+def _day_names():
+    return ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']

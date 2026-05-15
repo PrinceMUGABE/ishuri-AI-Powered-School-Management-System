@@ -232,7 +232,7 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'princemugabe567@gmail.com'
-EMAIL_HOST_PASSWORD = 'ooke lknm zzst pmvu'
+EMAIL_HOST_PASSWORD = 'nabh mmql drpz bsul'
 DEFAULT_FROM_EMAIL = 'Les Hirondelles de Don Bosco<princemugabe567@gmail.com>'
 
 

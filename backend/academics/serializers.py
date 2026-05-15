@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import IntegrityError
 from .models import (
     AcademicYear, SchoolLevel, ClassLevel, ClassRoom, Subject,
-    ClassLevelSubject, ClassLevelCost, Term, PaymentType, SchoolDaySetting, ClassroomAssignment, SchoolBreak,
+    ClassLevelSubject, ClassLevelCost, Term, PaymentType, SchoolDaySetting, SchoolBreak,
     Holiday
 )
 from .translations import get_translation
@@ -135,11 +135,14 @@ class ClassLevelSerializer(BaseSerializer):
 
 class ClassRoomSerializer(BaseSerializer):
     room_type_display = serializers.CharField(source='get_room_type_display', read_only=True)
+    assigned_class_level_name = serializers.CharField(source='assigned_class_level.name', read_only=True)
+    assigned_class_level_code = serializers.CharField(source='assigned_class_level.code', read_only=True)
     
     class Meta:
         model = ClassRoom
         fields = ['id', 'name', 'code', 'room_type', 'room_type_display', 
-                  'capacity', 'status', 'created_at', 'updated_at']
+                  'capacity', 'status', 'assigned_class_level', 'assigned_class_level_name',
+                  'assigned_class_level_code', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
     
     def validate_code(self, value):
@@ -153,8 +156,23 @@ class ClassRoomSerializer(BaseSerializer):
                 )
         return value
     
+    def validate_assigned_class_level(self, value):
+        """
+        A classroom can only belong to ONE class level at a time,
+        but a class level can have MULTIPLE classrooms.
+        """
+        lang = self.get_lang()
+        if value and self.instance and self.instance.assigned_class_level:
+            if self.instance.assigned_class_level.id != value.id:
+                raise serializers.ValidationError(
+                    get_translation('classroom_already_assigned', lang,
+                                classroom=self.instance.name,
+                                class_level=self.instance.assigned_class_level.name)
+                )
+        return value
     def validate(self, data):
         lang = self.get_lang()
+        
         if data.get('code'):
             if ClassRoom.objects.filter(code=data['code']).exclude(
                 id=self.instance.id if self.instance else None
@@ -162,6 +180,7 @@ class ClassRoomSerializer(BaseSerializer):
                 raise serializers.ValidationError({
                     'code': get_translation('code_already_exists', lang)
                 })
+        
         if data.get('name'):
             if ClassRoom.objects.filter(name=data['name']).exclude(
                 id=self.instance.id if self.instance else None
@@ -169,9 +188,16 @@ class ClassRoomSerializer(BaseSerializer):
                 raise serializers.ValidationError({
                     'name': get_translation('duplicate_name', lang)
                 })
+        
+        # Validate that assigned class level is active
+        if data.get('assigned_class_level') and not data['assigned_class_level'].is_active:
+            raise serializers.ValidationError({
+                'assigned_class_level': get_translation('class_level_inactive', lang)
+            })
+        
         return data
 
-# ══════════════════════════════════════════════════════════════════════════════
+
 #  SUBJECT SERIALIZER
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -370,39 +396,6 @@ class SchoolDaySettingSerializer(BaseSerializer):
         
         return data
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-#  CLASSROOM ASSIGNMENT SERIALIZER
-# ══════════════════════════════════════════════════════════════════════════════
-
-class ClassroomAssignmentSerializer(BaseSerializer):
-    classroom_name = serializers.CharField(source='classroom.name', read_only=True)
-    classroom_code = serializers.CharField(source='classroom.code', read_only=True)
-    class_level_name = serializers.CharField(source='class_level.name', read_only=True)
-    term_name = serializers.CharField(source='term.name', read_only=True)
-    academic_year_name = serializers.CharField(source='academic_year.name', read_only=True)
-    
-    class Meta:
-        model = ClassroomAssignment
-        fields = ['id', 'classroom', 'classroom_name', 'classroom_code', 'class_level', 
-                  'class_level_name', 'term', 'term_name', 'academic_year', 'academic_year_name',
-                  'is_primary', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at']
-    
-    def validate(self, data):
-        lang = self.get_lang()
-        
-        # Check for duplicate assignment (classroom + term)
-        if data.get('classroom') and data.get('term'):
-            if ClassroomAssignment.objects.filter(
-                classroom=data['classroom'],
-                term=data['term']
-            ).exclude(id=self.instance.id if self.instance else None).exists():
-                raise serializers.ValidationError(
-                    get_translation('classroom_already_assigned_to_term', lang)
-                )
-        
-        return data
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  CLASS LEVEL COST SERIALIZER
