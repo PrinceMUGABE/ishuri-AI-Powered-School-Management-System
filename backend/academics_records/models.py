@@ -15,9 +15,10 @@ from teachers.models import Teacher
 
 def grade_upload_path(instance, filename):
     """Organize files: academic_year/term/school_level/class_level/subject/grade_type/"""
+    term_name = instance.term.name if instance.term else 'no_term'
     return os.path.join(
         instance.academic_year.name.replace('/', '_'),
-        instance.term or 'no_term',
+        term_name,
         instance.class_level.school_level.name.replace('/', '_'),
         instance.class_level.name.replace('/', '_'),
         instance.subject.name.replace('/', '_'),
@@ -28,10 +29,11 @@ def grade_upload_path(instance, filename):
 
 def attendance_upload_path(instance, filename):
     """Organize attendance files"""
+    term_name = instance.term.name if instance.term else 'no_term'
     return os.path.join(
         'attendance',
         instance.academic_year.name.replace('/', '_'),
-        instance.term.name if instance.term else 'no_term',
+        term_name,
         instance.class_level.school_level.name.replace('/', '_'),
         instance.class_level.name.replace('/', '_'),
         instance.subject.name.replace('/', '_'),
@@ -41,10 +43,11 @@ def attendance_upload_path(instance, filename):
 
 def assignment_upload_path(instance, filename):
     """Organize assignment files"""
+    term_name = instance.term.name if instance.term else 'no_term'
     return os.path.join(
         'assignments',
         instance.academic_year.name.replace('/', '_'),
-        instance.term.name if instance.term else 'no_term',
+        term_name,
         instance.class_level.school_level.name.replace('/', '_'),
         instance.class_level.name.replace('/', '_'),
         instance.subject.name.replace('/', '_'),
@@ -127,6 +130,33 @@ class GradeUpload(models.Model):
             models.Index(fields=['teacher', 'academic_year']),
             models.Index(fields=['class_level', 'subject']),
         ]
+    
+    def clean(self):
+        """Validate that total weight doesn't exceed 100% for this subject/class/term"""
+        if self.weight_percentage:
+            # Get all approved grade uploads for same subject/class/term (excluding self if exists)
+            existing_uploads = GradeUpload.objects.filter(
+                academic_year=self.academic_year,
+                term=self.term,
+                class_level=self.class_level,
+                subject=self.subject,
+                status=GradeUploadStatus.APPROVED
+            )
+            if self.pk:
+                existing_uploads = existing_uploads.exclude(pk=self.pk)
+            
+            total_weight = existing_uploads.aggregate(total=models.Sum('weight_percentage'))['total'] or Decimal('0')
+            
+            if total_weight + self.weight_percentage > Decimal('100'):
+                raise ValidationError({
+                    'weight_percentage': _(
+                        f'Total weight would exceed 100%. Current total for approved grades: {total_weight}%'
+                    )
+                })
+    
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
     
     def __str__(self):
         return f"{self.teacher.full_name} - {self.subject.name} - {self.get_grade_type_display()} ({self.academic_year.name})"
@@ -240,7 +270,7 @@ class Assignment(models.Model):
         EXPIRED = 'expired', _('Expired')
         ARCHIVED = 'archived', _('Archived')
     
-    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='assignments')
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='teachers_assignments')
     academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name='assignments')
     term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='assignments', null=True, blank=True)
     school_level = models.ForeignKey(SchoolLevel, on_delete=models.CASCADE, related_name='assignments')
@@ -278,8 +308,9 @@ class Assignment(models.Model):
     
     @property
     def is_expired(self):
+        """Check if assignment has expired based on due date and time"""
         from django.utils import timezone
-        from datetime import datetime, date
+        from datetime import date
         
         if self.due_date:
             today = date.today()
@@ -291,8 +322,8 @@ class Assignment(models.Model):
         return False
     
     def save(self, *args, **kwargs):
-        if self.is_expired and self.status == AssignmentStatus.ACTIVE:
-            self.status = AssignmentStatus.EXPIRED
+        if self.is_expired and self.status == Assignment.AssignmentStatus.ACTIVE:
+            self.status = Assignment.AssignmentStatus.EXPIRED
         super().save(*args, **kwargs)
     
     def __str__(self):
