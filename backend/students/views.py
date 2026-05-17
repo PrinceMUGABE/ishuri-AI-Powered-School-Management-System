@@ -4,6 +4,7 @@ import logging
 import random
 from datetime import date
 from decimal import Decimal
+from django.db.models import Prefetch
 
 from django.shortcuts import get_object_or_404
 from django.db import transaction
@@ -164,7 +165,7 @@ def create_student(request):
                         assigned_by=request.user,
                         term=current_term
                     )
-                    print(f"[create_student] Auto-assigned to classroom: {classroom_assigned.name}")
+                    print(f"[create_student] Auto-assigned to classroom: {classroom_assigned.classroom.name}")
                     
                     # Record academic history
                     _record_academic_history(
@@ -173,7 +174,7 @@ def create_student(request):
                         term=current_term,
                         school_level=student.current_school_level,
                         class_level=student.current_class_level,
-                        classroom=classroom_assigned,
+                        classroom=classroom_assigned.classroom,
                         status=student.status,
                         notes='Initial enrollment with auto-classroom assignment'
                     )
@@ -210,11 +211,11 @@ def create_student(request):
         
         response_data = StudentDetailSerializer(student).data
         if classroom_assigned:
-            classroom_assigned = ClassRoom.objects.get(id=classroom_assigned.id)
+            classroom = classroom_assigned.classroom  # already a ClassRoom object
             response_data['assigned_classroom'] = {
-                'id': classroom_assigned.id,
-                'name': classroom_assigned.name,
-                'code': classroom_assigned.code
+                'id': classroom.id,
+                'name': classroom.name,
+                'code': classroom.code
             }
         
         return Response({
@@ -237,29 +238,47 @@ def create_student(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def get_all_students(request):
-    """Admin: List all students."""
+    """Admin: List all students with current classroom included."""
     print(f"\n{SEPARATOR}\n[get_all_students] Request received\n{SEPARATOR}")
     lang = get_lang_from_request(request)
 
     try:
         qs = Student.objects.select_related(
-            'user', 'current_academic_year', 'current_school_level', 'current_class_level', 'created_by'
-        ).prefetch_related('parents', 'classroom_assignments')
+            'user',
+            'current_academic_year',
+            'current_school_level',
+            'current_class_level',
+            'created_by',
+        ).prefetch_related(
+            'parents',
+            Prefetch(
+                'classroom_assignments',
+                queryset=StudentClassroomAssignment.objects.filter(
+                    status='active'
+                ).select_related('classroom'),
+                to_attr='active_classroom_assignments',
+            ),
+        )
+
+        serializer = StudentListSerializer(
+            qs,
+            many=True,
+            context={'request': request, 'use_prefetch': True},
+        )
 
         print(f"[get_all_students] Returning {qs.count()} students")
-        returned_students = StudentListSerializer(qs, many=True).data
-        print(f"retrieved students:\n{returned_students}\n")
         return Response({
             'success': True,
             'language': lang,
-            'data': StudentListSerializer(qs, many=True).data,
+            'data': serializer.data,
         })
 
     except Exception as exc:
         logger.error(f"[get_all_students] Error: {exc}", exc_info=True)
-        return Response({'success': False, 'message': str(exc), 'language': lang},
-                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+        return Response(
+            {'success': False, 'message': str(exc), 'language': lang},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
 
 @api_view(['GET'])
@@ -886,7 +905,7 @@ def teacher_get_student_detail(request, student_id):
         teaches_student = TeacherTimetable.objects.filter(
             teacher=teacher,
             classroom=classroom_assignment.classroom,
-            status='active'
+            # status='active'
         ).exists()
 
         if not teaches_student:
@@ -1061,3 +1080,800 @@ def get_all_parents(request):
         return Response({'success': False, 'message': str(exc), 'language': lang},
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
+        
+        
+        
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_parents_for_student(request, student_id):
+    """
+    Get all parents/guardians linked to a specific student.
+    Access: Admin (any student), Student (self), Parent (their child)
+    """
+    print(f"\n{SEPARATOR}\n[get_parents_for_student] student_id={student_id}\n{SEPARATOR}")
+    lang = get_lang_from_request(request)
+    user = request.user
+
+    try:
+        student = get_object_or_404(Student, id=student_id)
+
+        # Permission checks
+        if user.role == 'admin':
+            pass
+        elif user.role == 'student':
+            if not hasattr(user, 'student_profile') or user.student_profile.id != student_id:
+                return Response({
+                    'success': False,
+                    'message': get_message('permission_denied', lang),
+                    'language': lang,
+                }, status=status.HTTP_403_FORBIDDEN)
+        elif user.role == 'parent':
+            parent = get_object_or_404(Parent, user=user)
+            if not parent.students.filter(id=student_id).exists():
+                return Response({
+                    'success': False,
+                    'message': get_message('permission_denied', lang),
+                    'language': lang,
+                }, status=status.HTTP_403_FORBIDDEN)
+        else:
+            return Response({
+                'success': False,
+                'message': get_message('permission_denied', lang),
+                'language': lang,
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        parents = Parent.objects.filter(
+            students__id=student_id
+        ).select_related('user')
+
+        print(f"[get_parents_for_student] Found {parents.count()} parents for student {student_id}")
+        return Response({
+            'success': True,
+            'language': lang,
+            'data': {
+                'student': {
+                    'id': student.id,
+                    'full_name': student.full_name,
+                    'roll_number': student.roll_number,
+                },
+                'parents': ParentListSerializer(parents, many=True).data,
+                'total': parents.count(),
+            },
+        })
+
+    except Exception as exc:
+        logger.error(f"[get_parents_for_student] Error: {exc}", exc_info=True)
+        return Response(
+            {'success': False, 'message': str(exc), 'language': lang},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_students_for_parent(request, parent_id):
+    """
+    Get all students linked to a specific parent/guardian.
+    Access: Admin (any parent), Parent (self only)
+    """
+    print(f"\n{SEPARATOR}\n[get_students_for_parent] parent_id={parent_id}\n{SEPARATOR}")
+    lang = get_lang_from_request(request)
+    user = request.user
+
+    try:
+        parent = get_object_or_404(Parent, id=parent_id)
+
+        # Permission checks
+        if user.role == 'admin':
+            pass
+        elif user.role == 'parent':
+            own_parent = get_object_or_404(Parent, user=user)
+            if own_parent.id != parent_id:
+                return Response({
+                    'success': False,
+                    'message': get_message('permission_denied', lang),
+                    'language': lang,
+                }, status=status.HTTP_403_FORBIDDEN)
+        else:
+            return Response({
+                'success': False,
+                'message': get_message('permission_denied', lang),
+                'language': lang,
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        students = Student.objects.filter(
+            parents__id=parent_id
+        ).select_related(
+            'user',
+            'current_academic_year',
+            'current_school_level',
+            'current_class_level',
+        ).prefetch_related(
+            Prefetch(
+                'classroom_assignments',
+                queryset=StudentClassroomAssignment.objects.filter(
+                    status='active'
+                ).select_related('classroom'),
+                to_attr='active_classroom_assignments',
+            ),
+        )
+
+        print(f"[get_students_for_parent] Found {students.count()} students for parent {parent_id}")
+        return Response({
+            'success': True,
+            'language': lang,
+            'data': {
+                'parent': {
+                    'id': parent.id,
+                    'full_name': parent.full_name,
+                    'relationship_type': parent.relationship_type,
+                },
+                'students': StudentListSerializer(
+                    students,
+                    many=True,
+                    context={'request': request, 'use_prefetch': True},
+                ).data,
+                'total': students.count(),
+            },
+        })
+
+    except Exception as exc:
+        logger.error(f"[get_students_for_parent] Error: {exc}", exc_info=True)
+        return Response(
+            {'success': False, 'message': str(exc), 'language': lang},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_current_classroom_for_student(request, student_id):
+    """
+    Get the current active classroom assignment for a specific student.
+    Access: Admin, Student (self), Parent (their child), Teacher (their student)
+    """
+    print(f"\n{SEPARATOR}\n[get_current_classroom_for_student] student_id={student_id}\n{SEPARATOR}")
+    lang = get_lang_from_request(request)
+    user = request.user
+
+    try:
+        student = get_object_or_404(Student, id=student_id)
+
+        # Permission checks
+        if user.role == 'admin':
+            pass
+        elif user.role == 'student':
+            if not hasattr(user, 'student_profile') or user.student_profile.id != student_id:
+                return Response({
+                    'success': False,
+                    'message': get_message('permission_denied', lang),
+                    'language': lang,
+                }, status=status.HTTP_403_FORBIDDEN)
+        elif user.role == 'parent':
+            parent = get_object_or_404(Parent, user=user)
+            if not parent.students.filter(id=student_id).exists():
+                return Response({
+                    'success': False,
+                    'message': get_message('permission_denied', lang),
+                    'language': lang,
+                }, status=status.HTTP_403_FORBIDDEN)
+        elif user.role == 'teacher':
+            teacher = get_object_or_404(Teacher, user=user)
+            teaches = TeacherTimetable.objects.filter(
+                teacher=teacher,
+                status='active'
+            ).exists()
+            if not teaches:
+                return Response({
+                    'success': False,
+                    'message': get_message('permission_denied', lang),
+                    'language': lang,
+                }, status=status.HTTP_403_FORBIDDEN)
+        else:
+            return Response({
+                'success': False,
+                'message': get_message('permission_denied', lang),
+                'language': lang,
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        assignment = StudentClassroomAssignment.objects.filter(
+            student=student,
+            status='active',
+        ).select_related(
+            'classroom',
+            'academic_year',
+            'term',
+            'school_level',
+            'class_level',
+            'assigned_by',
+        ).first()
+
+        if not assignment:
+            return Response({
+                'success': True,
+                'language': lang,
+                'data': {
+                    'student': {
+                        'id': student.id,
+                        'full_name': student.full_name,
+                        'roll_number': student.roll_number,
+                    },
+                    'classroom': None,
+                    'message': 'Student is not currently assigned to any classroom.',
+                },
+            })
+
+        print(f"[get_current_classroom_for_student] Found classroom: {assignment.classroom.name}")
+        return Response({
+            'success': True,
+            'language': lang,
+            'data': {
+                'student': {
+                    'id': student.id,
+                    'full_name': student.full_name,
+                    'roll_number': student.roll_number,
+                },
+                'classroom': {
+                    'id': assignment.classroom.id,
+                    'name': assignment.classroom.name,
+                    'code': assignment.classroom.code,
+                    'capacity': assignment.classroom.capacity,
+                    'room_type': assignment.classroom.get_room_type_display(),
+                    'status': assignment.classroom.status,
+                },
+                'assignment': {
+                    'id': assignment.id,
+                    'academic_year': assignment.academic_year.name,
+                    'term': assignment.term.name if assignment.term else None,
+                    'school_level': assignment.school_level.name,
+                    'class_level': assignment.class_level.name,
+                    'assigned_at': assignment.assigned_at,
+                    'assigned_by': assignment.assigned_by.username if assignment.assigned_by else None,
+                },
+            },
+        })
+
+    except Exception as exc:
+        logger.error(f"[get_current_classroom_for_student] Error: {exc}", exc_info=True)
+        return Response(
+            {'success': False, 'message': str(exc), 'language': lang},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+        
+        
+        
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_teachers_for_student(request, student_id):
+    """
+    Get all teachers who teach a specific student, with subject details.
+    Subjects are deduplicated per teacher (timetable may have multiple
+    entries for the same teacher+subject across different days/periods).
+    """
+    print(f"\n{SEPARATOR}\n[get_teachers_for_student] student_id={student_id}\n{SEPARATOR}")
+    lang = get_lang_from_request(request)
+    user = request.user
+
+    try:
+        student = get_object_or_404(Student, id=student_id)
+
+        # ── Permission checks ──────────────────────────────────────
+        if user.role not in ['admin', 'student', 'parent']:
+            return Response({
+                'success': False,
+                'message': get_message('permission_denied', lang),
+                'language': lang,
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        if user.role == 'student':
+            if not hasattr(user, 'student_profile') or user.student_profile.id != student_id:
+                return Response({
+                    'success': False,
+                    'message': get_message('permission_denied', lang),
+                    'language': lang,
+                }, status=status.HTTP_403_FORBIDDEN)
+
+        if user.role == 'parent':
+            parent = get_object_or_404(Parent, user=user)
+            if not parent.students.filter(id=student_id).exists():
+                return Response({
+                    'success': False,
+                    'message': get_message('permission_denied', lang),
+                    'language': lang,
+                }, status=status.HTTP_403_FORBIDDEN)
+
+        # ── Resolve student's active classroom assignment ───────────
+        classroom_assignment = (
+            StudentClassroomAssignment.objects
+            .filter(student=student, status='active')
+            .select_related('classroom', 'academic_year', 'term')
+            .first()
+        )
+
+        if not classroom_assignment:
+            return Response({
+                'success': True,
+                'language': lang,
+                'data': {
+                    'student': {
+                        'id': student.id,
+                        'full_name': student.full_name,
+                        'roll_number': student.roll_number,
+                    },
+                    'classroom': None,
+                    'teachers': [],
+                    'total_teachers': 0,
+                    'message': 'Student is not currently assigned to any classroom.',
+                },
+            })
+
+        classroom   = classroom_assignment.classroom
+        academic_year = classroom_assignment.academic_year
+        term        = classroom_assignment.term
+
+        # ── Fetch timetable entries for this classroom ─────────────
+        timetable_filter = {
+            'classroom': classroom,
+            'academic_year': academic_year,
+        }
+        if term:
+            timetable_filter['term'] = term
+
+        timetable_entries = (
+            TeacherTimetable.objects
+            .filter(**timetable_filter)
+            .select_related(
+                'teacher',
+                'teacher__user',
+                'subject',
+            )
+            # Distinct on teacher + subject to drop duplicate timetable slots
+            # (same teacher teaching same subject on Monday AND Wednesday etc.)
+            .order_by('teacher__id', 'subject__id')
+            .distinct()
+        )
+
+        # ── Build teacher map with deduplicated subjects ────────────
+        # Key: teacher.id  →  Value: teacher dict with subjects set
+        teacher_map: dict = {}
+        # Track which (teacher_id, subject_id) pairs we have already added
+        seen_teacher_subject: set = set()
+
+        for entry in timetable_entries:
+            teacher = entry.teacher
+            subject = entry.subject
+            tid     = teacher.id
+            sid     = subject.id
+            pair    = (tid, sid)
+
+            # Skip if this teacher+subject combo was already recorded
+            if pair in seen_teacher_subject:
+                continue
+            seen_teacher_subject.add(pair)
+
+            # First time we see this teacher — create their entry
+            if tid not in teacher_map:
+                # Resolve specialization safely
+                specialization = None
+                if hasattr(teacher, 'specialization'):
+                    raw = teacher.specialization
+                    if raw:
+                        if hasattr(teacher, 'get_specialization_display'):
+                            specialization = teacher.get_specialization_display()
+                        else:
+                            specialization = str(raw)
+
+                teacher_map[tid] = {
+                    'id': teacher.id,
+                    'full_name': teacher.full_name,
+                    'email': teacher.email,
+                    'phone_number': getattr(teacher, 'phone_number', None),
+                    'specialization': specialization,
+                    'status': teacher.status,
+                    'user': {
+                        'id': teacher.user.id,
+                        'username': teacher.user.username,
+                        'role': teacher.user.role,
+                    } if teacher.user else None,
+                    'subjects': [],
+                }
+
+            # Append the unique subject
+            teacher_map[tid]['subjects'].append({
+                'id': subject.id,
+                'name': subject.name,
+                'code': subject.code,
+                'description': getattr(subject, 'description', None),
+            })
+
+        # Attach total_subjects and convert to list
+        teachers_list = []
+        for teacher_data in teacher_map.values():
+            teacher_data['total_subjects'] = len(teacher_data['subjects'])
+            teachers_list.append(teacher_data)
+
+        # Sort alphabetically by teacher name for consistent output
+        teachers_list.sort(key=lambda x: x['full_name'])
+
+        print(
+            f"[get_teachers_for_student] {len(teachers_list)} teachers, "
+            f"{len(seen_teacher_subject)} unique teacher-subject pairs "
+            f"for student {student.roll_number} in classroom {classroom.name}"
+        )
+
+        return Response({
+            'success': True,
+            'language': lang,
+            'data': {
+                'student': {
+                    'id': student.id,
+                    'full_name': student.full_name,
+                    'roll_number': student.roll_number,
+                    'class_level': student.current_class_level.name if student.current_class_level else None,
+                    'school_level': student.current_school_level.name if student.current_school_level else None,
+                },
+                'classroom': {
+                    'id': classroom.id,
+                    'name': classroom.name,
+                    'code': classroom.code,
+                    'capacity': classroom.capacity,
+                },
+                'academic_year': academic_year.name,
+                'term': term.name if term else None,
+                'teachers': teachers_list,
+                'total_teachers': len(teachers_list),
+            },
+        })
+
+    except Exception as exc:
+        logger.error(f"[get_teachers_for_student] Error: {exc}", exc_info=True)
+        return Response(
+            {'success': False, 'message': str(exc), 'language': lang},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+        
+        
+        
+# -------------------------------------------------------------------
+# TEACHER VIEWS (for teacher dashboard)
+# -------------------------------------------------------------------
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def teacher_get_my_students(request):
+    """
+    Get all students taught by the logged-in teacher.
+    Returns students from all classrooms the teacher is assigned to.
+    """
+    print(f"\n{SEPARATOR}\n[get_teacher_students] Request received\n{SEPARATOR}")
+    lang = get_lang_from_request(request)
+    user = request.user
+
+    try:
+        if user.role != 'teacher':
+            return Response({
+                'success': False,
+                'message': get_message('permission_denied', lang),
+                'language': lang,
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        from teachers.models import Teacher, TeacherAssignment, TeacherTimetable
+        from .serializers import StudentListSerializer
+
+        teacher = get_object_or_404(Teacher, user=user)
+        print(f"[get_teacher_students] Teacher: {teacher.full_name}")
+
+        # Get all classrooms the teacher is assigned to
+        teacher_classrooms = set()
+
+        # From assignments
+        assignments = TeacherAssignment.objects.filter(
+            teacher=teacher,
+            status='active'
+        ).prefetch_related('classrooms')
+
+        for assignment in assignments:
+            for classroom in assignment.classrooms.all():
+                if classroom.status == 'active':
+                    teacher_classrooms.add(classroom.id)
+
+        # From timetable
+        timetable_entries = TeacherTimetable.objects.filter(
+            teacher=teacher,
+            # status='active'
+        ).select_related('classroom')
+
+        for entry in timetable_entries:
+            if entry.classroom and entry.classroom.status == 'active':
+                teacher_classrooms.add(entry.classroom.id)
+
+        if not teacher_classrooms:
+            return Response({
+                'success': True,
+                'language': lang,
+                'data': {
+                    'students': [],
+                    'total': 0,
+                    'teacher': {'id': teacher.id, 'full_name': teacher.full_name},
+                },
+            })
+
+        # Get students in these classrooms
+        assignments_qs = StudentClassroomAssignment.objects.filter(
+            classroom_id__in=teacher_classrooms,
+            status='active'
+        ).select_related(
+            'student',
+            'student__user',
+            'student__current_academic_year',
+            'student__current_school_level',
+            'student__current_class_level',
+            'classroom'
+        )
+
+        # Deduplicate students
+        students_map = {}
+        for ca in assignments_qs:
+            student = ca.student
+            if student.id not in students_map:
+                # Add classroom info to student object
+                student.current_classroom = {
+                    'id': ca.classroom.id,
+                    'name': ca.classroom.name,
+                    'code': ca.classroom.code,
+                }
+                students_map[student.id] = student
+
+        students = list(students_map.values())
+
+        # Apply filters from query params
+        school_level_id = request.query_params.get('school_level_id')
+        if school_level_id:
+            students = [s for s in students if s.current_school_level and str(s.current_school_level.id) == school_level_id]
+
+        class_level_id = request.query_params.get('class_level_id')
+        if class_level_id:
+            students = [s for s in students if s.current_class_level and str(s.current_class_level.id) == class_level_id]
+
+        classroom_id = request.query_params.get('classroom_id')
+        if classroom_id:
+            students = [s for s in students if s.current_classroom and str(s.current_classroom.get('id')) == classroom_id]
+
+        status_filter = request.query_params.get('status')
+        if status_filter:
+            students = [s for s in students if s.status == status_filter]
+
+        search = request.query_params.get('search')
+        if search:
+            search_lower = search.lower()
+            students = [
+                s for s in students
+                if search_lower in s.full_name.lower()
+                or search_lower in s.roll_number.lower()
+                or (s.email and search_lower in s.email.lower())
+            ]
+
+        serializer = StudentListSerializer(students, many=True, context={'request': request})
+
+        return Response({
+            'success': True,
+            'language': lang,
+            'data': {
+                'students': serializer.data,
+                'total': len(students),
+                'teacher': {
+                    'id': teacher.id,
+                    'full_name': teacher.full_name,
+                },
+            },
+        })
+
+    except Exception as exc:
+        logger.error(f"[get_teacher_students] Error: {exc}", exc_info=True)
+        return Response(
+            {'success': False, 'message': str(exc), 'language': lang},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_teacher_classroom_students(request, classroom_id):
+    """
+    Get all students in a specific classroom for a teacher.
+    Teacher must be assigned to this classroom.
+    """
+    print(f"\n{SEPARATOR}\n[get_teacher_classroom_students] classroom_id={classroom_id}\n{SEPARATOR}")
+    lang = get_lang_from_request(request)
+    user = request.user
+
+    try:
+        if user.role != 'teacher':
+            return Response({
+                'success': False,
+                'message': get_message('permission_denied', lang),
+                'language': lang,
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        from teachers.models import Teacher, TeacherAssignment, TeacherTimetable
+        from academics.models import ClassRoom
+        from .serializers import StudentListSerializer
+
+        teacher = get_object_or_404(Teacher, user=user)
+        classroom = get_object_or_404(ClassRoom, id=classroom_id)
+
+        # Verify teacher is assigned to this classroom
+        is_assigned = TeacherAssignment.objects.filter(
+            teacher=teacher,
+            classrooms=classroom,
+            status='active'
+        ).exists() or TeacherTimetable.objects.filter(
+            teacher=teacher,
+            classroom=classroom,
+            status='active'
+        ).exists()
+
+        if not is_assigned:
+            return Response({
+                'success': False,
+                'message': get_message('not_authorized_to_view_classroom', lang),
+                'language': lang,
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        # Get students in this classroom
+        assignments = StudentClassroomAssignment.objects.filter(
+            classroom=classroom,
+            status='active'
+        ).select_related(
+            'student',
+            'student__user',
+            'student__current_academic_year',
+            'student__current_school_level',
+            'student__current_class_level',
+        )
+
+        students = []
+        for ca in assignments:
+            student = ca.student
+            student.current_classroom = {
+                'id': classroom.id,
+                'name': classroom.name,
+                'code': classroom.code,
+            }
+            students.append(student)
+
+        # Apply filters
+        status_filter = request.query_params.get('status')
+        if status_filter:
+            students = [s for s in students if s.status == status_filter]
+
+        search = request.query_params.get('search')
+        if search:
+            search_lower = search.lower()
+            students = [
+                s for s in students
+                if search_lower in s.full_name.lower()
+                or search_lower in s.roll_number.lower()
+                or (s.email and search_lower in s.email.lower())
+            ]
+
+        serializer = StudentListSerializer(students, many=True, context={'request': request})
+
+        return Response({
+            'success': True,
+            'language': lang,
+            'data': {
+                'classroom': {
+                    'id': classroom.id,
+                    'name': classroom.name,
+                    'code': classroom.code,
+                    'capacity': classroom.capacity,
+                    'room_type': classroom.get_room_type_display(),
+                },
+                'students': serializer.data,
+                'total': len(students),
+                'available_spots': classroom.capacity - len(students),
+            },
+        })
+
+    except Exception as exc:
+        logger.error(f"[get_teacher_classroom_students] Error: {exc}", exc_info=True)
+        return Response(
+            {'success': False, 'message': str(exc), 'language': lang},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def teacher_get_student_full_detail(request, student_id):
+    """
+    Get full student details for a teacher, including parents and classroom.
+    Teacher must be authorized to view this student.
+    """
+    print(f"\n{SEPARATOR}\n[teacher_get_student_full_detail] student_id={student_id}\n{SEPARATOR}")
+    lang = get_lang_from_request(request)
+    user = request.user
+
+    try:
+        if user.role != 'teacher':
+            return Response({
+                'success': False,
+                'message': get_message('permission_denied', lang),
+                'language': lang,
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        from teachers.models import Teacher, TeacherAssignment, TeacherTimetable
+        from .models import Student, Parent, StudentClassroomAssignment
+        from .serializers import StudentDetailSerializer, ParentMinimalSerializer
+
+        teacher = get_object_or_404(Teacher, user=user)
+        student = get_object_or_404(Student, id=student_id)
+
+        # Verify teacher teaches this student
+        # Get student's current classroom
+        classroom_assignment = StudentClassroomAssignment.objects.filter(
+            student=student,
+            status='active'
+        ).select_related('classroom').first()
+
+        is_authorized = False
+
+        if classroom_assignment:
+            classroom = classroom_assignment.classroom
+            is_authorized = TeacherAssignment.objects.filter(
+                teacher=teacher,
+                classrooms=classroom,
+                status='active'
+            ).exists() or TeacherTimetable.objects.filter(
+                teacher=teacher,
+                classroom=classroom,
+                status='active'
+            ).exists()
+        else:
+            # Check if teacher teaches any subject at student's class level
+            if student.current_class_level:
+                is_authorized = TeacherAssignment.objects.filter(
+                    teacher=teacher,
+                    class_level=student.current_class_level,
+                    status='active'
+                ).exists()
+
+        if not is_authorized:
+            return Response({
+                'success': False,
+                'message': get_message('not_authorized_to_view_student', lang),
+                'language': lang,
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        # Get student's parents
+        parents = Parent.objects.filter(students__id=student.id).select_related('user')
+
+        # Get current classroom details
+        current_classroom = None
+        if classroom_assignment:
+            current_classroom = {
+                'id': classroom_assignment.classroom.id,
+                'name': classroom_assignment.classroom.name,
+                'code': classroom_assignment.classroom.code,
+                'capacity': classroom_assignment.classroom.capacity,
+                'room_type': classroom_assignment.classroom.get_room_type_display(),
+            }
+
+        return Response({
+            'success': True,
+            'language': lang,
+            'data': {
+                'student': StudentDetailSerializer(student, context={'request': request}).data,
+                'parents': ParentMinimalSerializer(parents, many=True).data,
+                'current_classroom': current_classroom,
+                'total_parents': parents.count(),
+            },
+        })
+
+    except Exception as exc:
+        logger.error(f"[teacher_get_student_full_detail] Error: {exc}", exc_info=True)
+        return Response(
+            {'success': False, 'message': str(exc), 'language': lang},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

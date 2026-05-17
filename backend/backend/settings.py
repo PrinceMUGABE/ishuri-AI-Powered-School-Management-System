@@ -229,12 +229,12 @@ SIMPLE_JWT = {
 # Email Configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
+EMAIL_PORT = 465          # Use SSL port instead of TLS
+EMAIL_USE_TLS = False     # Disable STARTTLS
+EMAIL_USE_SSL = True      # Use direct SSL (avoids the keyfile bug entirely)
 EMAIL_HOST_USER = 'princemugabe567@gmail.com'
 EMAIL_HOST_PASSWORD = 'nabh mmql drpz bsul'
 DEFAULT_FROM_EMAIL = 'Les Hirondelles de Don Bosco<princemugabe567@gmail.com>'
-
 
 
 # --- Channel Layers using Redis ---

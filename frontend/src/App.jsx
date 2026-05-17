@@ -26,6 +26,7 @@ import TeacherDashboard from './pages/teacher/TeacherDashboard';
 import TeacherProfile from './pages/teacher/TeacherProfile';
 import TeacherAssignmentUpload from './pages/teacher/AssignmentUpload';
 import TeacherAttendanceRecord from './pages/teacher/AttendanceRecord';
+import TeacherStudents from './pages/teacher/MyStudents';
 
 // Helper function to check if user is authenticated
 const isAuthenticated = () => {
@@ -127,6 +128,7 @@ function App() {
             <Route path="profile" element={<TeacherProfile />} />
             <Route path="attendance" element={<TeacherAttendanceRecord />} />
             <Route path="assignments" element={<TeacherAssignmentUpload />} />
+            <Route path="my-students" element={<TeacherStudents />} />
           </Route>
 
           {/* Student Routes - To be implemented */}

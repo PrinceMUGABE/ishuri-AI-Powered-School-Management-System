@@ -505,36 +505,40 @@
 
   
  
+ 
   "students": {
     "title": "Student Management",
-    "subtitle": "Manage students, parents and academic records",
+    "subtitle": "Manage students, parents, and classroom assignments",
     "tabs": {
       "students": "Students",
       "parents": "Parents",
-      "reports": "Reports"
+      "classrooms": "Classrooms",
+      "reports": "Reports",
+      "teachers": "Teachers"
     },
     "stats": {
       "totalStudents": "Total Students",
       "activeStudents": "Active Students",
-      "inactiveStudents": "Inactive Students",
       "totalParents": "Total Parents",
-      "activeParents": "Active Parents",
-      "studentsWithParents": "Students With Parents"
+      "totalAssignments": "Active Assignments"
     },
     "table": {
-      "rollNumber": "Roll Number",
+      "rollNumber": "Roll No",
       "fullName": "Full Name",
       "username": "Username",
-      "email": "Email",
-      "phone": "Phone",
       "classLevel": "Class Level",
-      "schoolLevel": "School Level",
+      "classroom": "Classroom",
       "parents": "Parents",
       "status": "Status",
       "actions": "Actions",
+      "studentName": "Student Name",
+      "academicYear": "Academic Year",
+      "schoolLevel": "School Level",
+      "term": "Term",
+      "email": "Email",
+      "phone": "Phone Number",
       "relationship": "Relationship",
-      "students": "Students",
-      "age": "Age"
+      "students": "Students"
     },
     "form": {
       "fullName": "Full Name",
@@ -544,23 +548,8 @@
       "academicYear": "Academic Year",
       "schoolLevel": "School Level",
       "classLevel": "Class Level",
-      "status": "Status",
       "physicalAddress": "Physical Address",
-      "relationshipType": "Relationship Type",
-      "linkedStudents": "Linked Students"
-    },
-    "placeholders": {
-      "fullName": "Enter full name",
-      "address": "Enter physical address"
-    },
-    "hints": {
-      "selectSchoolLevelFirst": "Select a school level first"
-    },
-    "status": {
-      "active": "Active",
-      "inactive": "Inactive",
-      "transferred": "Transferred",
-      "graduated": "Graduated"
+      "relationshipType": "Relationship Type"
     },
     "relationship": {
       "father": "Father",
@@ -568,105 +557,120 @@
       "guardian": "Guardian",
       "other": "Other"
     },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "transferred": "Transferred",
+      "graduated": "Graduated"
+    },
     "filters": {
-      "allStatus": "All Statuses",
+      "allStatus": "All Status",
       "allAcademicYears": "All Academic Years",
-      "allTerms": "All Terms",
       "allSchoolLevels": "All School Levels",
       "allClassLevels": "All Class Levels",
+      "allClassrooms": "All Classrooms",
       "allRelationships": "All Relationships"
     },
     "actions": {
       "addNew": "Add New",
-      "add": "Add",
-      "edit": "Edit",
-      "delete": "Delete",
-      "view": "View",
-      "viewDetails": "View Details",
-      "viewPerformance": "View Performance",
-      "viewFullPerformance": "View Full Performance",
-      "addParent": "Add Parent",
-      "linkParent": "Link Parent",
-      "create": "Create",
-      "update": "Update",
-      "cancel": "Cancel",
-      "close": "Close",
       "search": "Search...",
       "reset": "Reset",
-      "loading": "Loading...",
+      "view": "View",
+      "edit": "Edit",
+      "delete": "Delete",
+      "create": "Create",
+      "update": "Update",
+      "add": "Add",
       "select": "Select",
+      "assignClassroom": "Assign Classroom",
+      "unassign": "Unassign",
+      "addParent": "Add Parent",
+      "linkParent": "Link Parent",
+      "viewDetails": "View Details",
       "generateReport": "Generate Report",
       "downloadReport": "Download Report",
       "printReport": "Print Report",
-      "clickToAdd": "Click here to add one"
+      "viewFullPerformance": "View Full Performance"
     },
     "messages": {
-      "loading": "Loading data...",
-      "loadingClassLevels": "Loading class levels...",
-      "loadingPerformance": "Loading performance data...",
-      "noData": "No records found",
-      "noParentsLinked": "No parents linked to this student",
-      "noStudentsForLink": "No students available to link",
-      "fetchError": "Failed to load data",
-      "createSuccess": "Record created successfully",
-      "createError": "Failed to create record",
-      "updateSuccess": "Record updated successfully",
-      "updateError": "Failed to update record",
-      "deleteSuccess": "Record deleted successfully",
-      "deleteError": "Failed to delete record",
+      "loading": "Loading...",
+      "fetchError": "Failed to fetch data",
+      "createSuccess": "Created successfully",
+      "createError": "Failed to create",
+      "updateSuccess": "Updated successfully",
+      "updateError": "Failed to update",
+      "deleteSuccess": "Deleted successfully",
+      "deleteError": "Failed to delete",
+      "assignmentSuccess": "Classroom assigned successfully",
+      "assignmentError": "Failed to assign classroom",
+      "unassignSuccess": "Classroom unassigned successfully",
+      "unassignError": "Failed to unassign classroom",
       "parentLinked": "Parent linked successfully",
+      "noData": "No data found",
+      "noClassroomAssigned": "No classroom assigned",
+      "noParentsLinked": "No parents linked to this student",
       "reportGenerated": "Report generated successfully",
       "reportError": "Failed to generate report",
       "exportSuccess": "Report exported successfully",
+      "loadingPerformance": "Loading performance data...",
       "performanceError": "Failed to load performance data"
     },
-    "labels": {
-      "noUserAccount": "No user account"
+    "classroom": {
+      "currentAssignment": "Current Classroom Assignment"
     },
-    "modal": {
-      "linkParentFor": "Linking parent for"
-    },
-    "delete": {
-      "title": "Confirm Deletion",
-      "confirmation": "Are you sure you want to delete this record?",
-      "warning": "This action is irreversible. All related data will be permanently deleted."
+    "performance": {
+      "title": "Student Performance",
+      "overallAverage": "Overall Average",
+      "disciplineScore": "Discipline Score",
+      "subjectPerformance": "Subject Performance"
     },
     "pagination": {
       "showing": "Showing",
       "perPage": "per page",
-      "total": "Total",
-      "records": "records",
       "page": "Page",
       "of": "of",
       "first": "First",
       "last": "Last"
     },
-    "performance": {
-      "title": "Student Performance",
-      "quickSummary": "Quick Summary",
-      "overallAverage": "Overall Average",
-      "disciplineScore": "Discipline Score",
-      "attendanceSummary": "Attendance Summary",
-      "present": "Present",
-      "absent": "Absent",
-      "late": "Late",
-      "total": "Total",
-      "attendanceRate": "Attendance Rate",
-      "subjectPerformance": "Subject Performance",
-      "subjectDiscipline": "Subject Discipline",
-      "subjectsPassed": "Subjects Passed",
-      "subjectsFailed": "Subjects Failed",
-      "calculatedRealTime": "Performance data is calculated in real time"
-    },
     "reports": {
-      "title": "Student & Parent Report",
+      "title": "System Report",
       "generatedOn": "Generated on",
-      "clickToGenerate": "Click to Generate Report",
-      "description": "Generate a comprehensive overview of all students and parents in the system.",
-      "studentsList": "Students List",
-      "showingFirst": "Showing first",
-      "of": "of"
-    }
+      "clickToGenerate": "Click the button below to generate a comprehensive report"
+    },
+    "delete": {
+      "title": "Delete Item",
+      "confirmation": "Are you sure you want to delete this item? This action cannot be undone."
+    },
+    "unassign": {
+      "title": "Unassign Classroom",
+      "confirmation": "Are you sure you want to unassign this classroom? This action cannot be undone."
+    },
+    "labels": {
+      "noUserAccount": "No user account"
+    },
+    "notif": {
+      "student_created_title": "Student Account Created",
+      "student_created_msg": "Your student account has been created. Your roll number is: {{roll_number}}",
+      "student_updated_title": "Student Profile Updated",
+      "student_deleted_title": "Student Account Deleted",
+      "parent_created_title": "Parent Account Created",
+      "parent_created_msg": "Your parent account has been created successfully",
+      "parent_deleted_title": "Parent Account Deleted"
+    },
+    "placeholders": {
+      "fullName": "Enter full name",
+      "address": "Enter physical address",
+      "relationship": "Select relationship type"
+    },
+    "classRooms": {
+      "noClassrooms": "No classrooms found",
+      "clickToAssign": "Click to assign a classroom"
+    },
+    "classroomsAssigned": {
+      "title": "Assigned Classrooms",
+      "noClassrooms": "No classrooms assigned to this student"
+    },
+    "classroomsAssigned": "Assigned Classrooms"
   },
 
 
@@ -1533,5 +1537,175 @@
     "messages": {
       "logoutSuccess": "You have been logged out successfully."
     }
-  }
+  },
+
+
+
+  
+  "teacher": {
+    "welcome": "Welcome, {{name}}!",
+    "teacher": "Teacher",
+    "subtitle": "View and manage your students",
+    "myStudents": "My Students",
+    "myStudentsSubtitle": "Students assigned to your classrooms",
+    "classroomsAssigned": "Classrooms Assigned",
+    "stats": {
+      "totalStudents": "Total Students",
+      "activeStudents": "Active Students",
+      "classrooms": "Classrooms",
+      "schoolLevels": "School Levels"
+    },
+    "filters": {
+      "allSchoolLevels": "All School Levels",
+      "allClassLevels": "All Class Levels",
+      "allClassrooms": "All Classrooms"
+    },
+    "messages": {
+      "fetchProfileError": "Failed to fetch teacher profile",
+      "fetchStudentsError": "Failed to fetch students",
+      "fetchStudentDetailsError": "Failed to fetch student details",
+      "noStudentsAssigned": "No students assigned to your classrooms yet.",
+      "noFilterResults": "No students match the selected filters."
+    }
+  },
+  "students": {
+    "title": "Student Management",
+    "subtitle": "Manage students, parents, and classroom assignments",
+    "tabs": {
+      "students": "Students",
+      "parents": "Parents",
+      "classrooms": "Classrooms",
+      "reports": "Reports",
+      "teachers": "Teachers"
+    },
+    "table": {
+      "rollNumber": "Roll Number",
+      "fullName": "Full Name",
+      "username": "Username",
+      "email": "Email",
+      "phone": "Phone",
+      "schoolLevel": "School Level",
+      "classLevel": "Class Level",
+      "classroom": "Classroom",
+      "parents": "Parents",
+      "status": "Status",
+      "actions": "Actions",
+      "studentName": "Student Name",
+      "academicYear": "Academic Year",
+      "term": "Term",
+      "relationship": "Relationship"
+    },
+    "form": {
+      "fullName": "Full Name",
+      "email": "Email Address",
+      "phone": "Phone Number",
+      "birthDate": "Birth Date",
+      "academicYear": "Academic Year",
+      "schoolLevel": "School Level",
+      "classLevel": "Class Level",
+      "physicalAddress": "Physical Address",
+      "relationshipType": "Relationship Type"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "transferred": "Transferred",
+      "graduated": "Graduated",
+      "suspended": "Suspended"
+    },
+    "relationship": {
+      "father": "Father",
+      "mother": "Mother",
+      "guardian": "Guardian",
+      "other": "Other"
+    },
+    "classroom": {
+      "currentAssignment": "Current Classroom Assignment"
+    },
+    "actions": {
+      "addNew": "Add New",
+      "search": "Search students...",
+      "reset": "Reset",
+      "refresh": "Refresh",
+      "view": "View Details",
+      "edit": "Edit",
+      "delete": "Delete",
+      "close": "Close",
+      "select": "Select",
+      "create": "Create",
+      "update": "Update",
+      "add": "Add",
+      "viewDetails": "View Details",
+      "assignClassroom": "Assign Classroom",
+      "unassign": "Unassign",
+      "addParent": "Add Parent",
+      "linkParent": "Link Parent",
+      "generateReport": "Generate Report",
+      "downloadReport": "Download Report",
+      "printReport": "Print Report",
+      "viewFullPerformance": "View Full Performance"
+    },
+    "messages": {
+      "loading": "Loading...",
+      "loadingPerformance": "Loading performance data...",
+      "noData": "No data available",
+      "noFilterResults": "No results match your search criteria",
+      "noClassroomAssigned": "No classroom assigned",
+      "noParentsLinked": "No parents linked to this student",
+      "noUserAccount": "No user account",
+      "createSuccess": "Record created successfully",
+      "createError": "Failed to create record",
+      "updateSuccess": "Record updated successfully",
+      "updateError": "Failed to update record",
+      "deleteSuccess": "Record deleted successfully",
+      "deleteError": "Failed to delete record",
+      "fetchError": "Failed to fetch data",
+      "assignmentSuccess": "Student assigned to classroom successfully",
+      "assignmentError": "Failed to assign student to classroom",
+      "unassignSuccess": "Student unassigned from classroom successfully",
+      "unassignError": "Failed to unassign student from classroom",
+      "parentLinked": "Parent linked successfully",
+      "reportGenerated": "Report generated successfully",
+      "reportError": "Failed to generate report",
+      "exportSuccess": "Report exported successfully",
+      "performanceError": "Failed to fetch performance data"
+    },
+    "pagination": {
+      "showing": "Showing",
+      "perPage": "per page",
+      "page": "Page",
+      "of": "of",
+      "first": "First",
+      "last": "Last"
+    },
+    "delete": {
+      "title": "Delete Record",
+      "confirmation": "Are you sure you want to delete this record? This action cannot be undone."
+    },
+    "unassign": {
+      "title": "Unassign Student",
+      "confirmation": "Are you sure you want to unassign this student from the classroom?"
+    },
+    "reports": {
+      "title": "Student Report",
+      "generatedOn": "Generated on",
+      "clickToGenerate": "Click the button below to generate a report"
+    },
+    "performance": {
+      "title": "Student Performance",
+      "overallAverage": "Overall Average",
+      "disciplineScore": "Discipline Score",
+      "subjectPerformance": "Subject Performance"
+    },
+    "labels": {
+      "noUserAccount": "No user account"
+    }
+  },
+  "not_authorized_to_view_student": "You are not authorized to view this student's details.",
+  "not_authorized_to_view_classroom": "You are not authorized to view this classroom.",
+  "not_assigned_to_classroom": "You are not assigned to this classroom.",
+  "no_classrooms_assigned": "No classrooms assigned to this teacher.",
+  "students_retrieved": "Students retrieved successfully",
+  "student_details_retrieved": "Student details retrieved successfully",
+  "classroom_not_found": "Classroom not found"
 }

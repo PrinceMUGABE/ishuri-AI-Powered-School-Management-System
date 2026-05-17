@@ -9,6 +9,7 @@ urlpatterns = [
     path('teachers/<int:pk>/', views.teacher_detail, name='teacher_detail'),
     path('profile/', views.teacher_profile, name='teacher_profile'),
     path('change-password/', views.change_password, name='change_password'),
+    path('me/', views.teacher_me, name='teacher_me'),
     
     # Teacher Documents
     path('teachers/documents/', views.teacher_documents, name='teacher_documents'),
@@ -19,6 +20,7 @@ urlpatterns = [
     path('assignments/', views.assignment_list_create, name='assignment_list_create'),
     path('assignments/<int:pk>/', views.assignment_detail, name='assignment_detail'),
     path('assignments/<int:pk>/delete/', views.assignment_detail, name='assignment_delete'),
+    path('timetable/my-assignments/', views.get_my_teaching_assignments, name='my_teaching_assignments'),
     
     # Timetable
     path('timetable/generate/', views.generate_timetable, name='generate_timetable'),

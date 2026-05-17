@@ -252,34 +252,51 @@ class StudentListSerializer(serializers.ModelSerializer):
     current_academic_year = AcademicYearMinimalSerializer(read_only=True)
     current_classroom = serializers.SerializerMethodField()
     parents_count = serializers.SerializerMethodField()
+    user = UserMinimalSerializer(read_only=True)
 
     class Meta:
         model = Student
         fields = [
-            'id', 'full_name', 'roll_number', 'email', 'phone_number',
+            'id', 'user', 'full_name', 'roll_number', 'email', 'phone_number',
             'birth_date', 'age', 'status', 'parents_count', 'current_classroom',
             'current_academic_year', 'current_school_level', 'current_class_level',
-            'created_at'
+            'created_at',
         ]
 
     def get_parents_count(self, obj):
         return obj.parents.count()
-    
+
     def get_current_classroom(self, obj):
-        from .models import StudentClassroomAssignment
-        assignment = StudentClassroomAssignment.objects.filter(
-            student=obj,
-            status='active'
-        ).select_related('classroom').first()
-        
+        """
+        Use prefetched active_classroom_assignments when available (bulk list calls),
+        otherwise fall back to a direct DB query (single-object calls).
+        """
+        # Fast path: data was prefetched by get_all_students
+        if hasattr(obj, 'active_classroom_assignments'):
+            assignments = obj.active_classroom_assignments  # already filtered to status='active'
+            if assignments:
+                classroom = assignments[0].classroom
+                return {
+                    'id': classroom.id,
+                    'name': classroom.name,
+                    'code': classroom.code,
+                }
+            return None
+
+        # Fallback path: used when serializer is called outside get_all_students
+        assignment = (
+            StudentClassroomAssignment.objects
+            .filter(student=obj, status='active')
+            .select_related('classroom')
+            .first()
+        )
         if assignment:
             return {
                 'id': assignment.classroom.id,
                 'name': assignment.classroom.name,
-                'code': assignment.classroom.code
+                'code': assignment.classroom.code,
             }
         return None
-
 
 class StudentDetailSerializer(serializers.ModelSerializer):
     """Full student detail including parents and academic placement."""

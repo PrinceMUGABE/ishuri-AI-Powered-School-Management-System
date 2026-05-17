@@ -506,36 +506,40 @@
 
   
   
+ 
   "students": {
-    "title": "Gestion des Élèves",
-    "subtitle": "Gérer les élèves, les parents et les dossiers académiques",
+    "title": "Gestion des Étudiants",
+    "subtitle": "Gérer les étudiants, parents et affectations de classes",
     "tabs": {
-      "students": "Élèves",
+      "students": "Étudiants",
       "parents": "Parents",
-      "reports": "Rapports"
+      "classrooms": "Salles de Classe",
+      "reports": "Rapports",
+      "teachers": "Enseignants"
     },
     "stats": {
-      "totalStudents": "Total Élèves",
-      "activeStudents": "Élèves Actifs",
-      "inactiveStudents": "Élèves Inactifs",
+      "totalStudents": "Total Étudiants",
+      "activeStudents": "Étudiants Actifs",
       "totalParents": "Total Parents",
-      "activeParents": "Parents Actifs",
-      "studentsWithParents": "Élèves Avec Parents"
+      "totalAssignments": "Affectations Actives"
     },
     "table": {
-      "rollNumber": "Numéro de Matricule",
+      "rollNumber": "N° Matricule",
       "fullName": "Nom Complet",
-      "username": "Nom d'Utilisateur",
-      "email": "Email",
-      "phone": "Téléphone",
-      "classLevel": "Niveau de Classe",
-      "schoolLevel": "Niveau Scolaire",
+      "username": "Nom d'utilisateur",
+      "classLevel": "Niveau Classe",
+      "classroom": "Salle de Classe",
       "parents": "Parents",
       "status": "Statut",
       "actions": "Actions",
+      "studentName": "Nom Étudiant",
+      "academicYear": "Année Académique",
+      "schoolLevel": "Niveau Scolaire",
+      "term": "Trimestre",
+      "email": "Email",
+      "phone": "Téléphone",
       "relationship": "Relation",
-      "students": "Élèves",
-      "age": "Âge"
+      "students": "Étudiants"
     },
     "form": {
       "fullName": "Nom Complet",
@@ -545,23 +549,8 @@
       "academicYear": "Année Académique",
       "schoolLevel": "Niveau Scolaire",
       "classLevel": "Niveau de Classe",
-      "status": "Statut",
       "physicalAddress": "Adresse Physique",
-      "relationshipType": "Type de Relation",
-      "linkedStudents": "Élèves Associés"
-    },
-    "placeholders": {
-      "fullName": "Entrez le nom complet",
-      "address": "Entrez l'adresse physique"
-    },
-    "hints": {
-      "selectSchoolLevelFirst": "Sélectionnez d'abord un niveau scolaire"
-    },
-    "status": {
-      "active": "Actif",
-      "inactive": "Inactif",
-      "transferred": "Transféré",
-      "graduated": "Diplômé"
+      "relationshipType": "Type de Relation"
     },
     "relationship": {
       "father": "Père",
@@ -569,106 +558,108 @@
       "guardian": "Tuteur",
       "other": "Autre"
     },
+    "status": {
+      "active": "Actif",
+      "inactive": "Inactif",
+      "transferred": "Transféré",
+      "graduated": "Diplômé"
+    },
     "filters": {
-      "allStatus": "Tous les Statuts",
-      "allAcademicYears": "Toutes les Années Académiques",
-      "allTerms": "Tous les Trimestres",
-      "allSchoolLevels": "Tous les Niveaux Scolaires",
-      "allClassLevels": "Tous les Niveaux de Classe",
-      "allRelationships": "Toutes les Relations"
+      "allStatus": "Tous Statuts",
+      "allAcademicYears": "Toutes Années Académiques",
+      "allSchoolLevels": "Tous Niveaux Scolaires",
+      "allClassLevels": "Tous Niveaux de Classe",
+      "allClassrooms": "Toutes Salles de Classe",
+      "allRelationships": "Toutes Relations"
     },
     "actions": {
-      "addNew": "Ajouter",
-      "add": "Ajouter",
-      "edit": "Modifier",
-      "delete": "Supprimer",
-      "view": "Voir",
-      "viewDetails": "Voir les Détails",
-      "viewPerformance": "Voir les Performances",
-      "viewFullPerformance": "Voir les Performances Complètes",
-      "addParent": "Ajouter un Parent",
-      "linkParent": "Associer un Parent",
-      "create": "Créer",
-      "update": "Mettre à Jour",
-      "cancel": "Annuler",
-      "close": "Fermer",
+      "addNew": "Ajouter Nouveau",
       "search": "Rechercher...",
       "reset": "Réinitialiser",
-      "loading": "Chargement...",
+      "view": "Voir",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "create": "Créer",
+      "update": "Mettre à Jour",
+      "add": "Ajouter",
       "select": "Sélectionner",
-      "generateReport": "Générer un Rapport",
-      "downloadReport": "Télécharger le Rapport",
-      "printReport": "Imprimer le Rapport",
-      "clickToAdd": "Cliquez ici pour en ajouter un"
+      "assignClassroom": "Assigner une Salle",
+      "unassign": "Désassigner",
+      "addParent": "Ajouter Parent",
+      "linkParent": "Lier Parent",
+      "viewDetails": "Voir Détails",
+      "generateReport": "Générer Rapport",
+      "downloadReport": "Télécharger Rapport",
+      "printReport": "Imprimer Rapport",
+      "viewFullPerformance": "Voir Performance Complète"
     },
     "messages": {
-      "loading": "Chargement des données...",
-      "loadingClassLevels": "Chargement des niveaux de classe...",
-      "loadingPerformance": "Chargement des données de performance...",
-      "noData": "Aucun enregistrement trouvé",
-      "noParentsLinked": "Aucun parent associé à cet élève",
-      "noStudentsForLink": "Aucun élève disponible à associer",
+      "loading": "Chargement...",
       "fetchError": "Échec du chargement des données",
-      "createSuccess": "Enregistrement créé avec succès",
-      "createError": "Échec de la création de l'enregistrement",
-      "updateSuccess": "Enregistrement mis à jour avec succès",
-      "updateError": "Échec de la mise à jour de l'enregistrement",
-      "deleteSuccess": "Enregistrement supprimé avec succès",
-      "deleteError": "Échec de la suppression de l'enregistrement",
-      "parentLinked": "Parent associé avec succès",
+      "createSuccess": "Créé avec succès",
+      "createError": "Échec de la création",
+      "updateSuccess": "Mis à jour avec succès",
+      "updateError": "Échec de la mise à jour",
+      "deleteSuccess": "Supprimé avec succès",
+      "deleteError": "Échec de la suppression",
+      "assignmentSuccess": "Salle de classe assignée avec succès",
+      "assignmentError": "Échec de l'assignation de la salle",
+      "unassignSuccess": "Salle de classe désassignée avec succès",
+      "unassignError": "Échec de la désassignation de la salle",
+      "parentLinked": "Parent lié avec succès",
+      "noData": "Aucune donnée trouvée",
+      "noClassroomAssigned": "Aucune salle de classe assignée",
+      "noParentsLinked": "Aucun parent lié à cet étudiant",
       "reportGenerated": "Rapport généré avec succès",
       "reportError": "Échec de la génération du rapport",
       "exportSuccess": "Rapport exporté avec succès",
+      "loadingPerformance": "Chargement des données de performance...",
       "performanceError": "Échec du chargement des données de performance"
     },
-    "labels": {
-      "noUserAccount": "Pas de compte utilisateur"
+    "classroom": {
+      "currentAssignment": "Affectation Actuelle de la Salle"
     },
-    "modal": {
-      "linkParentFor": "Association d'un parent pour"
-    },
-    "delete": {
-      "title": "Confirmer la Suppression",
-      "confirmation": "Êtes-vous sûr de vouloir supprimer cet enregistrement ?",
-      "warning": "Cette action est irréversible. Toutes les données associées seront définitivement supprimées."
+    "performance": {
+      "title": "Performance Étudiante",
+      "overallAverage": "Moyenne Générale",
+      "disciplineScore": "Score de Discipline",
+      "subjectPerformance": "Performance par Matière"
     },
     "pagination": {
       "showing": "Affichage de",
       "perPage": "par page",
-      "total": "Total",
-      "records": "enregistrements",
       "page": "Page",
-      "of": "sur",
-      "first": "Premier",
-      "last": "Dernier"
-    },
-    "performance": {
-      "title": "Performance de l'Élève",
-      "quickSummary": "Résumé Rapide",
-      "overallAverage": "Moyenne Générale",
-      "disciplineScore": "Score de Discipline",
-      "attendanceSummary": "Résumé des Présences",
-      "present": "Présent",
-      "absent": "Absent",
-      "late": "En Retard",
-      "total": "Total",
-      "attendanceRate": "Taux de Présence",
-      "subjectPerformance": "Performance par Matière",
-      "subjectDiscipline": "Discipline par Matière",
-      "subjectsPassed": "Matières Réussies",
-      "subjectsFailed": "Matières Échouées",
-      "calculatedRealTime": "Les données de performance sont calculées en temps réel"
+      "of": "de",
+      "first": "Première",
+      "last": "Dernière"
     },
     "reports": {
-      "title": "Rapport Élèves & Parents",
+      "title": "Rapport Système",
       "generatedOn": "Généré le",
-      "clickToGenerate": "Cliquez pour Générer le Rapport",
-      "description": "Générez un aperçu complet de tous les élèves et parents dans le système.",
-      "studentsList": "Liste des Élèves",
-      "showingFirst": "Affichage des premiers",
-      "of": "sur"
+      "clickToGenerate": "Cliquez sur le bouton ci-dessous pour générer un rapport complet"
+    },
+    "delete": {
+      "title": "Supprimer l'Élément",
+      "confirmation": "Êtes-vous sûr de vouloir supprimer cet élément ? Cette action est irréversible."
+    },
+    "unassign": {
+      "title": "Désassigner la Salle",
+      "confirmation": "Êtes-vous sûr de vouloir désassigner cette salle de classe ? Cette action est irréversible."
+    },
+    "labels": {
+      "noUserAccount": "Pas de compte utilisateur"
+    },
+    "notif": {
+      "student_created_title": "Compte Étudiant Créé",
+      "student_created_msg": "Votre compte étudiant a été créé. Votre numéro de matricule est : {{roll_number}}",
+      "student_updated_title": "Profil Étudiant Mis à Jour",
+      "student_deleted_title": "Compte Étudiant Supprimé",
+      "parent_created_title": "Compte Parent Créé",
+      "parent_created_msg": "Votre compte parent a été créé avec succès",
+      "parent_deleted_title": "Compte Parent Supprimé"
     }
   },
+
 
 
   "chat": {
@@ -1530,5 +1521,176 @@
     "messages": {
       "logoutSuccess": "Vous avez été déconnecté avec succès."
     }
-  }
+  },
+
+
+
+  
+  "teacher": {
+    "welcome": "Bienvenue, {{name}} !",
+    "teacher": "Enseignant",
+    "subtitle": "Voir et gérer vos élèves",
+    "myStudents": "Mes Élèves",
+    "myStudentsSubtitle": "Élèves assignés à vos salles de classe",
+    "classroomsAssigned": "Salles de classe assignées",
+    "stats": {
+      "totalStudents": "Total Élèves",
+      "activeStudents": "Élèves Actifs",
+      "classrooms": "Salles de classe",
+      "schoolLevels": "Niveaux Scolaires"
+    },
+    "filters": {
+      "allSchoolLevels": "Tous les Niveaux Scolaires",
+      "allClassLevels": "Tous les Niveaux de Classe",
+      "allClassrooms": "Toutes les Salles de classe"
+    },
+    "messages": {
+      "fetchProfileError": "Échec de la récupération du profil enseignant",
+      "fetchStudentsError": "Échec de la récupération des élèves",
+      "fetchStudentDetailsError": "Échec de la récupération des détails de l'élève",
+      "noStudentsAssigned": "Aucun élève n'est encore assigné à vos salles de classe.",
+      "noFilterResults": "Aucun élève ne correspond aux filtres sélectionnés."
+    }
+  },
+  "students": {
+    "title": "Gestion des Élèves",
+    "subtitle": "Gérer les élèves, les parents et les assignations de salles de classe",
+    "tabs": {
+      "students": "Élèves",
+      "parents": "Parents",
+      "classrooms": "Salles de classe",
+      "reports": "Rapports",
+      "teachers": "Enseignants"
+    },
+    "table": {
+      "rollNumber": "Numéro d'inscription",
+      "fullName": "Nom Complet",
+      "username": "Nom d'utilisateur",
+      "email": "Email",
+      "phone": "Téléphone",
+      "schoolLevel": "Niveau Scolaire",
+      "classLevel": "Niveau de Classe",
+      "classroom": "Salle de classe",
+      "parents": "Parents",
+      "status": "Statut",
+      "actions": "Actions",
+      "studentName": "Nom de l'Élève",
+      "academicYear": "Année Académique",
+      "term": "Trimestre",
+      "relationship": "Relation"
+    },
+    "form": {
+      "fullName": "Nom Complet",
+      "email": "Adresse Email",
+      "phone": "Numéro de Téléphone",
+      "birthDate": "Date de Naissance",
+      "academicYear": "Année Académique",
+      "schoolLevel": "Niveau Scolaire",
+      "classLevel": "Niveau de Classe",
+      "physicalAddress": "Adresse Physique",
+      "relationshipType": "Type de Relation"
+    },
+    "status": {
+      "active": "Actif",
+      "inactive": "Inactif",
+      "transferred": "Transféré",
+      "graduated": "Diplômé",
+      "suspended": "Suspendu"
+    },
+    "relationship": {
+      "father": "Père",
+      "mother": "Mère",
+      "guardian": "Tuteur",
+      "other": "Autre"
+    },
+    "classroom": {
+      "currentAssignment": "Assignation Actuelle de la Salle de classe"
+    },
+    "actions": {
+      "addNew": "Ajouter",
+      "search": "Rechercher des élèves...",
+      "reset": "Réinitialiser",
+      "refresh": "Actualiser",
+      "view": "Voir les Détails",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "close": "Fermer",
+      "select": "Sélectionner",
+      "create": "Créer",
+      "update": "Mettre à jour",
+      "add": "Ajouter",
+      "viewDetails": "Voir les Détails",
+      "assignClassroom": "Assigner une Salle de classe",
+      "unassign": "Désassigner",
+      "addParent": "Ajouter un Parent",
+      "linkParent": "Lier un Parent",
+      "generateReport": "Générer un Rapport",
+      "downloadReport": "Télécharger le Rapport",
+      "printReport": "Imprimer le Rapport",
+      "viewFullPerformance": "Voir les Performances Complètes"
+    },
+    "messages": {
+      "loading": "Chargement...",
+      "loadingPerformance": "Chargement des données de performance...",
+      "noData": "Aucune donnée disponible",
+      "noFilterResults": "Aucun résultat ne correspond à vos critères de recherche",
+      "noClassroomAssigned": "Aucune salle de classe assignée",
+      "noParentsLinked": "Aucun parent lié à cet élève",
+      "noUserAccount": "Aucun compte utilisateur",
+      "createSuccess": "Enregistrement créé avec succès",
+      "createError": "Échec de la création de l'enregistrement",
+      "updateSuccess": "Enregistrement mis à jour avec succès",
+      "updateError": "Échec de la mise à jour de l'enregistrement",
+      "deleteSuccess": "Enregistrement supprimé avec succès",
+      "deleteError": "Échec de la suppression de l'enregistrement",
+      "fetchError": "Échec de la récupération des données",
+      "assignmentSuccess": "Élève assigné à la salle de classe avec succès",
+      "assignmentError": "Échec de l'assignation de l'élève à la salle de classe",
+      "unassignSuccess": "Élève désassigné de la salle de classe avec succès",
+      "unassignError": "Échec de la désassignation de l'élève de la salle de classe",
+      "parentLinked": "Parent lié avec succès",
+      "reportGenerated": "Rapport généré avec succès",
+      "reportError": "Échec de la génération du rapport",
+      "exportSuccess": "Rapport exporté avec succès",
+      "performanceError": "Échec de la récupération des données de performance"
+    },
+    "pagination": {
+      "showing": "Affichage de",
+      "perPage": "par page",
+      "page": "Page",
+      "of": "de",
+      "first": "Premier",
+      "last": "Dernier"
+    },
+    "delete": {
+      "title": "Supprimer l'Enregistrement",
+      "confirmation": "Êtes-vous sûr de vouloir supprimer cet enregistrement ? Cette action est irréversible."
+    },
+    "unassign": {
+      "title": "Désassigner l'Élève",
+      "confirmation": "Êtes-vous sûr de vouloir désassigner cet élève de la salle de classe ?"
+    },
+    "reports": {
+      "title": "Rapport des Élèves",
+      "generatedOn": "Généré le",
+      "clickToGenerate": "Cliquez sur le bouton ci-dessous pour générer un rapport"
+    },
+    "performance": {
+      "title": "Performance de l'Élève",
+      "overallAverage": "Moyenne Générale",
+      "disciplineScore": "Score de Discipline",
+      "subjectPerformance": "Performance par Matière"
+    },
+    "labels": {
+      "noUserAccount": "Aucun compte utilisateur"
+    }
+  },
+  "not_authorized_to_view_student": "Vous n'êtes pas autorisé à voir les détails de cet élève.",
+  "not_authorized_to_view_classroom": "Vous n'êtes pas autorisé à voir cette salle de classe.",
+  "not_assigned_to_classroom": "Vous n'êtes pas assigné à cette salle de classe.",
+  "no_classrooms_assigned": "Aucune salle de classe assignée à cet enseignant.",
+  "students_retrieved": "Élèves récupérés avec succès",
+  "student_details_retrieved": "Détails de l'élève récupérés avec succès",
+  "classroom_not_found": "Salle de classe non trouvée"
 }
+

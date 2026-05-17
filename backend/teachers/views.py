@@ -1459,6 +1459,558 @@ def day_setting_detail(request, pk):
         return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+# Add this to teachers/views.py
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+@log_request_response
+def get_my_teaching_assignments(request):
+    """
+    Get all teaching assignments for the logged-in teacher.
+    Returns unique school levels, class levels, and classrooms.
+    """
+    lang = get_lang(request)
+    
+    try:
+        if not is_teacher(request.user):
+            return _err(get_translation('teacher_access_required', lang), status.HTTP_403_FORBIDDEN)
+        
+        try:
+            teacher = Teacher.objects.get(user=request.user)
+            print(f"[GET_MY_TEACHING_ASSIGNMENTS] Teacher: {teacher.full_name} (ID: {teacher.id})")
+        except Teacher.DoesNotExist:
+            return _err(get_translation('teacher_not_found', lang), status.HTTP_404_NOT_FOUND)
+        
+        # Get all active assignments for this teacher
+        assignments = TeacherAssignment.objects.filter(
+            teacher=teacher,
+            status='active'
+        ).select_related(
+            'school_level', 'class_level', 'subject', 'academic_year', 'term'
+        ).prefetch_related('classrooms')
+        
+        print(f"[GET_MY_TEACHING_ASSIGNMENTS] Found {assignments.count()} assignments")
+        
+        # Build unique sets
+        school_levels = {}
+        class_levels = {}
+        classrooms = {}
+        subjects = {}
+        
+        for assignment in assignments:
+            # School levels
+            if assignment.school_level:
+                school_levels[assignment.school_level.id] = {
+                    'id': assignment.school_level.id,
+                    'name': assignment.school_level.name,
+                }
+                print(f"  - School level: {assignment.school_level.name}")
+            
+            # Class levels (with school level reference)
+            if assignment.class_level:
+                class_levels[assignment.class_level.id] = {
+                    'id': assignment.class_level.id,
+                    'name': assignment.class_level.name,
+                    'school_level_id': assignment.school_level.id if assignment.school_level else None,
+                }
+                print(f"  - Class level: {assignment.class_level.name}")
+            
+            # Subjects
+            if assignment.subject:
+                subjects[assignment.subject.id] = {
+                    'id': assignment.subject.id,
+                    'name': assignment.subject.name,
+                    'code': assignment.subject.code,
+                }
+                print(f"  - Subject: {assignment.subject.name}")
+            
+            # Classrooms from M2M
+            for classroom in assignment.classrooms.all():
+                if classroom.status == 'active':
+                    classrooms[classroom.id] = {
+                        'id': classroom.id,
+                        'name': classroom.name,
+                        'code': classroom.code,
+                        'class_level_id': assignment.class_level.id if assignment.class_level else None,
+                        'capacity': classroom.capacity,
+                        'room_type': classroom.get_room_type_display(),
+                    }
+                    print(f"  - Classroom: {classroom.name} (via assignment)")
+        
+        # Also get timetable entries for additional classroom assignments
+        timetable_entries = TeacherTimetable.objects.filter(
+            teacher=teacher,
+       
+        ).select_related('classroom', 'class_level', 'school_level').distinct()
+        
+        print(f"[GET_MY_TEACHING_ASSIGNMENTS] Found {timetable_entries.count()} timetable entries")
+        
+        for entry in timetable_entries:
+            if entry.classroom and entry.classroom.status == 'active':
+                classrooms[entry.classroom.id] = {
+                    'id': entry.classroom.id,
+                    'name': entry.classroom.name,
+                    'code': entry.classroom.code,
+                    'class_level_id': entry.class_level.id if entry.class_level else None,
+                    'capacity': entry.classroom.capacity,
+                    'room_type': entry.classroom.get_room_type_display(),
+                }
+                print(f"  - Classroom: {entry.classroom.name} (via timetable)")
+            
+            if entry.school_level:
+                school_levels[entry.school_level.id] = {
+                    'id': entry.school_level.id,
+                    'name': entry.school_level.name,
+                }
+            
+            if entry.class_level:
+                class_levels[entry.class_level.id] = {
+                    'id': entry.class_level.id,
+                    'name': entry.class_level.name,
+                    'school_level_id': entry.school_level.id if entry.school_level else None,
+                }
+        
+        result = {
+            'teacher': {
+                'id': teacher.id,
+                'full_name': teacher.full_name,
+                'email': teacher.email,
+                'phone_number': teacher.phone_number,
+            },
+            'school_levels': list(school_levels.values()),
+            'class_levels': list(class_levels.values()),
+            'classrooms': list(classrooms.values()),
+            'subjects': list(subjects.values()),
+            'stats': {
+                'total_assignments': assignments.count(),
+                'total_school_levels': len(school_levels),
+                'total_class_levels': len(class_levels),
+                'total_classrooms': len(classrooms),
+            }
+        }
+        
+        print(f"[GET_MY_TEACHING_ASSIGNMENTS] Response: {len(school_levels)} school levels, {len(class_levels)} class levels, {len(classrooms)} classrooms")
+        return _ok(result, get_translation('assignments_retrieved', lang))
+        
+    except Exception as e:
+        print_error(f"Error in get_my_teaching_assignments: {str(e)}", e)
+        return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)   
+    
+    
+    
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+@log_request_response
+def get_my_students(request):
+    """
+    Get all students taught by the logged-in teacher.
+    Returns students from all classrooms the teacher is assigned to.
+    """
+    lang = get_lang(request)
+    
+    try:
+        if not is_teacher(request.user):
+            return _err(get_translation('teacher_access_required', lang), status.HTTP_403_FORBIDDEN)
+        
+        try:
+            teacher = Teacher.objects.get(user=request.user)
+            print(f"[TEACHER_FOUND] id={teacher.id}, name={teacher.full_name}")
+        except Teacher.DoesNotExist:
+            return _err(get_translation('teacher_not_found', lang), status.HTTP_404_NOT_FOUND)
+        
+        # Get current academic year
+        current_academic_year = AcademicYear.objects.filter(is_current=True).first()
+        if not current_academic_year:
+            current_academic_year = AcademicYear.objects.order_by('-start_date').first()
+        
+        # Get all classrooms the teacher is assigned to (via assignments or timetable)
+        teacher_classrooms = set()
+        
+        # From assignments
+        assignments = TeacherAssignment.objects.filter(
+            teacher=teacher,
+            status='active'
+        ).prefetch_related('classrooms')
+        
+        for assignment in assignments:
+            for classroom in assignment.classrooms.all():
+                if classroom.status == 'active':
+                    teacher_classrooms.add(classroom.id)
+        
+        # From timetable
+        timetable_entries = TeacherTimetable.objects.filter(
+            teacher=teacher,
+            status='active'
+        ).select_related('classroom')
+        
+        for entry in timetable_entries:
+            if entry.classroom and entry.classroom.status == 'active':
+                teacher_classrooms.add(entry.classroom.id)
+        
+        if not teacher_classrooms:
+            return _ok({
+                'students': [],
+                'total': 0,
+                'teacher': {'id': teacher.id, 'full_name': teacher.full_name},
+                'message': 'No classrooms assigned to this teacher.'
+            }, get_translation('no_classrooms_assigned', lang))
+        
+        # Get students in these classrooms
+        from students.models import Student, StudentClassroomAssignment
+        from students.serializers import StudentListSerializer
+        
+        classroom_assignments = StudentClassroomAssignment.objects.filter(
+            classroom_id__in=teacher_classrooms,
+            status='active'
+        ).select_related(
+            'student',
+            'student__user',
+            'student__current_academic_year',
+            'student__current_school_level',
+            'student__current_class_level',
+            'classroom'
+        ).prefetch_related('student__parents')
+        
+        # Deduplicate students (a student may appear in multiple classrooms)
+        students_map = {}
+        for ca in classroom_assignments:
+            student = ca.student
+            if student.id not in students_map:
+                # Add classroom info to student object
+                student.current_classroom = {
+                    'id': ca.classroom.id,
+                    'name': ca.classroom.name,
+                    'code': ca.classroom.code,
+                }
+                students_map[student.id] = student
+        
+        students = list(students_map.values())
+        
+        # Apply filters
+        school_level_id = request.query_params.get('school_level_id')
+        if school_level_id:
+            students = [s for s in students if s.current_school_level and str(s.current_school_level.id) == school_level_id]
+        
+        class_level_id = request.query_params.get('class_level_id')
+        if class_level_id:
+            students = [s for s in students if s.current_class_level and str(s.current_class_level.id) == class_level_id]
+        
+        classroom_id = request.query_params.get('classroom_id')
+        if classroom_id:
+            students = [s for s in students if s.current_classroom and str(s.current_classroom.get('id')) == classroom_id]
+        
+        status_filter = request.query_params.get('status')
+        if status_filter:
+            students = [s for s in students if s.status == status_filter]
+        
+        search = request.query_params.get('search')
+        if search:
+            search_lower = search.lower()
+            students = [
+                s for s in students
+                if search_lower in s.full_name.lower()
+                or search_lower in s.roll_number.lower()
+                or (s.email and search_lower in s.email.lower())
+            ]
+        
+        # Serialize
+        from students.serializers import StudentListSerializer
+        serializer = StudentListSerializer(students, many=True, context={'request': request})
+        
+        result = {
+            'students': serializer.data,
+            'total': len(students),
+            'teacher': {
+                'id': teacher.id,
+                'full_name': teacher.full_name,
+            },
+            'filters_applied': {
+                'school_level_id': school_level_id,
+                'class_level_id': class_level_id,
+                'classroom_id': classroom_id,
+                'status': status_filter,
+                'search': search,
+            }
+        }
+        
+        print(f"[MY_STUDENTS] teacher={teacher.full_name}, total_students={len(students)}")
+        return _ok(result, get_translation('students_retrieved', lang))
+        
+    except Exception as e:
+        print_error(f"Error in get_my_students: {str(e)}", e)
+        return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    
+    
+    
+    
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+@log_request_response
+def get_classroom_students(request, classroom_id):
+    """
+    Get all students in a specific classroom.
+    Teacher must be assigned to this classroom.
+    """
+    lang = get_lang(request)
+    
+    try:
+        if not is_teacher(request.user):
+            return _err(get_translation('teacher_access_required', lang), status.HTTP_403_FORBIDDEN)
+        
+        try:
+            teacher = Teacher.objects.get(user=request.user)
+        except Teacher.DoesNotExist:
+            return _err(get_translation('teacher_not_found', lang), status.HTTP_404_NOT_FOUND)
+        
+        # Verify classroom exists
+        try:
+            classroom = ClassRoom.objects.get(id=classroom_id)
+            print(f"[CLASSROOM_FOUND] id={classroom.id}, name={classroom.name}")
+        except ClassRoom.DoesNotExist:
+            return _err(get_translation('classroom_not_found', lang), status.HTTP_404_NOT_FOUND)
+        
+        # Verify teacher is assigned to this classroom
+        is_assigned = False
+        
+        # Check assignments
+        if TeacherAssignment.objects.filter(
+            teacher=teacher,
+            classrooms=classroom,
+            status='active'
+        ).exists():
+            is_assigned = True
+        
+        # Check timetable
+        if not is_assigned and TeacherTimetable.objects.filter(
+            teacher=teacher,
+            classroom=classroom,
+            status='active'
+        ).exists():
+            is_assigned = True
+        
+        if not is_assigned:
+            return _err(get_translation('not_assigned_to_classroom', lang), status.HTTP_403_FORBIDDEN)
+        
+        # Get current academic year
+        current_academic_year = AcademicYear.objects.filter(is_current=True).first()
+        if not current_academic_year:
+            current_academic_year = AcademicYear.objects.order_by('-start_date').first()
+        
+        # Get students in this classroom
+        from students.models import StudentClassroomAssignment
+        from students.serializers import StudentListSerializer
+        
+        assignments = StudentClassroomAssignment.objects.filter(
+            classroom=classroom,
+            status='active'
+        ).select_related(
+            'student',
+            'student__user',
+            'student__current_academic_year',
+            'student__current_school_level',
+            'student__current_class_level',
+        )
+        
+        students = []
+        for ca in assignments:
+            student = ca.student
+            student.current_classroom = {
+                'id': classroom.id,
+                'name': classroom.name,
+                'code': classroom.code,
+            }
+            students.append(student)
+        
+        # Apply filters
+        status_filter = request.query_params.get('status')
+        if status_filter:
+            students = [s for s in students if s.status == status_filter]
+        
+        search = request.query_params.get('search')
+        if search:
+            search_lower = search.lower()
+            students = [
+                s for s in students
+                if search_lower in s.full_name.lower()
+                or search_lower in s.roll_number.lower()
+                or (s.email and search_lower in s.email.lower())
+            ]
+        
+        # Serialize
+        serializer = StudentListSerializer(students, many=True, context={'request': request})
+        
+        result = {
+            'classroom': {
+                'id': classroom.id,
+                'name': classroom.name,
+                'code': classroom.code,
+                'capacity': classroom.capacity,
+                'room_type': classroom.get_room_type_display(),
+            },
+            'students': serializer.data,
+            'total': len(students),
+            'total_capacity': classroom.capacity,
+            'available_spots': classroom.capacity - len(students),
+        }
+        
+        print(f"[CLASSROOM_STUDENTS] classroom={classroom.name}, students={len(students)}")
+        return _ok(result, get_translation('students_retrieved', lang))
+        
+    except Exception as e:
+        print_error(f"Error in get_classroom_students: {str(e)}", e)
+        return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    
+    
+    
+    
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+@log_request_response
+def teacher_get_student_detail(request, student_id):
+    """
+    Get detailed student information including parents and current classroom.
+    Teacher must be assigned to teach this student.
+    """
+    lang = get_lang(request)
+    
+    try:
+        if not is_teacher(request.user):
+            return _err(get_translation('teacher_access_required', lang), status.HTTP_403_FORBIDDEN)
+        
+        try:
+            teacher = Teacher.objects.get(user=request.user)
+        except Teacher.DoesNotExist:
+            return _err(get_translation('teacher_not_found', lang), status.HTTP_404_NOT_FOUND)
+        
+        # Get student
+        from students.models import Student, StudentClassroomAssignment, Parent
+        from students.serializers import StudentDetailSerializer
+        
+        try:
+            student = Student.objects.get(id=student_id)
+            print(f"[STUDENT_FOUND] id={student.id}, name={student.full_name}")
+        except Student.DoesNotExist:
+            return _err(get_translation('student_not_found', lang), status.HTTP_404_NOT_FOUND)
+        
+        # Verify teacher teaches this student
+        # Get student's current classroom
+        classroom_assignment = StudentClassroomAssignment.objects.filter(
+            student=student,
+            status='active'
+        ).select_related('classroom').first()
+        
+        if classroom_assignment:
+            classroom = classroom_assignment.classroom
+            
+            # Check if teacher is assigned to this classroom
+            is_assigned = TeacherAssignment.objects.filter(
+                teacher=teacher,
+                classrooms=classroom,
+                status='active'
+            ).exists() or TeacherTimetable.objects.filter(
+                teacher=teacher,
+                classroom=classroom,
+                status='active'
+            ).exists()
+            
+            if not is_assigned:
+                return _err(get_translation('not_authorized_to_view_student', lang), status.HTTP_403_FORBIDDEN)
+        else:
+            # If student has no classroom, check if teacher teaches any subject at student's class level
+            if student.current_class_level:
+                is_assigned = TeacherAssignment.objects.filter(
+                    teacher=teacher,
+                    class_level=student.current_class_level,
+                    status='active'
+                ).exists()
+                
+                if not is_assigned:
+                    return _err(get_translation('not_authorized_to_view_student', lang), status.HTTP_403_FORBIDDEN)
+            else:
+                return _err(get_translation('not_authorized_to_view_student', lang), status.HTTP_403_FORBIDDEN)
+        
+        # Get student's parents
+        parents = Parent.objects.filter(students__id=student.id).select_related('user')
+        from students.serializers import ParentMinimalSerializer
+        
+        # Get current classroom details
+        current_classroom = None
+        if classroom_assignment:
+            current_classroom = {
+                'id': classroom_assignment.classroom.id,
+                'name': classroom_assignment.classroom.name,
+                'code': classroom_assignment.classroom.code,
+                'capacity': classroom_assignment.classroom.capacity,
+                'room_type': classroom_assignment.classroom.get_room_type_display(),
+            }
+        
+        result = {
+            'student': StudentDetailSerializer(student, context={'request': request}).data,
+            'parents': ParentMinimalSerializer(parents, many=True).data,
+            'current_classroom': current_classroom,
+            'total_parents': parents.count(),
+        }
+        
+        print(f"[TEACHER_STUDENT_DETAIL] teacher={teacher.full_name}, student={student.full_name}")
+        return _ok(result, get_translation('student_details_retrieved', lang))
+        
+    except Exception as e:
+        print_error(f"Error in teacher_get_student_detail: {str(e)}", e)
+        return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    
+    
+    
+# Add this function to teachers/views.py
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+@log_request_response
+def teacher_me(request):
+    """
+    Alias for teacher_profile - returns current teacher's profile.
+    This endpoint matches the frontend expectation of /teachers/me/
+    """
+    lang = get_lang(request)
+    
+    try:
+        if not is_teacher(request.user):
+            return _err(get_translation('teacher_access_required', lang), status.HTTP_403_FORBIDDEN)
+        
+        try:
+            teacher = Teacher.objects.get(user=request.user)
+            print(f"[TEACHER_ME] Found teacher: {teacher.full_name} (ID: {teacher.id})")
+        except Teacher.DoesNotExist:
+            return _err(get_translation('teacher_not_found', lang), status.HTTP_404_NOT_FOUND)
+        
+        serializer = TeacherSerializer(teacher, context={'request': request})
+        
+        response_data = {
+            'id': teacher.id,
+            'full_name': teacher.full_name,
+            'first_name': teacher.first_name,
+            'last_name': teacher.last_name,
+            'email': teacher.email,
+            'phone_number': teacher.phone_number,
+            'status': teacher.status,
+            'user': {
+                'id': request.user.id,
+                'username': request.user.username,
+                'email': request.user.email,
+                'role': request.user.role,
+            }
+        }
+        
+        print(f"[TEACHER_ME] Response data: {response_data}")
+        return _ok(response_data, get_translation('profile_retrieved', lang))
+        
+    except Exception as e:
+        print_error(f"Error in teacher_me: {str(e)}", e)
+        return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 # ---------------------------------------------------------------------------
 # Utility
 # ---------------------------------------------------------------------------

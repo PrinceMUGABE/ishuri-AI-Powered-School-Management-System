@@ -1166,3 +1166,7 @@ class Holiday(models.Model):
         if self.school_level:
             return f"{self.name} - {self.school_level.name} ({self.date})"
         return f"{self.name} - All Levels ({self.date})"
+    
+    
+    
+    

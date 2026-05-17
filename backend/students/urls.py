@@ -36,4 +36,13 @@ urlpatterns = [
     path('me/teachers/', views.get_student_teachers, name='student-me-teachers'),
     path('teacher/student/<int:student_id>/', views.teacher_get_student_detail, name='teacher-student-detail'),
     path('teacher/classroom/<int:classroom_id>/students/', views.get_teacher_classroom_students, name='teacher-classroom-students'),
+    path('parents/<int:parent_id>/students/', views.get_students_for_parent, name='parent-students'),
+    path('<int:student_id>/parents/', views.get_parents_for_student, name='student-parents'),
+    path('<int:student_id>/current-classroom/', views.get_current_classroom_for_student, name='student-current-classroom'),
+    
+    path('<int:student_id>/teachers-with-subjects/', views.get_teachers_for_student, name='student-teachers-with-subjects'),
+    path('me/teachers-with-subjects/', views.get_teachers_for_student, name='student-me-teachers-with-subjects'),
+    path('teacher/student/<int:student_id>/with-subjects/', views.teacher_get_student_full_detail, name='teacher-student-full-detail'),
+    path('teacher/my-students/', views.teacher_get_my_students, name='teacher-my-students'),
+
 ]
