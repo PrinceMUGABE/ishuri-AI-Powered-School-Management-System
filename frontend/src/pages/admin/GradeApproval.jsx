@@ -170,7 +170,7 @@ const getStatusBadgeClass = (s) => {
 // ─────────────────────────────────────────────────────────────
 // Main Component
 // ─────────────────────────────────────────────────────────────
-const GradeApproval = () => {
+const AdminGradeManagement = () => {
   const { t, i18n } = useTranslation();
 
   // ── UI ──────────────────────────────────────────────────────
@@ -218,9 +218,9 @@ const GradeApproval = () => {
   const [submittingManual, setSubmittingManual] = useState(false);
 
   // ── Filtered options for cascading selects ──────────────────
-  const filteredTerms = useMemo(() => 
+  const filteredTerms = useMemo(() =>
     terms.filter(t => !manualAcademicYear || t.academic_year_id === parseInt(manualAcademicYear))
-  , [terms, manualAcademicYear]);
+    , [terms, manualAcademicYear]);
 
   const filteredClassLevels = useMemo(() =>
     classLevels.filter(cl =>
@@ -246,6 +246,9 @@ const GradeApproval = () => {
   const [adminNotes, setAdminNotes] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
   const [uploadGrades, setUploadGrades] = useState([]);
+  const [filePreviewData, setFilePreviewData] = useState(null);
+  const [loadingFilePreview, setLoadingFilePreview] = useState(false);
+  const [showFilePreview, setShowFilePreview] = useState(false);
 
   // ── Fetch data ──────────────────────────────────────────────
   const fetchAcademicYears = useCallback(async () => {
@@ -357,7 +360,7 @@ const GradeApproval = () => {
   // ── Review grade upload ─────────────────────────────────────
   const handleReviewUpload = async () => {
     if (!selectedUpload) return;
-    
+
     setSubmittingReview(true);
     try {
       const payload = {
@@ -365,15 +368,15 @@ const GradeApproval = () => {
         rejection_reason: reviewAction === 'reject' ? rejectionReason : '',
         admin_notes: adminNotes
       };
-      
+
       const r = await apiClient.post(
         `/academics-records/grades/upload/${selectedUpload.id}/approve/`,
         payload
       );
-      
+
       if (r.data.success) {
-        toast.success(reviewAction === 'approve' 
-          ? t('adminGrades.review.approved') 
+        toast.success(reviewAction === 'approve'
+          ? t('adminGrades.review.approved')
           : t('adminGrades.review.rejected'));
         setShowReviewModal(false);
         setSelectedUpload(null);
@@ -394,8 +397,8 @@ const GradeApproval = () => {
 
   // ── Submit manual grade ─────────────────────────────────────
   const handleSubmitManualGrade = async () => {
-    if (!manualAcademicYear || !manualTerm || !manualSchoolLevel || !manualClassLevel || 
-        !manualSubject || !manualGradeType || !manualStudent || !manualScore) {
+    if (!manualAcademicYear || !manualTerm || !manualSchoolLevel || !manualClassLevel ||
+      !manualSubject || !manualGradeType || !manualStudent || !manualScore) {
       toast.error(t('adminGrades.manual.missingFields'));
       return;
     }
@@ -419,7 +422,7 @@ const GradeApproval = () => {
       };
 
       const r = await apiClient.post('/academics-records/grades/manual/', payload);
-      
+
       if (r.data.success) {
         toast.success(t('adminGrades.manual.success'));
         // Reset form
@@ -443,9 +446,29 @@ const GradeApproval = () => {
   // ── View upload details ─────────────────────────────────────
   const viewUploadDetails = async (upload) => {
     setSelectedUpload(upload);
-    await fetchUploadGrades(upload.id);
+    await Promise.all([
+      fetchUploadGrades(upload.id),
+      fetchFilePreview(upload.id)
+    ]);
     setShowDetailModal(true);
   };
+  const fetchFilePreview = useCallback(async (uploadId) => {
+    setLoadingFilePreview(true);
+    try {
+      const r = await apiClient.get(`/academics-records/grades/upload/${uploadId}/preview/`);
+      if (r.data.success) {
+        setFilePreviewData(r.data.data);
+        setShowFilePreview(true);
+      } else {
+        toast.error(r.data.message || 'Failed to load file preview');
+      }
+    } catch (e) {
+      console.error('Failed to fetch file preview:', e);
+      toast.error(e.response?.data?.message || 'Failed to load file preview');
+    } finally {
+      setLoadingFilePreview(false);
+    }
+  }, []);
 
   // ── Open review modal ───────────────────────────────────────
   const openReviewModal = (upload, action) => {
@@ -461,6 +484,8 @@ const GradeApproval = () => {
     const gradeType = GRADE_TYPES.find(gt => gt.value === gradeTypeValue);
     return gradeType ? t(gradeType.labelKey) : gradeTypeValue;
   };
+
+
 
   // ── Initial data loading ────────────────────────────────────
   useEffect(() => {
@@ -583,7 +608,7 @@ const GradeApproval = () => {
             className={`px-6 py-3 text-sm font-semibold transition-all relative ${activeTab === 'uploads'
               ? 'text-green-700 dark:text-green-500'
               : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-            }`}
+              }`}
           >
             <div className="flex items-center gap-2">
               <FolderOpen className="w-4 h-4" />
@@ -601,7 +626,7 @@ const GradeApproval = () => {
             className={`px-6 py-3 text-sm font-semibold transition-all relative ${activeTab === 'manual'
               ? 'text-green-700 dark:text-green-500'
               : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-            }`}
+              }`}
           >
             <div className="flex items-center gap-2">
               <Edit className="w-4 h-4" />
@@ -621,44 +646,44 @@ const GradeApproval = () => {
               <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{t('adminGrades.filters.title')}</span>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-              <SelectField 
-                label={t('adminGrades.filters.academicYear')} 
-                value={fAcademicYear} 
+              <SelectField
+                label={t('adminGrades.filters.academicYear')}
+                value={fAcademicYear}
                 onChange={(v) => { setFAcademicYear(v); setFTerm(''); }}
                 options={academicYears.map(y => ({ value: y.id, label: y.name }))}
-                placeholder={t('adminGrades.filters.academicYearPlaceholder')} t={t} 
+                placeholder={t('adminGrades.filters.academicYearPlaceholder')} t={t}
               />
-              <SelectField 
-                label={t('adminGrades.filters.term')} 
-                value={fTerm} 
+              <SelectField
+                label={t('adminGrades.filters.term')}
+                value={fTerm}
                 onChange={setFTerm}
                 options={terms.filter(t => !fAcademicYear || t.academic_year_id === parseInt(fAcademicYear)).map(tm => ({ value: tm.id, label: tm.name }))}
-                placeholder={t('adminGrades.filters.termPlaceholder')} disabled={!fAcademicYear} t={t} 
+                placeholder={t('adminGrades.filters.termPlaceholder')} disabled={!fAcademicYear} t={t}
               />
-              <SelectField 
-                label={t('adminGrades.filters.schoolLevel')} 
-                value={fSchoolLevel} 
+              <SelectField
+                label={t('adminGrades.filters.schoolLevel')}
+                value={fSchoolLevel}
                 onChange={(v) => { setFSchoolLevel(v); setFClassLevel(''); }}
                 options={schoolLevels.map(sl => ({ value: sl.id, label: sl.name }))}
-                placeholder={t('adminGrades.filters.schoolLevelPlaceholder')} t={t} 
+                placeholder={t('adminGrades.filters.schoolLevelPlaceholder')} t={t}
               />
-              <SelectField 
-                label={t('adminGrades.filters.classLevel')} 
-                value={fClassLevel} 
+              <SelectField
+                label={t('adminGrades.filters.classLevel')}
+                value={fClassLevel}
                 onChange={setFClassLevel}
                 options={classLevels.filter(cl => !fSchoolLevel || cl.school_level_id === parseInt(fSchoolLevel)).map(cl => ({ value: cl.id, label: cl.name }))}
-                placeholder={t('adminGrades.filters.classLevelPlaceholder')} disabled={!fSchoolLevel} t={t} 
+                placeholder={t('adminGrades.filters.classLevelPlaceholder')} disabled={!fSchoolLevel} t={t}
               />
-              <SelectField 
-                label={t('adminGrades.filters.subject')} 
-                value={fSubject} 
+              <SelectField
+                label={t('adminGrades.filters.subject')}
+                value={fSubject}
                 onChange={setFSubject}
                 options={subjects.map(s => ({ value: s.id, label: s.name }))}
-                placeholder={t('adminGrades.filters.subjectPlaceholder')} t={t} 
+                placeholder={t('adminGrades.filters.subjectPlaceholder')} t={t}
               />
-              <SelectField 
-                label={t('adminGrades.filters.status')} 
-                value={fStatus} 
+              <SelectField
+                label={t('adminGrades.filters.status')}
+                value={fStatus}
                 onChange={setFStatus}
                 options={[
                   { value: 'pending', label: t('adminGrades.statuses.pending') },
@@ -666,21 +691,21 @@ const GradeApproval = () => {
                   { value: 'rejected', label: t('adminGrades.statuses.rejected') },
                   { value: 'needs_review', label: t('adminGrades.statuses.needs_review') },
                 ]}
-                placeholder={t('adminGrades.filters.statusPlaceholder')} t={t} 
+                placeholder={t('adminGrades.filters.statusPlaceholder')} t={t}
               />
             </div>
             <div className="mt-3 flex justify-between items-center">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   placeholder={t('adminGrades.search.placeholder')}
-                  value={searchTerm} 
+                  value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8 pr-3 py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded-lg w-64 focus:outline-none focus:ring-2 focus:ring-green-700 dark:focus:ring-green-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200" 
+                  className="pl-8 pr-3 py-1.5 text-xs border border-gray-200 dark:border-gray-700 rounded-lg w-64 focus:outline-none focus:ring-2 focus:ring-green-700 dark:focus:ring-green-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200"
                 />
               </div>
-              <button 
+              <button
                 onClick={() => { fetchGradeUploads(); toast.success(t('adminGrades.refreshed')); }}
                 className="p-2 text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400 transition-colors"
               >
@@ -873,66 +898,66 @@ const GradeApproval = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {/* Academic Year */}
-              <SelectField 
-                label={t('adminGrades.manual.academicYear')} 
-                value={manualAcademicYear} 
+              <SelectField
+                label={t('adminGrades.manual.academicYear')}
+                value={manualAcademicYear}
                 onChange={(v) => { setManualAcademicYear(v); setManualTerm(''); }}
                 options={academicYears.map(y => ({ value: y.id, label: y.name }))}
-                required t={t} 
+                required t={t}
               />
 
               {/* Term */}
-              <SelectField 
-                label={t('adminGrades.manual.term')} 
-                value={manualTerm} 
+              <SelectField
+                label={t('adminGrades.manual.term')}
+                value={manualTerm}
                 onChange={setManualTerm}
                 options={filteredTerms.map(tm => ({ value: tm.id, label: tm.name }))}
-                disabled={!manualAcademicYear} required t={t} 
+                disabled={!manualAcademicYear} required t={t}
               />
 
               {/* School Level */}
-              <SelectField 
-                label={t('adminGrades.manual.schoolLevel')} 
-                value={manualSchoolLevel} 
+              <SelectField
+                label={t('adminGrades.manual.schoolLevel')}
+                value={manualSchoolLevel}
                 onChange={(v) => { setManualSchoolLevel(v); setManualClassLevel(''); }}
                 options={schoolLevels.map(sl => ({ value: sl.id, label: sl.name }))}
-                required t={t} 
+                required t={t}
               />
 
               {/* Class Level */}
-              <SelectField 
-                label={t('adminGrades.manual.classLevel')} 
-                value={manualClassLevel} 
+              <SelectField
+                label={t('adminGrades.manual.classLevel')}
+                value={manualClassLevel}
                 onChange={(v) => { setManualClassLevel(v); setManualClassroom(''); }}
                 options={filteredClassLevels.map(cl => ({ value: cl.id, label: cl.name }))}
-                disabled={!manualSchoolLevel} required t={t} 
+                disabled={!manualSchoolLevel} required t={t}
               />
 
               {/* Classroom */}
-              <SelectField 
-                label={t('adminGrades.manual.classroom')} 
-                value={manualClassroom} 
+              <SelectField
+                label={t('adminGrades.manual.classroom')}
+                value={manualClassroom}
                 onChange={(v) => { setManualClassroom(v); setManualStudent(''); }}
                 options={filteredClassrooms.map(cr => ({ value: cr.id, label: cr.name }))}
-                disabled={!manualClassLevel} t={t} 
+                disabled={!manualClassLevel} t={t}
               />
 
               {/* Subject */}
-              <SelectField 
-                label={t('adminGrades.manual.subject')} 
-                value={manualSubject} 
+              <SelectField
+                label={t('adminGrades.manual.subject')}
+                value={manualSubject}
                 onChange={setManualSubject}
                 options={subjects.map(s => ({ value: s.id, label: s.name }))}
-                required t={t} 
+                required t={t}
               />
 
               {/* Grade Type */}
-              <SelectField 
-                label={t('adminGrades.manual.gradeType')} 
-                value={manualGradeType} 
+              <SelectField
+                label={t('adminGrades.manual.gradeType')}
+                value={manualGradeType}
                 onChange={setManualGradeType}
                 options={GRADE_TYPES.map(gt => ({ value: gt.value, label: t(gt.labelKey) }))}
-                required t={t} 
+                required t={t}
               />
 
               {/* Weight Percentage */}
@@ -951,12 +976,12 @@ const GradeApproval = () => {
               </div>
 
               {/* Student */}
-              <SelectField 
-                label={t('adminGrades.manual.student')} 
-                value={manualStudent} 
+              <SelectField
+                label={t('adminGrades.manual.student')}
+                value={manualStudent}
                 onChange={setManualStudent}
                 options={filteredStudents.map(s => ({ value: s.id, label: `${s.full_name} (${s.roll_number})` }))}
-                disabled={!manualClassroom && !manualClassLevel} required t={t} 
+                disabled={!manualClassroom && !manualClassLevel} required t={t}
               />
 
               {/* Score */}
@@ -1036,72 +1061,227 @@ const GradeApproval = () => {
           </div>
         )}
 
-        {/* Review Modal */}
-        {showReviewModal && selectedUpload && (
-          <ModalWrapper 
-            title={reviewAction === 'approve' ? t('adminGrades.review.approveTitle') : reviewAction === 'reject' ? t('adminGrades.review.rejectTitle') : t('adminGrades.review.needsReviewTitle')}
-            subtitle={`${selectedUpload.subject_name} - ${selectedUpload.teacher_name}`}
-            onClose={() => { setShowReviewModal(false); setSelectedUpload(null); setReviewAction(''); setRejectionReason(''); setAdminNotes(''); }}
-            maxW="max-w-md" 
-            icon={reviewAction === 'approve' ? CheckCircle : reviewAction === 'reject' ? AlertCircle : HelpCircle}
+        {/* Upload Detail Modal with File Preview */}
+        {showDetailModal && selectedUpload && (
+          <ModalWrapper
+            title={t('adminGrades.detail.title')}
+            subtitle={`${selectedUpload.subject_name} - ${selectedUpload.class_level_name}`}
+            onClose={() => {
+              setShowDetailModal(false);
+              setSelectedUpload(null);
+              setUploadGrades([]);
+              setFilePreviewData(null);
+              setShowFilePreview(false);
+            }}
+            maxW="max-5xl"
+            icon={FileText}
             t={t}
           >
-            <div className="space-y-4">
-              {reviewAction === 'reject' && (
-                <div className="flex flex-col gap-2">
-                  <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                    {t('adminGrades.review.rejectionReason')} <span className="text-rose-500">*</span>
-                  </label>
-                  <textarea
-                    value={rejectionReason}
-                    onChange={(e) => setRejectionReason(e.target.value)}
-                    rows={3}
-                    placeholder={t('adminGrades.review.rejectionReasonPlaceholder')}
-                    className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-                  />
-                </div>
-              )}
-              
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                  {t('adminGrades.review.adminNotes')}
-                </label>
-                <textarea
-                  value={adminNotes}
-                  onChange={(e) => setAdminNotes(e.target.value)}
-                  rows={3}
-                  placeholder={t('adminGrades.review.adminNotesPlaceholder')}
-                  className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-700 dark:focus:ring-green-500"
-                />
+            <div className="space-y-5">
+              {/* Upload Info */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                <InfoRow label={t('adminGrades.detail.teacher')} value={selectedUpload.teacher_name} icon={User} />
+                <InfoRow label={t('adminGrades.detail.subject')} value={selectedUpload.subject_name} icon={BookOpen} />
+                <InfoRow label={t('adminGrades.detail.classLevel')} value={selectedUpload.class_level_name} icon={GraduationCap} />
+                <InfoRow label={t('adminGrades.detail.academicYear')} value={selectedUpload.academic_year_name} icon={Calendar} />
+                <InfoRow label={t('adminGrades.detail.term')} value={selectedUpload.term_name || '—'} icon={Tag} />
+                <InfoRow label={t('adminGrades.detail.gradeType')} value={getGradeTypeLabel(selectedUpload.grade_type)} icon={FileSpreadsheet} />
+                <InfoRow label={t('adminGrades.detail.weight')} value={`${selectedUpload.weight_percentage}%`} icon={Percent} />
+                <InfoRow label={t('adminGrades.detail.status')} value={t(`adminGrades.statuses.${selectedUpload.status}`)} icon={Activity} />
+                <InfoRow label={t('adminGrades.detail.uploadedAt')} value={new Date(selectedUpload.created_at).toLocaleString()} icon={ClockIcon} />
+                {selectedUpload.reviewed_at && (
+                  <InfoRow label={t('adminGrades.detail.reviewedAt')} value={new Date(selectedUpload.reviewed_at).toLocaleString()} icon={ClockIcon} />
+                )}
+                {selectedUpload.reviewed_by_name && (
+                  <InfoRow label={t('adminGrades.detail.reviewedBy')} value={selectedUpload.reviewed_by_name} icon={UserCheck} />
+                )}
               </div>
 
-              <div className="flex gap-3 pt-2">
-                <button
-                  onClick={handleReviewUpload}
-                  disabled={submittingReview || (reviewAction === 'reject' && !rejectionReason)}
-                  className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${
-                    reviewAction === 'approve' 
-                      ? 'bg-green-600 hover:bg-green-700 text-white' 
-                      : reviewAction === 'reject' 
-                        ? 'bg-red-600 hover:bg-red-700 text-white'
-                        : 'bg-orange-600 hover:bg-orange-700 text-white'
-                  } disabled:opacity-50`}
-                >
-                  {submittingReview ? <Spinner size={4} /> : (
-                    reviewAction === 'approve' ? <ThumbsUp className="w-4 h-4" /> : 
-                    reviewAction === 'reject' ? <ThumbsDown className="w-4 h-4" /> : 
-                    <HelpCircle className="w-4 h-4" />
-                  )}
-                  {reviewAction === 'approve' ? t('adminGrades.review.confirmApprove') : 
-                   reviewAction === 'reject' ? t('adminGrades.review.confirmReject') : 
-                   t('adminGrades.review.confirmNeedsReview')}
-                </button>
-                <button
-                  onClick={() => { setShowReviewModal(false); setSelectedUpload(null); setReviewAction(''); setRejectionReason(''); setAdminNotes(''); }}
-                  className="flex-1 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-bold transition-all"
-                >
-                  {t('adminGrades.review.cancel')}
-                </button>
+              {/* Rejection Reason / Admin Notes */}
+              {selectedUpload.rejection_reason && (
+                <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-4">
+                  <p className="text-xs font-semibold text-red-700 dark:text-red-400 mb-1">{t('adminGrades.detail.rejectionReason')}</p>
+                  <p className="text-sm text-red-600 dark:text-red-300">{selectedUpload.rejection_reason}</p>
+                </div>
+              )}
+              {selectedUpload.admin_notes && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4">
+                  <p className="text-xs font-semibold text-blue-700 dark:text-blue-400 mb-1">{t('adminGrades.detail.adminNotes')}</p>
+                  <p className="text-sm text-blue-600 dark:text-blue-300">{selectedUpload.admin_notes}</p>
+                </div>
+              )}
+
+              {/* Tabs for Student Grades and File Preview */}
+              <div>
+                <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700 mb-4">
+                  <button
+                    onClick={() => setShowFilePreview(false)}
+                    className={`px-4 py-2 text-sm font-semibold transition-all relative ${!showFilePreview
+                        ? 'text-green-700 dark:text-green-500'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                      }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      {t('adminGrades.detail.studentGrades')} ({uploadGrades.length})
+                    </div>
+                    {!showFilePreview && (
+                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-700 dark:bg-green-500 rounded-full" />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setShowFilePreview(true)}
+                    className={`px-4 py-2 text-sm font-semibold transition-all relative ${showFilePreview
+                        ? 'text-green-700 dark:text-green-500'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                      }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <FileSpreadsheet className="w-4 h-4" />
+                      {t('adminGrades.detail.filePreview')}
+                      {filePreviewData && (
+                        <span className="ml-1 text-xs text-gray-400">({filePreviewData.total_rows} rows)</span>
+                      )}
+                    </div>
+                    {showFilePreview && (
+                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-700 dark:bg-green-500 rounded-full" />
+                    )}
+                  </button>
+                </div>
+
+                {/* Student Grades Table */}
+                {!showFilePreview && (
+                  <>
+                    {uploadGrades.length === 0 ? (
+                      <div className="text-center py-8 text-gray-400 dark:text-gray-500">
+                        {t('adminGrades.detail.noGrades')}
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto max-h-96 overflow-y-auto">
+                        <table className="w-full text-sm">
+                          <thead className="sticky top-0 bg-gray-50 dark:bg-gray-800">
+                            <tr className="border-b border-gray-200 dark:border-gray-700">
+                              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Roll Number</th>
+                              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Student Name</th>
+                              <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600 dark:text-gray-400">Score</th>
+                              <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600 dark:text-gray-400">Max Score</th>
+                              <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600 dark:text-gray-400">Percentage</th>
+                              <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600 dark:text-gray-400">Grade</th>
+                              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Remarks</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                            {uploadGrades.map((grade) => {
+                              const percentage = (grade.score / grade.max_score) * 100;
+                              return (
+                                <tr key={grade.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                  <td className="px-3 py-2 font-mono text-xs font-bold text-green-700 dark:text-green-400">
+                                    {grade.student_roll}
+                                  </td>
+                                  <td className="px-3 py-2 font-medium text-gray-800 dark:text-gray-200">
+                                    {grade.student_name}
+                                  </td>
+                                  <td className="px-3 py-2 text-center font-semibold text-gray-700 dark:text-gray-300">
+                                    {grade.score}
+                                  </td>
+                                  <td className="px-3 py-2 text-center text-gray-500 dark:text-gray-400">
+                                    {grade.max_score}
+                                  </td>
+                                  <td className="px-3 py-2 text-center">
+                                    <span className={`font-semibold ${percentage >= 50 ? 'text-green-600' : 'text-red-600'}`}>
+                                      {percentage.toFixed(1)}%
+                                    </span>
+                                  </td>
+                                  <td className="px-3 py-2 text-center">
+                                    <span className={`inline-flex px-2 py-1 rounded-full text-xs font-bold ${percentage >= 90 ? 'bg-green-100 text-green-700' :
+                                        percentage >= 80 ? 'bg-green-100 text-green-700' :
+                                          percentage >= 70 ? 'bg-blue-100 text-blue-700' :
+                                            percentage >= 60 ? 'bg-yellow-100 text-yellow-700' :
+                                              percentage >= 50 ? 'bg-orange-100 text-orange-700' :
+                                                'bg-red-100 text-red-700'
+                                      }`}>
+                                      {getGradeLetter(percentage)}
+                                    </span>
+                                  </td>
+                                  <td className="px-3 py-2 text-gray-500 dark:text-gray-400 text-xs max-w-xs truncate">
+                                    {grade.remarks || '—'}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* File Preview Table */}
+                {showFilePreview && (
+                  <>
+                    {loadingFilePreview ? (
+                      <div className="text-center py-12">
+                        <Spinner />
+                        <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">Loading file preview...</p>
+                      </div>
+                    ) : filePreviewData ? (
+                      <div>
+                        {/* File info bar */}
+                        <div className="mb-3 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 p-2 rounded-lg">
+                          <FileSpreadsheet className="w-4 h-4" />
+                          <span>{filePreviewData.file_name}</span>
+                          <span>•</span>
+                          <span>{filePreviewData.file_size_mb} MB</span>
+                          <span>•</span>
+                          <span>{filePreviewData.total_rows} rows</span>
+                        </div>
+
+                        {/* Excel-like table */}
+                        <div className="overflow-x-auto max-h-96 overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg">
+                          <table className="w-full text-xs border-collapse">
+                            <thead className="sticky top-0 bg-gray-100 dark:bg-gray-800 z-10">
+                              <tr>
+                                {filePreviewData.headers.map((header, idx) => (
+                                  <th
+                                    key={idx}
+                                    className="px-3 py-2 text-left font-semibold text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700 whitespace-nowrap"
+                                  >
+                                    {header || `Column ${idx + 1}`}
+                                  </th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                              {filePreviewData.data_rows.map((row, rowIdx) => (
+                                <tr key={rowIdx} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                  {row.map((cell, cellIdx) => (
+                                    <td
+                                      key={cellIdx}
+                                      className={`px-3 py-2 text-gray-600 dark:text-gray-400 whitespace-nowrap ${cellIdx === 0 ? 'font-mono font-semibold text-green-700 dark:text-green-400' : ''
+                                        }`}
+                                    >
+                                      {cell || '—'}
+                                    </td>
+                                  ))}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        {filePreviewData.has_more && (
+                          <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 text-center">
+                            Showing first {filePreviewData.data_rows.length} rows. The full file contains more data.
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-400 dark:text-gray-500">
+                        Unable to load file preview
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             </div>
           </ModalWrapper>
@@ -1109,11 +1289,11 @@ const GradeApproval = () => {
 
         {/* Upload Detail Modal */}
         {showDetailModal && selectedUpload && (
-          <ModalWrapper 
+          <ModalWrapper
             title={t('adminGrades.detail.title')}
             subtitle={`${selectedUpload.subject_name} - ${selectedUpload.class_level_name}`}
             onClose={() => { setShowDetailModal(false); setSelectedUpload(null); setUploadGrades([]); }}
-            maxW="max-4xl" 
+            maxW="max-4xl"
             icon={FileText}
             t={t}
           >
@@ -1229,6 +1409,4 @@ const GradeApproval = () => {
   );
 };
 
-
-
-export default GradeApproval;
+export default AdminGradeManagement;

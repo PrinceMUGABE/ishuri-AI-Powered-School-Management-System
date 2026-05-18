@@ -914,55 +914,84 @@ def get_teacher_students(request):
 
 
 
-
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_student_grades(request):
     """
-    Get all student grades with filtering options for teachers.
-    Returns detailed grade information including student names, subjects, etc.
+    Get all student grades with filtering options.
+    Supports filtering by grade_upload_id, student_id, etc.
     """
     lang = get_lang(request)
     
-    teacher, err = _get_teacher(request.user, lang)
-    if err:
-        return err
+    # Permission check - only admins and teachers can access
+    user = request.user
+    if user.role not in ['admin', 'teacher']:
+        return _err(t("permission_denied", lang), status.HTTP_403_FORBIDDEN, lang=lang)
     
-    # Get query params
-    academic_year_id = request.query_params.get('academic_year_id')
-    term_id = request.query_params.get('term_id')
-    class_level_id = request.query_params.get('class_level_id')
-    subject_id = request.query_params.get('subject_id')
-    grade_type = request.query_params.get('grade_type')
-    student_id = request.query_params.get('student_id')
-    
-    # Base queryset - only grades from this teacher's uploads
-    grades = StudentGrade.objects.filter(
-        grade_upload__teacher=teacher
-    ).select_related(
+    # Base queryset
+    grades = StudentGrade.objects.select_related(
         'grade_upload', 'student', 'grade_upload__academic_year',
         'grade_upload__term', 'grade_upload__class_level',
-        'grade_upload__subject', 'grade_upload__school_level'
+        'grade_upload__subject', 'grade_upload__school_level',
+        'grade_upload__teacher'
     )
     
-    # Apply filters
-    if academic_year_id:
-        grades = grades.filter(grade_upload__academic_year_id=academic_year_id)
-    if term_id:
-        grades = grades.filter(grade_upload__term_id=term_id)
-    if class_level_id:
-        grades = grades.filter(grade_upload__class_level_id=class_level_id)
-    if subject_id:
-        grades = grades.filter(grade_upload__subject_id=subject_id)
-    if grade_type:
-        grades = grades.filter(grade_upload__grade_type=grade_type)
+    # Filter by grade_upload_id (for viewing grades of a specific upload)
+    grade_upload_id = request.query_params.get('grade_upload_id')
+    if grade_upload_id:
+        grades = grades.filter(grade_upload_id=grade_upload_id)
+    
+    # Filter by student
+    student_id = request.query_params.get('student_id')
     if student_id:
         grades = grades.filter(student_id=student_id)
     
+    # Filter by academic year
+    academic_year_id = request.query_params.get('academic_year_id')
+    if academic_year_id:
+        grades = grades.filter(grade_upload__academic_year_id=academic_year_id)
+    
+    # Filter by term
+    term_id = request.query_params.get('term_id')
+    if term_id:
+        grades = grades.filter(grade_upload__term_id=term_id)
+    
+    # Filter by class level
+    class_level_id = request.query_params.get('class_level_id')
+    if class_level_id:
+        grades = grades.filter(grade_upload__class_level_id=class_level_id)
+    
+    # Filter by subject
+    subject_id = request.query_params.get('subject_id')
+    if subject_id:
+        grades = grades.filter(grade_upload__subject_id=subject_id)
+    
+    # Filter by grade type
+    grade_type = request.query_params.get('grade_type')
+    if grade_type:
+        grades = grades.filter(grade_upload__grade_type=grade_type)
+    
+    # For teachers, only show grades from their uploads
+    if user.role == 'teacher':
+        try:
+            teacher = Teacher.objects.get(user=user)
+            grades = grades.filter(grade_upload__teacher=teacher)
+        except Teacher.DoesNotExist:
+            return _err("Teacher profile not found", status.HTTP_404_NOT_FOUND, lang=lang)
+    
+    # Order by most recent first
+    grades = grades.order_by('-created_at')
+    
+    # Pagination
+    page = int(request.query_params.get('page', 1))
+    page_size = min(int(request.query_params.get('page_size', 10)), 100)
+    total = grades.count()
+    start = (page - 1) * page_size
+    paginated_grades = grades[start:start + page_size]
+    
     # Serialize
     result = []
-    for grade in grades:
+    for grade in paginated_grades:
         upload = grade.grade_upload
         percentage = (grade.score / grade.max_score * 100) if grade.max_score > 0 else 0
         
@@ -992,12 +1021,22 @@ def get_student_grades(request):
             'published_at': grade.published_at.isoformat() if grade.published_at else None,
             'grade_upload_id': upload.id,
             'upload_status': upload.status,
+            'teacher_name': upload.teacher.full_name if upload.teacher else 'Admin',
             'created_at': grade.created_at.isoformat(),
             'updated_at': grade.updated_at.isoformat(),
         })
     
-    return _ok(data=result, message="Student grades fetched successfully")
-
+    return Response({
+        'success': True,
+        'message': get_translation('grades_fetched', lang),
+        'data': {
+            'results': result,
+            'count': total,
+            'page': page,
+            'page_size': page_size,
+            'total_pages': (total + page_size - 1) // page_size
+        }
+    })
 
 @api_view(['GET', 'PATCH', 'DELETE'])
 @permission_classes([IsAuthenticated])
@@ -1099,17 +1138,21 @@ def grade_upload_detail(request, upload_id):
     """
     lang = get_lang(request)
     
-    teacher, err = _get_teacher(request.user, lang)
-    if err:
-        return err
+    # Permission check
+    user = request.user
+    if user.role not in ['admin', 'teacher']:
+        return _err(t("permission_denied", lang), status.HTTP_403_FORBIDDEN, lang=lang)
     
     try:
-        upload = GradeUpload.objects.get(
-            id=upload_id,
-            teacher=teacher
-        )
+        if user.role == 'admin':
+            upload = get_object_or_404(GradeUpload, id=upload_id)
+        else:
+            teacher, err = _get_teacher(request.user, lang)
+            if err:
+                return err
+            upload = get_object_or_404(GradeUpload, id=upload_id, teacher=teacher)
     except GradeUpload.DoesNotExist:
-        return _err("Grade upload not found", status.HTTP_404_NOT_FOUND)
+        return _err("Grade upload not found", status.HTTP_404_NOT_FOUND, lang=lang)
     
     if request.method == 'GET':
         data = {
@@ -1133,17 +1176,23 @@ def grade_upload_detail(request, upload_id):
             'rejection_reason': upload.rejection_reason,
             'admin_notes': upload.admin_notes,
             'grades_count': upload.student_grades.count(),
+            'teacher_name': upload.teacher.full_name if upload.teacher else 'Admin',
             'created_at': upload.created_at.isoformat(),
             'reviewed_at': upload.reviewed_at.isoformat() if upload.reviewed_at else None,
             'reviewed_by_name': upload.reviewed_by.username if upload.reviewed_by else None,
         }
-        return _ok(data=data)
+        return _ok(data=data, message="Grade upload details fetched successfully", lang=lang)
     
     elif request.method == 'DELETE':
-        # Delete all associated grades first (cascade will handle)
-        upload.delete()
-        return _ok(message="Grade upload and all associated grades deleted successfully")
-
+        if user.role != 'admin':
+            return _err("Only admins can delete grade uploads", status.HTTP_403_FORBIDDEN, lang=lang)
+        
+        try:
+            upload_name = f"{upload.subject.name} - {upload.get_grade_type_display()}"
+            upload.delete()
+            return _ok(message=f"Grade upload '{upload_name}' deleted successfully", lang=lang)
+        except Exception as exc:
+            return _err(f"Error deleting grade upload: {str(exc)}", status.HTTP_500_INTERNAL_SERVER_ERROR, lang=lang)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -1468,3 +1517,92 @@ def create_manual_grade(request):
             
     except Exception as exc:
         return _err(f"Unexpected error: {str(exc)}", status.HTTP_500_INTERNAL_SERVER_ERROR, lang=lang)
+    
+    
+    
+    
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def preview_grade_upload_file(request, upload_id):
+    """
+    Preview the content of an uploaded Excel file.
+    Returns the data in JSON format for display in the modal.
+    """
+    lang = get_lang(request)
+    
+    # Permission check
+    user = request.user
+    if user.role not in ['admin', 'teacher']:
+        return _err(t("permission_denied", lang), status.HTTP_403_FORBIDDEN, lang=lang)
+    
+    try:
+        if user.role == 'admin':
+            upload = get_object_or_404(GradeUpload, id=upload_id)
+        else:
+            teacher, err = _get_teacher(request.user, lang)
+            if err:
+                return err
+            upload = get_object_or_404(GradeUpload, id=upload_id, teacher=teacher)
+    except GradeUpload.DoesNotExist:
+        return _err("Grade upload not found", status.HTTP_404_NOT_FOUND, lang=lang)
+    
+    if not upload.excel_file or not upload.excel_file.path:
+        return _err("File not found", status.HTTP_404_NOT_FOUND, lang=lang)
+    
+    try:
+        # Load the workbook
+        wb = openpyxl.load_workbook(upload.excel_file.path, data_only=True)
+        ws = wb.active
+        
+        # Extract headers
+        headers = []
+        for cell in ws[1]:
+            if cell.value:
+                headers.append(str(cell.value).strip())
+            else:
+                headers.append('')
+        
+        # Extract data rows (limit to first 100 rows for performance)
+        data_rows = []
+        max_rows = min(ws.max_row, 101)  # Header + up to 100 data rows
+        
+        for row_idx in range(2, max_rows + 1):
+            row_data = []
+            has_data = False
+            for col_idx, cell in enumerate(ws[row_idx]):
+                value = cell.value
+                if value is not None and str(value).strip():
+                    has_data = True
+                # Format the value nicely
+                if value is None:
+                    row_data.append('')
+                elif isinstance(value, (int, float)):
+                    if isinstance(value, float) and value.is_integer():
+                        row_data.append(str(int(value)))
+                    else:
+                        row_data.append(str(value))
+                else:
+                    row_data.append(str(value).strip())
+            
+            if has_data:
+                data_rows.append(row_data)
+        
+        # Get file info
+        file_size = os.path.getsize(upload.excel_file.path)
+        file_name = os.path.basename(upload.excel_file.name)
+        
+        return Response({
+            'success': True,
+            'data': {
+                'file_name': file_name,
+                'file_size': file_size,
+                'file_size_mb': round(file_size / (1024 * 1024), 2),
+                'total_rows': len(data_rows),
+                'headers': headers,
+                'data_rows': data_rows,
+                'has_more': ws.max_row > max_rows
+            }
+        })
+        
+    except Exception as exc:
+        return _err(f"Error reading file: {str(exc)}", status.HTTP_500_INTERNAL_SERVER_ERROR, lang=lang)
