@@ -1513,7 +1513,7 @@ def get_my_teaching_assignments(request):
                     'name': assignment.class_level.name,
                     'school_level_id': assignment.school_level.id if assignment.school_level else None,
                 }
-                print(f"  - Class level: {assignment.class_level.name}")
+                # print(f"  - Class level: {assignment.class_level.name}")
             
             # Subjects
             if assignment.subject:
@@ -1522,7 +1522,7 @@ def get_my_teaching_assignments(request):
                     'name': assignment.subject.name,
                     'code': assignment.subject.code,
                 }
-                print(f"  - Subject: {assignment.subject.name}")
+                # print(f"  - Subject: {assignment.subject.name}")
             
             # Classrooms from M2M
             for classroom in assignment.classrooms.all():
@@ -1543,7 +1543,7 @@ def get_my_teaching_assignments(request):
        
         ).select_related('classroom', 'class_level', 'school_level').distinct()
         
-        print(f"[GET_MY_TEACHING_ASSIGNMENTS] Found {timetable_entries.count()} timetable entries")
+        # print(f"[GET_MY_TEACHING_ASSIGNMENTS] Found {timetable_entries.count()} timetable entries")
         
         for entry in timetable_entries:
             if entry.classroom and entry.classroom.status == 'active':
@@ -1555,7 +1555,7 @@ def get_my_teaching_assignments(request):
                     'capacity': entry.classroom.capacity,
                     'room_type': entry.classroom.get_room_type_display(),
                 }
-                print(f"  - Classroom: {entry.classroom.name} (via timetable)")
+                # print(f"  - Classroom: {entry.classroom.name} (via timetable)")
             
             if entry.school_level:
                 school_levels[entry.school_level.id] = {
@@ -1589,7 +1589,7 @@ def get_my_teaching_assignments(request):
             }
         }
         
-        print(f"[GET_MY_TEACHING_ASSIGNMENTS] Response: {len(school_levels)} school levels, {len(class_levels)} class levels, {len(classrooms)} classrooms")
+        # print(f"[GET_MY_TEACHING_ASSIGNMENTS] Response: {len(school_levels)} school levels, {len(class_levels)} class levels, {len(classrooms)} classrooms")
         return _ok(result, get_translation('assignments_retrieved', lang))
         
     except Exception as e:

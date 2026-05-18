@@ -526,7 +526,10 @@
       "email": "Imeli",
       "phone": "Nomero ya Telefoni",
       "relationship": "Isano",
-      "students": "Abanyeshuri"
+      "students": "Abanyeshuri",
+      "subject": "Isomo",
+      "teacher": "Umwarimu",
+      "performance_status": "Ihame ry'Imikorere"
     },
     "form": {
       "fullName": "Izina Rikusuye",
@@ -578,7 +581,8 @@
       "generateReport": "Kora Raporo",
       "downloadReport": "Kurura Raporo",
       "printReport": "Capa Raporo",
-      "viewFullPerformance": "Reba Imikorere Yuzuye"
+      "viewFullPerformance": "Reba Imikorere Yuzuye",
+      "cancel": "Hagarika"
     },
     "messages": {
       "loading": "Birimo biragera...",
@@ -1651,5 +1655,237 @@
   "no_classrooms_assigned": "Nta kirasi yagenwe uyu mwarimu.",
   "students_retrieved": "Abanyeshuri bakuwe neza",
   "student_details_retrieved": "Ibiranga umunyeshuri byakuwe neza",
-  "classroom_not_found": "Ikirasi nticyabonetse"
+  "classroom_not_found": "Ikirasi nticyabonetse",
+  
+
+
+  
+ 
+  "teacherGrades": {
+    "common": {
+      "loading": "Kuramo..."
+    },
+    "header": {
+      "title": "Amanota y'Amasomo",
+      "subtitle": "Gucunga amanota y'abanyeshuri"
+    },
+    "buttons": {
+      "downloadTemplate": "Kurura Icyitegererezo",
+      "uploadGrades": "Oherura Amanota"
+    },
+    "filters": {
+      "title": "Ibyo Uzakoresha mu Gushyira",
+      "subtitle": "kugabanya amanota yerekana munsi",
+      "academicYear": "Umwaka",
+      "academicYearPlaceholder": "Umwaka w'Amasomo",
+      "term": "Igikorwa",
+      "termPlaceholder": "Ibikorwa Byose",
+      "schoolLevel": "Urwego rw'Ishuri",
+      "schoolLevelPlaceholder": "Ibyege Byose",
+      "classLevel": "Icyiciro",
+      "classLevelPlaceholder": "Ibyiciro Byose",
+      "subject": "Isomo",
+      "subjectPlaceholder": "Amasomo Yose",
+      "gradeType": "Ubwoko bw'Amanota",
+      "gradeTypePlaceholder": "Ubwoko Bwose",
+      "student": "Umunyeshuri",
+      "studentPlaceholder": "Abanyeshuri Bose"
+    },
+    "tabs": {
+      "studentGrades": "Amanota y'Abanyeshuri",
+      "gradeUploads": "Oherurwa ry'Amanota (Dosiye)"
+    },
+    "grades": {
+      "title": "Amanota y'Abanyeshuri",
+      "searchPlaceholder": "Shakisha umunyeshuri cyangwa isomo...",
+      "noGrades": "Nta manota yabonetse",
+      "noGradesHint": "Oherura amanota cyangwa uhindure ibyo ukoresha mu gushyira kugirango ubone ibisubizo",
+      "editGrade": "Hindura Amanota",
+      "deleteGrade": "Siba Amanota",
+      "updateSuccess": "Amanota yahinduwe neza",
+      "updateFailed": "Kubahindura amanota byananiwe",
+      "deleteSuccess": "Amanota yasibwe neza",
+      "deleteFailed": "Kusiba amanota byananiwe",
+      "viewPerformance": "Reba Imikorere y'Umunyeshuri",
+      "columns": {
+        "rollNo": "N° Umunyeshuri",
+        "studentName": "Izina ry'Umunyeshuri",
+        "academicYear": "Umwaka w'Amasomo",
+        "term": "Igikorwa",
+        "schoolLevel": "Urwego rw'Ishuri",
+        "classLevel": "Icyiciro",
+        "subject": "Isomo",
+        "gradeType": "Ubwoko bw'Amanota",
+        "score": "Amanota",
+        "grade": "Icyiciro",
+        "status": "Imiterere",
+        "actions": "Ibikorwa"
+      },
+      "status": {
+        "published": "Byasohowe",
+        "pending": "Bitegereje"
+      }
+    },
+    "uploads": {
+      "title": "Dosiye zo Oherurwa ry'Amanota",
+      "subtitle": "Gucunga dosiye za Excel za manota wahereye no gukurikira imiterere y'ubushakashatsi",
+      "noUploads": "Nta kohereza manota byabonetse",
+      "noUploadsHint": "Oherura dosiye ya manota ya mbere ukoreshe buto iri hejuru",
+      "uploaded": "Byoherejwe",
+      "gradesCount": "Amanota",
+      "students": "abanyeshuri",
+      "weight": "Uburemere",
+      "status": "Imiterere",
+      "rejectionReason": "Impamvu yo kwangwa",
+      "viewDetails": "Reba Ibya Mburabuzi",
+      "downloadFile": "Kurura Dosiye",
+      "deleteUpload": "Siba Oherurwa",
+      "deleteConfirm": "Urabyizera ko ushaka gusiba iyi dosiye yoherejwe y'ammanota? Amanota yose ajyanye nayo azasibwa.",
+      "deleteSuccess": "Oherurwa ry'ammanota ryasibwe neza",
+      "deleteFailed": "Kusiba oherurwa byananiwe",
+      "downloadSuccess": "Dosiye yakuruwe neza",
+      "downloadFailed": "Kurura dosiye byananiwe",
+      "noFile": "Nyamukoresha uhitemo dosiye ya Excel",
+      "missingFields": "Nyamukoresha wuzuze ibyangombwa byose",
+      "uploadSuccess": "Amanota yoherejwe neza",
+      "uploadFailed": "Oherurwa ryananiwe",
+      "uploadError": "Ikosa ryo kohereza",
+      "statuses": {
+        "pending": "Bitegereje",
+        "approved": "Byemejwe",
+        "rejected": "Byangijwe",
+        "needs_review": "Bisaba gusuzuma",
+        "active": "Gikora",
+        "inactive": "Ntigikora"
+      }
+    },
+    "download": {
+      "missingFields": "Nyamukoresha wuzuze ibyangombwa byose",
+      "success": "Icyitegererezo cyakuruwe!",
+      "failed": "Kurura byananiwe"
+    },
+    "pagination": {
+      "show": "Erekana",
+      "perPage": "ku rupapuro",
+      "total": "byose",
+      "first": "Icya Mbere",
+      "last": "Icya Nyuma"
+    },
+    "modals": {
+      "editGrade": {
+        "title": "Hindura Amanota y'Umunyeshuri",
+        "score": "Amanota",
+        "maxScore": "Amanota Ahebuje",
+        "customGradeLetter": "Ibaruwa y'Amanota Gakondo (Ukunze)",
+        "autoCalculate": "Kubara Mu Buryo Bwihariye",
+        "remarks": "Ibitekerezo",
+        "remarksPlaceholder": "Ibitekerezo ukunze...",
+        "saveChanges": "Bika Ibyahinduwe",
+        "cancel": "Siba"
+      },
+      "deleteGrade": {
+        "title": "Siba Amanota",
+        "subtitle": "Iki gikorwa ntigishobora gusubirwaho",
+        "confirmMessage": "Urabyizera ko ushaka gusiba amanota ya",
+        "inSubject": "mu",
+        "warning": "Ibi bizikuraho burundu amanota yawe muri sisitemu.",
+        "confirm": "Yego, Siba",
+        "cancel": "Siba"
+      },
+      "uploadDetails": {
+        "title": "Ibya Mburabuzi by'Oherurwa ry'Amanota",
+        "file": "Dosiye",
+        "gradeUpload": "Oherurwa ry'Amanota",
+        "academicYear": "Umwaka w'Amasomo",
+        "term": "Igikorwa",
+        "schoolLevel": "Urwego rw'Ishuri",
+        "classLevel": "Icyiciro",
+        "subject": "Isomo",
+        "gradeType": "Ubwoko bw'Amanota",
+        "weight": "Uburemere",
+        "students": "Abanyeshuri",
+        "status": "Imiterere",
+        "uploaded": "Byoherejwe",
+        "reviewed": "Byasuzumwe",
+        "reviewedBy": "Byasuzumwe Na",
+        "rejectionReason": "Impamvu yo Kwangwa",
+        "adminNotes": "Inoti z'Umunyabukungu"
+      },
+      "upload": {
+        "title": "Oherura Amanota y'Abanyeshuri",
+        "subtitle": "Ohereza amanota kugirango asuzumwe n'umunyabukungu",
+        "selectFile": "Kanda kugirango uhitamo dosiye ya Excel",
+        "fileTypes": "Yemerera .xlsx · .xls",
+        "academicYear": "Umwaka w'Amasomo",
+        "selectYear": "Hitemo umwaka",
+        "term": "Igikorwa",
+        "selectTerm": "Hitemo igikorwa",
+        "schoolLevel": "Urwego rw'Ishuri",
+        "selectLevel": "Hitemo urwego",
+        "classLevel": "Icyiciro",
+        "selectClass": "Hitemo icyiciro",
+        "subject": "Isomo",
+        "selectSubject": "Hitemo isomo",
+        "gradeType": "Ubwoko bw'Amanota",
+        "uploading": "Biri gukoherezwa...",
+        "submit": "Ohereza Amanota",
+        "cancel": "Siba"
+      },
+      "download": {
+        "title": "Kurura Icyitegererezo cy'Amanota",
+        "subtitle": "Kura icyitegererezo cya Excel gisanzwe cyuzujwe nurutonde rw'ishuri ryawe",
+        "info": "Icyitegererezo kizakubamo abanyeshuri bose bo mu byiciro byawe. Uzuzuze amanota hanyuma ukohereze.",
+        "academicYear": "Umwaka w'Amasomo",
+        "selectYear": "Hitemo umwaka",
+        "term": "Igikorwa",
+        "selectTerm": "Hitemo igikorwa",
+        "schoolLevel": "Urwego rw'Ishuri",
+        "selectLevel": "Hitemo urwego",
+        "classLevel": "Icyiciro",
+        "selectClass": "Hitemo icyiciro",
+        "subject": "Isomo",
+        "selectSubject": "Hitemo isomo",
+        "gradeType": "Ubwoko bw'Amanota",
+        "generating": "Biri gukora...",
+        "download": "Kurura Icyitegererezo",
+        "cancel": "Siba"
+      },
+      "student": {
+        "roll": "Umunyeshuri N°",
+        "personalInfo": "Amakuru bwite",
+        "email": "Imeri",
+        "phone": "Telefone"
+      },
+      "performance": {
+        "title": "Imikorere y'Amasomo y'Umunyeshuri",
+        "academicPerformance": "Raporo y'Imikorere y'Amasomo"
+      }
+    },
+    "gradeTypes": {
+      "assignment": "Igikorwa",
+      "quiz": "Ikizami",
+      "midTerm": "Ikizami cy'Igice",
+      "finalExam": "Ikizami cy'Imperuka",
+      "project": "Umushinga",
+      "practical": "Ibikorwa by'Intoki",
+      "oral": "Ikizami mu Kanwa",
+      "homework": "Igikorwa cyo Murugo"
+    },
+    "errors": {
+      "fetchGradesFailed": "Kuramo amanota y'abanyeshuri byananiwe",
+      "fetchUploadsFailed": "Kuramo ibyoherejwe by'ammanota byananiwe",
+      "noAcademicYearSelected": "Nyamukoresha uhitemo umwaka w'amashuri mbere",
+      "fetchPerformanceFailed": "Kuramo imikorere y'umunyeshuri byananiwe",
+      "noPerformanceData": "Ntan makuru y'imikorere arahari",
+      "noPerformanceDataHint": "Uyu munyeshuri ashobora kuba atarabona amanota yanditswe"
+    },
+
+    "subjectsAssigned": "Amasomo Yashinzwe",
+    "stats": {
+      "totalGrades": "Amanota Yose",
+      "totalUploads": "Oherurwa Zose",
+      "subjects": "Amasomo",
+      "classrooms": "Ibyiciro"
+    }
+  }
 }

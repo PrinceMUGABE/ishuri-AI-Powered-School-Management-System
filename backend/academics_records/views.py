@@ -6,6 +6,7 @@ from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 from django.db import models
 
+from django.http import HttpResponse
 import openpyxl
 from django.db import transaction, IntegrityError
 from django.utils import timezone
@@ -910,3 +911,560 @@ def get_teacher_students(request):
         })
     
     return _ok(data=result, message="Students fetched successfully")
+
+
+
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_student_grades(request):
+    """
+    Get all student grades with filtering options for teachers.
+    Returns detailed grade information including student names, subjects, etc.
+    """
+    lang = get_lang(request)
+    
+    teacher, err = _get_teacher(request.user, lang)
+    if err:
+        return err
+    
+    # Get query params
+    academic_year_id = request.query_params.get('academic_year_id')
+    term_id = request.query_params.get('term_id')
+    class_level_id = request.query_params.get('class_level_id')
+    subject_id = request.query_params.get('subject_id')
+    grade_type = request.query_params.get('grade_type')
+    student_id = request.query_params.get('student_id')
+    
+    # Base queryset - only grades from this teacher's uploads
+    grades = StudentGrade.objects.filter(
+        grade_upload__teacher=teacher
+    ).select_related(
+        'grade_upload', 'student', 'grade_upload__academic_year',
+        'grade_upload__term', 'grade_upload__class_level',
+        'grade_upload__subject', 'grade_upload__school_level'
+    )
+    
+    # Apply filters
+    if academic_year_id:
+        grades = grades.filter(grade_upload__academic_year_id=academic_year_id)
+    if term_id:
+        grades = grades.filter(grade_upload__term_id=term_id)
+    if class_level_id:
+        grades = grades.filter(grade_upload__class_level_id=class_level_id)
+    if subject_id:
+        grades = grades.filter(grade_upload__subject_id=subject_id)
+    if grade_type:
+        grades = grades.filter(grade_upload__grade_type=grade_type)
+    if student_id:
+        grades = grades.filter(student_id=student_id)
+    
+    # Serialize
+    result = []
+    for grade in grades:
+        upload = grade.grade_upload
+        percentage = (grade.score / grade.max_score * 100) if grade.max_score > 0 else 0
+        
+        result.append({
+            'id': grade.id,
+            'student_id': grade.student.id,
+            'student_name': grade.student.full_name,
+            'student_roll': grade.student.roll_number,
+            'academic_year_id': upload.academic_year.id,
+            'academic_year_name': upload.academic_year.name,
+            'term_id': upload.term.id if upload.term else None,
+            'term_name': upload.term.name if upload.term else None,
+            'school_level_id': upload.school_level.id,
+            'school_level_name': upload.school_level.name,
+            'class_level_id': upload.class_level.id,
+            'class_level_name': upload.class_level.name,
+            'subject_id': upload.subject.id,
+            'subject_name': upload.subject.name,
+            'grade_type': upload.grade_type,
+            'grade_type_display': upload.get_grade_type_display(),
+            'score': float(grade.score),
+            'max_score': float(grade.max_score),
+            'percentage': round(percentage, 2),
+            'custom_grade_letter': grade.custom_grade_letter,
+            'remarks': grade.remarks,
+            'is_published': grade.is_published,
+            'published_at': grade.published_at.isoformat() if grade.published_at else None,
+            'grade_upload_id': upload.id,
+            'upload_status': upload.status,
+            'created_at': grade.created_at.isoformat(),
+            'updated_at': grade.updated_at.isoformat(),
+        })
+    
+    return _ok(data=result, message="Student grades fetched successfully")
+
+
+@api_view(['GET', 'PATCH', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def student_grade_detail(request, grade_id):
+    """
+    Get, update, or delete a specific student grade.
+    """
+    lang = get_lang(request)
+    
+    teacher, err = _get_teacher(request.user, lang)
+    if err:
+        return err
+    
+    try:
+        grade = StudentGrade.objects.get(
+            id=grade_id,
+            grade_upload__teacher=teacher
+        )
+    except StudentGrade.DoesNotExist:
+        return _err("Grade not found", status.HTTP_404_NOT_FOUND)
+    
+    if request.method == 'GET':
+        upload = grade.grade_upload
+        percentage = (grade.score / grade.max_score * 100) if grade.max_score > 0 else 0
+        
+        data = {
+            'id': grade.id,
+            'student_id': grade.student.id,
+            'student_name': grade.student.full_name,
+            'student_roll': grade.student.roll_number,
+            'score': float(grade.score),
+            'max_score': float(grade.max_score),
+            'percentage': round(percentage, 2),
+            'custom_grade_letter': grade.custom_grade_letter,
+            'remarks': grade.remarks,
+            'is_published': grade.is_published,
+            'grade_upload_id': upload.id,
+        }
+        return _ok(data=data)
+    
+    elif request.method == 'PATCH':
+        # Update grade
+        score = request.data.get('score')
+        max_score = request.data.get('max_score')
+        remarks = request.data.get('remarks', '')
+        custom_grade_letter = request.data.get('custom_grade_letter', '')
+        
+        if score is not None:
+            try:
+                grade.score = Decimal(str(score))
+            except (InvalidOperation, TypeError):
+                return _err("Invalid score value")
+        
+        if max_score is not None:
+            try:
+                grade.max_score = Decimal(str(max_score))
+            except (InvalidOperation, TypeError):
+                return _err("Invalid max_score value")
+        
+        grade.remarks = remarks
+        grade.custom_grade_letter = custom_grade_letter
+        grade.save()
+        
+        # If grade upload is still pending, it remains pending
+        # If approved, we might want to flag that changes were made
+        if grade.grade_upload.status == GradeUploadStatus.APPROVED:
+            # Optionally notify admin that a grade was modified after approval
+            _notify_admins(
+                'grade_modified',
+                "Grade Modified After Approval",
+                f"Teacher {teacher.full_name} modified grade for {grade.student.full_name} in {grade.grade_upload.subject.name}",
+                created_by=request.user,
+                extra_data={'grade_id': grade.id}
+            )
+        
+        return _ok(message="Grade updated successfully")
+    
+    elif request.method == 'DELETE':
+        upload = grade.grade_upload
+        grade.delete()
+        
+        # Log deletion
+        _notify_admins(
+            'grade_deleted',
+            "Grade Deleted",
+            f"Teacher {teacher.full_name} deleted grade for student in {upload.subject.name}",
+            created_by=request.user,
+            extra_data={'subject': upload.subject.name, 'teacher': teacher.full_name}
+        )
+        
+        return _ok(message="Grade deleted successfully")
+
+
+@api_view(['GET', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def grade_upload_detail(request, upload_id):
+    """
+    Get details of a specific grade upload or delete it (with all associated grades).
+    """
+    lang = get_lang(request)
+    
+    teacher, err = _get_teacher(request.user, lang)
+    if err:
+        return err
+    
+    try:
+        upload = GradeUpload.objects.get(
+            id=upload_id,
+            teacher=teacher
+        )
+    except GradeUpload.DoesNotExist:
+        return _err("Grade upload not found", status.HTTP_404_NOT_FOUND)
+    
+    if request.method == 'GET':
+        data = {
+            'id': upload.id,
+            'academic_year_id': upload.academic_year.id,
+            'academic_year_name': upload.academic_year.name,
+            'term_id': upload.term.id if upload.term else None,
+            'term_name': upload.term.name if upload.term else None,
+            'school_level_id': upload.school_level.id,
+            'school_level_name': upload.school_level.name,
+            'class_level_id': upload.class_level.id,
+            'class_level_name': upload.class_level.name,
+            'subject_id': upload.subject.id,
+            'subject_name': upload.subject.name,
+            'grade_type': upload.grade_type,
+            'grade_type_display': upload.get_grade_type_display(),
+            'weight_percentage': float(upload.weight_percentage),
+            'assessment_date': str(upload.assessment_date) if upload.assessment_date else None,
+            'excel_file': upload.excel_file.url if upload.excel_file else None,
+            'status': upload.status,
+            'rejection_reason': upload.rejection_reason,
+            'admin_notes': upload.admin_notes,
+            'grades_count': upload.student_grades.count(),
+            'created_at': upload.created_at.isoformat(),
+            'reviewed_at': upload.reviewed_at.isoformat() if upload.reviewed_at else None,
+            'reviewed_by_name': upload.reviewed_by.username if upload.reviewed_by else None,
+        }
+        return _ok(data=data)
+    
+    elif request.method == 'DELETE':
+        # Delete all associated grades first (cascade will handle)
+        upload.delete()
+        return _ok(message="Grade upload and all associated grades deleted successfully")
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def download_grade_upload_file(request, upload_id):
+    """
+    Download the original Excel file for a grade upload.
+    """
+    lang = get_lang(request)
+    
+    teacher, err = _get_teacher(request.user, lang)
+    if err:
+        return err
+    
+    try:
+        upload = GradeUpload.objects.get(
+            id=upload_id,
+            teacher=teacher
+        )
+    except GradeUpload.DoesNotExist:
+        return _err("Grade upload not found", status.HTTP_404_NOT_FOUND)
+    
+    if not upload.excel_file or not upload.excel_file.path:
+        return _err("File not found", status.HTTP_404_NOT_FOUND)
+    
+    try:
+        with open(upload.excel_file.path, 'rb') as f:
+            file_data = f.read()
+        
+        filename = os.path.basename(upload.excel_file.name)
+        response = HttpResponse(
+            file_data,
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+    except Exception as e:
+        return _err(f"Error reading file: {str(e)}", status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    
+    
+    
+    
+# Add these functions to academics_records/views.py
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_teacher_grades(request):
+    """
+    Get all grades for the logged-in teacher's students.
+    Used by the teacher grades page.
+    """
+    lang = get_lang(request)
+    
+    teacher, err = _get_teacher(request.user, lang)
+    if err:
+        return err
+    
+    # Get query params for pagination
+    page = int(request.query_params.get('page', 1))
+    page_size = min(int(request.query_params.get('page_size', 10)), 100)
+    
+    # Get grades from this teacher's uploads
+    grades = StudentGrade.objects.filter(
+        grade_upload__teacher=teacher
+    ).select_related(
+        'grade_upload', 'student', 'grade_upload__academic_year',
+        'grade_upload__term', 'grade_upload__class_level',
+        'grade_upload__subject', 'grade_upload__school_level'
+    ).order_by('-created_at')
+    
+    # Apply filters
+    academic_year_id = request.query_params.get('academic_year_id')
+    if academic_year_id:
+        grades = grades.filter(grade_upload__academic_year_id=academic_year_id)
+    
+    term_id = request.query_params.get('term_id')
+    if term_id:
+        grades = grades.filter(grade_upload__term_id=term_id)
+    
+    class_level_id = request.query_params.get('class_level_id')
+    if class_level_id:
+        grades = grades.filter(grade_upload__class_level_id=class_level_id)
+    
+    subject_id = request.query_params.get('subject_id')
+    if subject_id:
+        grades = grades.filter(grade_upload__subject_id=subject_id)
+    
+    grade_type = request.query_params.get('grade_type')
+    if grade_type:
+        grades = grades.filter(grade_upload__grade_type=grade_type)
+    
+    # Pagination
+    total = grades.count()
+    start = (page - 1) * page_size
+    paginated_grades = grades[start:start + page_size]
+    
+    # Serialize
+    result = []
+    for grade in paginated_grades:
+        upload = grade.grade_upload
+        percentage = (grade.score / grade.max_score * 100) if grade.max_score > 0 else 0
+        
+        result.append({
+            'id': grade.id,
+            'student_id': grade.student.id,
+            'student_name': grade.student.full_name,
+            'student_roll': grade.student.roll_number,
+            'academic_year_id': upload.academic_year.id,
+            'academic_year_name': upload.academic_year.name,
+            'term_id': upload.term.id if upload.term else None,
+            'term_name': upload.term.name if upload.term else None,
+            'school_level_id': upload.school_level.id,
+            'school_level_name': upload.school_level.name,
+            'class_level_id': upload.class_level.id,
+            'class_level_name': upload.class_level.name,
+            'subject_id': upload.subject.id,
+            'subject_name': upload.subject.name,
+            'grade_type': upload.grade_type,
+            'grade_type_display': upload.get_grade_type_display(),
+            'score': float(grade.score),
+            'max_score': float(grade.max_score),
+            'percentage': round(percentage, 2),
+            'custom_grade_letter': grade.custom_grade_letter,
+            'remarks': grade.remarks,
+            'is_published': grade.is_published,
+            'published_at': grade.published_at.isoformat() if grade.published_at else None,
+            'grade_upload_id': upload.id,
+            'upload_status': upload.status,
+            'created_at': grade.created_at.isoformat(),
+            'updated_at': grade.updated_at.isoformat(),
+        })
+    
+    return Response({
+        'success': True,
+        'message': get_translation('grades_fetched', lang),
+        'data': {
+            'results': result,
+            'count': total,
+            'page': page,
+            'page_size': page_size,
+            'total_pages': (total + page_size - 1) // page_size
+        }
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_manual_grade(request):
+    """
+    Admin endpoint to manually create a single student grade.
+    This creates a GradeUpload (if needed) and a StudentGrade in one transaction.
+    """
+    from django.db import transaction
+    from decimal import Decimal, InvalidOperation
+    from datetime import date
+    from django.utils import timezone
+    
+    lang = get_lang(request)
+    
+    # Check admin permission
+    if not _is_admin(request.user):
+        return _err(t("forbidden", lang), status.HTTP_403_FORBIDDEN, lang=lang)
+    
+    # Validate required fields
+    academic_year_id = request.data.get('academic_year_id')
+    term_id = request.data.get('term_id')
+    school_level_id = request.data.get('school_level_id')
+    class_level_id = request.data.get('class_level_id')
+    subject_id = request.data.get('subject_id')
+    grade_type = request.data.get('grade_type')
+    student_id = request.data.get('student_id')
+    score = request.data.get('score')
+    
+    missing = []
+    for field_name, field_value in [
+        ('academic_year_id', academic_year_id),
+        ('term_id', term_id),
+        ('school_level_id', school_level_id),
+        ('class_level_id', class_level_id),
+        ('subject_id', subject_id),
+        ('grade_type', grade_type),
+        ('student_id', student_id),
+        ('score', score),
+    ]:
+        if not field_value:
+            missing.append(field_name)
+    
+    if missing:
+        return _err(f"Missing required fields: {', '.join(missing)}", status.HTTP_400_BAD_REQUEST, lang=lang)
+    
+    # Validate grade type
+    valid_grade_types = [c[0] for c in GradeType.choices]
+    if grade_type not in valid_grade_types:
+        return _err(f"Invalid grade_type. Must be one of: {', '.join(valid_grade_types)}", 
+                   status.HTTP_400_BAD_REQUEST, lang=lang)
+    
+    try:
+        with transaction.atomic():
+            # Fetch related objects
+            academic_year = get_object_or_404(AcademicYear, id=academic_year_id)
+            term = get_object_or_404(Term, id=term_id)
+            school_level = get_object_or_404(SchoolLevel, id=school_level_id)
+            class_level = get_object_or_404(ClassLevel, id=class_level_id)
+            subject = get_object_or_404(Subject, id=subject_id)
+            student = get_object_or_404(Student, id=student_id)
+            
+            # Parse score
+            try:
+                score_decimal = Decimal(str(score))
+                if score_decimal < 0 or score_decimal > 100:
+                    raise ValueError("Score out of range")
+            except (InvalidOperation, ValueError):
+                return _err("Score must be a number between 0 and 100", status.HTTP_400_BAD_REQUEST, lang=lang)
+            
+            max_score = Decimal(str(request.data.get('max_score', 100)))
+            remarks = request.data.get('remarks', '')
+            weight = None
+            if request.data.get('weight_percentage'):
+                try:
+                    weight = Decimal(str(request.data.get('weight_percentage')))
+                except InvalidOperation:
+                    pass
+            
+            # Use default weight if not provided
+            if not weight:
+                weight = GradeType.get_default_weight(grade_type)
+            
+            # Check if a GradeUpload already exists for this combination
+            grade_upload = GradeUpload.objects.filter(
+                teacher__isnull=True,  # Admin-created uploads have no teacher
+                academic_year=academic_year,
+                term=term,
+                school_level=school_level,
+                class_level=class_level,
+                subject=subject,
+                grade_type=grade_type,
+            ).first()
+            
+            if not grade_upload:
+                # Create a new GradeUpload for this manual entry
+                grade_upload = GradeUpload.objects.create(
+                    teacher=None,  # No teacher for admin manual entry
+                    academic_year=academic_year,
+                    term=term,
+                    school_level=school_level,
+                    class_level=class_level,
+                    subject=subject,
+                    grade_type=grade_type,
+                    weight_percentage=weight,
+                    assessment_date=date.today(),
+                    status=GradeUploadStatus.APPROVED,  # Manual entries are auto-approved
+                    uploaded_by=request.user
+                )
+            
+            # Check if grade already exists for this student and upload
+            existing_grade = StudentGrade.objects.filter(
+                grade_upload=grade_upload,
+                student=student
+            ).first()
+            
+            if existing_grade:
+                # Update existing grade
+                existing_grade.score = score_decimal
+                existing_grade.max_score = max_score
+                existing_grade.remarks = remarks
+                existing_grade.custom_grade_letter = ''  # Reset custom grade letter
+                existing_grade.is_published = True
+                existing_grade.published_at = timezone.now()
+                existing_grade.save()
+                grade = existing_grade
+                message = "Grade updated successfully"
+            else:
+                # Create new grade
+                grade = StudentGrade.objects.create(
+                    grade_upload=grade_upload,
+                    student=student,
+                    score=score_decimal,
+                    max_score=max_score,
+                    remarks=remarks,
+                    is_published=True,
+                    published_at=timezone.now()
+                )
+                message = "Grade created successfully"
+            
+            # Notify student if they have a user account
+            if student.user:
+                _notify_user(
+                    student.user,
+                    'grade_added',
+                    "New Grade Added",
+                    f"You received {score_decimal}/{max_score} in {subject.name}",
+                    created_by=request.user,
+                    extra_data={'grade_id': grade.id, 'subject': subject.name, 'score': str(score_decimal)}
+                )
+            
+            # Calculate percentage
+            percentage = float((score_decimal / max_score) * 100) if max_score > 0 else 0
+            
+            return _ok(
+                data={
+                    'grade_id': grade.id,
+                    'grade_upload_id': grade_upload.id,
+                    'student_id': student.id,
+                    'student_name': student.full_name,
+                    'student_roll': student.roll_number,
+                    'score': float(score_decimal),
+                    'max_score': float(max_score),
+                    'percentage': round(percentage, 2),
+                    'grade_letter': GradeCalculator.get_grade_letter(percentage),
+                    'remarks': remarks,
+                    'subject_name': subject.name,
+                    'class_level_name': class_level.name,
+                    'academic_year_name': academic_year.name,
+                    'term_name': term.name,
+                    'grade_type': grade_type,
+                    'grade_type_display': grade_upload.get_grade_type_display(),
+                    'weight_percentage': float(weight)
+                },
+                message=message,
+                status_code=status.HTTP_201_CREATED
+            )
+            
+    except Exception as exc:
+        return _err(f"Unexpected error: {str(exc)}", status.HTTP_500_INTERNAL_SERVER_ERROR, lang=lang)

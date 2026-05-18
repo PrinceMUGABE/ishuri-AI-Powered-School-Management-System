@@ -606,14 +606,14 @@ const TeacherStudents = () => {
       <div className="space-y-5 p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
         
         {/* Dark Mode Toggle */}
-        {/* <div className="flex justify-end">
+        <div className="flex justify-end">
           <button 
             onClick={() => setDarkMode(!darkMode)} 
             className="p-2 bg-white dark:bg-gray-800 border rounded-xl shadow-sm"
           >
             {darkMode ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-gray-500" />}
           </button>
-        </div> */}
+        </div>
         
         {/* Welcome Banner */}
         <TeacherWelcomeBanner />

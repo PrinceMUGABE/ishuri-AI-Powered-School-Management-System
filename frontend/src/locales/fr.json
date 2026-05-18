@@ -539,7 +539,8 @@
       "email": "Email",
       "phone": "Téléphone",
       "relationship": "Relation",
-      "students": "Étudiants"
+      "students": "Étudiants",
+      "performance_status": "Statut de Performance"
     },
     "form": {
       "fullName": "Nom Complet",
@@ -1577,7 +1578,8 @@
       "studentName": "Nom de l'Élève",
       "academicYear": "Année Académique",
       "term": "Trimestre",
-      "relationship": "Relation"
+      "relationship": "Relation",
+      "subject": "Matière"
     },
     "form": {
       "fullName": "Nom Complet",
@@ -1627,7 +1629,8 @@
       "generateReport": "Générer un Rapport",
       "downloadReport": "Télécharger le Rapport",
       "printReport": "Imprimer le Rapport",
-      "viewFullPerformance": "Voir les Performances Complètes"
+      "viewFullPerformance": "Voir les Performances Complètes",
+      "cancel": "Annuler"
     },
     "messages": {
       "loading": "Chargement...",
@@ -1691,6 +1694,239 @@
   "no_classrooms_assigned": "Aucune salle de classe assignée à cet enseignant.",
   "students_retrieved": "Élèves récupérés avec succès",
   "student_details_retrieved": "Détails de l'élève récupérés avec succès",
-  "classroom_not_found": "Salle de classe non trouvée"
+  "classroom_not_found": "Salle de classe non trouvée",
+ 
+
+  
+ 
+  
+  "teacherGrades": {
+    "common": {
+      "loading": "Chargement..."
+    },
+    "header": {
+      "title": "Notes Académiques",
+      "subtitle": "Gérer les relevés de notes des étudiants"
+    },
+    "buttons": {
+      "downloadTemplate": "Télécharger le Modèle",
+      "uploadGrades": "Importer les Notes"
+    },
+    "filters": {
+      "title": "Filtres",
+      "subtitle": "affiner le tableau des notes ci-dessous",
+      "academicYear": "Année",
+      "academicYearPlaceholder": "Année Académique",
+      "term": "Trimestre",
+      "termPlaceholder": "Tous les Trimestres",
+      "schoolLevel": "Niveau Scolaire",
+      "schoolLevelPlaceholder": "Tous les Niveaux",
+      "classLevel": "Classe",
+      "classLevelPlaceholder": "Toutes les Classes",
+      "subject": "Matière",
+      "subjectPlaceholder": "Toutes les Matières",
+      "gradeType": "Type de Note",
+      "gradeTypePlaceholder": "Tous les Types",
+      "student": "Étudiant",
+      "studentPlaceholder": "Tous les Étudiants"
+    },
+    "tabs": {
+      "studentGrades": "Notes des Étudiants",
+      "gradeUploads": "Imports de Notes (Fichiers)"
+    },
+    "grades": {
+      "title": "Notes des Étudiants",
+      "searchPlaceholder": "Rechercher un étudiant ou une matière...",
+      "noGrades": "Aucune note trouvée",
+      "noGradesHint": "Importez des notes ou ajustez les filtres pour voir les résultats",
+      "editGrade": "Modifier la Note",
+      "deleteGrade": "Supprimer la Note",
+      "updateSuccess": "Note mise à jour avec succès",
+      "updateFailed": "Échec de la mise à jour de la note",
+      "deleteSuccess": "Note supprimée avec succès",
+      "deleteFailed": "Échec de la suppression de la note",
+      "viewPerformance": "Voir la Performance de l'Étudiant",
+      "columns": {
+        "rollNo": "N° Matricule",
+        "studentName": "Nom de l'Étudiant",
+        "academicYear": "Année Académique",
+        "term": "Trimestre",
+        "schoolLevel": "Niveau Scolaire",
+        "classLevel": "Classe",
+        "subject": "Matière",
+        "gradeType": "Type de Note",
+        "score": "Score",
+        "grade": "Note",
+        "status": "Statut",
+        "actions": "Actions"
+      },
+      "status": {
+        "published": "Publié",
+        "pending": "En Attente"
+      }
+    },
+    "uploads": {
+      "title": "Fichiers d'Import de Notes",
+      "subtitle": "Gérez vos fichiers Excel de notes importés et suivez le statut d'approbation",
+      "noUploads": "Aucun import de notes trouvé",
+      "noUploadsHint": "Importez votre premier fichier de notes en utilisant le bouton ci-dessus",
+      "uploaded": "Importé le",
+      "gradesCount": "Notes",
+      "students": "étudiants",
+      "weight": "Pondération",
+      "status": "Statut",
+      "rejectionReason": "Motif du rejet",
+      "viewDetails": "Voir les Détails",
+      "downloadFile": "Télécharger le Fichier",
+      "deleteUpload": "Supprimer l'Import",
+      "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce fichier d'import de notes ? Toutes les notes associées seront également supprimées.",
+      "deleteSuccess": "Import de notes supprimé avec succès",
+      "deleteFailed": "Échec de la suppression de l'import",
+      "downloadSuccess": "Fichier téléchargé avec succès",
+      "downloadFailed": "Échec du téléchargement du fichier",
+      "noFile": "Veuillez sélectionner un fichier Excel",
+      "missingFields": "Veuillez remplir tous les champs requis",
+      "uploadSuccess": "Notes importées avec succès",
+      "uploadFailed": "Échec de l'import",
+      "uploadError": "Erreur d'import",
+      "statuses": {
+        "pending": "En Attente",
+        "approved": "Approuvé",
+        "rejected": "Rejeté",
+        "needs_review": "À Réviser",
+        "active": "Actif",
+        "inactive": "Inactif"
+      }
+    },
+    "download": {
+      "missingFields": "Veuillez remplir tous les champs requis",
+      "success": "Modèle téléchargé !",
+      "failed": "Échec du téléchargement"
+    },
+    "pagination": {
+      "show": "Afficher",
+      "perPage": "par page",
+      "total": "total",
+      "first": "Premier",
+      "last": "Dernier"
+    },
+    "modals": {
+      "editGrade": {
+        "title": "Modifier la Note de l'Étudiant",
+        "score": "Score",
+        "maxScore": "Score Maximum",
+        "customGradeLetter": "Lettre de Note Personnalisée (Optionnel)",
+        "autoCalculate": "Calcul automatique",
+        "remarks": "Remarques",
+        "remarksPlaceholder": "Remarques optionnelles...",
+        "saveChanges": "Enregistrer les Modifications",
+        "cancel": "Annuler"
+      },
+      "deleteGrade": {
+        "title": "Supprimer la Note",
+        "subtitle": "Cette action est irréversible",
+        "confirmMessage": "Êtes-vous sûr de vouloir supprimer la note de",
+        "inSubject": "dans",
+        "warning": "Cela supprimera définitivement cet enregistrement de note du système.",
+        "confirm": "Oui, Supprimer",
+        "cancel": "Annuler"
+      },
+      "uploadDetails": {
+        "title": "Détails de l'Import de Notes",
+        "file": "Fichier",
+        "gradeUpload": "Import de Notes",
+        "academicYear": "Année Académique",
+        "term": "Trimestre",
+        "schoolLevel": "Niveau Scolaire",
+        "classLevel": "Classe",
+        "subject": "Matière",
+        "gradeType": "Type de Note",
+        "weight": "Pondération",
+        "students": "Étudiants",
+        "status": "Statut",
+        "uploaded": "Importé le",
+        "reviewed": "Révisé le",
+        "reviewedBy": "Révisé Par",
+        "rejectionReason": "Motif du Rejet",
+        "adminNotes": "Notes Administrateur"
+      },
+      "upload": {
+        "title": "Importer les Notes des Étudiants",
+        "subtitle": "Soumettre les notes pour examen par l'administrateur",
+        "selectFile": "Cliquez pour sélectionner un fichier Excel",
+        "fileTypes": "Accepte .xlsx · .xls",
+        "academicYear": "Année Académique",
+        "selectYear": "Sélectionner l'année",
+        "term": "Trimestre",
+        "selectTerm": "Sélectionner le trimestre",
+        "schoolLevel": "Niveau Scolaire",
+        "selectLevel": "Sélectionner le niveau",
+        "classLevel": "Classe",
+        "selectClass": "Sélectionner la classe",
+        "subject": "Matière",
+        "selectSubject": "Sélectionner la matière",
+        "gradeType": "Type de Note",
+        "uploading": "Import en cours...",
+        "submit": "Soumettre les Notes",
+        "cancel": "Annuler"
+      },
+      "download": {
+        "title": "Télécharger le Modèle de Notes",
+        "subtitle": "Obtenez un modèle Excel pré-rempli avec votre liste de classe",
+        "info": "Le modèle inclura tous les étudiants de vos classes assignées. Remplissez les scores et ré-importez.",
+        "academicYear": "Année Académique",
+        "selectYear": "Sélectionner l'année",
+        "term": "Trimestre",
+        "selectTerm": "Sélectionner le trimestre",
+        "schoolLevel": "Niveau Scolaire",
+        "selectLevel": "Sélectionner le niveau",
+        "classLevel": "Classe",
+        "selectClass": "Sélectionner la classe",
+        "subject": "Matière",
+        "selectSubject": "Sélectionner la matière",
+        "gradeType": "Type de Note",
+        "generating": "Génération en cours...",
+        "download": "Télécharger le Modèle",
+        "cancel": "Annuler"
+      },
+      "student": {
+        "roll": "Matricule",
+        "personalInfo": "Informations Personnelles",
+        "email": "Email",
+        "phone": "Téléphone"
+      },
+
+      "performance": {
+        "title": "Performance Académique de l'Étudiant",
+        "academicPerformance": "Rapport de Performance Académique"
+      }
+    },
+    "gradeTypes": {
+      "assignment": "Devoir",
+      "quiz": "Quiz",
+      "midTerm": "Examen de Mi-Semestre",
+      "finalExam": "Examen Final",
+      "project": "Projet",
+      "practical": "Pratique",
+      "oral": "Évaluation Orale",
+      "homework": "Devoir Maison"
+    },
+    "errors": {
+      "fetchGradesFailed": "Échec du chargement des notes des étudiants",
+      "fetchUploadsFailed": "Échec du chargement des imports de notes",
+      "noAcademicYearSelected": "Veuillez d'abord sélectionner une année académique",
+      "fetchPerformanceFailed": "Échec de la récupération de la performance de l'étudiant",
+      "noPerformanceData": "Aucune donnée de performance disponible",
+      "noPerformanceDataHint": "Cet étudiant peut ne pas avoir encore de notes enregistrées"
+    },
+
+    "subjectsAssigned": "Matières Assignées",
+    "stats": {
+      "totalGrades": "Notes Totales",
+      "totalUploads": "Importations Totales",
+      "subjects": "Matières",
+      "classrooms": "Classes"
+    }
+  }
 }
 

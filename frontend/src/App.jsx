@@ -21,8 +21,8 @@ import AcademicsRecordsManagement from './pages/admin/AcademicRecordsManagement'
 
 // Teacher Layout and Pages (To be implemented)
 import TeacherLayout from './components/layout/teacher/TeacherLayout';
-import StudentsGrades from './pages/teacher/GradeUpload';
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
+import TeacherAcademicGrades from './pages/teacher/TeacherAcademicGrades';
 import TeacherProfile from './pages/teacher/TeacherProfile';
 import TeacherAssignmentUpload from './pages/teacher/AssignmentUpload';
 import TeacherAttendanceRecord from './pages/teacher/AttendanceRecord';
@@ -124,7 +124,7 @@ function App() {
             }
           >
             <Route path="dashboard" element={<TeacherDashboard />} />
-            <Route path="grades" element={<StudentsGrades /> } />
+            <Route path="grades" element={<TeacherAcademicGrades /> } />
             <Route path="profile" element={<TeacherProfile />} />
             <Route path="attendance" element={<TeacherAttendanceRecord />} />
             <Route path="assignments" element={<TeacherAssignmentUpload />} />
