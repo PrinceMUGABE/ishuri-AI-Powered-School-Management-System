@@ -2297,5 +2297,328 @@
     "delete_success": "Akazi kasibwe neza",
     "delete_failed": "Gusiba akazi byanze",
     "no_pdf_error": "Nta dosiye ya PDF ihari"
+  },
+
+
+  
+  "dashboard": {
+    "title": "Ibipimo bya Dashboard",
+    "subtitle": "Ibisobanuro birambuye n'isesengura ry'ikigo cyawe",
+    "lastUpdated": "Byavuguruwe kuva",
+    "messages": {
+      "dataLoaded": "Amakuru ya dashboard yakuwe neza",
+      "fetchError": "Kuvana amakuru ya dashboard byananiwe",
+      "loading": "Dashboard irakuzuza...",
+      "noData": "Nta makuru aboneka",
+      "exportStarted": "Gusohora raporo byatangiye"
+    },
+    "actions": {
+      "refresh": "Vugurura",
+      "export": "Sohora",
+      "hideCharts": "Hisha ibishushanyo",
+      "showCharts": "Erekana ibishushanyo",
+      "retry": "Ongera ugerageze"
+    },
+    "sections": {
+      "overview": "Imibare Rusange",
+      "financial": "Iby'Imari mu Kigari",
+      "grades": "Imicungire y'Amanota",
+      "charts": "Isesengura n'Ibishushanyo",
+      "communication": "Iby'Itumanaho mu Kigari"
+    },
+    "summary": {
+      "totalUsers": "Abakoresha Bose",
+      "totalStudents": "Abanyeshuri Bose",
+      "activeStudents": "Abanyeshuri Bakora",
+      "ofTotal": "mu banyeshuri bose",
+      "totalTeachers": "Abarimu Bose",
+      "activeTeachers": "Abarimu Bakora",
+      "totalParents": "Ababyeyi Bose",
+      "totalSchoolLevels": "Amashuri Yiciro",
+      "totalClassLevels": "Amashuri Y'ibyiciro",
+      "totalClassrooms": "Ibyumba By'ishuri",
+      "totalSubjects": "Amasomo",
+      "teacherAssignments": "Uko Abarimu Bagabanyijwe",
+      "activeAssignments": "Ibyo Gabanywa Bikora"
+    },
+    "financial": {
+      "expectedRevenue": "Amafaranga Ategerejwe",
+      "collectedRevenue": "Amafaranga Yakusanyijwe",
+      "collectionRate": "Umuvuduko w'Ikusanyirizo",
+      "overduePayments": "Amafaranga Yatinze"
+    },
+    "academic": {
+      "currentYear": "Umwaka w'Amashuri Uriho",
+      "currentTerm": "Igikomangoma Gikora"
+    },
+    "grades": {
+      "totalUploads": "Amanota Yashyizwe Hose",
+      "pendingUploads": "Ategereje Gusuzumwa",
+      "approvedUploads": "Yemewe",
+      "totalStudentGrades": "Amanota y'Abanyeshuri",
+      "publishedGrades": "Amanota Yasohotse"
+    },
+    "chat": {
+      "totalChatrooms": "Ibyumba by'Ikiganiro",
+      "totalMessages": "Ubutumwa"
+    },
+    "charts": {
+      "enrollmentTrend": "Imikurire y'Iyandikisha ry'Abanyeshuri",
+      "revenueTrend": "Imikurire y'Ikusanyirizo ry'Amafaranga",
+      "usersByRole": "Abakoresha bakurikije inshingano",
+      "paymentStatus": "Uko Kwishyura Bimeze",
+      "attendance": "Uko Itabira Rimeze mu Kigari",
+      "gradeStatus": "Uko Gushyira Amanota Bimeze",
+      "studentsByLevel": "Abanyeshuri bakurikije icyiciro cy'ishuri",
+      "newStudents": "Abanyeshuri Bashya",
+      "revenue": "Amafaranga Yakusanyijwe",
+      "count": "Umubare",
+      "students": "Abanyeshuri"
+    },
+    "attendance": {
+      "present": "Yitabiriye",
+      "absent": "Ntiyitabiriye",
+      "late": "Yatinze",
+      "excused": "Yemerewe Kutitabira",
+      "overallRate": "Igipimo cy'Itabira Rusange"
+    },
+    "paymentStatus": {
+      "completed": "Byarangiye",
+      "partially_paid": "Byishyuwe Igice",
+      "waiting": "Bitegereje",
+      "overdue": "Byatinze"
+    },
+    "gradeStatus": {
+      "approved": "Byemewe",
+      "pending": "Bitegereje",
+      "rejected": "Byanze",
+      "needs_review": "Bisaba Gusuzumwa"
+    },
+    "roles": {
+      "admin": "Ubuyobozi",
+      "teacher": "Umwarimu",
+      "student": "Umunyeshuri",
+      "parent": "Umubyeyi"
+    }
+  },
+
+  
+  "analytics": {
+    "title": "Isesengura na Raporo",
+    "subtitle": "Isesengura rirambuye ry'amakuru na raporo z'ikigo cyawe",
+    "confidential": "IBYIHIRWE",
+    "generatedOn": "Byakozwe ku",
+    "metric": "Ibipimo",
+    "value": "Agaciro",
+    "detailedData": "Amakuru Arambuye",
+    "insights": "Ibisobanuro by'Isesengura",
+    "manageColumns": "Genzura Inkingi",
+    "selectColumns": "Hitamo inkingi zo kwerekana",
+    "selectAll": "Hitamo Zose",
+    "clearAll": "Kuraho Zose",
+    "messages": {
+      "reportGenerated": "Raporo yateguwe neza",
+      "generateError": "Gutegura raporo byananiwe",
+      "pdfDownloaded": "PDF yamanutse neza",
+      "excelDownloaded": "Dosiye ya Excel yamanutse neza",
+      "csvDownloaded": "Dosiye ya CSV yamanutse neza",
+      "downloadError": "Kumanura dosiye byananiwe",
+      "filtersReset": "Ibyo watoranyije byagarutswe",
+      "noData": "Nta makuru aboneka",
+      "selectFilters": "Hitamo ubwoko bwa raporo hanyuma utegure"
+    },
+    "actions": {
+      "generate": "Tegura Raporo",
+      "reset": "Garura Ibyo Watoranyije",
+      "refresh": "Vugurura",
+      "export": "Sohora",
+      "pdf": "PDF",
+      "excel": "Excel",
+      "csv": "CSV"
+    },
+    "filters": {
+      "academicYear": "Umwaka w'Amashuri",
+      "term": "Igikomangoma",
+      "schoolLevel": "Icyiciro cy'Ishuri",
+      "classLevel": "Urwego rw'Ishuri",
+      "startDate": "Itariki Itangira",
+      "endDate": "Itariki Iherezo",
+      "status": "Imiterere",
+      "all": "Byose",
+      "active": "Gikora",
+      "inactive": "Ntigikora",
+      "pending": "Kitegereje",
+      "completed": "Byarangiye"
+    },
+    "summary": {
+      "totalUsers": "Abakoresha Bose",
+      "totalStudents": "Abanyeshuri Bose",
+      "activeStudents": "Abanyeshuri Bakora",
+      "totalTeachers": "Abarimu Bose",
+      "activeTeachers": "Abarimu Bakora",
+      "totalParents": "Ababyeyi Bose",
+      "expectedRevenue": "Amafaranga Ategerejwe",
+      "collectedRevenue": "Amafaranga Yakusanyijwe",
+      "collectionRate": "Umuvuduko w'Ikusanyirizo",
+      "attendanceRate": "Igipimo cy'Itabira"
+    },
+    "charts": {
+      "usersByRole": "Abakoresha bakurikije inshingano",
+      "distributionByStatus": "Igabana ry'Imiterere",
+      "monthlyTrend": "Imikurire y'Ukwezi",
+      "revenueTrend": "Imikurire y'Amafaranga",
+      "paymentStatus": "Uko Kwishyura Bimeze",
+      "gradeStatus": "Uko Gushyira Amanota Bimeze",
+      "studentsByClassLevel": "Abanyeshuri bakurikije Urwego",
+      "studentsBySchoolLevel": "Abanyeshuri bakurikije Icyiciro cy'Ishuri"
+    },
+    "pagination": {
+      "showing": "Kwerekana",
+      "of": "kuri",
+      "entries": "ibintu"
+    },
+    "reportTypes": {
+      "overview": "Ibiganiro bya Dashboard",
+      "users": "Isesengura ry'Abakoresha",
+      "students": "Isesengura ry'Abanyeshuri",
+      "teachers": "Isesengura ry'Abarimu",
+      "parents": "Isesengura ry'Ababyeyi",
+      "academicYears": "Imyaka y'Amashuri",
+      "classLevels": "Amashuri y'Ibyiciro",
+      "classrooms": "Ibyumba By'ishuri",
+      "subjects": "Amasomo",
+      "teacherAssignments": "Uko Abarimu Bagabanyijwe",
+      "gradeUploads": "Gushyira Amanota",
+      "attendance": "Itabira",
+      "payments": "Kwishyura"
+    },
+    "columns": {
+      "ID": "Indangamuntu",
+      "Username": "Izina ry'Umukoresha",
+      "Email": "Imeri",
+      "Role": "Inshingano",
+      "Status": "Imiterere",
+      "Language": "Ururimi",
+      "Created At": "Byakozwe ku",
+      "Full Name": "Izina Ryuzuye",
+      "Roll Number": "Nomero y'Umunyeshuri",
+      "Phone": "Telefone",
+      "Class Level": "Urwego rw'Ishuri",
+      "Enrollment Date": "Itariki y'Iyandikisha",
+      "Gender": "Igitsina",
+      "Education": "Amashuri",
+      "Hire Date": "Itariki y'Akazi",
+      "Relationship": "Isano",
+      "Children": "Abana",
+      "Name": "Izina",
+      "Start Date": "Itariki Itangira",
+      "End Date": "Itariki Iherezo",
+      "Current": "Iriho",
+      "Terms": "Ibikomangoma",
+      "Code": "Kode",
+      "School Level": "Icyiciro cy'Ishuri",
+      "Active": "Gikora",
+      "Subjects": "Amasomo",
+      "Type": "Ubwoko",
+      "Capacity": "Ubushobozi",
+      "Assigned To": "Yahawe",
+      "Teacher": "Umwarimu",
+      "Hours/Week": "Amasaha mu Cyumweru",
+      "Grade Type": "Ubwoko bw'Amanota",
+      "Student Grades": "Amanota y'Abanyeshuri",
+      "Date": "Itariki",
+      "Attendance Rate": "Igipimo cy'Itabira",
+      "Total Records": "Inyandiko Zose",
+      "Student": "Umunyeshuri",
+      "Fee Structure": "Imiterere y'Amafaranga",
+      "Total Amount": "Amafaranga Yose",
+      "Paid": "Byishyuwe",
+      "Remaining": "Bisigaye",
+      "Overdue": "Byatinze"
+    }
+  },
+
+
+  
+  "notifications": {
+    "title": "Ibirimo by'Imenyesha",
+    "subtitle": "Genzura n'icungire imenyesha yawe",
+    "stats": {
+      "total": "Imenyesha Byose",
+      "unread": "Bitarasomwa",
+      "read": "Byasomwe",
+      "page": "Urukurikirane"
+    },
+    "status": {
+      "unread": "Bitarasomwa",
+      "read": "Byasomwe"
+    },
+    "priority": {
+      "low": "Hasi",
+      "medium": "Hagati",
+      "high": "Hejuru"
+    },
+    "actions": {
+      "send": "Ohereza Imenyesha",
+      "markRead": "Shyira nk'byasomwe",
+      "markAllRead": "Shyira byose nk'byasomwe",
+      "delete": "Siba",
+      "clear": "Kuraho ubyatoranyije",
+      "selectAll": "Hitamo Byose"
+    },
+    "filters": {
+      "type": "Ubwoko bw'Imenyesha",
+      "status": "Imiterere",
+      "allTypes": "Ubwoko Bwose",
+      "allStatus": "Imiterere Yose",
+      "clear": "Kuraho ibyo watoranyije"
+    },
+    "send": {
+      "title": "Ohereza Imenyesha",
+      "recipientType": "Ubwoko bw'Uwakiriza",
+      "specificUsers": "Abakoresha runaka",
+      "byRole": "Nk'uruko",
+      "allUsers": "Abakoresha Bose",
+      "selectUsers": "Hitamo abakoresha",
+      "searchUsers": "Shakisha abakoresha...",
+      "usersSelected": "abakoresha bahiswe",
+      "selectRole": "Hitamo uruko",
+      "chooseRole": "Hitamo uruko",
+      "message": "Ubutumwa",
+      "titlePlaceholder": "Andika umutwe w'imenyesha",
+      "messagePlaceholder": "Andika ubutumwa bw'imenyesha",
+      "priority": "Ubwirinzi",
+      "send": "Ohereza",
+      "cancel": "Hagarika",
+      "fillFields": "Nyamuneka andika umutwe n'ubutumwa",
+      "selectUsers": "Nyamuneka hitamo byibura umukoresha umwe",
+      "selectRole": "Nyamuneka hitamo uruko"
+    },
+    "messages": {
+      "fetchError": "Kuvana imenyesha byananiwe",
+      "markedRead": "Imenyesha ryashyizwe nk'ryasomwe",
+      "markedReadSelected": "Imenyesha wahisemo ryashyizwe nk'ryasomwe",
+      "markedAllRead": "Imenyesha byose byashyizwe nk'byasomwe",
+      "markReadError": "Gushyira nk'byasomwe byananiwe",
+      "deleted": "Imenyesha ryasibwe",
+      "deletedSelected": "Imenyesha wahisemo byasibwe",
+      "deleteError": "Kusiba byananiwe",
+      "notificationSent": "Imenyesha ryoherejwe neza",
+      "sendError": "Kohereza imenyesha byananiwe",
+      "refreshed": "Imenyesha byavuguruwe",
+      "noNotifications": "Nta menyesha riboneka",
+      "selectNotifications": "Nyamuneka hitamo imenyesha",
+      "loading": "Imenyesha birimo bikuzura..."
+    },
+    "pagination": {
+      "showing": "Kwerekana",
+      "of": "kuri"
+    },
+    "roles": {
+      "admin": "Ubuyobozi",
+      "teacher": "Umwarimu",
+      "student": "Umunyeshuri",
+      "parent": "Umubyeyi"
+    }
   }
 }

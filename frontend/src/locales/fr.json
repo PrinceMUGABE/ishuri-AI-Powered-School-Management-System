@@ -2337,6 +2337,284 @@
     "delete_success": "Devoir supprimé avec succès",
     "delete_failed": "Échec de la suppression du devoir",
     "no_pdf_error": "Aucun fichier PDF disponible"
+  },
+
+
+  
+  "dashboard": {
+    "title": "Analytique du Tableau de Bord",
+    "subtitle": "Insights et analyses en temps réel pour votre institution",
+    "lastUpdated": "Dernière mise à jour",
+    "messages": {
+      "dataLoaded": "Données du tableau de bord chargées avec succès",
+      "fetchError": "Échec du chargement des données du tableau de bord",
+      "loading": "Chargement du tableau de bord...",
+      "noData": "Aucune donnée disponible",
+      "exportStarted": "Exportation du rapport démarrée"
+    },
+    "actions": {
+      "refresh": "Actualiser",
+      "export": "Exporter",
+      "hideCharts": "Masquer les graphiques",
+      "showCharts": "Afficher les graphiques",
+      "retry": "Réessayer"
+    },
+    "sections": {
+      "overview": "Statistiques Générales",
+      "financial": "Aperçu Financier",
+      "grades": "Gestion des Notes",
+      "charts": "Analytique et Graphiques",
+      "communication": "Aperçu de la Communication"
+    },
+    "summary": {
+      "totalUsers": "Total Utilisateurs",
+      "totalStudents": "Total Étudiants",
+      "activeStudents": "Étudiants Actifs",
+      "ofTotal": "du total des étudiants",
+      "totalTeachers": "Total Enseignants",
+      "activeTeachers": "Enseignants Actifs",
+      "totalParents": "Total Parents",
+      "totalSchoolLevels": "Niveaux Scolaires",
+      "totalClassLevels": "Niveaux de Classe",
+      "totalClassrooms": "Salles de Classe",
+      "totalSubjects": "Matières",
+      "teacherAssignments": "Attributions des Enseignants",
+      "activeAssignments": "Attributions Actives"
+    },
+    "financial": {
+      "expectedRevenue": "Revenu Attendue",
+      "collectedRevenue": "Revenu Collectée",
+      "collectionRate": "Taux de Recouvrement",
+      "overduePayments": "Paiements en Retard"
+    },
+    "academic": {
+      "currentYear": "Année Académique Actuelle",
+      "currentTerm": "Trimestre Actuel"
+    },
+    "grades": {
+      "totalUploads": "Total Dépôts de Notes",
+      "pendingUploads": "En Attente de Révision",
+      "approvedUploads": "Approuvés",
+      "totalStudentGrades": "Notes des Étudiants",
+      "publishedGrades": "Notes Publiées"
+    },
+    "chat": {
+      "totalChatrooms": "Salles de Chat",
+      "totalMessages": "Messages"
+    },
+    "charts": {
+      "enrollmentTrend": "Tendance d'Inscription des Étudiants",
+      "revenueTrend": "Tendance de Collecte des Revenus",
+      "usersByRole": "Utilisateurs par Rôle",
+      "paymentStatus": "Statut des Paiements",
+      "attendance": "Aperçu de l'Assiduité",
+      "gradeStatus": "Statut des Dépôts de Notes",
+      "studentsByLevel": "Étudiants par Niveau Scolaire",
+      "newStudents": "Nouveaux Étudiants",
+      "revenue": "Revenu",
+      "count": "Nombre",
+      "students": "Étudiants"
+    },
+    "attendance": {
+      "present": "Présent",
+      "absent": "Absent",
+      "late": "En Retard",
+      "excused": "Excusé",
+      "overallRate": "Taux d'Assiduité Global"
+    },
+    "paymentStatus": {
+      "completed": "Complété",
+      "partially_paid": "Partiellement Payé",
+      "waiting": "En Attente",
+      "overdue": "En Retard"
+    },
+    "gradeStatus": {
+      "approved": "Approuvé",
+      "pending": "En Attente",
+      "rejected": "Rejeté",
+      "needs_review": "Nécessite une Révision"
+    },
+    "roles": {
+      "admin": "Admin",
+      "teacher": "Enseignant",
+      "student": "Étudiant",
+      "parent": "Parent"
+    }
+  },
+
+  
+  "analytics": {
+    "title": "Analytique et Rapports",
+    "subtitle": "Analyse complète des données et reporting pour votre institution",
+    "confidential": "CONFIDENTIEL",
+    "generatedOn": "Généré le",
+    "metric": "Métrique",
+    "value": "Valeur",
+    "detailedData": "Données Détaillées",
+    "insights": "Aperçus Analytiques",
+    "manageColumns": "Gérer les Colonnes",
+    "selectColumns": "Sélectionner les colonnes à afficher",
+    "selectAll": "Tout Sélectionner",
+    "clearAll": "Tout Désélectionner",
+    "messages": {
+      "reportGenerated": "Rapport généré avec succès",
+      "generateError": "Échec de la génération du rapport",
+      "pdfDownloaded": "PDF téléchargé avec succès",
+      "excelDownloaded": "Fichier Excel téléchargé avec succès",
+      "csvDownloaded": "Fichier CSV téléchargé avec succès",
+      "downloadError": "Échec du téléchargement du fichier",
+      "filtersReset": "Filtres réinitialisés",
+      "noData": "Aucune donnée disponible",
+      "selectFilters": "Sélectionnez le type de rapport et générez"
+    },
+    "actions": {
+      "generate": "Générer le Rapport",
+      "reset": "Réinitialiser les Filtres",
+      "refresh": "Actualiser",
+      "export": "Exporter",
+      "pdf": "PDF",
+      "excel": "Excel",
+      "csv": "CSV"
+    },
+    "filters": {
+      "academicYear": "Année Académique",
+      "term": "Trimestre",
+      "schoolLevel": "Niveau Scolaire",
+      "classLevel": "Niveau de Classe",
+      "startDate": "Date de Début",
+      "endDate": "Date de Fin",
+      "status": "Statut",
+      "all": "Tous",
+      "active": "Actif",
+      "inactive": "Inactif",
+      "pending": "En Attente",
+      "completed": "Terminé"
+    },
+    "summary": {
+      "totalUsers": "Total Utilisateurs",
+      "totalStudents": "Total Étudiants",
+      "activeStudents": "Étudiants Actifs",
+      "totalTeachers": "Total Enseignants",
+      "activeTeachers": "Enseignants Actifs",
+      "totalParents": "Total Parents",
+      "expectedRevenue": "Revenu Attendu",
+      "collectedRevenue": "Revenu Collecté",
+      "collectionRate": "Taux de Recouvrement",
+      "attendanceRate": "Taux d'Assiduité"
+    },
+    "charts": {
+      "usersByRole": "Utilisateurs par Rôle",
+      "distributionByStatus": "Distribution par Statut",
+      "monthlyTrend": "Tendance Mensuelle",
+      "revenueTrend": "Tendance des Revenus",
+      "paymentStatus": "Statut des Paiements",
+      "gradeStatus": "Statut des Notes",
+      "studentsByClassLevel": "Étudiants par Niveau",
+      "studentsBySchoolLevel": "Étudiants par Niveau Scolaire"
+    },
+    "pagination": {
+      "showing": "Affichage de",
+      "of": "sur",
+      "entries": "entrées"
+    },
+    "reportTypes": {
+      "overview": "Aperçu du Tableau de Bord",
+      "users": "Analytique Utilisateurs",
+      "students": "Analytique Étudiants",
+      "teachers": "Analytique Enseignants",
+      "parents": "Analytique Parents",
+      "academicYears": "Années Académiques",
+      "classLevels": "Niveaux de Classe",
+      "classrooms": "Salles de Classe",
+      "subjects": "Matières",
+      "teacherAssignments": "Attributions des Enseignants",
+      "gradeUploads": "Dépôts de Notes",
+      "attendance": "Assiduité",
+      "payments": "Paiements"
+    }
+  },
+
+
+  
+  "notifications": {
+    "title": "Centre de Notifications",
+    "subtitle": "Gérer et suivre vos notifications",
+    "stats": {
+      "total": "Total des Notifications",
+      "unread": "Non lues",
+      "read": "Lues",
+      "page": "Page Actuelle"
+    },
+    "status": {
+      "unread": "Non lue",
+      "read": "Lue"
+    },
+    "priority": {
+      "low": "Basse",
+      "medium": "Moyenne",
+      "high": "Haute"
+    },
+    "actions": {
+      "send": "Envoyer une Notification",
+      "markRead": "Marquer comme lue",
+      "markAllRead": "Tout marquer comme lu",
+      "delete": "Supprimer",
+      "clear": "Effacer la sélection",
+      "selectAll": "Tout sélectionner"
+    },
+    "filters": {
+      "type": "Type de Notification",
+      "status": "Statut",
+      "allTypes": "Tous les types",
+      "allStatus": "Tous les statuts",
+      "clear": "Effacer les filtres"
+    },
+    "send": {
+      "title": "Envoyer une Notification",
+      "recipientType": "Type de Destinataire",
+      "specificUsers": "Utilisateurs spécifiques",
+      "byRole": "Par rôle",
+      "allUsers": "Tous les utilisateurs",
+      "selectUsers": "Sélectionner des utilisateurs",
+      "searchUsers": "Rechercher des utilisateurs...",
+      "usersSelected": "utilisateurs sélectionnés",
+      "selectRole": "Sélectionner un rôle",
+      "chooseRole": "Choisissez un rôle",
+      "message": "Message",
+      "titlePlaceholder": "Entrez le titre de la notification",
+      "messagePlaceholder": "Entrez le message de la notification",
+      "priority": "Priorité",
+      "send": "Envoyer",
+      "cancel": "Annuler",
+      "fillFields": "Veuillez remplir le titre et le message",
+      "selectUsers": "Veuillez sélectionner au moins un utilisateur",
+      "selectRole": "Veuillez sélectionner un rôle"
+    },
+    "messages": {
+      "fetchError": "Échec du chargement des notifications",
+      "markedRead": "Notification marquée comme lue",
+      "markedReadSelected": "Notifications sélectionnées marquées comme lues",
+      "markedAllRead": "Toutes les notifications marquées comme lues",
+      "markReadError": "Échec du marquage comme lu",
+      "deleted": "Notification supprimée",
+      "deletedSelected": "Notifications sélectionnées supprimées",
+      "deleteError": "Échec de la suppression",
+      "notificationSent": "Notification envoyée avec succès",
+      "sendError": "Échec de l'envoi",
+      "refreshed": "Notifications actualisées",
+      "noNotifications": "Aucune notification trouvée",
+      "selectNotifications": "Veuillez sélectionner des notifications",
+      "loading": "Chargement des notifications..."
+    },
+    "pagination": {
+      "showing": "Affichage de",
+      "of": "sur"
+    },
+    "roles": {
+      "admin": "Administrateur",
+      "teacher": "Enseignant",
+      "student": "Étudiant",
+      "parent": "Parent"
+    }
   }
 }
-

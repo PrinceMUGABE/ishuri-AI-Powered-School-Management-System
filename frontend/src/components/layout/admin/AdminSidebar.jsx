@@ -30,7 +30,9 @@ const AdminSidebar = ({ onClose }) => {
     { path: '/app/grade-approval', icon: CheckCircle, label: t('admin.gradeApproval', 'Grade Approval') },
     { path: '/app/fee-management', icon: DollarSign, label: t('admin.feeManagement', 'Fee Management') },
     { path: '/app/reports', icon: BarChart3, label: t('nav.reports', 'Reports') },
+    { path: '/app/analytics', icon: BarChart3, label: t('admin.analytics', 'Analytics') },
     { path: '/app/chat', icon: MessageSquare, label: t('admin.chat', 'Chat Management') },
+
     { path: '/app/settings', icon: Settings, label: t('nav.settings', 'Settings') },
   ];
 

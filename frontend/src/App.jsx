@@ -17,6 +17,7 @@ import StudentManagement from './pages/admin/StudentsManagement';
 import AdminChatManagement from './pages/admin/ChatManagement';
 import AcademicsRecordsManagement from './pages/admin/AcademicRecordsManagement';
 import AdminGradeManagement from './pages/admin/GradeApproval';
+import AnalyticsReports from './pages/admin/AnalyticReports';
 
 
 
@@ -109,6 +110,7 @@ function App() {
             <Route path="student-management" element={<StudentManagement />} />
             <Route path="chat" element={<AdminChatManagement />} />
             <Route path="grade-approval" element={<AdminGradeManagement />} />
+            <Route path="analytics" element={<AnalyticsReports />} />
             <Route path="profile" element={<div>Profile Page</div>} />
             <Route path="settings" element={<div>Settings Page</div>} />
             <Route path="notifications" element={<div>Notifications Page</div>} />

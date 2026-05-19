@@ -38,4 +38,10 @@ urlpatterns = [
     
     # Payments
     path('payments/', views.PaymentReportView.as_view(), name='payments'),
+    
+    path('subject-performance/', views.SubjectPerformanceView.as_view(), name='subject-performance'),
+    path('teacher-attendance/', views.TeacherAttendanceSummaryView.as_view(), name='teacher-attendance'),
+    path('class-attendance/', views.ClassAttendanceSummaryView.as_view(), name='class-attendance'),
+    path('grade-distribution/', views.GradeDistributionView.as_view(), name='grade-distribution'),
+    path('student-risk/', views.StudentRiskAnalysisView.as_view(), name='student-risk'),
 ]

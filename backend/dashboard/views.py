@@ -339,3 +339,118 @@ class PaymentReportView(APIView):
         }
         serializer = serializers.PaymentReportSerializer(data)
         return Response(serializer.data)
+    
+    
+    
+    
+    
+
+class SubjectPerformanceView(APIView):
+    """
+    GET /api/dashboard/subject-performance/
+    
+    Returns real subject performance analytics from grade data.
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        academic_year = request.query_params.get('academic_year')
+        term = request.query_params.get('term')
+        
+        # Convert to int if provided, otherwise None
+        academic_year_id = int(academic_year) if academic_year and academic_year.isdigit() else None
+        term_id = int(term) if term and term.isdigit() else None
+        
+        data = utils.get_subject_performance_analytics(
+            academic_year_id=academic_year_id,
+            term_id=term_id
+        )
+        return Response(data)
+
+
+class TeacherAttendanceSummaryView(APIView):
+    """
+    GET /api/dashboard/teacher-attendance/
+    
+    Returns real teacher attendance from attendance sessions.
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        academic_year = request.query_params.get('academic_year')
+        term = request.query_params.get('term')
+        
+        academic_year_id = int(academic_year) if academic_year and academic_year.isdigit() else None
+        term_id = int(term) if term and term.isdigit() else None
+        
+        data = utils.get_teacher_attendance_summary(
+            academic_year_id=academic_year_id,
+            term_id=term_id
+        )
+        return Response(data)
+
+
+class ClassAttendanceSummaryView(APIView):
+    """
+    GET /api/dashboard/class-attendance/
+    
+    Returns real class-level attendance from student records.
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        academic_year = request.query_params.get('academic_year')
+        term = request.query_params.get('term')
+        
+        academic_year_id = int(academic_year) if academic_year and academic_year.isdigit() else None
+        term_id = int(term) if term and term.isdigit() else None
+        
+        data = utils.get_class_attendance_summary(
+            academic_year_id=academic_year_id,
+            term_id=term_id
+        )
+        return Response(data)
+
+
+class GradeDistributionView(APIView):
+    """
+    GET /api/dashboard/grade-distribution/
+    
+    Returns real grade distribution from student grades.
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        academic_year = request.query_params.get('academic_year')
+        term = request.query_params.get('term')
+        
+        academic_year_id = int(academic_year) if academic_year and academic_year.isdigit() else None
+        term_id = int(term) if term and term.isdigit() else None
+        
+        data = utils.get_grade_distribution_analytics(
+            academic_year_id=academic_year_id,
+            term_id=term_id
+        )
+        return Response(data)
+
+
+class StudentRiskAnalysisView(APIView):
+    """
+    GET /api/dashboard/student-risk/
+    
+    Returns students at risk based on grades and attendance.
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        academic_year = request.query_params.get('academic_year')
+        term = request.query_params.get('term')
+        
+        academic_year_id = int(academic_year) if academic_year and academic_year.isdigit() else None
+        term_id = int(term) if term and term.isdigit() else None
+        
+        data = utils.get_student_risk_analysis(
+            academic_year_id=academic_year_id,
+            term_id=term_id
+        )
+        return Response(data)

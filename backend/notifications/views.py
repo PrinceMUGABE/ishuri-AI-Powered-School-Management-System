@@ -10,6 +10,7 @@ from notifications.serializers import (
     NotificationPreferenceSerializer
 )
 from notifications.services import NotificationService
+from accounts.models import User
 
 
 class NotificationPagination(PageNumberPagination):
@@ -172,3 +173,65 @@ class NotificationPreferenceView(APIView):
             'message': 'Preferences updated successfully',
             'data': serializer.data
         })
+        
+        
+        
+        
+class SendNotificationView(APIView):
+    """Send notification to users (admin only)"""
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        if request.user.role != 'admin':
+            return Response({
+                'success': False,
+                'message': 'Only admins can send notifications'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        recipient_type = request.data.get('recipient_type')
+        title = request.data.get('title')
+        message = request.data.get('message')
+        priority = request.data.get('priority', 'medium')
+        
+        if recipient_type == 'specific':
+            user_ids = request.data.get('user_ids', [])
+            users = User.objects.filter(id__in=user_ids)
+        elif recipient_type == 'role':
+            role = request.data.get('role')
+            users = User.objects.filter(role=role, status='active')
+        else:  # all
+            users = User.objects.filter(status='active')
+        
+        for user in users:
+            NotificationService.create_notification(
+                recipient=user,
+                notification_type='system_alert',
+                title=title,
+                message=message,
+                priority=priority,
+                created_by=request.user
+            )
+        
+        return Response({
+            'success': True,
+            'message': f'Notification sent to {users.count()} users'
+        })
+
+
+class NotificationDeleteView(APIView):
+    """Delete notification (admin only)"""
+    permission_classes = [IsAuthenticated]
+    
+    def delete(self, request, notification_id):
+        if request.user.role != 'admin':
+            return Response({
+                'success': False,
+                'message': 'Only admins can delete notifications'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            notification = Notification.objects.get(id=notification_id)
+            notification.delete()
+            return Response({'success': True, 'message': 'Notification deleted'})
+        except Notification.DoesNotExist:
+            return Response({'success': False, 'message': 'Notification not found'}, status=404)

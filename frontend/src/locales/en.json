@@ -2299,5 +2299,329 @@
     "delete_success": "Assignment deleted successfully",
     "delete_failed": "Failed to delete assignment",
     "no_pdf_error": "No PDF file available"
+  },
+
+
+  
+  "dashboard": {
+    "title": "Dashboard Analytics",
+    "subtitle": "Real-time insights and analytics for your institution",
+    "lastUpdated": "Last updated",
+    "messages": {
+      "dataLoaded": "Dashboard data loaded successfully",
+      "fetchError": "Failed to load dashboard data",
+      "loading": "Loading dashboard...",
+      "noData": "No data available",
+      "exportStarted": "Report export started"
+    },
+    "actions": {
+      "refresh": "Refresh",
+      "export": "Export",
+      "hideCharts": "Hide Charts",
+      "showCharts": "Show Charts",
+      "retry": "Retry"
+    },
+    "sections": {
+      "overview": "Overview Statistics",
+      "financial": "Financial Overview",
+      "grades": "Grade Management",
+      "charts": "Analytics & Charts",
+      "communication": "Communication Overview"
+    },
+    "summary": {
+      "totalUsers": "Total Users",
+      "totalStudents": "Total Students",
+      "activeStudents": "Active Students",
+      "ofTotal": "of total students",
+      "totalTeachers": "Total Teachers",
+      "activeTeachers": "Active Teachers",
+      "totalParents": "Total Parents",
+      "totalSchoolLevels": "School Levels",
+      "totalClassLevels": "Class Levels",
+      "totalClassrooms": "Classrooms",
+      "totalSubjects": "Subjects",
+      "teacherAssignments": "Teacher Assignments",
+      "activeAssignments": "Active Assignments"
+    },
+    "financial": {
+      "expectedRevenue": "Expected Revenue",
+      "collectedRevenue": "Collected Revenue",
+      "collectionRate": "Collection Rate",
+      "overduePayments": "Overdue Payments"
+    },
+    "academic": {
+      "currentYear": "Current Academic Year",
+      "currentTerm": "Current Term"
+    },
+    "grades": {
+      "totalUploads": "Total Grade Uploads",
+      "pendingUploads": "Pending Review",
+      "approvedUploads": "Approved",
+      "totalStudentGrades": "Student Grades",
+      "publishedGrades": "Published Grades"
+    },
+    "chat": {
+      "totalChatrooms": "Chat Rooms",
+      "totalMessages": "Messages"
+    },
+    "charts": {
+      "enrollmentTrend": "Student Enrollment Trend",
+      "revenueTrend": "Revenue Collection Trend",
+      "usersByRole": "Users by Role",
+      "paymentStatus": "Payment Status",
+      "attendance": "Attendance Overview",
+      "gradeStatus": "Grade Upload Status",
+      "studentsByLevel": "Students by School Level",
+      "newStudents": "New Students",
+      "revenue": "Revenue",
+      "count": "Count",
+      "students": "Students"
+    },
+    "attendance": {
+      "present": "Present",
+      "absent": "Absent",
+      "late": "Late",
+      "excused": "Excused",
+      "overallRate": "Overall Attendance Rate"
+    },
+    "paymentStatus": {
+      "completed": "Completed",
+      "partially_paid": "Partially Paid",
+      "waiting": "Waiting",
+      "overdue": "Overdue"
+    },
+    "gradeStatus": {
+      "approved": "Approved",
+      "pending": "Pending",
+      "rejected": "Rejected",
+      "needs_review": "Needs Review"
+    },
+    "roles": {
+      "admin": "Admin",
+      "teacher": "Teacher",
+      "student": "Student",
+      "parent": "Parent"
+    }
+  },
+
+
+  
+  "analytics": {
+    "title": "Analytics & Reports",
+    "subtitle": "Comprehensive data analysis and reporting for your institution",
+    "confidential": "CONFIDENTIAL",
+    "generatedOn": "Generated on",
+    "metric": "Metric",
+    "value": "Value",
+    "detailedData": "Detailed Data",
+    "insights": "Analytics Insights",
+    "manageColumns": "Manage Columns",
+    "selectColumns": "Select columns to display",
+    "selectAll": "Select All",
+    "clearAll": "Clear All",
+    "messages": {
+      "reportGenerated": "Report generated successfully",
+      "generateError": "Failed to generate report",
+      "pdfDownloaded": "PDF downloaded successfully",
+      "excelDownloaded": "Excel file downloaded successfully",
+      "csvDownloaded": "CSV file downloaded successfully",
+      "downloadError": "Failed to download file",
+      "filtersReset": "Filters reset",
+      "noData": "No data available",
+      "selectFilters": "Select report type and generate report"
+    },
+    "actions": {
+      "generate": "Generate Report",
+      "reset": "Reset Filters",
+      "refresh": "Refresh",
+      "export": "Export",
+      "pdf": "PDF",
+      "excel": "Excel",
+      "csv": "CSV"
+    },
+    "filters": {
+      "academicYear": "Academic Year",
+      "term": "Term",
+      "schoolLevel": "School Level",
+      "classLevel": "Class Level",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "status": "Status",
+      "all": "All",
+      "active": "Active",
+      "inactive": "Inactive",
+      "pending": "Pending",
+      "completed": "Completed"
+    },
+    "summary": {
+      "totalUsers": "Total Users",
+      "totalStudents": "Total Students",
+      "activeStudents": "Active Students",
+      "totalTeachers": "Total Teachers",
+      "activeTeachers": "Active Teachers",
+      "totalParents": "Total Parents",
+      "expectedRevenue": "Expected Revenue",
+      "collectedRevenue": "Collected Revenue",
+      "collectionRate": "Collection Rate",
+      "attendanceRate": "Attendance Rate"
+    },
+    "charts": {
+      "usersByRole": "Users by Role",
+      "distributionByStatus": "Distribution by Status",
+      "monthlyTrend": "Monthly Trend",
+      "revenueTrend": "Revenue Trend",
+      "paymentStatus": "Payment Status",
+      "gradeStatus": "Grade Upload Status",
+      "studentsByClassLevel": "Students by Class Level",
+      "studentsBySchoolLevel": "Students by School Level"
+    },
+    "pagination": {
+      "showing": "Showing",
+      "of": "of",
+      "entries": "entries"
+    },
+    "reportTypes": {
+      "overview": "Dashboard Overview",
+      "users": "User Analytics",
+      "students": "Student Analytics",
+      "teachers": "Teacher Analytics",
+      "parents": "Parent Analytics",
+      "academicYears": "Academic Years",
+      "classLevels": "Class Levels",
+      "classrooms": "Classrooms",
+      "subjects": "Subjects",
+      "teacherAssignments": "Teacher Assignments",
+      "gradeUploads": "Grade Uploads",
+      "attendance": "Attendance",
+      "payments": "Payments"
+    },
+    "columns": {
+      "ID": "ID",
+      "Username": "Username",
+      "Email": "Email",
+      "Role": "Role",
+      "Status": "Status",
+      "Language": "Language",
+      "Created At": "Created At",
+      "Full Name": "Full Name",
+      "Roll Number": "Roll Number",
+      "Phone": "Phone",
+      "Class Level": "Class Level",
+      "Enrollment Date": "Enrollment Date",
+      "Gender": "Gender",
+      "Education": "Education",
+      "Hire Date": "Hire Date",
+      "Relationship": "Relationship",
+      "Children": "Children",
+      "Name": "Name",
+      "Start Date": "Start Date",
+      "End Date": "End Date",
+      "Current": "Current",
+      "Terms": "Terms",
+      "Code": "Code",
+      "School Level": "School Level",
+      "Active": "Active",
+      "Subjects": "Subjects",
+      "Type": "Type",
+      "Capacity": "Capacity",
+      "Assigned To": "Assigned To",
+      "Teacher": "Teacher",
+      "Hours/Week": "Hours/Week",
+      "Grade Type": "Grade Type",
+      "Student Grades": "Student Grades",
+      "Date": "Date",
+      "Attendance Rate": "Attendance Rate",
+      "Total Records": "Total Records",
+      "Student": "Student",
+      "Fee Structure": "Fee Structure",
+      "Total Amount": "Total Amount",
+      "Paid": "Paid",
+      "Remaining": "Remaining",
+      "Overdue": "Overdue"
+    }
+  },
+
+
+  
+  "notifications": {
+    "title": "Notification Center",
+    "subtitle": "Manage and track your notifications",
+    "stats": {
+      "total": "Total Notifications",
+      "unread": "Unread",
+      "read": "Read",
+      "page": "Current Page"
+    },
+    "status": {
+      "unread": "Unread",
+      "read": "Read"
+    },
+    "priority": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "actions": {
+      "send": "Send Notification",
+      "markRead": "Mark Read",
+      "markAllRead": "Mark All as Read",
+      "delete": "Delete",
+      "clear": "Clear Selection",
+      "selectAll": "Select All"
+    },
+    "filters": {
+      "type": "Notification Type",
+      "status": "Status",
+      "allTypes": "All Types",
+      "allStatus": "All Status",
+      "clear": "Clear Filters"
+    },
+    "send": {
+      "title": "Send Notification",
+      "recipientType": "Recipient Type",
+      "specificUsers": "Specific Users",
+      "byRole": "By Role",
+      "allUsers": "All Users",
+      "selectUsers": "Select Users",
+      "searchUsers": "Search users...",
+      "usersSelected": "users selected",
+      "selectRole": "Select Role",
+      "chooseRole": "Choose a role",
+      "message": "Message",
+      "titlePlaceholder": "Enter notification title",
+      "messagePlaceholder": "Enter notification message",
+      "priority": "Priority",
+      "send": "Send Notification",
+      "cancel": "Cancel",
+      "fillFields": "Please fill in title and message",
+      "selectUsers": "Please select at least one user",
+      "selectRole": "Please select a role"
+    },
+    "messages": {
+      "fetchError": "Failed to load notifications",
+      "markedRead": "Notification marked as read",
+      "markedReadSelected": "Selected notifications marked as read",
+      "markedAllRead": "All notifications marked as read",
+      "markReadError": "Failed to mark as read",
+      "deleted": "Notification deleted",
+      "deletedSelected": "Selected notifications deleted",
+      "deleteError": "Failed to delete notification",
+      "notificationSent": "Notification sent successfully",
+      "sendError": "Failed to send notification",
+      "refreshed": "Notifications refreshed",
+      "noNotifications": "No notifications found",
+      "selectNotifications": "Please select notifications",
+      "loading": "Loading notifications..."
+    },
+    "pagination": {
+      "showing": "Showing",
+      "of": "of"
+    },
+    "roles": {
+      "admin": "Administrator",
+      "teacher": "Teacher",
+      "student": "Student",
+      "parent": "Parent"
+    }
   }
 }

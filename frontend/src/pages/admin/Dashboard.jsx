@@ -1,21 +1,43 @@
-import React, { useState, useEffect } from 'react';
+// Dashboard.jsx
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
-import { 
-  Users, Plus, Edit, Trash2, Search, Filter, UserPlus, GraduationCap, 
-  BookOpen, Mail, Phone, X, ChevronLeft, ChevronRight, 
-  UserCheck, UserX, Activity, RefreshCw, Download, Eye,
-  CheckCircle, AlertCircle, Clock
+import {
+  Users, GraduationCap, BookOpen, CreditCard, Calendar, CheckCircle,
+  Clock, AlertCircle, TrendingUp, TrendingDown, DollarSign, UserCheck,
+  UserX, Activity, RefreshCw, Download, FileText, BarChart3, PieChart,
+  LineChart, ArrowUpRight, ArrowDownRight, MoreVertical, Eye, EyeOff,
+  ChevronLeft, ChevronRight, School, Building2, DoorOpen, UserPlus,
+  Target, Award, Zap, Shield, Globe, Smartphone, Laptop, Tablet
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import {
+  LineChart as ReLineChart,
+  Line,
+  BarChart,
+  Bar,
+  PieChart as RePieChart,
+  Pie,
+  Cell,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  RadialBarChart,
+  RadialBar
+} from 'recharts';
 
 // API Configuration
-const API_BASE_URL = 'http://127.0.0.1:8000/api/account';
+const API_BASE_URL = 'http://127.0.0.1:8000/api/dashboard';
 
 // Create axios instance
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  headers: { 
+  headers: {
     'Content-Type': 'application/json',
   },
 });
@@ -27,887 +49,772 @@ apiClient.interceptors.request.use(
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
-    
-    // Get current language from localStorage or i18n
     const language = localStorage.getItem('user_language') || 'en';
     config.headers['X-Language'] = language;
-    
     return config;
   },
   (error) => Promise.reject(error)
 );
 
+// Color constants
+const COLORS = {
+  primary: '#10b981',
+  secondary: '#3b82f6',
+  danger: '#ef4444',
+  warning: '#f59e0b',
+  info: '#8b5cf6',
+  success: '#10b981',
+  purple: '#8b5cf6',
+  pink: '#ec4899',
+  indigo: '#6366f1',
+  cyan: '#06b6d4',
+  orange: '#f97316',
+  teal: '#14b8a6',
+  slate: '#64748b',
+};
+
+const PIE_COLORS = [COLORS.primary, COLORS.blue, COLORS.purple, COLORS.orange, COLORS.pink, COLORS.cyan];
+
 const Dashboard = () => {
   const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState(true);
-  const [users, setUsers] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedRole, setSelectedRole] = useState('all');
-  const [selectedStatus, setSelectedStatus] = useState('all');
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showViewModal, setShowViewModal] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
-  
-  // Pagination states
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [totalUsers, setTotalUsers] = useState(0);
-  
-  // New user form state
-  const [newUser, setNewUser] = useState({
-    username: '',
-    email: '',
-    role: 'student',
-    status: 'active',
-    password: '',
-    confirm_password: ''
-  });
-  
-  // Edit user form state
-  const [editUser, setEditUser] = useState({
-    id: '',
-    username: '',
-    email: '',
-    role: '',
-    status: ''
-  });
+  const [refreshing, setRefreshing] = useState(false);
+  const [overviewData, setOverviewData] = useState(null);
+  const [selectedTimeRange, setSelectedTimeRange] = useState('month');
+  const [showCharts, setShowCharts] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState(null);
 
-  const roles = [
-    { value: 'admin', label: t('userManagement.roles.admin', 'Administrator') },
-    { value: 'teacher', label: t('userManagement.roles.teacher', 'Teacher') },
-    { value: 'student', label: t('userManagement.roles.student', 'Student') },
-    { value: 'parent', label: t('userManagement.roles.parent', 'Parent') }
-  ];
-  
-  const statuses = [
-    { value: 'active', label: t('userManagement.statuses.active', 'Active'), color: 'green' },
-    { value: 'inactive', label: t('userManagement.statuses.inactive', 'Inactive'), color: 'yellow' },
-    { value: 'suspended', label: t('userManagement.statuses.suspended', 'Suspended'), color: 'red' }
-  ];
-
-  // Fetch users from backend
-  const fetchUsers = async () => {
-    setLoading(true);
+  // Fetch dashboard data
+  const fetchDashboardData = useCallback(async () => {
     try {
-      let url = '/users/';
-      const params = new URLSearchParams();
+      const response = await apiClient.get('/overview/');
       
-      if (selectedRole !== 'all') params.append('role', selectedRole);
-      if (selectedStatus !== 'all') params.append('status', selectedStatus);
-      if (searchTerm) params.append('search', searchTerm);
-      
-      if (params.toString()) {
-        url += `?${params.toString()}`;
-      }
-      
-      const response = await apiClient.get(url);
-      
-      if (response.data.success) {
-        setUsers(response.data.data.results);
-        setTotalUsers(response.data.data.count);
-        toast.success(t('userManagement.messages.dataLoaded', 'Data loaded successfully'));
-      } else {
-        toast.error(response.data.message || t('userManagement.messages.fetchError', 'Failed to fetch users'));
+      if (response.data) {
+        setOverviewData(response.data);
+        setLastUpdated(new Date());
+        toast.success(t('dashboard.messages.dataLoaded', 'Dashboard data loaded successfully'));
       }
     } catch (error) {
-      console.error('Error fetching users:', error);
-      toast.error(error.response?.data?.message || t('userManagement.messages.fetchError', 'Failed to fetch users'));
+      console.error('Error fetching dashboard data:', error);
+      toast.error(error.response?.data?.message || t('dashboard.messages.fetchError', 'Failed to load dashboard data'));
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, [t]);
 
-  // Load users on component mount and when filters change
   useEffect(() => {
-    fetchUsers();
-  }, [selectedRole, selectedStatus, searchTerm, currentPage, itemsPerPage]);
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
-  // Create new user
-  const handleCreateUser = async () => {
-    if (!newUser.username || !newUser.password || !newUser.confirm_password) {
-      toast.error(t('userManagement.messages.fillRequiredFields', 'Please fill in all required fields'));
-      return;
-    }
-    
-    if (newUser.password !== newUser.confirm_password) {
-      toast.error(t('userManagement.messages.passwordsDoNotMatch', 'Passwords do not match'));
-      return;
-    }
-    
-    if (newUser.password.length < 6) {
-      toast.error(t('userManagement.messages.passwordMinLength', 'Password must be at least 6 characters'));
-      return;
-    }
-    
-    setLoading(true);
-    try {
-      const response = await apiClient.post('/users/create/', {
-        username: newUser.username,
-        email: newUser.email,
-        role: newUser.role,
-        status: newUser.status,
-        password: newUser.password,
-        confirm_password: newUser.confirm_password
-      });
-      
-      if (response.data.success) {
-        toast.success(response.data.message || t('userManagement.messages.userCreated', 'User created successfully'));
-        setShowAddModal(false);
-        setNewUser({
-          username: '',
-          email: '',
-          role: 'student',
-          status: 'active',
-          password: '',
-          confirm_password: ''
-        });
-        fetchUsers(); // Refresh the list
-      } else {
-        const errors = response.data.errors;
-        const errorMessage = Object.values(errors).flat()[0] || t('userManagement.messages.failedToCreateUser', 'Failed to create user');
-        toast.error(errorMessage);
-      }
-    } catch (error) {
-      console.error('Error creating user:', error);
-      const errorMessage = error.response?.data?.message || error.response?.data?.errors || t('userManagement.messages.failedToCreateUser', 'Failed to create user');
-      toast.error(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
-    } finally {
-      setLoading(false);
-    }
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchDashboardData();
   };
 
-  // Update user
-  const handleUpdateUser = async () => {
-    if (!editUser.username) {
-      toast.error(t('userManagement.messages.fillRequiredFields', 'Please fill in all required fields'));
-      return;
-    }
-    
-    setLoading(true);
-    try {
-      const response = await apiClient.put(`/users/${editUser.id}/`, {
-        username: editUser.username,
-        email: editUser.email,
-        role: editUser.role,
-        status: editUser.status
-      });
-      
-      if (response.data.success) {
-        toast.success(response.data.message || t('userManagement.messages.userUpdated', 'User updated successfully'));
-        setShowEditModal(false);
-        fetchUsers(); // Refresh the list
-      } else {
-        const errors = response.data.errors;
-        const errorMessage = Object.values(errors).flat()[0] || t('userManagement.messages.failedToUpdateUser', 'Failed to update user');
-        toast.error(errorMessage);
-      }
-    } catch (error) {
-      console.error('Error updating user:', error);
-      const errorMessage = error.response?.data?.message || error.response?.data?.errors || t('userManagement.messages.failedToUpdateUser', 'Failed to update user');
-      toast.error(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
-    } finally {
-      setLoading(false);
-    }
+  const handleExportReport = () => {
+    toast.success(t('dashboard.messages.exportStarted', 'Report export started'));
   };
 
-  // Delete user
-  const handleDeleteUser = async () => {
-    if (!selectedUser) return;
-    
-    setLoading(true);
-    try {
-      const response = await apiClient.delete(`/users/${selectedUser.id}/`);
-      
-      if (response.data.success) {
-        toast.success(response.data.message || t('userManagement.messages.userDeleted', 'User deleted successfully'));
-        setShowDeleteModal(false);
-        setSelectedUser(null);
-        fetchUsers(); // Refresh the list
-      } else {
-        toast.error(response.data.message || t('userManagement.messages.failedToDeleteUser', 'Failed to delete user'));
-      }
-    } catch (error) {
-      console.error('Error deleting user:', error);
-      const errorMessage = error.response?.data?.message || t('userManagement.messages.failedToDeleteUser', 'Failed to delete user');
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">{t('dashboard.messages.loading', 'Loading dashboard...')}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!overviewData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">{t('dashboard.messages.noData', 'No data available')}</p>
+          <button
+            onClick={handleRefresh}
+            className="mt-4 px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded-lg transition-colors"
+          >
+            {t('dashboard.actions.retry', 'Retry')}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Helper to get numeric value safely
+  const getValue = (obj, path, defaultValue = 0) => {
+    return path.split('.').reduce((acc, part) => acc?.[part] ?? defaultValue, obj);
   };
 
-  // Toggle user status
-  const handleToggleStatus = async (user) => {
-    setLoading(true);
-    try {
-      const response = await apiClient.post(`/users/${user.id}/toggle-status/`);
-      
-      if (response.data.success) {
-        const statusMessage = response.data.data.status === 'active' 
-          ? t('userManagement.messages.userActivated', 'User activated successfully')
-          : t('userManagement.messages.userDeactivated', 'User deactivated successfully');
-        toast.success(response.data.message || statusMessage);
-        fetchUsers(); // Refresh the list
-      } else {
-        toast.error(response.data.message || t('userManagement.messages.failedToToggleStatus', 'Failed to toggle status'));
-      }
-    } catch (error) {
-      console.error('Error toggling status:', error);
-      const errorMessage = error.response?.data?.message || t('userManagement.messages.failedToToggleStatus', 'Failed to toggle status');
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
+  // Prepare chart data
+  const monthlyEnrollmentTrend = overviewData.monthly_enrollment_trend || [];
+  const monthlyCollectionTrend = overviewData.monthly_collection_trend || [];
+  const studentsBySchoolLevel = overviewData.students_by_school_level || [];
+  const usersByRole = overviewData.users_by_role || {};
+  const paymentStatusDist = overviewData.payment_status_distribution || {};
+  const gradeStatusDist = overviewData.grade_status_distribution || {};
+  const attendanceSummary = overviewData.attendance_summary || { present: 0, absent: 0, late: 0, excused: 0 };
+
+  // Revenue data for charts
+  const revenueData = monthlyCollectionTrend.map(item => ({
+    month: item.month,
+    revenue: item.total || 0
+  }));
+
+  // User role data for pie chart
+  const userRoleData = Object.entries(usersByRole).map(([name, value]) => ({
+    name: t(`dashboard.roles.${name}`, name),
+    value: value
+  }));
+
+  // Payment status data
+  const paymentStatusData = Object.entries(paymentStatusDist).map(([status, count]) => ({
+    name: t(`dashboard.paymentStatus.${status}`, status),
+    value: count,
+    color: status === 'completed' ? COLORS.success : 
+           status === 'partially_paid' ? COLORS.warning :
+           status === 'overdue' ? COLORS.danger : COLORS.slate
+  }));
+
+  // Grade status data
+  const gradeStatusData = Object.entries(gradeStatusDist).map(([status, count]) => ({
+    name: t(`dashboard.gradeStatus.${status}`, status),
+    value: count,
+    color: status === 'approved' ? COLORS.success :
+           status === 'pending' ? COLORS.warning :
+           status === 'rejected' ? COLORS.danger : COLORS.info
+  }));
+
+  // Attendance data
+  const attendanceData = [
+    { name: t('dashboard.attendance.present', 'Present'), value: attendanceSummary.present || 0, color: COLORS.success },
+    { name: t('dashboard.attendance.absent', 'Absent'), value: attendanceSummary.absent || 0, color: COLORS.danger },
+    { name: t('dashboard.attendance.late', 'Late'), value: attendanceSummary.late || 0, color: COLORS.warning },
+    { name: t('dashboard.attendance.excused', 'Excused'), value: attendanceSummary.excused || 0, color: COLORS.info }
+  ];
+
+  // Summary Stats Cards
+  const summaryCards = [
+    {
+      title: t('dashboard.summary.totalUsers', 'Total Users'),
+      value: overviewData.total_users || 0,
+      icon: Users,
+      color: 'blue',
+      trend: '+12%',
+      trendUp: true
+    },
+    {
+      title: t('dashboard.summary.totalStudents', 'Total Students'),
+      value: overviewData.total_students || 0,
+      icon: GraduationCap,
+      color: 'green',
+      trend: '+8%',
+      trendUp: true
+    },
+    {
+      title: t('dashboard.summary.activeStudents', 'Active Students'),
+      value: overviewData.active_students || 0,
+      icon: UserCheck,
+      color: 'green',
+      subtitle: t('dashboard.summary.ofTotal', 'of total students')
+    },
+    {
+      title: t('dashboard.summary.totalTeachers', 'Total Teachers'),
+      value: overviewData.total_teachers || 0,
+      icon: BookOpen,
+      color: 'purple',
+      trend: '+5%',
+      trendUp: true
+    },
+    {
+      title: t('dashboard.summary.activeTeachers', 'Active Teachers'),
+      value: overviewData.active_teachers || 0,
+      icon: UserCheck,
+      color: 'purple',
+      trend: '+3%',
+      trendUp: true
+    },
+    {
+      title: t('dashboard.summary.totalParents', 'Total Parents'),
+      value: overviewData.total_parents || 0,
+      icon: Users,
+      color: 'orange',
+      trend: '+15%',
+      trendUp: true
+    },
+    {
+      title: t('dashboard.summary.totalSchoolLevels', 'School Levels'),
+      value: overviewData.total_school_levels || 0,
+      icon: School,
+      color: 'teal'
+    },
+    {
+      title: t('dashboard.summary.totalClassLevels', 'Class Levels'),
+      value: overviewData.total_class_levels || 0,
+      icon: Building2,
+      color: 'indigo'
+    },
+    {
+      title: t('dashboard.summary.totalClassrooms', 'Classrooms'),
+      value: overviewData.total_classrooms || 0,
+      icon: DoorOpen,
+      color: 'cyan'
+    },
+    {
+      title: t('dashboard.summary.totalSubjects', 'Subjects'),
+      value: overviewData.total_subjects || 0,
+      icon: BookOpen,
+      color: 'pink'
+    },
+    {
+      title: t('dashboard.summary.teacherAssignments', 'Teacher Assignments'),
+      value: overviewData.total_teacher_assignments || 0,
+      icon: Target,
+      color: 'indigo',
+      trend: '+10%',
+      trendUp: true
+    },
+    {
+      title: t('dashboard.summary.activeAssignments', 'Active Assignments'),
+      value: overviewData.active_teacher_assignments || 0,
+      icon: Activity,
+      color: 'green'
     }
+  ];
+
+  // Financial Cards
+  const financialCards = [
+    {
+      title: t('dashboard.financial.expectedRevenue', 'Expected Revenue'),
+      value: overviewData.total_expected_revenue || 0,
+      icon: DollarSign,
+      color: 'green',
+      prefix: 'RWF',
+      format: 'currency'
+    },
+    {
+      title: t('dashboard.financial.collectedRevenue', 'Collected Revenue'),
+      value: overviewData.total_collected_revenue || 0,
+      icon: CreditCard,
+      color: 'blue',
+      prefix: 'RWF',
+      format: 'currency'
+    },
+    {
+      title: t('dashboard.financial.collectionRate', 'Collection Rate'),
+      value: overviewData.collection_rate || 0,
+      icon: TrendingUp,
+      color: 'purple',
+      suffix: '%'
+    },
+    {
+      title: t('dashboard.financial.overduePayments', 'Overdue Payments'),
+      value: overviewData.overdue_payments || 0,
+      icon: AlertCircle,
+      color: 'red'
+    }
+  ];
+
+  // Academic Cards
+  const academicCards = [
+    {
+      title: t('dashboard.academic.currentYear', 'Current Academic Year'),
+      value: overviewData.current_academic_year || 'N/A',
+      icon: Calendar,
+      color: 'green'
+    },
+    {
+      title: t('dashboard.academic.currentTerm', 'Current Term'),
+      value: overviewData.current_term || 'N/A',
+      icon: Clock,
+      color: 'blue'
+    }
+  ];
+
+  // Grade Cards
+  const gradeCards = [
+    {
+      title: t('dashboard.grades.totalUploads', 'Total Grade Uploads'),
+      value: overviewData.total_grade_uploads || 0,
+      icon: FileText,
+      color: 'purple'
+    },
+    {
+      title: t('dashboard.grades.pendingUploads', 'Pending Review'),
+      value: overviewData.pending_grade_uploads || 0,
+      icon: Clock,
+      color: 'yellow'
+    },
+    {
+      title: t('dashboard.grades.approvedUploads', 'Approved'),
+      value: overviewData.approved_grade_uploads || 0,
+      icon: CheckCircle,
+      color: 'green'
+    },
+    {
+      title: t('dashboard.grades.totalStudentGrades', 'Student Grades'),
+      value: overviewData.total_student_grades || 0,
+      icon: Award,
+      color: 'indigo'
+    },
+    {
+      title: t('dashboard.grades.publishedGrades', 'Published Grades'),
+      value: overviewData.published_grades || 0,
+      icon: Eye,
+      color: 'blue'
+    }
+  ];
+
+  // Chat Cards
+  const chatCards = [
+    {
+      title: t('dashboard.chat.totalChatrooms', 'Chat Rooms'),
+      value: overviewData.total_chatrooms || 0,
+      icon: Users,
+      color: 'cyan'
+    },
+    {
+      title: t('dashboard.chat.totalMessages', 'Messages'),
+      value: overviewData.total_messages || 0,
+      icon: Activity,
+      color: 'teal'
+    }
+  ];
+
+  const formatCurrency = (value) => {
+    if (!value) return '0';
+    return new Intl.NumberFormat('en-RW', { 
+      style: 'currency', 
+      currency: 'RWF',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(value);
   };
 
-  // Get summary statistics
-  const getSummaryStats = () => {
-    const total = users.length;
-    const active = users.filter(u => u.status === 'active').length;
-    const inactive = users.filter(u => u.status === 'inactive').length;
-    const suspended = users.filter(u => u.status === 'suspended').length;
-    const students = users.filter(u => u.role === 'student').length;
-    const teachers = users.filter(u => u.role === 'teacher').length;
-    const parents = users.filter(u => u.role === 'parent').length;
-    const admins = users.filter(u => u.role === 'admin').length;
-    
-    return { total, active, inactive, suspended, students, teachers, parents, admins };
+  const formatNumber = (value) => {
+    if (!value) return '0';
+    return new Intl.NumberFormat().format(value);
   };
 
-  const stats = getSummaryStats();
-
-  // Pagination
-  const totalPages = Math.ceil(totalUsers / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentUsers = users.slice(startIndex, endIndex);
-
-  const getRoleBadgeColor = (role) => {
-    switch(role) {
-      case 'admin': return 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300';
-      case 'teacher': return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300';
-      case 'student': return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
-      case 'parent': return 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300';
-      default: return 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300';
+  const renderCardValue = (card) => {
+    if (card.format === 'currency') {
+      return formatCurrency(card.value);
     }
+    if (typeof card.value === 'number') {
+      return formatNumber(card.value);
+    }
+    return card.value;
   };
 
-  const getStatusBadgeColor = (status) => {
-    switch(status) {
-      case 'active': return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
-      case 'inactive': return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300';
-      case 'suspended': return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
-      default: return 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300';
-    }
-  };
-
-  const getRoleIcon = (role) => {
-    switch(role) {
-      case 'student': return <GraduationCap className="w-3 h-3" />;
-      case 'teacher': return <BookOpen className="w-3 h-3" />;
-      default: return <Users className="w-3 h-3" />;
-    }
+  const getColorClasses = (color) => {
+    const colors = {
+      blue: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-600 dark:text-blue-400', iconBg: 'bg-blue-500' },
+      green: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-600 dark:text-green-400', iconBg: 'bg-green-500' },
+      purple: { bg: 'bg-purple-100 dark:bg-purple-900/30', text: 'text-purple-600 dark:text-purple-400', iconBg: 'bg-purple-500' },
+      red: { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-600 dark:text-red-400', iconBg: 'bg-red-500' },
+      yellow: { bg: 'bg-yellow-100 dark:bg-yellow-900/30', text: 'text-yellow-600 dark:text-yellow-400', iconBg: 'bg-yellow-500' },
+      orange: { bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-600 dark:text-orange-400', iconBg: 'bg-orange-500' },
+      teal: { bg: 'bg-teal-100 dark:bg-teal-900/30', text: 'text-teal-600 dark:text-teal-400', iconBg: 'bg-teal-500' },
+      indigo: { bg: 'bg-indigo-100 dark:bg-indigo-900/30', text: 'text-indigo-600 dark:text-indigo-400', iconBg: 'bg-indigo-500' },
+      cyan: { bg: 'bg-cyan-100 dark:bg-cyan-900/30', text: 'text-cyan-600 dark:text-cyan-400', iconBg: 'bg-cyan-500' },
+      pink: { bg: 'bg-pink-100 dark:bg-pink-900/30', text: 'text-pink-600 dark:text-pink-400', iconBg: 'bg-pink-500' },
+    };
+    return colors[color] || colors.blue;
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+        <div className="px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <BarChart3 className="w-6 h-6 text-green-600" />
+                {t('dashboard.title', 'Dashboard Analytics')}
+              </h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                {t('dashboard.subtitle', 'Real-time insights and analytics for your institution')}
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowCharts(!showCharts)}
+                className="px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors flex items-center gap-2"
+              >
+                {showCharts ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                <span className="text-sm hidden sm:inline">
+                  {showCharts ? t('dashboard.actions.hideCharts', 'Hide Charts') : t('dashboard.actions.showCharts', 'Show Charts')}
+                </span>
+              </button>
+              <button
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="px-3 py-2 bg-green-700 hover:bg-green-800 disabled:opacity-50 rounded-lg transition-colors flex items-center gap-2 text-white"
+              >
+                <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                <span className="text-sm hidden sm:inline">{t('dashboard.actions.refresh', 'Refresh')}</span>
+              </button>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {/* Last Updated */}
+        {lastUpdated && (
+          <div className="text-right text-xs text-gray-500 dark:text-gray-400">
+            {t('dashboard.lastUpdated', 'Last updated')}: {lastUpdated.toLocaleTimeString()}
+          </div>
+        )}
+
+        {/* Academic Info Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {academicCards.map((card, index) => {
+            const colors = getColorClasses(card.color);
+            const Icon = card.icon;
+            return (
+              <div key={index} className="bg-gradient-to-r from-green-600 to-green-700 dark:from-green-800 dark:to-green-900 rounded-xl p-4 shadow-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-green-100 text-sm">{card.title}</p>
+                    <p className="text-white text-2xl font-bold mt-1">{card.value}</p>
+                  </div>
+                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                    <Icon className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Summary Stats Grid */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {t('userManagement.title', 'User Management')}
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            {t('userManagement.subtitle', 'Manage all system users')}
-          </p>
-        </div>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded-lg transition-colors flex items-center gap-2"
-        >
-          <UserPlus className="w-4 h-4" />
-          {t('userManagement.actions.addUser', 'Add User')}
-        </button>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t('userManagement.summary.totalUsers', 'Total Users')}</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
-            </div>
-            <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-              <Users className="w-5 h-5 text-green-600 dark:text-green-400" />
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t('userManagement.summary.activeUsers', 'Active Users')}</p>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.active}</p>
-            </div>
-            <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-              <UserCheck className="w-5 h-5 text-green-600 dark:text-green-400" />
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t('userManagement.summary.inactiveUsers', 'Inactive/Suspended')}</p>
-              <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{stats.inactive + stats.suspended}</p>
-            </div>
-            <div className="w-10 h-10 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center">
-              <UserX className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{t('userManagement.summary.studentsTeachers', 'Students/Teachers')}</p>
-              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.students} / {stats.teachers}</p>
-            </div>
-            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-              <GraduationCap className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder={t('userManagement.actions.searchPlaceholder', 'Search users by username or email...')}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            />
-          </div>
-          
-          <div className="flex gap-2">
-            <select
-              value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value)}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            >
-              <option value="all">{t('userManagement.filters.allRoles', 'All Roles')}</option>
-              {roles.map(role => (
-                <option key={role.value} value={role.value}>{role.label}</option>
-              ))}
-            </select>
-            
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            >
-              <option value="all">{t('userManagement.filters.allStatus', 'All Status')}</option>
-              {statuses.map(status => (
-                <option key={status.value} value={status.value}>{status.label}</option>
-              ))}
-            </select>
-            
-            <button
-              onClick={fetchUsers}
-              className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
-              title={t('userManagement.actions.refresh', 'Refresh')}
-            >
-              <RefreshCw className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Users Table */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-gray-700/50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  {t('userManagement.table.username', 'Username')}
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  {t('userManagement.table.email', 'Email')}
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  {t('userManagement.table.role', 'Role')}
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  {t('userManagement.table.status', 'Status')}
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  {t('userManagement.table.createdAt', 'Created At')}
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  {t('userManagement.table.actions', 'Actions')}
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {loading ? (
-                <tr>
-                  <td colSpan="6" className="px-4 py-8 text-center">
-                    <div className="flex justify-center">
-                      <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <Users className="w-5 h-5 text-green-600" />
+            {t('dashboard.sections.overview', 'Overview Statistics')}
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {summaryCards.map((card, index) => {
+              const colors = getColorClasses(card.color);
+              const Icon = card.icon;
+              return (
+                <div key={index} className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className={`w-10 h-10 ${colors.bg} rounded-lg flex items-center justify-center`}>
+                      <Icon className={`w-5 h-5 ${colors.text}`} />
                     </div>
-                    <p className="mt-2 text-sm text-gray-500">{t('userManagement.messages.loading', 'Loading...')}</p>
-                  </td>
-                </tr>
-              ) : currentUsers.length === 0 ? (
-                <tr>
-                  <td colSpan="6" className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
-                    {t('userManagement.table.noUsers', 'No users found')}
-                  </td>
-                </tr>
-              ) : (
-                currentUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30">
-                    <td className="px-4 py-3">
-                      <div className="text-sm font-medium text-gray-900 dark:text-white">
-                        {user.username}
+                    {card.trend && (
+                      <div className={`flex items-center gap-1 text-xs ${card.trendUp ? 'text-green-600' : 'text-red-600'}`}>
+                        {card.trendUp ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                        {card.trend}
                       </div>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
-                      {user.email || '-'}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(user.role)}`}>
-                        {getRoleIcon(user.role)}
-                        {user.role_display || t(`userManagement.roles.${user.role}`, user.role)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeColor(user.status)}`}>
-                        {user.status === 'active' && <CheckCircle className="w-3 h-3" />}
-                        {user.status === 'inactive' && <Clock className="w-3 h-3" />}
-                        {user.status === 'suspended' && <AlertCircle className="w-3 h-3" />}
-                        {user.status_display || t(`userManagement.statuses.${user.status}`, user.status)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
-                      {new Date(user.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => {
-                            setSelectedUser(user);
-                            setShowViewModal(true);
-                          }}
-                          className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                          title={t('userManagement.actions.view', 'View')}
-                        >
-                          <Eye className="w-4 h-4 text-blue-500" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            setEditUser({
-                              id: user.id,
-                              username: user.username,
-                              email: user.email || '',
-                              role: user.role,
-                              status: user.status
-                            });
-                            setShowEditModal(true);
-                          }}
-                          className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                          title={t('userManagement.actions.edit', 'Edit')}
-                        >
-                          <Edit className="w-4 h-4 text-yellow-500" />
-                        </button>
-                        <button
-                          onClick={() => handleToggleStatus(user)}
-                          className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                          title={user.status === 'active' ? t('userManagement.actions.deactivate', 'Deactivate') : t('userManagement.actions.activate', 'Activate')}
-                        >
-                          {user.status === 'active' ? (
-                            <UserX className="w-4 h-4 text-orange-500" />
-                          ) : (
-                            <UserCheck className="w-4 h-4 text-green-500" />
-                          )}
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSelectedUser(user);
-                            setShowDeleteModal(true);
-                          }}
-                          className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                          title={t('userManagement.actions.delete', 'Delete')}
-                        >
-                          <Trash2 className="w-4 h-4 text-red-500" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                    )}
+                  </div>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{renderCardValue(card)}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{card.title}</p>
+                  {card.subtitle && (
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{card.subtitle}</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Pagination */}
-        {!loading && totalUsers > 0 && (
-          <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                {t('userManagement.pagination.showing', 'Showing')}
-              </span>
-              <select
-                value={itemsPerPage}
-                onChange={(e) => {
-                  setItemsPerPage(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-sm"
-              >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={30}>30</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </select>
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                {t('userManagement.pagination.perPage', 'per page')}
-              </span>
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                {t('userManagement.pagination.total', 'Total')}: {totalUsers}
-              </span>
+        {/* Financial Section */}
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <DollarSign className="w-5 h-5 text-green-600" />
+            {t('dashboard.sections.financial', 'Financial Overview')}
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {financialCards.map((card, index) => {
+              const colors = getColorClasses(card.color);
+              const Icon = card.icon;
+              return (
+                <div key={index} className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className={`w-10 h-10 ${colors.bg} rounded-lg flex items-center justify-center`}>
+                      <Icon className={`w-5 h-5 ${colors.text}`} />
+                    </div>
+                  </div>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {card.suffix ? `${renderCardValue(card)}${card.suffix}` : renderCardValue(card)}
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{card.title}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Grade Section */}
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <FileText className="w-5 h-5 text-green-600" />
+            {t('dashboard.sections.grades', 'Grade Management')}
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+            {gradeCards.map((card, index) => {
+              const colors = getColorClasses(card.color);
+              const Icon = card.icon;
+              return (
+                <div key={index} className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className={`w-10 h-10 ${colors.bg} rounded-lg flex items-center justify-center`}>
+                      <Icon className={`w-5 h-5 ${colors.text}`} />
+                    </div>
+                  </div>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{renderCardValue(card)}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{card.title}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Charts Section */}
+        {showCharts && (
+          <div className="space-y-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+              <LineChart className="w-5 h-5 text-green-600" />
+              {t('dashboard.sections.charts', 'Analytics & Charts')}
+            </h2>
+
+            {/* Enrollment and Revenue Trends */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Enrollment Trend */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+                <h3 className="text-md font-semibold text-gray-900 dark:text-white mb-4">
+                  {t('dashboard.charts.enrollmentTrend', 'Student Enrollment Trend')}
+                </h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={monthlyEnrollmentTrend}>
+                    <defs>
+                      <linearGradient id="enrollmentGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={COLORS.primary} stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor={COLORS.primary} stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="month" stroke="#6b7280" />
+                    <YAxis stroke="#6b7280" />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#1f2937', borderRadius: '8px', border: 'none' }}
+                      labelStyle={{ color: '#fff' }}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="count" 
+                      stroke={COLORS.primary} 
+                      strokeWidth={2}
+                      fillOpacity={1} 
+                      fill="url(#enrollmentGradient)" 
+                      name={t('dashboard.charts.newStudents', 'New Students')}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Revenue Trend */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+                <h3 className="text-md font-semibold text-gray-900 dark:text-white mb-4">
+                  {t('dashboard.charts.revenueTrend', 'Revenue Collection Trend')}
+                </h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={revenueData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="month" stroke="#6b7280" />
+                    <YAxis stroke="#6b7280" />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#1f2937', borderRadius: '8px', border: 'none' }}
+                      labelStyle={{ color: '#fff' }}
+                      formatter={(value) => [`${formatCurrency(value)}`, t('dashboard.charts.revenue', 'Revenue')]}
+                    />
+                    <Bar dataKey="revenue" fill={COLORS.primary} radius={[4, 4, 0, 0]} name={t('dashboard.charts.revenue', 'Revenue')} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-            
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setCurrentPage(1)}
-                disabled={currentPage === 1}
-                className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {t('userManagement.pagination.first', 'First')}
-              </button>
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-                className="p-1 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                {t('userManagement.pagination.page', 'Page')} {currentPage} {t('userManagement.pagination.of', 'of')} {totalPages}
-              </span>
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-                className="p-1 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setCurrentPage(totalPages)}
-                disabled={currentPage === totalPages}
-                className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {t('userManagement.pagination.last', 'Last')}
-              </button>
+
+            {/* Distribution Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Users by Role */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+                <h3 className="text-md font-semibold text-gray-900 dark:text-white mb-4">
+                  {t('dashboard.charts.usersByRole', 'Users by Role')}
+                </h3>
+                <ResponsiveContainer width="100%" height={250}>
+                  <RePieChart>
+                    <Pie
+                      data={userRoleData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {userRoleData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#1f2937', borderRadius: '8px', border: 'none' }}
+                      labelStyle={{ color: '#fff' }}
+                    />
+                    <Legend />
+                  </RePieChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Payment Status Distribution */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+                <h3 className="text-md font-semibold text-gray-900 dark:text-white mb-4">
+                  {t('dashboard.charts.paymentStatus', 'Payment Status')}
+                </h3>
+                <ResponsiveContainer width="100%" height={250}>
+                  <RePieChart>
+                    <Pie
+                      data={paymentStatusData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {paymentStatusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color || PIE_COLORS[index % PIE_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#1f2937', borderRadius: '8px', border: 'none' }}
+                      labelStyle={{ color: '#fff' }}
+                    />
+                    <Legend />
+                  </RePieChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Attendance Distribution */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+                <h3 className="text-md font-semibold text-gray-900 dark:text-white mb-4">
+                  {t('dashboard.charts.attendance', 'Attendance Overview')}
+                </h3>
+                <ResponsiveContainer width="100%" height={250}>
+                  <RePieChart>
+                    <Pie
+                      data={attendanceData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {attendanceData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#1f2937', borderRadius: '8px', border: 'none' }}
+                      labelStyle={{ color: '#fff' }}
+                    />
+                    <Legend />
+                  </RePieChart>
+                </ResponsiveContainer>
+                <div className="mt-4 text-center">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span className="text-sm text-green-700 dark:text-green-300">
+                      {t('dashboard.attendance.overallRate', 'Overall Attendance Rate')}: {overviewData.overall_attendance_rate || 0}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Grade Status and Students by School Level */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Grade Status Distribution */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+                <h3 className="text-md font-semibold text-gray-900 dark:text-white mb-4">
+                  {t('dashboard.charts.gradeStatus', 'Grade Upload Status')}
+                </h3>
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={gradeStatusData} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis type="number" stroke="#6b7280" />
+                    <YAxis type="category" dataKey="name" stroke="#6b7280" width={100} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#1f2937', borderRadius: '8px', border: 'none' }}
+                      labelStyle={{ color: '#fff' }}
+                    />
+                    <Bar dataKey="value" fill={COLORS.primary} radius={[0, 4, 4, 0]} name={t('dashboard.charts.count', 'Count')}>
+                      {gradeStatusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color || COLORS.primary} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Students by School Level */}
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+                <h3 className="text-md font-semibold text-gray-900 dark:text-white mb-4">
+                  {t('dashboard.charts.studentsByLevel', 'Students by School Level')}
+                </h3>
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={studentsBySchoolLevel}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="current_school_level__name" stroke="#6b7280" />
+                    <YAxis stroke="#6b7280" />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#1f2937', borderRadius: '8px', border: 'none' }}
+                      labelStyle={{ color: '#fff' }}
+                    />
+                    <Bar dataKey="count" fill={COLORS.primary} radius={[4, 4, 0, 0]} name={t('dashboard.charts.students', 'Students')} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
         )}
-      </div>
 
-      {/* Add User Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                {t('userManagement.modal.addNewUser', 'Add New User')}
-              </h2>
-              <button onClick={() => setShowAddModal(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                  {t('userManagement.form.username', 'Username')} *
-                </label>
-                <input
-                  type="text"
-                  value={newUser.username}
-                  onChange={(e) => setNewUser({...newUser, username: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="johndoe"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                  {t('userManagement.form.email', 'Email')}
-                </label>
-                <input
-                  type="email"
-                  value={newUser.email}
-                  onChange={(e) => setNewUser({...newUser, email: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="john@example.com"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                  {t('userManagement.form.role', 'Role')} *
-                </label>
-                <select
-                  value={newUser.role}
-                  onChange={(e) => setNewUser({...newUser, role: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                >
-                  {roles.map(role => (
-                    <option key={role.value} value={role.value}>{role.label}</option>
-                  ))}
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                  {t('userManagement.form.status', 'Status')}
-                </label>
-                <select
-                  value={newUser.status}
-                  onChange={(e) => setNewUser({...newUser, status: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                >
-                  {statuses.map(status => (
-                    <option key={status.value} value={status.value}>{status.label}</option>
-                  ))}
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                  {t('userManagement.form.password', 'Password')} *
-                </label>
-                <input
-                  type="password"
-                  value={newUser.password}
-                  onChange={(e) => setNewUser({...newUser, password: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="••••••"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                  {t('userManagement.form.confirmPassword', 'Confirm Password')} *
-                </label>
-                <input
-                  type="password"
-                  value={newUser.confirm_password}
-                  onChange={(e) => setNewUser({...newUser, confirm_password: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="••••••"
-                />
-              </div>
-            </div>
-            
-            <div className="flex gap-3 mt-6">
-              <button onClick={handleCreateUser} className="flex-1 px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded-lg transition-colors">
-                {t('userManagement.actions.create', 'Create User')}
-              </button>
-              <button onClick={() => setShowAddModal(false)} className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors">
-                {t('userManagement.actions.cancel', 'Cancel')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Edit User Modal */}
-      {showEditModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                {t('userManagement.modal.editUser', 'Edit User')}
-              </h2>
-              <button onClick={() => setShowEditModal(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                  {t('userManagement.form.username', 'Username')} *
-                </label>
-                <input
-                  type="text"
-                  value={editUser.username}
-                  onChange={(e) => setEditUser({...editUser, username: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                  {t('userManagement.form.email', 'Email')}
-                </label>
-                <input
-                  type="email"
-                  value={editUser.email}
-                  onChange={(e) => setEditUser({...editUser, email: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                  {t('userManagement.form.role', 'Role')} *
-                </label>
-                <select
-                  value={editUser.role}
-                  onChange={(e) => setEditUser({...editUser, role: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                >
-                  {roles.map(role => (
-                    <option key={role.value} value={role.value}>{role.label}</option>
-                  ))}
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">
-                  {t('userManagement.form.status', 'Status')}
-                </label>
-                <select
-                  value={editUser.status}
-                  onChange={(e) => setEditUser({...editUser, status: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                >
-                  {statuses.map(status => (
-                    <option key={status.value} value={status.value}>{status.label}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            
-            <div className="flex gap-3 mt-6">
-              <button onClick={handleUpdateUser} className="flex-1 px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded-lg transition-colors">
-                {t('userManagement.actions.update', 'Update User')}
-              </button>
-              <button onClick={() => setShowEditModal(false)} className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors">
-                {t('userManagement.actions.cancel', 'Cancel')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* View User Modal */}
-      {showViewModal && selectedUser && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                {t('userManagement.modal.userDetails', 'User Details')}
-              </h2>
-              <button onClick={() => setShowViewModal(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <div className="space-y-3">
-              <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-                <span className="font-medium text-gray-600 dark:text-gray-400">{t('userManagement.table.id', 'ID')}:</span>
-                <span className="text-gray-900 dark:text-white">{selectedUser.id}</span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-                <span className="font-medium text-gray-600 dark:text-gray-400">{t('userManagement.table.username', 'Username')}:</span>
-                <span className="text-gray-900 dark:text-white">{selectedUser.username}</span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-                <span className="font-medium text-gray-600 dark:text-gray-400">{t('userManagement.table.email', 'Email')}:</span>
-                <span className="text-gray-900 dark:text-white">{selectedUser.email || '-'}</span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-                <span className="font-medium text-gray-600 dark:text-gray-400">{t('userManagement.table.role', 'Role')}:</span>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(selectedUser.role)}`}>
-                  {selectedUser.role_display || t(`userManagement.roles.${selectedUser.role}`, selectedUser.role)}
-                </span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-                <span className="font-medium text-gray-600 dark:text-gray-400">{t('userManagement.table.status', 'Status')}:</span>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeColor(selectedUser.status)}`}>
-                  {selectedUser.status_display || t(`userManagement.statuses.${selectedUser.status}`, selectedUser.status)}
-                </span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-                <span className="font-medium text-gray-600 dark:text-gray-400">{t('userManagement.table.createdAt', 'Created At')}:</span>
-                <span className="text-gray-900 dark:text-white">
-                  {new Date(selectedUser.created_at).toLocaleString()}
-                </span>
-              </div>
-              {selectedUser.updated_at && (
-                <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
-                  <span className="font-medium text-gray-600 dark:text-gray-400">{t('userManagement.table.updatedAt', 'Updated At')}:</span>
-                  <span className="text-gray-900 dark:text-white">
-                    {new Date(selectedUser.updated_at).toLocaleString()}
-                  </span>
+        {/* Chat Section */}
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <Users className="w-5 h-5 text-green-600" />
+            {t('dashboard.sections.communication', 'Communication Overview')}
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {chatCards.map((card, index) => {
+              const colors = getColorClasses(card.color);
+              const Icon = card.icon;
+              return (
+                <div key={index} className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white">{formatNumber(card.value)}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{card.title}</p>
+                    </div>
+                    <div className={`w-12 h-12 ${colors.bg} rounded-lg flex items-center justify-center`}>
+                      <Icon className={`w-6 h-6 ${colors.text}`} />
+                    </div>
+                  </div>
                 </div>
-              )}
-            </div>
-            
-            <div className="mt-6">
-              <button onClick={() => setShowViewModal(false)} className="w-full px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded-lg transition-colors">
-                {t('userManagement.actions.close', 'Close')}
-              </button>
-            </div>
+              );
+            })}
           </div>
         </div>
-      )}
-
-      {/* Delete User Modal */}
-      {showDeleteModal && selectedUser && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Trash2 className="w-8 h-8 text-red-600 dark:text-red-400" />
-              </div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                {t('userManagement.modal.deleteUser', 'Delete User')}
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                {t('userManagement.modal.deleteConfirmation', 'Are you sure you want to delete user')}{' '}
-                <strong className="text-gray-900 dark:text-white">{selectedUser.username}</strong>?
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {t('userManagement.modal.deleteWarning', 'This action cannot be undone.')}
-              </p>
-            </div>
-            
-            <div className="flex gap-3 mt-4">
-              <button onClick={handleDeleteUser} className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
-                {t('userManagement.actions.delete', 'Delete')}
-              </button>
-              <button onClick={() => setShowDeleteModal(false)} className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg transition-colors">
-                {t('userManagement.actions.cancel', 'Cancel')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 };

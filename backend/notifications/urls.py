@@ -10,4 +10,7 @@ urlpatterns = [
     path('mark-read/', views.NotificationMarkReadView.as_view(), name='mark-read'),
     path('<int:notification_id>/', views.NotificationDetailView.as_view(), name='notification-detail'),
     path('preferences/', views.NotificationPreferenceView.as_view(), name='preferences'),
+    
+    path('send/', views.SendNotificationView.as_view(), name='send-notification'),
+    path('<int:notification_id>/', views.NotificationDeleteView.as_view(), name='notification-delete'),
 ]
