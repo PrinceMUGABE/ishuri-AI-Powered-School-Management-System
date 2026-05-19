@@ -2189,5 +2189,115 @@
       "deleteFailed": "Failed to delete attendance session",
       "deleteError": "Error deleting attendance session"
     }
+  },
+
+
+  
+  "assignment": {
+    "title": "Assignment Management",
+    "subtitle": "Manage and track your assignments",
+    "loading": "Loading...",
+
+    "total_assignments": "Total Assignments",
+    "active": "Active",
+    "overdue": "Overdue",
+    "expired": "Expired",
+    "archived": "Archived",
+
+    "filters": "Filters",
+    "academic_year": "Academic Year",
+    "term": "Term",
+    "school_level": "School Level",
+    "class_level": "Class Level",
+    "subject": "Subject",
+    "classroom": "Classroom",
+
+    "all_years": "All Years",
+    "all_terms": "All Terms",
+    "all_levels": "All Levels",
+    "all_classes": "All Classes",
+    "all_subjects": "All Subjects",
+    "all_classrooms": "All Classrooms",
+
+    "select_year": "Select Year",
+    "select_term": "Select Term",
+    "select_level": "Select Level",
+    "select_class": "Select Class",
+    "select_subject": "Select Subject",
+    "select_classroom": "Select Classroom",
+
+    "upload_assignment": "Upload Assignment",
+    "my_assignments": "My Assignments",
+    "search_placeholder": "Search assignments...",
+    "loading_assignments": "Loading assignments...",
+    "no_assignments": "No assignments found",
+    "upload_first": "Upload your first assignment to get started",
+
+    "due_date": "Due Date",
+    "due_time": "Due Time",
+    "total_marks": "Total Marks",
+    "created": "Created",
+    "teacher": "Teacher",
+    "no_due_date": "No due date",
+    "at": "at",
+    "not_specified": "Not specified",
+
+    "view_pdf": "View PDF",
+    "view_details": "View Details",
+    "edit": "Edit",
+    "delete": "Delete",
+
+    "show": "Show",
+    "per_page": "per page",
+    "total": "Total:",
+    "first": "First",
+    "last": "Last",
+
+    "upload_title": "Upload Assignment",
+    "upload_subtitle": "Upload a PDF assignment for your students",
+    "click_to_select": "Click to select a PDF file",
+    "pdf_only": "PDF files only",
+    "title_label": "Title",
+    "title_placeholder": "Enter assignment title",
+    "due_date_label": "Due Date",
+    "due_time_label": "Due Time",
+    "total_marks_label": "Total Marks",
+    "marks_placeholder": "e.g. 100",
+    "description_label": "Description",
+    "description_placeholder": "Optional description of the assignment",
+    "instructions_label": "Instructions",
+    "instructions_placeholder": "Enter instructions for students",
+    "uploading": "Uploading...",
+    "upload_button": "Upload Assignment",
+    "cancel": "Cancel",
+
+    "details_title": "Assignment Details",
+    "class": "Class",
+    "status": "Status",
+    "not_set": "Not set",
+    "close": "Close",
+
+    "edit_title": "Edit Assignment",
+    "status_label": "Status",
+    "saving": "Saving...",
+    "save_changes": "Save Changes",
+
+    "delete_title": "Delete Assignment",
+    "delete_subtitle": "This action cannot be undone",
+    "delete_confirmation": "Are you sure you want to delete",
+    "delete_warning": "This action is permanent and cannot be undone. All related data will be lost.",
+    "yes_delete": "Yes, Delete",
+
+    "fetch_assignments_error": "Failed to fetch assignments",
+    "select_pdf_error": "Please select a PDF file",
+    "required_fields_error": "Please fill in all required fields",
+    "pdf_only_error": "Only PDF files are allowed",
+    "upload_success": "Assignment uploaded successfully",
+    "upload_failed": "Failed to upload assignment",
+    "update_success": "Assignment updated successfully",
+    "update_failed": "Failed to update assignment",
+    "delete_success": "Assignment deleted successfully",
+    "delete_failed": "Failed to delete assignment",
+    "no_pdf_error": "No PDF file available"
   }
 }

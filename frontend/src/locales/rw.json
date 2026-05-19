@@ -2187,5 +2187,115 @@
       "deleteFailed": "Kusiba inama y'ibitiro byananiwe",
       "deleteError": "Ikosa ry'kusiba inama y'ibitiro"
     }
+  },
+
+
+  
+  "assignment": {
+    "title": "Gucunga Imirimo y'Ishuri",
+    "subtitle": "Gucunga no gukurikirana imirimo y'ishuri",
+    "loading": "Biragenda...",
+
+    "total_assignments": "Imirimo Yose",
+    "active": "Irakora",
+    "overdue": "Yarenze Igihe",
+    "expired": "Irangiye",
+    "archived": "Yabitswe",
+
+    "filters": "Gushungura",
+    "academic_year": "Umwaka w'Ishuri",
+    "term": "Igice cy'Umwaka",
+    "school_level": "Urwego rw'Ishuri",
+    "class_level": "Urwego rw'Iklasi",
+    "subject": "Isomo",
+    "classroom": "Icyumba cy'Amasomo",
+
+    "all_years": "Imyaka Yose",
+    "all_terms": "Ibice Byose",
+    "all_levels": "Intera Zose",
+    "all_classes": "Iklasi Zose",
+    "all_subjects": "Amasomo Yose",
+    "all_classrooms": "Ibyumba Byose",
+
+    "select_year": "Hitamo Umwaka",
+    "select_term": "Hitamo Igice",
+    "select_level": "Hitamo Urwego",
+    "select_class": "Hitamo Iklasi",
+    "select_subject": "Hitamo Isomo",
+    "select_classroom": "Hitamo Icyumba",
+
+    "upload_assignment": "Ohereza Akazi",
+    "my_assignments": "Imirimo Yanjye",
+    "search_placeholder": "Shakisha imirimo...",
+    "loading_assignments": "Gushakisha imirimo...",
+    "no_assignments": "Nta mirimo yabonetse",
+    "upload_first": "Ohereza akazi kawe ka mbere gutangira",
+
+    "due_date": "Itariki yo Gurangiza",
+    "due_time": "Igihe cyo Gurangiza",
+    "total_marks": "Amanota Yose",
+    "created": "Yashyizweho",
+    "teacher": "Umwarimu",
+    "no_due_date": "Nta tariki yo gurangiza",
+    "at": "saa",
+    "not_specified": "Ntibisobanurwa",
+
+    "view_pdf": "Reba PDF",
+    "view_details": "Reba Ibisobanuro",
+    "edit": "Hindura",
+    "delete": "Siba",
+
+    "show": "Erekana",
+    "per_page": "ku ipaji",
+    "total": "Igiteranyo:",
+    "first": "Iya mbere",
+    "last": "Iya nyuma",
+
+    "upload_title": "Ohereza Akazi",
+    "upload_subtitle": "Ohereza PDF y'akazi ku banyeshuri bawe",
+    "click_to_select": "Kanda hano guhitamo dosiye ya PDF",
+    "pdf_only": "Dosiye za PDF gusa",
+    "title_label": "Umutwe",
+    "title_placeholder": "Andika umutwe w'akazi",
+    "due_date_label": "Itariki yo Gurangiza",
+    "due_time_label": "Igihe cyo Gurangiza",
+    "total_marks_label": "Amanota Yose",
+    "marks_placeholder": "urugero: 100",
+    "description_label": "Ibisobanuro",
+    "description_placeholder": "Ibisobanuro bishobora gushyirwa (si ngombwa)",
+    "instructions_label": "Amabwiriza",
+    "instructions_placeholder": "Andika amabwiriza y'abanyeshuri",
+    "uploading": "Kohereza...",
+    "upload_button": "Ohereza Akazi",
+    "cancel": "Hagarika",
+
+    "details_title": "Ibisobanuro by'Akazi",
+    "class": "Iklasi",
+    "status": "Imimerere",
+    "not_set": "Ntibishyizweho",
+    "close": "Funga",
+
+    "edit_title": "Hindura Akazi",
+    "status_label": "Imimerere",
+    "saving": "Kubika...",
+    "save_changes": "Bika Impinduka",
+
+    "delete_title": "Siba Akazi",
+    "delete_subtitle": "Ibi ntishobora gusubirwaho",
+    "delete_confirmation": "Urashaka gusiba",
+    "delete_warning": "Ibi ni bisanzwe kandi ntishobora gusubirwaho. Amakuru yose arebana nabyo azabuzwa.",
+    "yes_delete": "Yego, Siba",
+
+    "fetch_assignments_error": "Kuronka imirimo byanze",
+    "select_pdf_error": "Hitamo dosiye ya PDF",
+    "required_fields_error": "Uzuza ibice byose bisabwa",
+    "pdf_only_error": "Dosiye za PDF gusa ni zo zemewe",
+    "upload_success": "Akazi koherejwe neza",
+    "upload_failed": "Kohereza akazi byanze",
+    "update_success": "Akazi kavuguruwe neza",
+    "update_failed": "Guvugurura akazi byanze",
+    "delete_success": "Akazi kasibwe neza",
+    "delete_failed": "Gusiba akazi byanze",
+    "no_pdf_error": "Nta dosiye ya PDF ihari"
   }
 }
