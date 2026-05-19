@@ -261,68 +261,36 @@ class StudentAttendance(models.Model):
 
 
 class Assignment(models.Model):
-    """Assignment uploaded by teacher"""
-    
     class AssignmentStatus(models.TextChoices):
         ACTIVE = 'active', _('Active')
         EXPIRED = 'expired', _('Expired')
         ARCHIVED = 'archived', _('Archived')
     
-    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='teachers_assignments')
-    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name='assignments')
-    term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='assignments', null=True, blank=True)
-    school_level = models.ForeignKey(SchoolLevel, on_delete=models.CASCADE, related_name='assignments')
-    class_level = models.ForeignKey(ClassLevel, on_delete=models.CASCADE, related_name='assignments')
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='assignments')
-    classroom = models.ForeignKey(ClassRoom, on_delete=models.SET_NULL, null=True, blank=True, related_name='assignments')
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='assignments_assignment_files')
+    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name='assignments_assignment_files')
+    term = models.ForeignKey(Term, on_delete=models.CASCADE, related_name='assignments_assignment_files', null=True, blank=True)
+    school_level = models.ForeignKey(SchoolLevel, on_delete=models.CASCADE, related_name='assignments_assignment_files')
+    class_level = models.ForeignKey(ClassLevel, on_delete=models.CASCADE, related_name='assignments_assignment_files')
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='assignments_assignment_files')
+    classroom = models.ForeignKey(ClassRoom, on_delete=models.SET_NULL, null=True, blank=True, related_name='assignments_assignment_files')
     
     title = models.CharField(max_length=300)
     description = models.TextField(blank=True)
     instructions = models.TextField(blank=True)
     
-    pdf_file = models.FileField(upload_to=assignment_upload_path, validators=[
+    pdf_file = models.FileField(upload_to='assignments/', validators=[
         FileExtensionValidator(allowed_extensions=['pdf'])
     ])
     
-    due_date = models.DateField(null=True, blank=True, db_index=True)
+    due_date = models.DateField(null=True, blank=True)
     due_time = models.TimeField(null=True, blank=True)
     total_marks = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
     
-    status = models.CharField(max_length=20, choices=AssignmentStatus.choices, default=AssignmentStatus.ACTIVE, db_index=True)
+    status = models.CharField(max_length=20, choices=AssignmentStatus.choices, default=AssignmentStatus.ACTIVE)
     
     uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='uploaded_assignments')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
-        verbose_name = _('assignment')
-        verbose_name_plural = _('assignments')
         ordering = ['-created_at']
-        indexes = [
-            models.Index(fields=['teacher', 'subject']),
-            models.Index(fields=['class_level', 'academic_year']),
-            models.Index(fields=['status', 'due_date']),
-        ]
-    
-    @property
-    def is_expired(self):
-        """Check if assignment has expired based on due date and time"""
-        from django.utils import timezone
-        from datetime import date
-        
-        if self.due_date:
-            today = date.today()
-            if self.due_date < today:
-                return True
-            if self.due_date == today and self.due_time:
-                now = timezone.now().time()
-                return self.due_time < now
-        return False
-    
-    def save(self, *args, **kwargs):
-        if self.is_expired and self.status == Assignment.AssignmentStatus.ACTIVE:
-            self.status = Assignment.AssignmentStatus.EXPIRED
-        super().save(*args, **kwargs)
-    
-    def __str__(self):
-        return f"{self.title} - {self.subject.name} ({self.class_level.name})"

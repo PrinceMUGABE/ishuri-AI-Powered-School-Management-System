@@ -10,7 +10,7 @@ import {
   GraduationCap, BookOpen, UserCheck, AlertTriangle,
   ChevronDown, Info, Loader2, Activity, Send,
   Link as LinkIcon, Calendar as CalendarIcon, Clock as ClockIcon,
-  FileSignature, Paperclip, Link, Eye as EyeIcon
+  FileSignature, Paperclip, Link, Eye as EyeIcon, Award
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 

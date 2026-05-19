@@ -814,12 +814,12 @@ def upload_assignment(request):
             uploaded_by=request.user
         )
         
-        # Notify students in this class
+        # Notify students in this class - FIXED RELATIONSHIP NAME
         from students.models import StudentClassroomAssignment
         students = Student.objects.filter(
-            studentclassroomassignment__class_level=class_level,
-            studentclassroomassignment__academic_year=academic_year,
-            studentclassroomassignment__status='active',
+            classroom_assignments__class_level=class_level,
+            classroom_assignments__academic_year=academic_year,
+            classroom_assignments__status='active',
             status='active'
         ).distinct()
         
@@ -1030,7 +1030,7 @@ def download_assignment_file(request, assignment_id):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def preview_assignment(request, assignment_id):
+def preview_assignment_file(request, assignment_id):
     """
     Preview the PDF file for an assignment (returns URL or base64)
     """

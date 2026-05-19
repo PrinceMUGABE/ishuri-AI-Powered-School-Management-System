@@ -248,7 +248,7 @@ CHANNEL_LAYERS = {
 }
  
 # --- File upload settings ---
-MEDIA_URL = '/media/'
+MEDIA_URL = '/api/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
  
 # Max upload size = 50 MB (also enforced in views.py)
