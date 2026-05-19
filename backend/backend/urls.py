@@ -14,6 +14,7 @@ urlpatterns = [
     path('api/chat/', include('chat.urls')),
     path('api/payments/', include('payments.urls')),
     path('api/academics-records/', include('academics_records.urls')),
+    path('api/dashboard/', include('dashboard.urls')),
     
     # Serve media files directly
     re_path(r'^api/media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),

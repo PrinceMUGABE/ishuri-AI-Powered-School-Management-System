@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'chat',
     'payments',
     'academics_records',
+    'dashboard',
 ]
 
 MIDDLEWARE = [
