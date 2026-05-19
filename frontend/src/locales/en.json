@@ -1663,29 +1663,29 @@
   "students_retrieved": "Students retrieved successfully",
   "student_details_retrieved": "Student details retrieved successfully",
   "classroom_not_found": "Classroom not found",
-  
+
   "teacherGrades": {
     "common": {
       "loading": "Loading..."
     },
     "header": {
       "title": "Academic Grades",
-      "subtitle": "Manage student grade records"
+      "subtitle": "Manage student grade reports"
     },
     "buttons": {
       "downloadTemplate": "Download Template",
-      "uploadGrades": "Upload Grades"
+      "uploadGrades": "Import Grades"
     },
     "filters": {
       "title": "Filters",
-      "subtitle": "refine the grades table below",
+      "subtitle": "refine the grade table below",
       "academicYear": "Year",
       "academicYearPlaceholder": "Academic Year",
       "term": "Term",
       "termPlaceholder": "All Terms",
       "schoolLevel": "School Level",
       "schoolLevelPlaceholder": "All Levels",
-      "classLevel": "Class Level",
+      "classLevel": "Class",
       "classLevelPlaceholder": "All Classes",
       "subject": "Subject",
       "subjectPlaceholder": "All Subjects",
@@ -1696,26 +1696,27 @@
     },
     "tabs": {
       "studentGrades": "Student Grades",
-      "gradeUploads": "Grade Uploads (Files)"
+      "gradeUploads": "Grade Imports (Files)"
     },
     "grades": {
       "title": "Student Grades",
-      "searchPlaceholder": "Search student or subject...",
+      "searchPlaceholder": "Search for a student or subject...",
       "noGrades": "No grades found",
-      "noGradesHint": "Upload grades or adjust filters to see results",
+      "noGradesHint": "Import grades or adjust filters to see results",
       "editGrade": "Edit Grade",
       "deleteGrade": "Delete Grade",
       "updateSuccess": "Grade updated successfully",
       "updateFailed": "Failed to update grade",
       "deleteSuccess": "Grade deleted successfully",
       "deleteFailed": "Failed to delete grade",
+      "viewPerformance": "View Student Performance",
       "columns": {
-        "rollNo": "Roll No.",
+        "rollNo": "Roll No",
         "studentName": "Student Name",
         "academicYear": "Academic Year",
         "term": "Term",
         "schoolLevel": "School Level",
-        "classLevel": "Class Level",
+        "classLevel": "Class",
         "subject": "Subject",
         "gradeType": "Grade Type",
         "score": "Score",
@@ -1725,34 +1726,33 @@
       },
       "status": {
         "published": "Published",
-        "pending": "Pending",
-        "viewPerformance": "View Student Performance"
+        "pending": "Pending"
       }
     },
     "uploads": {
-      "title": "Grade Upload Files",
-      "subtitle": "Manage your uploaded grade Excel files and track approval status",
-      "noUploads": "No grade uploads found",
-      "noUploadsHint": "Upload your first grade file using the button above",
-      "uploaded": "Uploaded",
+      "title": "Grade Import Files",
+      "subtitle": "Manage your imported Excel grade files and track approval status",
+      "noUploads": "No grade imports found",
+      "noUploadsHint": "Import your first grade file using the button above",
+      "uploaded": "Uploaded on",
       "gradesCount": "Grades",
       "students": "students",
       "weight": "Weight",
       "status": "Status",
-      "rejectionReason": "Rejection reason",
+      "rejectionReason": "Rejection Reason",
       "viewDetails": "View Details",
       "downloadFile": "Download File",
-      "deleteUpload": "Delete Upload",
-      "deleteConfirm": "Are you sure you want to delete this grade upload file? All associated grades will also be deleted.",
-      "deleteSuccess": "Grade upload deleted successfully",
-      "deleteFailed": "Failed to delete upload",
+      "deleteUpload": "Delete Import",
+      "deleteConfirm": "Are you sure you want to delete this grade import file? All associated grades will also be deleted.",
+      "deleteSuccess": "Grade import deleted successfully",
+      "deleteFailed": "Failed to delete grade import",
       "downloadSuccess": "File downloaded successfully",
       "downloadFailed": "Failed to download file",
       "noFile": "Please select an Excel file",
-      "missingFields": "Please fill all required fields",
-      "uploadSuccess": "Grades uploaded successfully",
-      "uploadFailed": "Upload failed",
-      "uploadError": "Upload error",
+      "missingFields": "Please fill in all required fields",
+      "uploadSuccess": "Grades imported successfully",
+      "uploadFailed": "Import failed",
+      "uploadError": "Import error",
       "statuses": {
         "pending": "Pending",
         "approved": "Approved",
@@ -1763,26 +1763,9 @@
       }
     },
     "download": {
-      "missingFields": "Please fill all required fields",
+      "missingFields": "Please fill in all required fields",
       "success": "Template downloaded!",
-      "failed": "Download failed",
-      "title": "Download Grade Template",
-      "subtitle": "Get a pre-filled Excel template with your class roster",
-      "info": "The template will include all students from your assigned classrooms. Fill in scores and re-upload.",
-      "academicYear": "Academic Year",
-      "selectYear": "Select year",
-      "term": "Term",
-      "selectTerm": "Select term",
-      "schoolLevel": "School Level",
-      "selectLevel": "Select level",
-      "classLevel": "Class Level",
-      "selectClass": "Select class",
-      "subject": "Subject",
-      "selectSubject": "Select subject",
-      "gradeType": "Grade Type",
-      "generating": "Generating...",
-      "download": "Download Template",
-      "cancel": "Cancel"
+      "failed": "Download failed"
     },
     "pagination": {
       "show": "Show",
@@ -1790,6 +1773,96 @@
       "total": "total",
       "first": "First",
       "last": "Last"
+    },
+    "modals": {
+      "editGrade": {
+        "title": "Edit Student Grade",
+        "score": "Score",
+        "maxScore": "Maximum Score",
+        "customGradeLetter": "Custom Grade Letter (Optional)",
+        "autoCalculate": "Auto calculate",
+        "remarks": "Remarks",
+        "remarksPlaceholder": "Optional remarks...",
+        "saveChanges": "Save Changes",
+        "cancel": "Cancel"
+      },
+      "deleteGrade": {
+        "title": "Delete Grade",
+        "subtitle": "This action is irreversible",
+        "confirmMessage": "Are you sure you want to delete the grade for",
+        "inSubject": "in",
+        "warning": "This will permanently delete this grade record from the system.",
+        "confirm": "Yes, Delete",
+        "cancel": "Cancel"
+      },
+      "uploadDetails": {
+        "title": "Grade Import Details",
+        "file": "File",
+        "gradeUpload": "Grade Import",
+        "academicYear": "Academic Year",
+        "term": "Term",
+        "schoolLevel": "School Level",
+        "classLevel": "Class",
+        "subject": "Subject",
+        "gradeType": "Grade Type",
+        "weight": "Weight",
+        "students": "Students",
+        "status": "Status",
+        "uploaded": "Uploaded on",
+        "reviewed": "Reviewed on",
+        "reviewedBy": "Reviewed By",
+        "rejectionReason": "Rejection Reason",
+        "adminNotes": "Admin Notes"
+      },
+      "upload": {
+        "title": "Import Student Grades",
+        "subtitle": "Submit grades for administrator review",
+        "selectFile": "Click to select an Excel file",
+        "fileTypes": "Accepts .xlsx · .xls",
+        "academicYear": "Academic Year",
+        "selectYear": "Select year",
+        "term": "Term",
+        "selectTerm": "Select term",
+        "schoolLevel": "School Level",
+        "selectLevel": "Select level",
+        "classLevel": "Class",
+        "selectClass": "Select class",
+        "subject": "Subject",
+        "selectSubject": "Select subject",
+        "gradeType": "Grade Type",
+        "uploading": "Importing...",
+        "submit": "Submit Grades",
+        "cancel": "Cancel"
+      },
+      "download": {
+        "title": "Download Grade Template",
+        "subtitle": "Get a pre-filled Excel template with your class list",
+        "info": "The template will include all students from your assigned classes. Fill in the scores and re-import.",
+        "academicYear": "Academic Year",
+        "selectYear": "Select year",
+        "term": "Term",
+        "selectTerm": "Select term",
+        "schoolLevel": "School Level",
+        "selectLevel": "Select level",
+        "classLevel": "Class",
+        "selectClass": "Select class",
+        "subject": "Subject",
+        "selectSubject": "Select subject",
+        "gradeType": "Grade Type",
+        "generating": "Generating...",
+        "download": "Download Template",
+        "cancel": "Cancel"
+      },
+      "student": {
+        "roll": "Roll No",
+        "personalInfo": "Personal Information",
+        "email": "Email",
+        "phone": "Phone"
+      },
+      "performance": {
+        "title": "Student Academic Performance",
+        "academicPerformance": "Academic Performance Report"
+      }
     },
     "gradeTypes": {
       "assignment": "Assignment",
@@ -1803,89 +1876,143 @@
     },
     "errors": {
       "fetchGradesFailed": "Failed to load student grades",
-      "fetchUploadsFailed": "Failed to load grade uploads",
+      "fetchUploadsFailed": "Failed to load grade imports",
       "noAcademicYearSelected": "Please select an academic year first",
       "fetchPerformanceFailed": "Failed to fetch student performance",
       "noPerformanceData": "No performance data available",
       "noPerformanceDataHint": "This student may not have any grades recorded yet"
     },
-    "subjectsAssigned": "Subjects Assigned",
+    "subjectsAssigned": "Assigned Subjects",
     "stats": {
       "totalGrades": "Total Grades",
-      "totalUploads": "Total Uploads",
+      "totalUploads": "Total Imports",
       "subjects": "Subjects",
-      "classrooms": "Classrooms"
+      "classrooms": "Classes"
+    }
+  },
+
+  
+  "adminGrades": {
+    "header": {
+      "title": "Grade Management",
+      "subtitle": "Review and manage teacher grade uploads"
     },
-    "editGrade": {
-      "title": "Edit Student Grade",
-      "score": "Score",
-      "maxScore": "Max Score",
-      "customGradeLetter": "Custom Grade Letter (Optional)",
-      "autoCalculate": "Auto-calculate",
-      "remarks": "Remarks",
-      "remarksPlaceholder": "Optional remarks...",
-      "saveChanges": "Save Changes",
-      "cancel": "Cancel"
+    "tabs": {
+      "gradeUploads": "Grade Uploads",
+      "manualEntry": "Manual Grade Entry"
     },
-    "deleteGrade": {
-      "title": "Delete Grade",
-      "subtitle": "This action cannot be undone",
-      "confirmMessage": "Are you sure you want to delete the grade for",
-      "inSubject": "in",
-      "warning": "This will permanently remove this grade record from the system.",
-      "confirm": "Yes, Delete",
-      "cancel": "Cancel"
+    "stats": {
+      "total": "Total",
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "needsReview": "Needs Review"
     },
-    "uploadDetails": {
-      "title": "Grade Upload Details",
-      "file": "File",
-      "gradeUpload": "Grade Upload",
+    "filters": {
+      "title": "Filters",
+      "academicYear": "Academic Year",
+      "academicYearPlaceholder": "Select Academic Year",
+      "term": "Term",
+      "termPlaceholder": "Select Term",
+      "schoolLevel": "School Level",
+      "schoolLevelPlaceholder": "Select School Level",
+      "classLevel": "Class Level",
+      "classLevelPlaceholder": "Select Class Level",
+      "subject": "Subject",
+      "subjectPlaceholder": "Select Subject",
+      "status": "Status",
+      "statusPlaceholder": "Select Status"
+    },
+    "search": {
+      "placeholder": "Search by teacher, subject, class..."
+    },
+    "uploads": {
+      "title": "Grade Uploads",
+      "noUploads": "No grade uploads found",
+      "noUploadsHint": "Try adjusting your filters"
+    },
+    "manual": {
+      "title": "Manual Grade Entry",
       "academicYear": "Academic Year",
       "term": "Term",
       "schoolLevel": "School Level",
       "classLevel": "Class Level",
+      "classroom": "Classroom",
       "subject": "Subject",
+      "gradeType": "Grade Type",
+      "weight": "Weight (%)",
+      "student": "Student",
+      "score": "Score",
+      "maxScore": "Maximum Score",
+      "remarks": "Remarks",
+      "remarksPlaceholder": "Optional notes about this grade",
+      "clear": "Clear Form",
+      "submit": "Submit Grade",
+      "submitting": "Submitting...",
+      "missingFields": "Please fill in all required fields",
+      "success": "Grade submitted successfully",
+      "failed": "Failed to submit grade",
+      "error": "An error occurred while submitting grade"
+    },
+    "detail": {
+      "title": "Grade Upload Details",
+      "teacher": "Teacher",
+      "subject": "Subject",
+      "classLevel": "Class Level",
+      "academicYear": "Academic Year",
+      "term": "Term",
       "gradeType": "Grade Type",
       "weight": "Weight",
-      "students": "Students",
       "status": "Status",
-      "uploaded": "Uploaded",
-      "reviewed": "Reviewed",
+      "uploadedAt": "Uploaded At",
+      "reviewedAt": "Reviewed At",
       "reviewedBy": "Reviewed By",
       "rejectionReason": "Rejection Reason",
-      "adminNotes": "Admin Notes"
+      "adminNotes": "Admin Notes",
+      "studentGrades": "Student Grades",
+      "filePreview": "File Preview",
+      "noGrades": "No student grades found for this upload"
     },
-    "upload": {
-      "title": "Upload Student Grades",
-      "subtitle": "Submit grades for admin review",
-      "selectFile": "Click to select Excel file",
-      "fileTypes": "Accepts .xlsx · .xls",
-      "academicYear": "Academic Year",
-      "selectYear": "Select year",
-      "term": "Term",
-      "selectTerm": "Select term",
-      "schoolLevel": "School Level",
-      "selectLevel": "Select level",
-      "classLevel": "Class Level",
-      "selectClass": "Select class",
-      "subject": "Subject",
-      "selectSubject": "Select subject",
-      "gradeType": "Grade Type",
-      "uploading": "Uploading...",
-      "submit": "Submit Grades",
-      "cancel": "Cancel"
+    "review": {
+      "approved": "Grade upload approved successfully",
+      "rejected": "Grade upload rejected",
+      "failed": "Failed to process review",
+      "error": "An error occurred during review"
     },
-    "student": {
-      "roll": "Roll",
-      "personalInfo": "Personal Info",
-      "email": "Email",
-      "phone": "Phone"
+    "statuses": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "needs_review": "Needs Review",
+      "active": "Active",
+      "inactive": "Inactive"
     },
-    "modals": {
-      "performance": {
-        "title": "Student Academic Performance",
-        "academicPerformance": "Academic Performance Report"
-      }
-    }
+    "gradeTypes": {
+      "assignment": "Assignment",
+      "quiz": "Quiz",
+      "midTerm": "Mid Term Exam",
+      "finalExam": "Final Exam",
+      "project": "Project",
+      "practical": "Practical",
+      "oral": "Oral",
+      "homework": "Homework"
+    },
+    "actions": {
+      "viewDetails": "View Details",
+      "approve": "Approve",
+      "needsReview": "Request Changes",
+      "reject": "Reject"
+    },
+    "pagination": {
+      "show": "Show",
+      "perPage": "per page",
+      "total": "total",
+      "first": "First",
+      "last": "Last"
+    },
+    "common": {
+      "loading": "Loading..."
+    },
+    "refreshed": "Data refreshed successfully"
   }
 }

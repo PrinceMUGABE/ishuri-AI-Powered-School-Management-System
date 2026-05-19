@@ -1927,6 +1927,131 @@
       "subjects": "Matières",
       "classrooms": "Classes"
     }
+  },
+
+  
+  "adminGrades": {
+    "header": {
+      "title": "Gestion des Notes",
+      "subtitle": "Examiner et gérer les relevés de notes des enseignants"
+    },
+    "tabs": {
+      "gradeUploads": "Dépôts de Notes",
+      "manualEntry": "Saisie Manuelle des Notes"
+    },
+    "stats": {
+      "total": "Total",
+      "pending": "En Attente",
+      "approved": "Approuvées",
+      "rejected": "Rejetées",
+      "needsReview": "À Réviser"
+    },
+    "filters": {
+      "title": "Filtres",
+      "academicYear": "Année Académique",
+      "academicYearPlaceholder": "Sélectionner l'Année",
+      "term": "Trimestre",
+      "termPlaceholder": "Sélectionner le Trimestre",
+      "schoolLevel": "Niveau Scolaire",
+      "schoolLevelPlaceholder": "Sélectionner le Niveau",
+      "classLevel": "Classe",
+      "classLevelPlaceholder": "Sélectionner la Classe",
+      "subject": "Matière",
+      "subjectPlaceholder": "Sélectionner la Matière",
+      "status": "Statut",
+      "statusPlaceholder": "Sélectionner le Statut"
+    },
+    "search": {
+      "placeholder": "Rechercher par enseignant, matière, classe..."
+    },
+    "uploads": {
+      "title": "Dépôts de Notes",
+      "noUploads": "Aucun dépôt de notes trouvé",
+      "noUploadsHint": "Essayez d'ajuster vos filtres"
+    },
+    "manual": {
+      "title": "Saisie Manuelle des Notes",
+      "academicYear": "Année Académique",
+      "term": "Trimestre",
+      "schoolLevel": "Niveau Scolaire",
+      "classLevel": "Classe",
+      "classroom": "Salle de Classe",
+      "subject": "Matière",
+      "gradeType": "Type d'Évaluation",
+      "weight": "Poids (%)",
+      "student": "Étudiant",
+      "score": "Note",
+      "maxScore": "Note Maximale",
+      "remarks": "Remarques",
+      "remarksPlaceholder": "Notes optionnelles sur cette note",
+      "clear": "Effacer",
+      "submit": "Soumettre",
+      "submitting": "Soumission...",
+      "missingFields": "Veuillez remplir tous les champs requis",
+      "success": "Note soumise avec succès",
+      "failed": "Échec de la soumission",
+      "error": "Une erreur est survenue lors de la soumission"
+    },
+    "detail": {
+      "title": "Détails du Dépôt de Notes",
+      "teacher": "Enseignant",
+      "subject": "Matière",
+      "classLevel": "Classe",
+      "academicYear": "Année Académique",
+      "term": "Trimestre",
+      "gradeType": "Type d'Évaluation",
+      "weight": "Poids",
+      "status": "Statut",
+      "uploadedAt": "Date de Dépôt",
+      "reviewedAt": "Date de Révision",
+      "reviewedBy": "Révisé par",
+      "rejectionReason": "Motif du Rejet",
+      "adminNotes": "Notes Administratives",
+      "studentGrades": "Notes des Étudiants",
+      "filePreview": "Aperçu du Fichier",
+      "noGrades": "Aucune note étudiante trouvée pour ce dépôt"
+    },
+    "review": {
+      "approved": "Dépôt de notes approuvé avec succès",
+      "rejected": "Dépôt de notes rejeté",
+      "failed": "Échec du traitement de la révision",
+      "error": "Une erreur est survenue lors de la révision"
+    },
+    "statuses": {
+      "pending": "En Attente",
+      "approved": "Approuvé",
+      "rejected": "Rejeté",
+      "needs_review": "À Réviser",
+      "active": "Actif",
+      "inactive": "Inactif"
+    },
+    "gradeTypes": {
+      "assignment": "Devoir",
+      "quiz": "Quiz",
+      "midTerm": "Examen de Mi-Période",
+      "finalExam": "Examen Final",
+      "project": "Projet",
+      "practical": "Pratique",
+      "oral": "Oral",
+      "homework": "Devoir Maison"
+    },
+    "actions": {
+      "viewDetails": "Voir Détails",
+      "approve": "Approuver",
+      "needsReview": "Demander des Modifications",
+      "reject": "Rejeter"
+    },
+    "pagination": {
+      "show": "Afficher",
+      "perPage": "par page",
+      "total": "total",
+      "first": "Première",
+      "last": "Dernière"
+    },
+    "common": {
+      "loading": "Chargement..."
+    },
+    "refreshed": "Données actualisées avec succès"
   }
 }
 

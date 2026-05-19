@@ -1887,5 +1887,130 @@
       "subjects": "Amasomo",
       "classrooms": "Ibyiciro"
     }
+  },
+
+  
+  "adminGrades": {
+    "header": {
+      "title": "Gestion des Notes",
+      "subtitle": "Genzura kandi ucunge amanota y'abarezi"
+    },
+    "tabs": {
+      "gradeUploads": "Ohereza Amanota",
+      "manualEntry": "Injiza Amanota Ukoresheje Intoki"
+    },
+    "stats": {
+      "total": "Igiteranyo",
+      "pending": "Bitegereje",
+      "approved": "Byemewe",
+      "rejected": "Byangijwe",
+      "needsReview": "Bisaba Gusuzuma"
+    },
+    "filters": {
+      "title": "Imyitozo yo Gutunguranya",
+      "academicYear": "Umwaka w'Amashuri",
+      "academicYearPlaceholder": "Hitamo Umwaka",
+      "term": "Igikorwa",
+      "termPlaceholder": "Hitamo Igikorwa",
+      "schoolLevel": "Urwego rw'Ishuri",
+      "schoolLevelPlaceholder": "Hitamo Urwego",
+      "classLevel": "Icyiciro",
+      "classLevelPlaceholder": "Hitamo Icyiciro",
+      "subject": "Icyigwa",
+      "subjectPlaceholder": "Hitamo Icyigwa",
+      "status": "Imeza",
+      "statusPlaceholder": "Hitamo Imeza"
+    },
+    "search": {
+      "placeholder": "Shakisha mwarimu, icyigwa, icyiciro..."
+    },
+    "uploads": {
+      "title": "Ohereza Amanota",
+      "noUploads": "Nta manota yoherejwe abonetse",
+      "noUploadsHint": "Gerageza guhindura imyitozo yawe"
+    },
+    "manual": {
+      "title": "Injiza Amanota Ukoresheje Intoki",
+      "academicYear": "Umwaka w'Amashuri",
+      "term": "Igikorwa",
+      "schoolLevel": "Urwego rw'Ishuri",
+      "classLevel": "Icyiciro",
+      "classroom": "Icyumba cy'Ishuri",
+      "subject": "Icyigwa",
+      "gradeType": "Ubwoko bw'Imanota",
+      "weight": "Ibirimo (%)",
+      "student": "Umunyeshuri",
+      "score": "Amanota",
+      "maxScore": "Amanota Aningiye",
+      "remarks": "Ibisobanuro",
+      "remarksPlaceholder": "Ibisobanuro birambuye kuri aya manota",
+      "clear": "Hanagura",
+      "submit": "Ohereza",
+      "submitting": "Birimo biherezwa...",
+      "missingFields": "Uzuza ibyifuzwa byose",
+      "success": "Amanota yoherejwe neza",
+      "failed": "Kohereza amanota byananiwe",
+      "error": "Habaye ikibazo mu kohereza amanota"
+    },
+    "detail": {
+      "title": "Ibisobanuro ku Manota Yoherejwe",
+      "teacher": "Mwarimu",
+      "subject": "Icyigwa",
+      "classLevel": "Icyiciro",
+      "academicYear": "Umwaka w'Amashuri",
+      "term": "Igikorwa",
+      "gradeType": "Ubwoko bw'Imanota",
+      "weight": "Ibirimo",
+      "status": "Imeza",
+      "uploadedAt": "Yoherejwe ku",
+      "reviewedAt": "Yasuzumwe ku",
+      "reviewedBy": "Yasuzumwe na",
+      "rejectionReason": "Impamvu yo Kwanga",
+      "adminNotes": "Ibisobanuro by'Ubuyobozi",
+      "studentGrades": "Amanota y'Abanyeshuri",
+      "filePreview": "Reba Ibirimo",
+      "noGrades": "Nta manota y'umunyeshuri abonetse kuri uyu woherejwe"
+    },
+    "review": {
+      "approved": "Amanota yoherejwe yemewe neza",
+      "rejected": "Amanota yoherejwe yangijwe",
+      "failed": "Gusuzuma amanota byananiwe",
+      "error": "Habaye ikibazo mu gusuzuma amanota"
+    },
+    "statuses": {
+      "pending": "Bitegereje",
+      "approved": "Byemewe",
+      "rejected": "Byangijwe",
+      "needs_review": "Bisaba Gusuzuma",
+      "active": "Gikora",
+      "inactive": "Ntigikora"
+    },
+    "gradeTypes": {
+      "assignment": "Umurimo",
+      "quiz": "Ikizami",
+      "midTerm": "Ikizami cya Pakati",
+      "finalExam": "Ikizami cya Nyuma",
+      "project": "Umushinga",
+      "practical": "Ibikorwa by'Intoki",
+      "oral": "Ikanwa",
+      "homework": "Umurimo wo Murugo"
+    },
+    "actions": {
+      "viewDetails": "Reba Ibisobanuro",
+      "approve": "Emera",
+      "needsReview": "Saba Impinduka",
+      "reject": "Janga"
+    },
+    "pagination": {
+      "show": "Erekana",
+      "perPage": "ku rupapuro",
+      "total": "yose",
+      "first": "Iya Mbere",
+      "last": "Iya Nyuma"
+    },
+    "common": {
+      "loading": "Birimo biragereranywa..."
+    },
+    "refreshed": "Amakuru yavuguruwe neza"
   }
 }
