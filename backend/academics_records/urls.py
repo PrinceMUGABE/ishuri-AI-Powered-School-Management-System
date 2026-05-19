@@ -21,35 +21,53 @@ urlpatterns = [
          views.get_subject_performance, name='get_subject_performance'),
     path('performance/class/<int:class_level_id>/', views.get_class_performance, name='get_class_performance'),
 
-    # ── Attendance ─────────────────────────────────────────────────────────
+    # ── Attendance Session Management ──────────────────────────────────────
+    # LIST and CREATE (different HTTP methods on same URL pattern)
+    path('attendance/sessions/', views.get_attendance_sessions, name='get_attendance_sessions'),
+    path('attendance/sessions/create/', views.create_attendance_session, name='create_attendance_session'),  # Separate create endpoint
+    
+    # RETRIEVE, UPDATE, DELETE for specific session
+    path('attendance/sessions/<int:session_id>/', views.attendance_session_detail, name='attendance_session_detail'),
+    path('attendance/session/<int:session_id>/', views.attendance_session_detail, name='attendance_session_detail_alt'),
+    
+    # Individual record update
+    path('attendance/records/<int:record_id>/', views.update_attendance_record, name='update_attendance_record'),
+    path('attendance/record/<int:record_id>/', views.update_attendance_record, name='update_attendance_record_alt'),
+    
+    
+    # Delete session
+    path('attendance/sessions/<int:session_id>/delete/', views.delete_attendance_session, name='delete_attendance_session'),
+    path('attendance/session/<int:session_id>/delete/', views.delete_attendance_session, name='delete_attendance_session_alt'),
+
+    # ── Teacher Students ──────────────────────────────────────────────────────
+    path('students/teacher/classroom/<int:classroom_id>/students/', 
+         views.get_teacher_students_for_classroom, 
+         name='get_teacher_students_for_classroom'),
+
+    # ── Attendance (legacy, keep for backward compatibility) ─────────────────
     path('attendance/upload/', views.upload_attendance, name='upload_attendance'),
     path('attendance/student/<int:student_id>/', views.get_student_attendance, name='get_student_attendance'),
 
     # ── Assignments ────────────────────────────────────────────────────────
     path('assignments/upload/', views.upload_assignment, name='upload_assignment'),
     path('assignments/', views.get_assignments, name='get_assignments'),
+    path('assignments/<int:assignment_id>/', views.assignment_detail, name='assignment_detail'),
+    path('assignments/<int:assignment_id>/download/', views.download_assignment_file, name='download_assignment_file'),
+    path('assignments/<int:assignment_id>/preview/', views.preview_assignment_file, name='preview_assignment_file'),
 
     # ── Teacher utilities ──────────────────────────────────────────────────
     path('teacher/students/', views.get_teacher_students, name='get_teacher_students'),
 
     # ── Excel template downloads ───────────────────────────────────────────
-    # GET ?academic_year_id=&term_id=&school_level_id=&class_level_id=&subject_id=&grade_type=
     path('templates/grades/', template_views.download_grade_template, name='download_grade_template'),
-
-    # GET ?academic_year_id=&term_id=&school_level_id=&class_level_id=&subject_id=&session_date=
     path('templates/attendance/', template_views.download_attendance_template, name='download_attendance_template'),
-
-    # GET ?academic_year_id= (optional)
     path('templates/trimesters/', template_views.list_trimesters, name='list_trimesters'),
 
-    # ── Excel template uploads (filled templates) ──────────────────────────
-    # POST multipart: excel_file + academic_year_id + term_id + school_level_id + class_level_id + subject_id + grade_type
+    # ── Excel template uploads ──────────────────────────────────────────
     path('templates/grades/upload/', template_views.upload_grade_template_file, name='upload_grade_template_file'),
-
-    # POST multipart: excel_file + academic_year_id + term_id + school_level_id + class_level_id + subject_id + session_date
     path('templates/attendance/upload/', template_views.upload_attendance_template_file, name='upload_attendance_template_file'),
     
-    
+    # ── Grade management ───────────────────────────────────────────────────
     path('grades/student-grades/', views.get_student_grades, name='get_student_grades'),
     path('grades/student-grade/<int:grade_id>/', views.student_grade_detail, name='student_grade_detail'),
     path('grades/upload/<int:upload_id>/', views.grade_upload_detail, name='grade_upload_detail'),

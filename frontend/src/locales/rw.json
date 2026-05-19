@@ -2012,5 +2012,180 @@
       "loading": "Birimo biragereranywa..."
     },
     "refreshed": "Amakuru yavuguruwe neza"
+  },
+
+  
+  "attendance": {
+    "header": {
+      "title": "Gucunga Ibitaro",
+      "subtitle": "Andika kandi ucunge ibitiro by'abanyeshuri"
+    },
+    "common": {
+      "loading": "Birimo...",
+      "saving": "Birimo kubika...",
+      "cancel": "Hagarika",
+      "save": "Bika",
+      "confirm": "Emeza",
+      "delete": "Siba",
+      "edit": "Hindura",
+      "view": "Reba",
+      "close": "Funga",
+      "refresh": "Vugurura",
+      "search": "Shakisha",
+      "filter": "Tandukanya",
+      "actions": "Ibikorwa"
+    },
+    "status": {
+      "present": "Yahari",
+      "absent": "Ntawahari",
+      "late": "Atinze",
+      "excused": "Yemerewe"
+    },
+    "stats": {
+      "totalSessions": "Inama Zose",
+      "totalRecords": "Inyandiko Zose",
+      "present": "Bari Bahari",
+      "absent": "Batahari",
+      "attendanceRate": "Igipimo cy'Itabaro"
+    },
+    "filters": {
+      "title": "Ibyo Ukoresha",
+      "academicYear": "Umwaka w'Amashuri",
+      "academicYearPlaceholder": "Imyaka Yose",
+      "term": "Igikorwa",
+      "termPlaceholder": "Ibikorwa Byose",
+      "schoolLevel": "Urwego rw'Ishuri",
+      "schoolLevelPlaceholder": "Urwego Rwose",
+      "classLevel": "Icyiciro",
+      "classLevelPlaceholder": "Ibyiciro Byose",
+      "subject": "I Somo",
+      "subjectPlaceholder": "Amasomo Yose",
+      "classroom": "Icyumba cy'Ishuri",
+      "classroomPlaceholder": "Ibyumba Byose"
+    },
+    "buttons": {
+      "downloadTemplate": "Kurura Akarorero",
+      "uploadAttendance": "Ohereza Ibitaro",
+      "takeAttendance": "Fata Ibitaro"
+    },
+    "sessions": {
+      "title": "Inama z'Ibitaro",
+      "searchPlaceholder": "Shakisha isomo cyangwa icyiciro...",
+      "noSessions": "Nta nama y'ibitiro yabonetse",
+      "noSessionsHint": "Fata ibitiro cyangwa ohereze dosiye kugira utangire"
+    },
+    "modals": {
+      "takeAttendance": {
+        "title": "Fata Ibitaro",
+        "sessionDate": "Itariki y'Inama",
+        "startTime": "Isaha yo Gutangira",
+        "endTime": "Isaha yo Gusoza",
+        "notes": "Ibyitondwa",
+        "notesPlaceholder": "Ibyitondwa bihishije kuri iyi nama...",
+        "classroom": "Icyumba cy'Ishuri",
+        "submit": "Ohereza Ibitaro"
+      },
+      "upload": {
+        "title": "Ohereza Dosiye y'Ibitaro",
+        "subtitle": "Ohereza dosiye ya Excel irimo ibitiro",
+        "selectFile": "Kanda kugira uhitemo dosiye ya Excel",
+        "fileTypes": "Yemera .xlsx · .xls",
+        "academicYear": "Umwaka w'Amashuri",
+        "selectYear": "Hitamo umwaka",
+        "term": "Igikorwa",
+        "selectTerm": "Hitamo igikorwa",
+        "schoolLevel": "Urwego rw'Ishuri",
+        "selectLevel": "Hitamo urwego",
+        "classLevel": "Icyiciro",
+        "selectClass": "Hitamo icyiciro",
+        "subject": "I Somo",
+        "selectSubject": "Hitamo isomo",
+        "sessionDate": "Itariki y'Inama",
+        "uploading": "Iri koherezwa...",
+        "submit": "Ohereza Dosiye"
+      },
+      "download": {
+        "title": "Kurura Akarorero k'Ibitaro",
+        "subtitle": "Habona akarorero ka Excel gafite urutonde rw'ishuri ryawe",
+        "info": "Akarorero kazagira abanyeshuri bose bo mu cyiciro wahisemo. Uzuza urubanza rw'imiterere hanyuma utange ubundi.",
+        "academicYear": "Umwaka w'Amashuri",
+        "selectYear": "Hitamo umwaka",
+        "term": "Igikorwa",
+        "selectTerm": "Hitamo igikorwa",
+        "schoolLevel": "Urwego rw'Ishuri",
+        "selectLevel": "Hitamo urwego",
+        "classLevel": "Icyiciro",
+        "selectClass": "Hitamo icyiciro",
+        "subject": "I Somo",
+        "selectSubject": "Hitamo isomo",
+        "sessionDate": "Itariki y'Inama",
+        "generating": "Iri kororwa...",
+        "download": "Kurura Akarorero"
+      },
+      "detail": {
+        "title": "Iby'Inama y'Ibitaro",
+        "subject": "I Somo",
+        "class": "Icyiciro",
+        "date": "Itariki",
+        "teacher": "Umwarimu",
+        "startTime": "Isaha yo Gutangira",
+        "endTime": "Isaha yo Gusoza",
+        "notes": "Ibyitondwa",
+        "attendanceRecords": "Inyandiko z'Ibitaro"
+      },
+      "edit": {
+        "title": "Hindura Inyandiko y'Ibitaro",
+        "status": "Imiterere",
+        "remarks": "Ibyitondwa",
+        "remarksPlaceholder": "Ibyitondwa bihishije...",
+        "save": "Bika Ibyahinduwe"
+      }
+    },
+    "actions": {
+      "viewDetails": "Reba Ibijyanye",
+      "editRecord": "Hindura Inyandiko",
+      "deleteSession": "Siba Inama",
+      "confirmDelete": "Uri muto gusiba iyi nama y'ibitiro?",
+      "deleteSuccess": "Inama yasibwe neza",
+      "deleteFailed": "Kusiba inama byananiwe"
+    },
+    "upload": {
+      "noFile": "Hitamo dosiye ya Excel",
+      "missingFields": "Uzuza ibyangombwa byose",
+      "uploadSuccess": "Inyandiko z'ibitiro zoherejwe neza",
+      "uploadFailed": "Kohereza byananiwe",
+      "uploadError": "Ikosa ry'kohereza"
+    },
+    "download": {
+      "missingFields": "Uzuza ibyangombwa byose",
+      "success": "Akarorero karakurutswe!",
+      "failed": "Kurura byananiwe"
+    },
+    "pagination": {
+      "show": "Erekana",
+      "perPage": "ku rupapuro",
+      "total": "byose",
+      "first": "Icya Mbere",
+      "last": "Icya Nyuma"
+    },
+    "success": {
+      "submitSuccess": "Ibitaro byanditswe neza",
+      "updateSuccess": "Inyandiko y'ibitiro yahinduwe neza",
+      "deleteSuccess": "Inama y'ibitiro yasibwe neza"
+    },
+    "errors": {
+      "fetchSessionsFailed": "Kureka inama z'ibitiro byananiwe",
+      "fetchAttendanceFailed": "Kureka inyandiko z'ibitiro byananiwe",
+      "missingFields": "Uzuza ibyangombwa byose",
+      "noRecords": "Nta nyandiko z'ibitiro zo kohereza",
+      "selectClassFirst": "Hitamo icyiciro mbere",
+      "selectSubjectFirst": "Hitamo isomo mbere",
+      "submitFailed": "Kohereza ibitiro byananiwe",
+      "submitError": "Ikosa ry'kohereza ibitiro",
+      "updateFailed": "Kuhindura inyandiko y'ibitiro byananiwe",
+      "updateError": "Ikosa ry'kuhindura inyandiko y'ibitiro",
+      "deleteFailed": "Kusiba inama y'ibitiro byananiwe",
+      "deleteError": "Ikosa ry'kusiba inama y'ibitiro"
+    }
   }
 }

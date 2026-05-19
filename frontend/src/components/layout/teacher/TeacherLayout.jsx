@@ -330,7 +330,7 @@ const TeacherLayout = () => {
   const menuItems = [
     { path: '/teacher/dashboard', icon: LayoutDashboard, label: t('teacher_layout.nav.dashboard') },
     { path: '/teacher/grades', icon: BarChart3, label: t('teacher_layout.nav.grades') },
-    { path: '/teacher/attendances', icon: CalendarCheck, label: t('teacher_layout.nav.attendances') },
+    { path: '/teacher/attendance', icon: CalendarCheck, label: t('teacher_layout.nav.attendances') },
     { path: '/teacher/assignments', icon: FileText, label: t('teacher_layout.nav.assignments') },
     { path: '/teacher/my-students', icon: Users, label: t('teacher_layout.nav.myStudents') },
     { path: '/teacher/chats', icon: MessageCircle, label: t('teacher_layout.nav.chats') },

@@ -230,8 +230,6 @@ class AttendanceSession(models.Model):
     
     def __str__(self):
         return f"{self.teacher.full_name} - {self.subject.name} - {self.session_date}"
-
-
 class StudentAttendance(models.Model):
     """Individual attendance record - stores only the raw attendance data"""
     

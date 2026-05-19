@@ -2052,6 +2052,181 @@
       "loading": "Chargement..."
     },
     "refreshed": "Données actualisées avec succès"
+  },
+
+  
+  "attendance": {
+    "header": {
+      "title": "Gestion des Présences",
+      "subtitle": "Enregistrer et gérer les présences des étudiants"
+    },
+    "common": {
+      "loading": "Chargement...",
+      "saving": "Enregistrement...",
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "confirm": "Confirmer",
+      "delete": "Supprimer",
+      "edit": "Modifier",
+      "view": "Voir",
+      "close": "Fermer",
+      "refresh": "Actualiser",
+      "search": "Rechercher",
+      "filter": "Filtrer",
+      "actions": "Actions"
+    },
+    "status": {
+      "present": "Présent",
+      "absent": "Absent",
+      "late": "En Retard",
+      "excused": "Excusé"
+    },
+    "stats": {
+      "totalSessions": "Sessions Totales",
+      "totalRecords": "Enregistrements Totaux",
+      "present": "Présents",
+      "absent": "Absents",
+      "attendanceRate": "Taux de Présence"
+    },
+    "filters": {
+      "title": "Filtres",
+      "academicYear": "Année Académique",
+      "academicYearPlaceholder": "Toutes les Années",
+      "term": "Trimestre",
+      "termPlaceholder": "Tous les Trimestres",
+      "schoolLevel": "Niveau Scolaire",
+      "schoolLevelPlaceholder": "Tous les Niveaux",
+      "classLevel": "Classe",
+      "classLevelPlaceholder": "Toutes les Classes",
+      "subject": "Matière",
+      "subjectPlaceholder": "Toutes les Matières",
+      "classroom": "Salle de Classe",
+      "classroomPlaceholder": "Toutes les Salles"
+    },
+    "buttons": {
+      "downloadTemplate": "Télécharger le Modèle",
+      "uploadAttendance": "Importer les Présences",
+      "takeAttendance": "Prendre les Présences"
+    },
+    "sessions": {
+      "title": "Sessions de Présence",
+      "searchPlaceholder": "Rechercher par matière ou classe...",
+      "noSessions": "Aucune session de présence trouvée",
+      "noSessionsHint": "Prenez les présences ou importez un fichier pour commencer"
+    },
+    "modals": {
+      "takeAttendance": {
+        "title": "Prendre les Présences",
+        "sessionDate": "Date de la Session",
+        "startTime": "Heure de Début",
+        "endTime": "Heure de Fin",
+        "notes": "Remarques",
+        "notesPlaceholder": "Remarques optionnelles sur cette session...",
+        "classroom": "Salle de Classe",
+        "submit": "Soumettre les Présences"
+      },
+      "upload": {
+        "title": "Importer un Fichier de Présence",
+        "subtitle": "Soumettre un fichier Excel avec les enregistrements de présence",
+        "selectFile": "Cliquez pour sélectionner un fichier Excel",
+        "fileTypes": "Accepte .xlsx · .xls",
+        "academicYear": "Année Académique",
+        "selectYear": "Sélectionner l'année",
+        "term": "Trimestre",
+        "selectTerm": "Sélectionner le trimestre",
+        "schoolLevel": "Niveau Scolaire",
+        "selectLevel": "Sélectionner le niveau",
+        "classLevel": "Classe",
+        "selectClass": "Sélectionner la classe",
+        "subject": "Matière",
+        "selectSubject": "Sélectionner la matière",
+        "sessionDate": "Date de la Session",
+        "uploading": "Import en cours...",
+        "submit": "Importer le Fichier"
+      },
+      "download": {
+        "title": "Télécharger le Modèle de Présence",
+        "subtitle": "Obtenez un modèle Excel pré-rempli avec votre liste de classe",
+        "info": "Le modèle inclura tous les étudiants de votre classe sélectionnée. Remplissez la colonne de statut et ré-importez.",
+        "academicYear": "Année Académique",
+        "selectYear": "Sélectionner l'année",
+        "term": "Trimestre",
+        "selectTerm": "Sélectionner le trimestre",
+        "schoolLevel": "Niveau Scolaire",
+        "selectLevel": "Sélectionner le niveau",
+        "classLevel": "Classe",
+        "selectClass": "Sélectionner la classe",
+        "subject": "Matière",
+        "selectSubject": "Sélectionner la matière",
+        "sessionDate": "Date de la Session",
+        "generating": "Génération en cours...",
+        "download": "Télécharger le Modèle"
+      },
+      "detail": {
+        "title": "Détails de la Session de Présence",
+        "subject": "Matière",
+        "class": "Classe",
+        "date": "Date",
+        "teacher": "Enseignant",
+        "startTime": "Heure de Début",
+        "endTime": "Heure de Fin",
+        "notes": "Remarques",
+        "attendanceRecords": "Enregistrements de Présence"
+      },
+      "edit": {
+        "title": "Modifier l'Enregistrement de Présence",
+        "status": "Statut",
+        "remarks": "Remarques",
+        "remarksPlaceholder": "Remarques optionnelles...",
+        "save": "Enregistrer les Modifications"
+      }
+    },
+    "actions": {
+      "viewDetails": "Voir les Détails",
+      "editRecord": "Modifier l'Enregistrement",
+      "deleteSession": "Supprimer la Session",
+      "confirmDelete": "Êtes-vous sûr de vouloir supprimer cette session de présence ?",
+      "deleteSuccess": "Session supprimée avec succès",
+      "deleteFailed": "Échec de la suppression de la session"
+    },
+    "upload": {
+      "noFile": "Veuillez sélectionner un fichier Excel",
+      "missingFields": "Veuillez remplir tous les champs requis",
+      "uploadSuccess": "Enregistrements de présence importés avec succès",
+      "uploadFailed": "Échec de l'import",
+      "uploadError": "Erreur d'import"
+    },
+    "download": {
+      "missingFields": "Veuillez remplir tous les champs requis",
+      "success": "Modèle téléchargé !",
+      "failed": "Échec du téléchargement"
+    },
+    "pagination": {
+      "show": "Afficher",
+      "perPage": "par page",
+      "total": "total",
+      "first": "Premier",
+      "last": "Dernier"
+    },
+    "success": {
+      "submitSuccess": "Présences enregistrées avec succès",
+      "updateSuccess": "Enregistrement de présence mis à jour avec succès",
+      "deleteSuccess": "Session de présence supprimée avec succès"
+    },
+    "errors": {
+      "fetchSessionsFailed": "Échec du chargement des sessions de présence",
+      "fetchAttendanceFailed": "Échec du chargement des enregistrements de présence",
+      "missingFields": "Veuillez remplir tous les champs requis",
+      "noRecords": "Aucun enregistrement de présence à soumettre",
+      "selectClassFirst": "Veuillez d'abord sélectionner une classe",
+      "selectSubjectFirst": "Veuillez d'abord sélectionner une matière",
+      "submitFailed": "Échec de la soumission des présences",
+      "submitError": "Erreur lors de la soumission des présences",
+      "updateFailed": "Échec de la mise à jour de l'enregistrement de présence",
+      "updateError": "Erreur lors de la mise à jour de l'enregistrement de présence",
+      "deleteFailed": "Échec de la suppression de la session de présence",
+      "deleteError": "Erreur lors de la suppression de la session de présence"
+    }
   }
 }
 

@@ -25,8 +25,8 @@ import TeacherLayout from './components/layout/teacher/TeacherLayout';
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
 import TeacherAcademicGrades from './pages/teacher/TeacherAcademicGrades';
 import TeacherProfile from './pages/teacher/TeacherProfile';
-import TeacherAssignmentUpload from './pages/teacher/AssignmentUpload';
-import TeacherAttendanceRecord from './pages/teacher/AttendanceRecord';
+import TeacherAssignmentManagement from './pages/teacher/AssignmentUpload';
+import TeacherAttendanceManagement from './pages/teacher/AttendanceRecord';
 import TeacherStudents from './pages/teacher/MyStudents';
 
 // Helper function to check if user is authenticated
@@ -127,8 +127,8 @@ function App() {
             <Route path="dashboard" element={<TeacherDashboard />} />
             <Route path="grades" element={<TeacherAcademicGrades /> } />
             <Route path="profile" element={<TeacherProfile />} />
-            <Route path="attendance" element={<TeacherAttendanceRecord />} />
-            <Route path="assignments" element={<TeacherAssignmentUpload />} />
+            <Route path="attendance" element={<TeacherAttendanceManagement />} />
+            <Route path="assignments" element={<TeacherAssignmentManagement />} />
             <Route path="my-students" element={<TeacherStudents />} />
           </Route>
 

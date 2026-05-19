@@ -27,6 +27,12 @@ from .models import (
     StudentGrade, AttendanceSession, StudentAttendance,
     Assignment
 )
+from .serializers import (
+    AttendanceRecordUpdateSerializer, AttendanceSessionDetailSerializer, GradeUploadSerializer, StudentGradeSerializer, StudentGradeUpdateSerializer,
+    StudentAttendanceSerializer, AttendanceSessionSerializer,
+    AssignmentSerializer, AssignmentUpdateSerializer
+
+)
 from .calculations import GradeCalculator, DisciplineCalculator, PerformanceReportGenerator
 from .translations import t, get_lang
 
@@ -735,45 +741,68 @@ def get_student_attendance(request, student_id):
 # ============================================================
 # ASSIGNMENT VIEWS
 # ============================================================
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 @parser_classes([MultiPartParser, FormParser])
 def upload_assignment(request):
-    """Teacher uploads an assignment PDF"""
+    """
+    Teacher uploads an assignment PDF
+    """
     lang = get_lang(request)
     
     teacher, err = _get_teacher(request.user, lang)
     if err:
         return err
     
+    # Validate required fields
     title = request.data.get('title')
+    academic_year_id = request.data.get('academic_year_id')
     class_level_id = request.data.get('class_level_id')
     subject_id = request.data.get('subject_id')
-    academic_year_id = request.data.get('academic_year_id')
     pdf_file = request.FILES.get('pdf_file')
     
-    if not all([title, class_level_id, subject_id, academic_year_id, pdf_file]):
-        return _err(t("invalid_data", lang))
+    if not all([title, academic_year_id, class_level_id, subject_id, pdf_file]):
+        return _err("Missing required fields: title, academic_year_id, class_level_id, subject_id, pdf_file", 
+                   status.HTTP_400_BAD_REQUEST)
+    
+    # Validate file type
+    if not pdf_file.name.endswith('.pdf'):
+        return _err("Only PDF files are allowed", status.HTTP_400_BAD_REQUEST)
     
     try:
+        academic_year = get_object_or_404(AcademicYear, id=academic_year_id)
         class_level = get_object_or_404(ClassLevel, id=class_level_id)
         subject = get_object_or_404(Subject, id=subject_id)
-        academic_year = get_object_or_404(AcademicYear, id=academic_year_id)
+        school_level = class_level.school_level
         
-        # Verify teacher is assigned
-        if not TeacherAssignment.objects.filter(
-            teacher=teacher, class_level=class_level, subject=subject, status='active'
-        ).exists():
-            return _err(t("teacher_not_assigned", lang, subject=subject.name, class_level=class_level.name), 
+        term_id = request.data.get('term_id')
+        term = get_object_or_404(Term, id=term_id) if term_id else None
+        
+        classroom_id = request.data.get('classroom_id')
+        classroom = get_object_or_404(ClassRoom, id=classroom_id) if classroom_id else None
+        
+        # Verify teacher is assigned to this subject/class
+        is_assigned = TeacherAssignment.objects.filter(
+            teacher=teacher,
+            academic_year=academic_year,
+            class_level=class_level,
+            subject=subject,
+            status='active'
+        ).exists()
+        
+        if not is_assigned:
+            return _err(f"You are not assigned to teach {subject.name} in {class_level.name}", 
                        status.HTTP_403_FORBIDDEN)
         
+        # Create assignment
         assignment = Assignment.objects.create(
             teacher=teacher,
             academic_year=academic_year,
-            school_level=class_level.school_level,
+            term=term,
+            school_level=school_level,
             class_level=class_level,
             subject=subject,
+            classroom=classroom,
             title=title,
             description=request.data.get('description', ''),
             instructions=request.data.get('instructions', ''),
@@ -781,94 +810,250 @@ def upload_assignment(request):
             due_date=request.data.get('due_date') or None,
             due_time=request.data.get('due_time') or None,
             total_marks=request.data.get('total_marks') or None,
+            status=Assignment.AssignmentStatus.ACTIVE,
             uploaded_by=request.user
         )
         
         # Notify students in this class
+        from students.models import StudentClassroomAssignment
         students = Student.objects.filter(
-            current_class_level=class_level,
-            current_academic_year=academic_year,
-            status='active',
-            user__isnull=False
+            studentclassroomassignment__class_level=class_level,
+            studentclassroomassignment__academic_year=academic_year,
+            studentclassroomassignment__status='active',
+            status='active'
+        ).distinct()
+        
+        notified_count = 0
+        for student in students:
+            if student.user:
+                try:
+                    _notify_user(
+                        student.user,
+                        'assignment_created',
+                        f"New Assignment: {title}",
+                        f"A new assignment has been posted for {subject.name}. Due: {assignment.due_date or 'Not specified'}",
+                        created_by=request.user,
+                        extra_data={'assignment_id': assignment.id, 'subject': subject.name}
+                    )
+                    notified_count += 1
+                except Exception as notify_error:
+                    print(f"Failed to notify student {student.id}: {notify_error}")
+        
+        return _ok(
+            data={
+                'id': assignment.id,
+                'title': assignment.title,
+                'pdf_url': assignment.pdf_file.url if assignment.pdf_file else None,
+                'notified_students': notified_count
+            },
+            message=f"Assignment uploaded successfully. {notified_count} students notified.",
+            status_code=status.HTTP_201_CREATED
         )
         
-        for student in students:
-            _notify_user(
-                student.user,
-                'assignment_created',
-                f"New Assignment: {title}",
-                f"A new assignment has been posted for {subject.name}",
-                created_by=request.user,
-                extra_data={'assignment_id': assignment.id}
-            )
-        
-        return _ok(data={'id': assignment.id, 'title': title}, 
-                   message="Assignment uploaded successfully", status_code=status.HTTP_201_CREATED)
-        
     except Exception as exc:
-        return _err(t("unexpected_error", lang, error=str(exc)), status.HTTP_500_INTERNAL_SERVER_ERROR)
+        print(f"Error in upload_assignment: {exc}")
+        import traceback
+        traceback.print_exc()
+        return _err(f"An unexpected error occurred: {str(exc)}", status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_assignments(request):
-    """Get assignments based on role"""
+    """
+    Get assignments based on user role
+    """
     lang = get_lang(request)
     user = request.user
     
     try:
-        if user.role == 'student':
+        if user.role == 'admin':
+            # Admin can see all assignments
+            assignments = Assignment.objects.all().select_related(
+                'teacher', 'subject', 'class_level', 'academic_year'
+            ).order_by('-created_at')
+            
+        elif user.role == 'teacher':
+            # Teacher sees their own assignments
+            teacher = get_object_or_404(Teacher, user=user)
+            assignments = Assignment.objects.filter(teacher=teacher).select_related(
+                'subject', 'class_level', 'academic_year'
+            ).order_by('-created_at')
+            
+        elif user.role == 'student':
+            # Student sees assignments for their class
             student = user.student_profile
             assignments = Assignment.objects.filter(
                 class_level=student.current_class_level,
                 status='active'
-            ).select_related('teacher', 'subject')
+            ).select_related('teacher', 'subject').order_by('-created_at')
             
-            # Filter out expired
-            from django.utils import timezone
-            from datetime import date
-            current_date = date.today()
-            current_time = timezone.now().time()
-            
-            assignments = [
-                a for a in assignments 
-                if not (a.due_date and a.due_date < current_date) and
-                not (a.due_date == current_date and a.due_time and a.due_time < current_time)
-            ]
-            
-        elif user.role == 'parent':
-            parent = user.parent_profile
-            student_ids = parent.students.values_list('id', flat=True)
-            assignments = Assignment.objects.filter(
-                class_level__students__id__in=student_ids,
-                status='active'
-            ).distinct().select_related('teacher', 'subject')
         else:
-            teacher, err = _get_teacher(user, lang)
-            if err:
-                return err
-            assignments = Assignment.objects.filter(teacher=teacher).select_related('subject', 'class_level')
+            return _err("Invalid user role", status.HTTP_403_FORBIDDEN)
         
-        result = []
-        for a in assignments:
-            result.append({
-                'id': a.id,
-                'title': a.title,
-                'description': a.description,
-                'subject': a.subject.name,
-                'teacher': a.teacher.full_name,
-                'due_date': str(a.due_date) if a.due_date else None,
-                'due_time': str(a.due_time) if a.due_time else None,
-                'total_marks': float(a.total_marks) if a.total_marks else None,
-                'pdf_url': a.pdf_file.url if a.pdf_file else None,
-                'created_at': a.created_at.isoformat()
-            })
+        # Apply filters
+        academic_year_id = request.query_params.get('academic_year_id')
+        if academic_year_id:
+            assignments = assignments.filter(academic_year_id=academic_year_id)
         
-        return _ok(data=result, message="Assignments fetched successfully")
+        term_id = request.query_params.get('term_id')
+        if term_id:
+            assignments = assignments.filter(term_id=term_id)
+        
+        class_level_id = request.query_params.get('class_level_id')
+        if class_level_id:
+            assignments = assignments.filter(class_level_id=class_level_id)
+        
+        subject_id = request.query_params.get('subject_id')
+        if subject_id:
+            assignments = assignments.filter(subject_id=subject_id)
+        
+        classroom_id = request.query_params.get('classroom_id')
+        if classroom_id:
+            assignments = assignments.filter(classroom_id=classroom_id)
+        
+        # Serialize
+        from .serializers import AssignmentSerializer
+        serializer = AssignmentSerializer(assignments, many=True)
+        
+        return _ok(
+            data=serializer.data,
+            message="Assignments fetched successfully"
+        )
         
     except Exception as exc:
-        return _err(t("unexpected_error", lang, error=str(exc)), status.HTTP_500_INTERNAL_SERVER_ERROR)
+        print(f"Error in get_assignments: {exc}")
+        import traceback
+        traceback.print_exc()
+        return _err(f"An unexpected error occurred: {str(exc)}", status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+@api_view(['GET', 'PATCH', 'DELETE'])
+@permission_classes([IsAuthenticated])
+def assignment_detail(request, assignment_id):
+    """
+    Get, update, or delete a specific assignment
+    """
+    lang = get_lang(request)
+    user = request.user
+    
+    # Determine access
+    if user.role == 'admin':
+        assignment = get_object_or_404(Assignment, id=assignment_id)
+    elif user.role == 'teacher':
+        teacher = get_object_or_404(Teacher, user=user)
+        assignment = get_object_or_404(Assignment, id=assignment_id, teacher=teacher)
+    else:
+        return _err("Permission denied", status.HTTP_403_FORBIDDEN)
+    
+    if request.method == 'GET':
+        from .serializers import AssignmentSerializer
+        serializer = AssignmentSerializer(assignment)
+        return _ok(data=serializer.data, message="Assignment details fetched")
+    
+    elif request.method == 'PATCH':
+        # Update assignment
+        from .serializers import AssignmentUpdateSerializer
+        serializer = AssignmentUpdateSerializer(assignment, data=request.data, partial=True)
+        
+        if serializer.is_valid():
+            serializer.save()
+            
+            # Notify students if due date changed
+            if 'due_date' in request.data and assignment.class_level:
+                students = Student.objects.filter(
+                    current_class_level=assignment.class_level,
+                    status='active'
+                )
+                for student in students:
+                    if student.user:
+                        try:
+                            _notify_user(
+                                student.user,
+                                'assignment_updated',
+                                f"Assignment Updated: {assignment.title}",
+                                f"The due date for {assignment.subject.name} assignment has been updated to {assignment.due_date}",
+                                created_by=request.user,
+                                extra_data={'assignment_id': assignment.id}
+                            )
+                        except Exception:
+                            pass
+            
+            return _ok(data=serializer.data, message="Assignment updated successfully")
+        return _err(serializer.errors, status.HTTP_400_BAD_REQUEST)
+    
+    elif request.method == 'DELETE':
+        assignment_title = assignment.title
+        assignment.delete()
+        return _ok(message=f"Assignment '{assignment_title}' deleted successfully")
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def download_assignment_file(request, assignment_id):
+    """
+    Download the PDF file for an assignment
+    """
+    lang = get_lang(request)
+    user = request.user
+    
+    # Check permissions
+    if user.role == 'admin':
+        assignment = get_object_or_404(Assignment, id=assignment_id)
+    elif user.role == 'teacher':
+        teacher = get_object_or_404(Teacher, user=user)
+        assignment = get_object_or_404(Assignment, id=assignment_id, teacher=teacher)
+    elif user.role == 'student':
+        student = user.student_profile
+        assignment = get_object_or_404(Assignment, id=assignment_id, class_level=student.current_class_level)
+    else:
+        return _err("Permission denied", status.HTTP_403_FORBIDDEN)
+    
+    if not assignment.pdf_file or not assignment.pdf_file.path:
+        return _err("File not found", status.HTTP_404_NOT_FOUND)
+    
+    try:
+        from django.http import FileResponse
+        import mimetypes
+        
+        # Open the file and return as response
+        response = FileResponse(
+            open(assignment.pdf_file.path, 'rb'),
+            content_type='application/pdf'
+        )
+        response['Content-Disposition'] = f'inline; filename="{assignment.pdf_file.name}"'
+        return response
+        
+    except Exception as exc:
+        return _err(f"Error reading file: {str(exc)}", status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def preview_assignment(request, assignment_id):
+    """
+    Preview the PDF file for an assignment (returns URL or base64)
+    """
+    lang = get_lang(request)
+    user = request.user
+    
+    # Check permissions
+    if user.role == 'admin':
+        assignment = get_object_or_404(Assignment, id=assignment_id)
+    elif user.role == 'teacher':
+        teacher = get_object_or_404(Teacher, user=user)
+        assignment = get_object_or_404(Assignment, id=assignment_id, teacher=teacher)
+    elif user.role == 'student':
+        student = user.student_profile
+        assignment = get_object_or_404(Assignment, id=assignment_id, class_level=student.current_class_level)
+    else:
+        return _err("Permission denied", status.HTTP_403_FORBIDDEN)
+    
+    if not assignment.pdf_file or not assignment.pdf_file.url:
+        return _err("File not found", status.HTTP_404_NOT_FOUND)
+    
+    # For simplicity, return the URL to the PDF file
+    return _ok(data={'pdf_url': assignment.pdf_file.url}, message="Assignment preview URL fetched successfully")    
 
 # ============================================================
 # TEACHER STUDENTS VIEW
@@ -1631,3 +1816,396 @@ def preview_grade_upload_file(request, upload_id):
         
     except Exception as exc:
         return _err(f"Error reading file: {str(exc)}", status.HTTP_500_INTERNAL_SERVER_ERROR, lang=lang)
+    
+    
+    
+    
+    
+    
+# ============================================================
+# ATTENDANCE SESSION VIEWS (UPDATED)
+# ============================================================
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_attendance_sessions(request):
+    """
+    Get all attendance sessions for the logged-in teacher with filtering.
+    """
+    lang = get_lang(request)
+    
+    teacher, err = _get_teacher(request.user, lang)
+    if err:
+        return err
+    
+    # Base queryset
+    sessions = AttendanceSession.objects.filter(
+        teacher=teacher,
+        is_submitted=True
+    ).select_related(
+        'academic_year', 'term', 'school_level', 'class_level',
+        'subject', 'classroom', 'teacher'
+    ).order_by('-session_date')
+    
+    # Apply filters
+    academic_year_id = request.query_params.get('academic_year_id')
+    if academic_year_id:
+        sessions = sessions.filter(academic_year_id=academic_year_id)
+    
+    term_id = request.query_params.get('term_id')
+    if term_id:
+        sessions = sessions.filter(term_id=term_id)
+    
+    class_level_id = request.query_params.get('class_level_id')
+    if class_level_id:
+        sessions = sessions.filter(class_level_id=class_level_id)
+    
+    subject_id = request.query_params.get('subject_id')
+    if subject_id:
+        sessions = sessions.filter(subject_id=subject_id)
+    
+    classroom_id = request.query_params.get('classroom_id')
+    if classroom_id:
+        sessions = sessions.filter(classroom_id=classroom_id)
+    
+    # Serialize
+    from .serializers import AttendanceSessionListSerializer
+    serializer = AttendanceSessionListSerializer(sessions, many=True)
+    
+    return Response({
+        'success': True,
+        'message': t('attendance_sessions_fetched', lang),
+        'data': serializer.data
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@parser_classes([JSONParser])
+def create_attendance_session(request):
+    """
+    Create a new attendance session with records.
+    """
+    lang = get_lang(request)
+    
+    teacher, err = _get_teacher(request.user, lang)
+    if err:
+        return err
+    
+    # Validate required fields
+    academic_year_id = request.data.get('academic_year_id')
+    class_level_id = request.data.get('class_level_id')
+    subject_id = request.data.get('subject_id')
+    session_date = request.data.get('session_date')
+    records = request.data.get('records', [])
+    
+    if not all([academic_year_id, class_level_id, subject_id, session_date]):
+        return Response({
+            'success': False,
+            'message': 'Missing required fields: academic_year_id, class_level_id, subject_id, session_date'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    if not records:
+        return Response({
+            'success': False,
+            'message': 'No attendance records to submit'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        academic_year = get_object_or_404(AcademicYear, id=academic_year_id)
+        class_level = get_object_or_404(ClassLevel, id=class_level_id)
+        subject = get_object_or_404(Subject, id=subject_id)
+        school_level = class_level.school_level
+        
+        term_id = request.data.get('term_id')
+        term = get_object_or_404(Term, id=term_id) if term_id else None
+        
+        classroom_id = request.data.get('classroom_id')
+        classroom = get_object_or_404(ClassRoom, id=classroom_id) if classroom_id else None
+        
+        # Check for duplicate session
+        if AttendanceSession.objects.filter(
+            teacher=teacher,
+            academic_year=academic_year,
+            class_level=class_level,
+            subject=subject,
+            session_date=session_date
+        ).exists():
+            return Response({
+                'success': False,
+                'message': 'Attendance already recorded for this session'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Create session
+        with transaction.atomic():
+            session = AttendanceSession.objects.create(
+                teacher=teacher,
+                academic_year=academic_year,
+                term=term,
+                school_level=school_level,
+                class_level=class_level,
+                subject=subject,
+                classroom=classroom,
+                session_date=session_date,
+                start_time=request.data.get('start_time'),
+                end_time=request.data.get('end_time'),
+                notes=request.data.get('notes', ''),
+                is_submitted=True,
+                submitted_at=timezone.now(),
+                created_by=request.user
+            )
+            
+            # Create attendance records
+            for record in records:
+                student_id = record.get('student_id')
+                status_value = record.get('status', 'present')
+                remarks = record.get('remarks', '')
+                
+                student = get_object_or_404(Student, id=student_id)
+                
+                StudentAttendance.objects.create(
+                    session=session,
+                    student=student,
+                    status=status_value,
+                    remarks=remarks
+                )
+        
+        return Response({
+            'success': True,
+            'message': 'Attendance recorded successfully',
+            'data': {
+                'session_id': session.id,
+                'records_count': len(records)
+            }
+        }, status=status.HTTP_201_CREATED)
+        
+    except Exception as exc:
+        return Response({
+            'success': False,
+            'message': f'An unexpected error occurred: {str(exc)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# academics_records/views.py
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def attendance_session_detail(request, session_id):
+    """
+    Get detailed attendance session with all records.
+    """
+    import json
+    lang = get_lang(request)
+    
+    print(f"\n{'='*60}")
+    print(f"📥 ATTENDANCE SESSION DETAIL REQUEST")
+    print(f"   Session ID: {session_id}")
+    print(f"   User: {request.user.username} (role={request.user.role})")
+    print(f"{'='*60}")
+    
+    # Check if user is admin or teacher
+    if _is_admin(request.user):
+        print(f"   👑 Admin access - can view any session")
+        try:
+            session = AttendanceSession.objects.get(id=session_id)
+        except AttendanceSession.DoesNotExist:
+            print(f"   ❌ Session {session_id} not found")
+            return Response({
+                'success': False,
+                'message': 'Attendance session not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+    else:
+        teacher, err = _get_teacher(request.user, lang)
+        if err:
+            return err
+        
+        print(f"   👨‍🏫 Teacher access - teacher_id={teacher.id}")
+        
+        try:
+            session = AttendanceSession.objects.get(
+                id=session_id,
+                teacher=teacher
+            )
+        except AttendanceSession.DoesNotExist:
+            print(f"   ❌ Session {session_id} not found for this teacher")
+            return Response({
+                'success': False,
+                'message': 'Attendance session not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+    
+    print(f"   ✅ Session found:")
+    print(f"      - Subject: {session.subject.name}")
+    print(f"      - Class: {session.class_level.name}")
+    print(f"      - Date: {session.session_date}")
+    print(f"      - Records count: {session.records.count()}")
+    
+    # Serialize the session with its records
+    from .serializers import AttendanceSessionDetailSerializer
+    serializer = AttendanceSessionDetailSerializer(session)
+    
+    print(f"   📤 Serialized data keys: {list(serializer.data.keys())}")
+    print(f"   📅 session_date in response: {serializer.data.get('session_date')}")
+    print(f"{'='*60}\n")
+    
+    return Response({
+        'success': True,
+        'data': serializer.data
+    })
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def update_attendance_record(request, record_id):
+    """
+    Update a single attendance record.
+    """
+    lang = get_lang(request)
+    
+    teacher, err = _get_teacher(request.user, lang)
+    if err:
+        return err
+    
+    try:
+        record = StudentAttendance.objects.get(
+            id=record_id,
+            session__teacher=teacher
+        )
+    except StudentAttendance.DoesNotExist:
+        return Response({
+            'success': False,
+            'message': 'Attendance record not found'
+        }, status=status.HTTP_404_NOT_FOUND)
+    
+    status_value = request.data.get('status')
+    remarks = request.data.get('remarks', record.remarks)
+    
+    if status_value:
+        record.status = status_value
+    record.remarks = remarks
+    record.save()
+    
+    return Response({
+        'success': True,
+        'message': 'Attendance record updated successfully',
+        'data': {
+            'id': record.id,
+            'status': record.status,
+            'remarks': record.remarks
+        }
+    })
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_attendance_session(request, session_id):
+    """
+    Delete an attendance session and all its records.
+    """
+    lang = get_lang(request)
+    
+    # Check if user is admin
+    if _is_admin(request.user):
+        try:
+            session = AttendanceSession.objects.get(id=session_id)
+        except AttendanceSession.DoesNotExist:
+            return Response({
+                'success': False,
+                'message': 'Attendance session not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+    else:
+        teacher, err = _get_teacher(request.user, lang)
+        if err:
+            return err
+        
+        try:
+            session = AttendanceSession.objects.get(
+                id=session_id,
+                teacher=teacher
+            )
+        except AttendanceSession.DoesNotExist:
+            return Response({
+                'success': False,
+                'message': 'Attendance session not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+    
+    # Store session info for response message
+    session_info = f"{session.subject.name} - {session.session_date}"
+    session.delete()
+    
+    return Response({
+        'success': True,
+        'message': f'Attendance session for {session_info} deleted successfully'
+    })
+    
+    
+    
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_teacher_students_for_classroom(request, classroom_id):
+    """
+    Get all students in a specific classroom for the logged-in teacher.
+    """
+    lang = get_lang(request)
+    
+    teacher, err = _get_teacher(request.user, lang)
+    if err:
+        return err
+    
+    try:
+        classroom = get_object_or_404(ClassRoom, id=classroom_id)
+        
+        # Verify teacher is assigned to this classroom
+        is_assigned = TeacherAssignment.objects.filter(
+            teacher=teacher,
+            classrooms=classroom,
+            status='active'
+        ).exists()
+        
+        if not is_assigned:
+            return Response({
+                'success': False,
+                'message': 'You are not assigned to this classroom'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        academic_year_id = request.query_params.get('academic_year_id')
+        academic_year = get_object_or_404(AcademicYear, id=academic_year_id) if academic_year_id else None
+        
+        if not academic_year:
+            academic_year = AcademicYear.objects.filter(is_current=True).first()
+        
+        # Get students in this classroom for the current academic year
+        from students.models import StudentClassroomAssignment
+        
+        students = Student.objects.filter(
+            studentclassroomassignment__classroom=classroom,
+            studentclassroomassignment__academic_year=academic_year,
+            studentclassroomassignment__status='active',
+            status='active'
+        ).distinct().order_by('full_name')
+        
+        # Serialize
+        result = []
+        for student in students:
+            result.append({
+                'id': student.id,
+                'full_name': student.full_name,
+                'roll_number': student.roll_number,
+                'email': student.email,
+                'phone_number': student.phone_number
+            })
+        
+        return Response({
+            'success': True,
+            'data': {
+                'classroom_id': classroom.id,
+                'classroom_name': classroom.name,
+                'academic_year': academic_year.name if academic_year else None,
+                'students': result,
+                'total': len(result)
+            }
+        })
+        
+    except ClassRoom.DoesNotExist:
+        return Response({
+            'success': False,
+            'message': 'Classroom not found'
+        }, status=status.HTTP_404_NOT_FOUND)
