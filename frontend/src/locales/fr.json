@@ -1513,7 +1513,8 @@
       "assignments": "Devoirs",
       "myStudents": "Mes élèves",
       "chats": "Discussions",
-      "profile": "Profil"
+      "profile": "Profil",
+      "timetable": "Emploi du temps"
     },
     "common": {
       "loading": "Chargement de votre espace de travail…",
@@ -2615,6 +2616,47 @@
       "teacher": "Enseignant",
       "student": "Étudiant",
       "parent": "Parent"
+    }
+  },
+
+
+  "teacher_timetable": {
+    "title": "Mon Emploi du Temps Hebdomadaire",
+    "loading": "Chargement de l'emploi du temps...",
+    "time": "Heure",
+    "academic_year": "Année Académique",
+    "term": "Trimestre",
+    "no_timetable": "Aucun Emploi du Temps Trouvé",
+    "no_timetable_desc": "Votre emploi du temps n'a pas encore été généré. Veuillez contacter l'administrateur.",
+    "greeting": {
+      "morning": "Bonjour",
+      "afternoon": "Bon après-midi",
+      "evening": "Bonsoir"
+    },
+    "days": {
+      "monday": "Lundi",
+      "tuesday": "Mardi",
+      "wednesday": "Mercredi",
+      "thursday": "Jeudi",
+      "friday": "Vendredi",
+      "saturday": "Samedi",
+      "sunday": "Dimanche"
+    },
+    "actions": {
+      "refresh": "Actualiser l'emploi du temps",
+      "export": "Exporter l'emploi du temps"
+    },
+    "summary": {
+      "total_classes": "Total des Cours",
+      "total_hours": "Total Heures/Semaine",
+      "teaching_days": "Jours d'Enseignement"
+    },
+    "errors": {
+      "fetch_failed": "Échec du chargement de l'emploi du temps",
+      "export_failed": "Échec de l'exportation de l'emploi du temps"
+    },
+    "messages": {
+      "export_success": "Emploi du temps exporté avec succès"
     }
   }
 }

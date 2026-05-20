@@ -1476,7 +1476,8 @@
       "assignments": "Imirimo",
       "myStudents": "Abanyeshuri Banjye",
       "chats": "Inyinganwe",
-      "profile": "Umwirondoro"
+      "profile": "Umwirondoro",
+      "timetable":"Ibihe by'amasomo"
     },
     "common": {
       "loading": "Gutegura umwanya wawe…",
@@ -2619,6 +2620,47 @@
       "teacher": "Umwarimu",
       "student": "Umunyeshuri",
       "parent": "Umubyeyi"
+    }
+  },
+
+ 
+  "teacher_timetable": {
+    "title": "Igihe Cyanjyewe cya Buri Cyumweru",
+    "loading": "Gutwara igihe cy'amasomo...",
+    "time": "Igihe",
+    "academic_year": "Umwaka w'Amashuri",
+    "term": "Igikorwa",
+    "no_timetable": "Nta Gikorwa Cyabonetse",
+    "no_timetable_desc": "Igihe cyawe ntikirakozwe. Sabana n'umuyobozi.",
+    "greeting": {
+      "morning": "Mwaramutse",
+      "afternoon": "Mwiriwe",
+      "evening": "Mwiriwe"
+    },
+    "days": {
+      "monday": "Kuwa Mbere",
+      "tuesday": "Kuwa Kabiri",
+      "wednesday": "Kuwa Gatatu",
+      "thursday": "Kuwa Kane",
+      "friday": "Kuwa Gatanu",
+      "saturday": "Kuwa Gatandatu",
+      "sunday": "Ku Cyumweru"
+    },
+    "actions": {
+      "refresh": "Vugurura igihe",
+      "export": "Ohereza igihe"
+    },
+    "summary": {
+      "total_classes": "Ama somo Yose",
+      "total_hours": "Amasaha yose/icyumweru",
+      "teaching_days": "Iminsi yo kwigisha"
+    },
+    "errors": {
+      "fetch_failed": "Gutwara igihe byananiwe",
+      "export_failed": "Kohereza igihe byananiwe"
+    },
+    "messages": {
+      "export_success": "Igihe cyoherejwe neza"
     }
   }
 }

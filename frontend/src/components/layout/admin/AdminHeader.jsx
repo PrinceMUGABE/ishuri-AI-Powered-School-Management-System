@@ -441,9 +441,14 @@ function ProfileModal({ isOpen, onClose, userData, onUpdate, t }) {
 // ============================================================================
 // NOTIFICATIONS DROPDOWN COMPONENT - FIXED
 // ============================================================================
+
+// ============================================================================
+// NOTIFICATIONS DROPDOWN COMPONENT - CLIENT-SIDE UNREAD FILTERING
+// ============================================================================
 function NotificationsDropdown({ isOpen, onClose, t }) {
   const navigate = useNavigate();
-  const [notifications, setNotifications] = useState([]);
+  const [allNotifications, setAllNotifications] = useState([]);
+  const [unreadNotifications, setUnreadNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [markingAll, setMarkingAll] = useState(false);
@@ -453,34 +458,36 @@ function NotificationsDropdown({ isOpen, onClose, t }) {
     setLoading(true);
     setError(null);
     try {
-      // Fetch notifications with pagination
+      // Fetch all notifications
       const response = await notifApiClient.get('/', {
-        params: { page: 1, page_size: 20 }
+        params: { page: 1, page_size: 50 }
       });
       
       console.log('Notifications API response:', response.data);
       
       // Handle different response structures
       let notificationsList = [];
-      let totalUnread = 0;
       
       if (response.data?.success) {
         if (response.data.results) {
           notificationsList = response.data.results;
-          totalUnread = notificationsList.filter(n => n.status === 'unread' || !n.is_read).length;
         } else if (response.data.data) {
           notificationsList = Array.isArray(response.data.data) ? response.data.data : [];
-          totalUnread = notificationsList.filter(n => n.status === 'unread' || !n.is_read).length;
         }
       } else if (Array.isArray(response.data)) {
         notificationsList = response.data;
-        totalUnread = notificationsList.filter(n => n.status === 'unread' || !n.is_read).length;
       }
       
-      setNotifications(notificationsList);
-      setUnreadCount(totalUnread);
+      setAllNotifications(notificationsList);
       
-      // Also fetch unread count from separate endpoint
+      // Filter unread notifications on client side
+      const unreadList = notificationsList.filter(n => 
+        n.status === 'unread' || n.is_read === false
+      );
+      setUnreadNotifications(unreadList);
+      setUnreadCount(unreadList.length);
+      
+      // Also fetch unread count from separate endpoint if available
       try {
         const countRes = await notifApiClient.get('/unread-count/');
         if (countRes.data?.success) {
@@ -501,10 +508,18 @@ function NotificationsDropdown({ isOpen, onClose, t }) {
   const markAsRead = async (notificationId) => {
     try {
       await notifApiClient.patch(`/${notificationId}/`);
-      setNotifications(prev => prev.map(n => 
+      
+      // Update local state: remove from unread list and update all notifications
+      const updatedAllNotifications = allNotifications.map(n =>
         n.id === notificationId ? { ...n, status: 'read', is_read: true } : n
-      ));
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      );
+      setAllNotifications(updatedAllNotifications);
+      
+      // Remove from unread list
+      const newUnreadList = unreadNotifications.filter(n => n.id !== notificationId);
+      setUnreadNotifications(newUnreadList);
+      setUnreadCount(newUnreadList.length);
+      
       toast.success(t('notifications.markedRead', 'Marked as read'));
     } catch (error) {
       console.error('Error marking as read:', error);
@@ -516,8 +531,19 @@ function NotificationsDropdown({ isOpen, onClose, t }) {
     setMarkingAll(true);
     try {
       await notifApiClient.post('/mark-read/', { mark_all: true });
-      setNotifications(prev => prev.map(n => ({ ...n, status: 'read', is_read: true })));
+      
+      // Update local state: mark all as read
+      const updatedAllNotifications = allNotifications.map(n => ({
+        ...n,
+        status: 'read',
+        is_read: true
+      }));
+      setAllNotifications(updatedAllNotifications);
+      
+      // Clear unread notifications
+      setUnreadNotifications([]);
       setUnreadCount(0);
+      
       toast.success(t('notifications.allMarkedRead', 'All notifications marked as read'));
     } catch (error) {
       console.error('Error marking all as read:', error);
@@ -527,7 +553,11 @@ function NotificationsDropdown({ isOpen, onClose, t }) {
     }
   };
 
-  // FIXED: Use navigate instead of window.location
+  // Helper function to check if a notification is unread
+  const isNotificationUnread = (notification) => {
+    return notification.status === 'unread' || notification.is_read === false;
+  };
+
   const handleViewAll = () => {
     onClose();
     navigate('/app/notifications');
@@ -538,8 +568,6 @@ function NotificationsDropdown({ isOpen, onClose, t }) {
       fetchNotifications();
     }
   }, [isOpen, fetchNotifications]);
-
-  const unreadNotifications = notifications.filter(n => n.status === 'unread' || n.is_read === false);
 
   return (
     <div className={`absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 z-50 transition-all duration-200 ${
@@ -583,57 +611,50 @@ function NotificationsDropdown({ isOpen, onClose, t }) {
               Retry
             </button>
           </div>
-        ) : notifications.length === 0 ? (
+        ) : unreadNotifications.length === 0 ? (
           <div className="text-center py-12">
             <BellOff size={40} className="mx-auto mb-3 text-gray-400 dark:text-gray-600 opacity-50" />
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              {t('notifications.noNotifications', 'No notifications')}
+              {t('notifications.noUnread', 'No unread notifications')}
             </p>
           </div>
         ) : (
           <div className="divide-y divide-gray-100 dark:divide-gray-700">
-            {notifications.slice(0, 10).map((notif) => {
-              const isUnread = notif.status === 'unread' || notif.is_read === false;
-              return (
-                <div
-                  key={notif.id}
-                  className={`p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer ${
-                    isUnread ? 'bg-blue-50/30 dark:bg-blue-900/10' : ''
-                  }`}
-                  onClick={() => markAsRead(notif.id)}
-                >
-                  <div className="flex gap-3">
-                    <div className={`p-2 rounded-lg flex-shrink-0 ${getPriorityColor(notif.priority)}`}>
-                      {getNotificationIcon(notif.notification_type)}
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">
-                          {notif.title}
-                        </p>
-                        {isUnread && (
-                          <span className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0 mt-1.5"></span>
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
-                        {notif.message}
+            {unreadNotifications.slice(0, 10).map((notif) => (
+              <div
+                key={notif.id}
+                className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer bg-blue-50/30 dark:bg-blue-900/10"
+                onClick={() => markAsRead(notif.id)}
+              >
+                <div className="flex gap-3">
+                  <div className={`p-2 rounded-lg flex-shrink-0 ${getPriorityColor(notif.priority)}`}>
+                    {getNotificationIcon(notif.notification_type)}
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        {notif.title}
                       </p>
-                      <div className="flex items-center gap-3 mt-2 text-xs text-gray-400 dark:text-gray-500">
-                        <span className="flex items-center gap-1">
-                          <Clock size={10} />
-                          {formatTimeAgo(notif.created_at)}
-                        </span>
-                        <span className={`px-1.5 py-0.5 rounded-full text-xs flex items-center gap-1 ${getPriorityColor(notif.priority)}`}>
-                          {getPriorityIcon(notif.priority)}
-                          {t(`notifications.priority.${notif.priority}`, notif.priority)}
-                        </span>
-                      </div>
+                      <span className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0 mt-1.5"></span>
+                    </div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
+                      {notif.message}
+                    </p>
+                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-400 dark:text-gray-500">
+                      <span className="flex items-center gap-1">
+                        <Clock size={10} />
+                        {formatTimeAgo(notif.created_at)}
+                      </span>
+                      <span className={`px-1.5 py-0.5 rounded-full text-xs flex items-center gap-1 ${getPriorityColor(notif.priority)}`}>
+                        {getPriorityIcon(notif.priority)}
+                        {t(`notifications.priority.${notif.priority}`, notif.priority)}
+                      </span>
                     </div>
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -654,9 +675,11 @@ function NotificationsDropdown({ isOpen, onClose, t }) {
 // ============================================================================
 // MESSAGES DROPDOWN COMPONENT - FIXED
 // ============================================================================
+
 function MessagesDropdown({ isOpen, onClose, t }) {
   const navigate = useNavigate();
-  const [chatrooms, setChatrooms] = useState([]);
+  const [allChatrooms, setAllChatrooms] = useState([]);
+  const [unreadChatrooms, setUnreadChatrooms] = useState([]);
   const [totalUnread, setTotalUnread] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -677,9 +700,16 @@ function MessagesDropdown({ isOpen, onClose, t }) {
         rooms = response.data.data.chatrooms;
       }
       
-      setChatrooms(rooms);
-      const unreadTotal = rooms.reduce((sum, room) => sum + (room.unread_count || 0), 0);
+      setAllChatrooms(rooms);
+      
+      // Filter chatrooms with unread messages on client side
+      const roomsWithUnread = rooms.filter(room => (room.unread_count || 0) > 0);
+      setUnreadChatrooms(roomsWithUnread);
+      
+      // Calculate total unread count
+      const unreadTotal = roomsWithUnread.reduce((sum, room) => sum + (room.unread_count || 0), 0);
       setTotalUnread(unreadTotal);
+      
     } catch (error) {
       console.error('Error fetching chatrooms:', error);
       setError(error.response?.data?.message || 'Failed to load messages');
@@ -693,13 +723,49 @@ function MessagesDropdown({ isOpen, onClose, t }) {
     navigate('/app/chat');
   };
 
+  // Function to mark messages as read when opening a chat (optional)
+  const markChatAsRead = async (roomId) => {
+    try {
+      await chatApiClient.post(`/chatrooms/${roomId}/mark-read/`);
+      
+      // Update local state
+      const updatedAllRooms = allChatrooms.map(room => 
+        room.id === roomId ? { ...room, unread_count: 0 } : room
+      );
+      setAllChatrooms(updatedAllRooms);
+      
+      // Update unread rooms list
+      const updatedUnreadRooms = updatedAllRooms.filter(room => (room.unread_count || 0) > 0);
+      setUnreadChatrooms(updatedUnreadRooms);
+      
+      // Update total unread count
+      const newTotal = updatedUnreadRooms.reduce((sum, room) => sum + (room.unread_count || 0), 0);
+      setTotalUnread(newTotal);
+      
+    } catch (error) {
+      console.error('Error marking chat as read:', error);
+    }
+  };
+
   useEffect(() => {
     if (isOpen) {
       fetchChatrooms();
     }
   }, [isOpen, fetchChatrooms]);
 
-  const roomsWithUnread = chatrooms.filter(room => (room.unread_count || 0) > 0).slice(0, 5);
+  // Helper function to get room icon based on room type
+  const getRoomIcon = (roomType) => {
+    switch (roomType) {
+      case 'direct':
+        return <UserCircle size={18} className="text-green-600 dark:text-green-400" />;
+      case 'group':
+        return <Users size={18} className="text-blue-600 dark:text-blue-400" />;
+      case 'class':
+        return <BookOpen size={18} className="text-purple-600 dark:text-purple-400" />;
+      default:
+        return <MessageCircle size={18} className="text-green-600 dark:text-green-400" />;
+    }
+  };
 
   return (
     <div className={`absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 z-50 transition-all duration-200 ${
@@ -733,7 +799,7 @@ function MessagesDropdown({ isOpen, onClose, t }) {
               Retry
             </button>
           </div>
-        ) : roomsWithUnread.length === 0 ? (
+        ) : unreadChatrooms.length === 0 ? (
           <div className="text-center py-12">
             <MessageCircle size={40} className="mx-auto mb-3 text-gray-400 dark:text-gray-600 opacity-50" />
             <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -742,50 +808,68 @@ function MessagesDropdown({ isOpen, onClose, t }) {
           </div>
         ) : (
           <div className="divide-y divide-gray-100 dark:divide-gray-700">
-            {roomsWithUnread.map(room => (
+            {unreadChatrooms.map(room => (
               <div
                 key={room.id}
-                className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer"
+                className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer bg-green-50/30 dark:bg-green-900/5"
                 onClick={() => {
                   onClose();
                   navigate('/app/chat', { state: { openChatId: room.id } });
                 }}
               >
                 <div className="flex gap-3">
-                  <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
-                    <Users size={18} className="text-green-600 dark:text-green-400" />
+                  <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0 relative">
+                    {getRoomIcon(room.room_type)}
+                    {room.unread_count > 0 && (
+                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 text-white text-xs rounded-full flex items-center justify-center border-2 border-white dark:border-gray-800">
+                        {room.unread_count > 9 ? '9+' : room.unread_count}
+                      </span>
+                    )}
                   </div>
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                         {room.name}
                       </p>
-                      {room.unread_count > 0 && (
-                        <span className="bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full ml-2">
-                          {room.unread_count}
+                      {room.last_message?.sent_at && (
+                        <span className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
+                          <Clock size={10} />
+                          {formatTimeAgo(room.last_message.sent_at)}
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">
+                    
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 truncate">
                       {room.last_message?.content || 'No messages yet'}
                     </p>
-                    <div className="flex items-center gap-2 mt-1.5 text-xs text-gray-400 dark:text-gray-500">
-                      <span className="capitalize">
+                    
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <span className="text-xs text-gray-400 dark:text-gray-500 capitalize">
                         {room.room_type?.replace(/_/g, ' ') || 'Chat'}
                       </span>
-                      <span>•</span>
-                      <span>{room.members?.length || 0} members</span>
-                      {room.last_message?.sent_at && (
+                      <span className="text-xs text-gray-400 dark:text-gray-500">•</span>
+                      <span className="text-xs text-gray-400 dark:text-gray-500">
+                        {room.members?.length || 0} members
+                      </span>
+                      {room.last_message?.sender_name && (
                         <>
-                          <span>•</span>
-                          <span className="flex items-center gap-1">
-                            <Clock size={10} />
-                            {formatTimeAgo(room.last_message.sent_at)}
+                          <span className="text-xs text-gray-400 dark:text-gray-500">•</span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                            {room.last_message.sender_name}
                           </span>
                         </>
                       )}
                     </div>
+                    
+                    {/* Show unread message count indicator */}
+                    {room.unread_count > 0 && (
+                      <div className="mt-2">
+                        <span className="text-xs text-green-600 dark:text-green-400 font-medium">
+                          {room.unread_count} unread {room.unread_count === 1 ? 'message' : 'messages'}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -921,7 +1005,7 @@ const AdminHeader = ({ user, onMenuClick }) => {
             </button>
             
             <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-              {t('header.title', 'Ishuri System')} - {t('header.admin', 'Admin Portal')}
+              {t('header.title', 'Ishuri System')}
             </h1>
           </div>
           

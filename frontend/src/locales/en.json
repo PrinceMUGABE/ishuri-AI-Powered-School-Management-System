@@ -1484,7 +1484,8 @@
       "assignments": "Assignments",
       "myStudents": "My Students",
       "chats": "Chats",
-      "profile": "Profile"
+      "profile": "Profile",
+      "timetable": "Timetable"
     },
     "common": {
       "loading": "Loading your workspace…",
@@ -2622,6 +2623,47 @@
       "teacher": "Teacher",
       "student": "Student",
       "parent": "Parent"
+    }
+  },
+
+
+  "teacher_timetable": {
+    "title": "My Weekly Timetable",
+    "loading": "Loading timetable...",
+    "time": "Time",
+    "academic_year": "Academic Year",
+    "term": "Term",
+    "no_timetable": "No Timetable Found",
+    "no_timetable_desc": "Your timetable hasn't been generated yet. Please contact the administrator.",
+    "greeting": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    },
+    "days": {
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday"
+    },
+    "actions": {
+      "refresh": "Refresh timetable",
+      "export": "Export timetable"
+    },
+    "summary": {
+      "total_classes": "Total Classes",
+      "total_hours": "Total Hours/Week",
+      "teaching_days": "Teaching Days"
+    },
+    "errors": {
+      "fetch_failed": "Failed to load timetable",
+      "export_failed": "Failed to export timetable"
+    },
+    "messages": {
+      "export_success": "Timetable exported successfully"
     }
   }
 }

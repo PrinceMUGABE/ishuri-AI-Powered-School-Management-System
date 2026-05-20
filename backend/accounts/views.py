@@ -555,6 +555,8 @@ class CurrentUserView(APIView):
         print(f'[CurrentUserView] Profile data for user: {request.user.username}')
         print('='*60 + '\n')
         
+        print(f"\nReturned user data: {serializer.data}\n")
+        
         return Response({
             'success': True,
             'language': lang,

@@ -4,7 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import LandingPage from './components/common/LandingPage';
-import NotificationCenter from './components/common/Natifications';
+
 
 // Admin Layout and Pages
 import AdminLayout from './components/layout/admin/AdminLayout';
@@ -19,6 +19,7 @@ import AdminChatManagement from './pages/admin/ChatManagement';
 import AcademicsRecordsManagement from './pages/admin/AcademicRecordsManagement';
 import AdminGradeManagement from './pages/admin/GradeApproval';
 import AnalyticsReports from './pages/admin/AnalyticReports';
+import NotificationCenter from './pages/admin/Notifications';
 
 
 
@@ -30,6 +31,8 @@ import TeacherProfile from './pages/teacher/TeacherProfile';
 import TeacherAssignmentManagement from './pages/teacher/AssignmentUpload';
 import TeacherAttendanceManagement from './pages/teacher/AttendanceRecord';
 import TeacherStudents from './pages/teacher/MyStudents';
+import TeacherChatManagement from './pages/teacher/TeacherChatManagements';
+import TeacherTimetable from './pages/teacher/TeacherTimetable';
 
 // Helper function to check if user is authenticated
 const isAuthenticated = () => {
@@ -113,8 +116,7 @@ function App() {
             <Route path="grade-approval" element={<AdminGradeManagement />} />
             <Route path="analytics" element={<AnalyticsReports />} />
             <Route path="profile" element={<div>Profile Page</div>} />
-            <Route path="settings" element={<div>Settings Page</div>} />
-            <Route path="notifications" element={<div>Notifications Page</div>} />
+            <Route path="settings" element={<NotificationCenter />} />
             <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
             <Route path="notifications" element={<NotificationCenter />} />
           </Route>
@@ -128,12 +130,15 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route path="dashboard" element={<TeacherDashboard />} />
+            <Route path="dashboard" element={<TeacherTimetable />} />
             <Route path="grades" element={<TeacherAcademicGrades /> } />
             <Route path="profile" element={<TeacherProfile />} />
             <Route path="attendance" element={<TeacherAttendanceManagement />} />
             <Route path="assignments" element={<TeacherAssignmentManagement />} />
             <Route path="my-students" element={<TeacherStudents />} />
+            <Route path="chats" element={<TeacherChatManagement />} />
+            {/* <Route path="timetable" element={<TeacherTimetable />} /> */}
+            <Route path="notifications" element={<NotificationCenter />} />
           </Route>
 
           {/* Student Routes - To be implemented */}
