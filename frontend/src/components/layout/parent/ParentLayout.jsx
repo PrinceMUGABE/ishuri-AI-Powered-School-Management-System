@@ -1,3 +1,4 @@
+// ParentLayout.jsx - Fixed Version
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -9,7 +10,8 @@ import {
   ChevronDown, Dot, Clock, AlertCircle, Info,
   CheckCircle, BellOff, Loader2, ChevronRight,
   BookOpen, Calendar, Key, UserCircle, Shield, Save,
-  Eye, EyeOff, Settings, Mail, Phone, MapPin, Edit3, CalendarDays
+  Eye, EyeOff, Settings, Mail, Phone, MapPin, Edit3, 
+  CalendarDays, DollarSign, CreditCard
 } from 'lucide-react';
 import ThemeToggle from '../../Common/ThemeToggle';
 import LanguageSwitcher from '../../Common/LanguageSwitcher';
@@ -114,6 +116,320 @@ const GreetingIcon = ({ hour, className }) => {
 };
 
 // ---------------------------------------------------------------------------
+// PROFILE MODAL COMPONENT
+// ---------------------------------------------------------------------------
+function ProfileModal({ isOpen, onClose, userData, onUpdate, t }) {
+  const [activeTab, setActiveTab] = useState('profile');
+  const [formData, setFormData] = useState({ full_name: '', phone_number: '', physical_address: '' });
+  const [passwordData, setPasswordData] = useState({ current_password: '', new_password: '', confirm_password: '' });
+  const [showPassword, setShowPassword] = useState({ current: false, new: false, confirm: false });
+  const [loading, setLoading] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [passwordErrors, setPasswordErrors] = useState({});
+  const modalRef = useRef(null);
+
+  useEffect(() => {
+    if (userData) {
+      setFormData({
+        full_name: userData.full_name || '',
+        phone_number: userData.phone_number || '',
+        physical_address: userData.physical_address || '',
+      });
+    }
+  }, [userData]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (modalRef.current && !modalRef.current.contains(e.target)) onClose();
+    };
+    const handleEsc = (e) => { if (e.key === 'Escape') onClose(); };
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleEsc);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEsc);
+    };
+  }, [isOpen, onClose]);
+
+  const validateProfileForm = () => {
+    const e = {};
+    if (!formData.full_name?.trim()) e.full_name = 'Full name is required';
+    if (formData.phone_number && !/^(\+?[0-9]{10,15})$/.test(formData.phone_number)) {
+      e.phone_number = 'Invalid phone number format';
+    }
+    setErrors(e);
+    return !Object.keys(e).length;
+  };
+
+  const validatePasswordForm = () => {
+    const e = {};
+    if (!passwordData.current_password) e.current_password = 'Current password required';
+    if (!passwordData.new_password) e.new_password = 'New password required';
+    else if (passwordData.new_password.length < 8) e.new_password = 'Password must be at least 8 characters';
+    if (!passwordData.confirm_password) e.confirm_password = 'Please confirm your password';
+    else if (passwordData.new_password !== passwordData.confirm_password) e.confirm_password = 'Passwords do not match';
+    setPasswordErrors(e);
+    return !Object.keys(e).length;
+  };
+
+  const handleProfileUpdate = async () => {
+    if (!validateProfileForm()) return;
+    setLoading(true);
+    try {
+      const response = await apiClient.put(`/students/parents/${userData.id}/update/`, formData);
+      if (response.data?.success) {
+        const updatedUser = { ...userData, ...formData };
+        toast.success(response.data.message || 'Profile updated successfully');
+        onUpdate(updatedUser);
+        onClose();
+      } else {
+        toast.error(response.data?.message || 'Failed to update profile');
+      }
+    } catch (err) {
+      console.error('Profile update error:', err);
+      toast.error(err.response?.data?.message || 'Failed to update profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    if (!validatePasswordForm()) return;
+    setPasswordLoading(true);
+    try {
+      const response = await apiClient.post('/account/change-password/', passwordData);
+      if (response.data?.success) {
+        toast.success(response.data.message || 'Password changed successfully');
+        setPasswordData({ current_password: '', new_password: '', confirm_password: '' });
+        setActiveTab('profile');
+      } else {
+        toast.error(response.data?.message || 'Failed to change password');
+      }
+    } catch (err) {
+      console.error('Password change error:', err);
+      toast.error(err.response?.data?.message || 'Failed to change password');
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  const isDark = document.documentElement.classList.contains('dark');
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div ref={modalRef} className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl animate-slideUp">
+        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 rounded-t-2xl p-5">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">My Profile</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage your account settings</p>
+            </div>
+            <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+              <X size={20} className="text-gray-500 dark:text-gray-400" />
+            </button>
+          </div>
+        </div>
+
+        <div className="flex border-b border-gray-200 dark:border-gray-700 px-5">
+          <button
+            onClick={() => setActiveTab('profile')}
+            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors border-b-2 ${
+              activeTab === 'profile'
+                ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400'
+                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+            }`}
+          >
+            <UserCircle size={16} />
+            Profile Info
+          </button>
+          <button
+            onClick={() => setActiveTab('password')}
+            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors border-b-2 ${
+              activeTab === 'password'
+                ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400'
+                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+            }`}
+          >
+            <Key size={16} />
+            Change Password
+          </button>
+        </div>
+
+        <div className="p-5">
+          {activeTab === 'profile' && (
+            <div className="space-y-5">
+              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                  <Shield size={14} />
+                  Account Details
+                </h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">Role:</span>
+                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">
+                      Parent
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-1">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">Email:</span>
+                    <span className="text-sm text-gray-900 dark:text-white">{userData?.email || '-'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Edit Information</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name *</label>
+                    <input
+                      type="text"
+                      value={formData.full_name}
+                      onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                      className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${
+                        errors.full_name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                      }`}
+                    />
+                    {errors.full_name && <p className="text-xs text-red-500 mt-1">{errors.full_name}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number</label>
+                    <input
+                      type="tel"
+                      value={formData.phone_number}
+                      onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+                      className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${
+                        errors.phone_number ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                      }`}
+                      placeholder="+250XXXXXXXXX"
+                    />
+                    {errors.phone_number && <p className="text-xs text-red-500 mt-1">{errors.phone_number}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Address</label>
+                    <textarea
+                      value={formData.physical_address}
+                      onChange={(e) => setFormData({ ...formData, physical_address: e.target.value })}
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'password' && (
+            <div className="space-y-5">
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-4 border border-yellow-200 dark:border-yellow-800">
+                <p className="text-sm text-yellow-800 dark:text-yellow-300">
+                  Password must be at least 8 characters long.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Current Password *</label>
+                <div className="relative">
+                  <input
+                    type={showPassword.current ? 'text' : 'password'}
+                    value={passwordData.current_password}
+                    onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })}
+                    className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent pr-10 ${
+                      passwordErrors.current_password ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword({ ...showPassword, current: !showPassword.current })}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400"
+                  >
+                    {showPassword.current ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+                {passwordErrors.current_password && <p className="text-xs text-red-500 mt-1">{passwordErrors.current_password}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">New Password *</label>
+                <div className="relative">
+                  <input
+                    type={showPassword.new ? 'text' : 'password'}
+                    value={passwordData.new_password}
+                    onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
+                    className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent pr-10 ${
+                      passwordErrors.new_password ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword({ ...showPassword, new: !showPassword.new })}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400"
+                  >
+                    {showPassword.new ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+                {passwordErrors.new_password && <p className="text-xs text-red-500 mt-1">{passwordErrors.new_password}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Confirm New Password *</label>
+                <div className="relative">
+                  <input
+                    type={showPassword.confirm ? 'text' : 'password'}
+                    value={passwordData.confirm_password}
+                    onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
+                    className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent pr-10 ${
+                      passwordErrors.confirm_password ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword({ ...showPassword, confirm: !showPassword.confirm })}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400"
+                  >
+                    {showPassword.confirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+                {passwordErrors.confirm_password && <p className="text-xs text-red-500 mt-1">{passwordErrors.confirm_password}</p>}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="sticky bottom-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-5 flex gap-3">
+          <button onClick={onClose} className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors">
+            Cancel
+          </button>
+          <button
+            onClick={activeTab === 'profile' ? handleProfileUpdate : handlePasswordChange}
+            disabled={loading || passwordLoading}
+            className="flex-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            {(loading || passwordLoading) ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+            {activeTab === 'profile' ? 'Save Changes' : 'Update Password'}
+          </button>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slideUp {
+          animation: slideUp 0.3s ease-out;
+        }
+      `}</style>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // NOTIFICATIONS DROPDOWN COMPONENT (Client-side filtering)
 // ---------------------------------------------------------------------------
 function NotificationsDropdown({ isOpen, onClose, t }) {
@@ -147,7 +463,6 @@ function NotificationsDropdown({ isOpen, onClose, t }) {
       
       setAllNotifications(notificationsList);
       
-      // Filter unread notifications on client side
       const unreadList = notificationsList.filter(n => 
         n.status === 'unread' || n.is_read === false
       );
@@ -175,10 +490,10 @@ function NotificationsDropdown({ isOpen, onClose, t }) {
       setUnreadNotifications(newUnreadList);
       setUnreadCount(newUnreadList.length);
       
-      toast.success(t('notifications.markedRead', 'Marked as read'));
+      toast.success('Marked as read');
     } catch (error) {
       console.error('Error marking as read:', error);
-      toast.error(t('notifications.markReadError', 'Failed to mark as read'));
+      toast.error('Failed to mark as read');
     }
   };
 
@@ -197,10 +512,10 @@ function NotificationsDropdown({ isOpen, onClose, t }) {
       setUnreadNotifications([]);
       setUnreadCount(0);
       
-      toast.success(t('notifications.allMarkedRead', 'All notifications marked as read'));
+      toast.success('All notifications marked as read');
     } catch (error) {
       console.error('Error marking all as read:', error);
-      toast.error(t('notifications.markAllError', 'Failed to mark all as read'));
+      toast.error('Failed to mark all as read');
     } finally {
       setMarkingAll(false);
     }
@@ -208,7 +523,7 @@ function NotificationsDropdown({ isOpen, onClose, t }) {
 
   const handleViewAll = () => {
     onClose();
-    navigate('/teacher/notifications');
+    navigate('/parent/notifications');
   };
 
   useEffect(() => {
@@ -224,7 +539,7 @@ function NotificationsDropdown({ isOpen, onClose, t }) {
       <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
         <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
           <Bell size={18} />
-          {t('notifications.title', 'Notifications')}
+          Notifications
           {unreadCount > 0 && (
             <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
               {unreadCount}
@@ -238,7 +553,7 @@ function NotificationsDropdown({ isOpen, onClose, t }) {
             className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 disabled:opacity-50"
           >
             {markingAll ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle size={12} />}
-            {t('notifications.markAllRead', 'Mark all read')}
+            Mark all read
           </button>
         )}
       </div>
@@ -262,9 +577,7 @@ function NotificationsDropdown({ isOpen, onClose, t }) {
         ) : unreadNotifications.length === 0 ? (
           <div className="text-center py-12">
             <BellOff size={40} className="mx-auto mb-3 text-gray-400 dark:text-gray-600 opacity-50" />
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {t('notifications.noUnread', 'No unread notifications')}
-            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">No unread notifications</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-100 dark:divide-gray-700">
@@ -296,7 +609,7 @@ function NotificationsDropdown({ isOpen, onClose, t }) {
                       </span>
                       <span className={`px-1.5 py-0.5 rounded-full text-xs flex items-center gap-1 ${getPriorityColor(notif.priority)}`}>
                         {getPriorityIcon(notif.priority)}
-                        {t(`notifications.priority.${notif.priority}`, notif.priority)}
+                        {notif.priority}
                       </span>
                     </div>
                   </div>
@@ -312,7 +625,7 @@ function NotificationsDropdown({ isOpen, onClose, t }) {
           onClick={handleViewAll}
           className="w-full text-sm text-emerald-600 dark:text-emerald-400 hover:underline flex items-center justify-center gap-1 py-1 transition-colors"
         >
-          {t('notifications.viewAll', 'View all notifications')}
+          View all notifications
           <ChevronRight size={14} />
         </button>
       </div>
@@ -335,7 +648,7 @@ function MessagesDropdown({ isOpen, onClose, t }) {
     setLoading(true);
     setError(null);
     try {
-      const response = await chatApiClient.get('/chatrooms/teacher/');
+      const response = await chatApiClient.get('/chatrooms/parent/');
       
       let rooms = [];
       if (response.data?.chatrooms) {
@@ -348,7 +661,6 @@ function MessagesDropdown({ isOpen, onClose, t }) {
       
       setAllChatrooms(rooms);
       
-      // Filter chatrooms with unread messages on client side
       const roomsWithUnread = rooms.filter(room => (room.unread_count || 0) > 0);
       setUnreadChatrooms(roomsWithUnread);
       
@@ -365,7 +677,7 @@ function MessagesDropdown({ isOpen, onClose, t }) {
 
   const handleViewAll = () => {
     onClose();
-    navigate('/teacher/chats');
+    navigate('/parent/chats');
   };
 
   const getRoomIcon = (roomType) => {
@@ -394,7 +706,7 @@ function MessagesDropdown({ isOpen, onClose, t }) {
       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
         <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
           <MessageCircle size={18} />
-          {t('messages.title', 'Messages')}
+          Messages
           {totalUnread > 0 && (
             <span className="bg-emerald-500 text-white text-xs px-2 py-0.5 rounded-full">
               {totalUnread}
@@ -422,9 +734,7 @@ function MessagesDropdown({ isOpen, onClose, t }) {
         ) : unreadChatrooms.length === 0 ? (
           <div className="text-center py-12">
             <MessageCircle size={40} className="mx-auto mb-3 text-gray-400 dark:text-gray-600 opacity-50" />
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {t('messages.noUnread', 'No unread messages')}
-            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">No unread messages</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-100 dark:divide-gray-700">
@@ -434,7 +744,7 @@ function MessagesDropdown({ isOpen, onClose, t }) {
                 className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer bg-emerald-50/30 dark:bg-emerald-900/5"
                 onClick={() => {
                   onClose();
-                  navigate('/teacher/chats', { state: { openChatId: room.id } });
+                  navigate('/parent/chats', { state: { openChatId: room.id } });
                 }}
               >
                 <div className="flex gap-3">
@@ -494,7 +804,7 @@ function MessagesDropdown({ isOpen, onClose, t }) {
           onClick={handleViewAll}
           className="w-full text-sm text-emerald-600 dark:text-emerald-400 hover:underline flex items-center justify-center gap-1 py-1 transition-colors"
         >
-          {t('messages.viewAll', 'View all messages')}
+          View all messages
           <ChevronRight size={14} />
         </button>
       </div>
@@ -505,8 +815,8 @@ function MessagesDropdown({ isOpen, onClose, t }) {
 // ---------------------------------------------------------------------------
 // Header component with dropdowns
 // ---------------------------------------------------------------------------
-const TeacherHeader = ({
-  teacherProfile,
+const ParentHeader = ({
+  parentProfile,
   onMenuClick,
   sidebarOpen,
   isMobile,
@@ -528,7 +838,7 @@ const TeacherHeader = ({
     try {
       const [notifRes, chatRes] = await Promise.all([
         notifApiClient.get('/unread-count/'),
-        chatApiClient.get('/chatrooms/teacher/')
+        chatApiClient.get('/chatrooms/parent/')
       ]);
       
       if (notifRes.data?.success) {
@@ -570,12 +880,12 @@ const TeacherHeader = ({
   const hour = now.getHours();
 
   const greeting = hour < 12
-    ? t('teacher_layout.greeting.morning')
+    ? t('parent_layout.greeting.morning', 'Good morning')
     : hour < 18
-      ? t('teacher_layout.greeting.afternoon')
-      : t('teacher_layout.greeting.evening');
+      ? t('parent_layout.greeting.afternoon', 'Good afternoon')
+      : t('parent_layout.greeting.evening', 'Good evening');
 
-  const firstName = teacherProfile?.first_name || t('teacher_layout.greeting.teacher');
+  const firstName = parentProfile?.full_name?.split(' ')[0] || t('parent_layout.greeting.parent', 'Parent');
 
   // Format date
   const dateStr = now.toLocaleDateString(i18n.language === 'fr' ? 'fr-FR' : i18n.language === 'rw' ? 'rw-RW' : 'en-US', {
@@ -585,8 +895,7 @@ const TeacherHeader = ({
   // Format time
   const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-  const avatarSrc = teacherProfile?.profile_picture_url;
-  const initials = `${teacherProfile?.first_name?.charAt(0) ?? ''}${teacherProfile?.last_name?.charAt(0) ?? ''}`.toUpperCase();
+  const avatarInitials = parentProfile?.full_name?.charAt(0) || 'P';
 
   return (
     <header className={`
@@ -639,7 +948,7 @@ const TeacherHeader = ({
                 setDropdownOpen(false);
               }}
               className="relative p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              aria-label={t('teacher_layout.header.messages')}
+              aria-label="Messages"
             >
               <MessageCircle className="w-5 h-5 text-gray-600 dark:text-gray-300" />
               {unreadMessages > 0 && (
@@ -664,7 +973,7 @@ const TeacherHeader = ({
                 setDropdownOpen(false);
               }}
               className="relative p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              aria-label={t('teacher_layout.header.notifications')}
+              aria-label="Notifications"
             >
               <Bell className="w-5 h-5 text-gray-600 dark:text-gray-300" />
               {unreadNotifications > 0 && (
@@ -687,11 +996,7 @@ const TeacherHeader = ({
               className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
               <div className="w-8 h-8 rounded-xl overflow-hidden bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center ring-2 ring-emerald-500/30">
-                {avatarSrc ? (
-                  <img src={avatarSrc} alt={teacherProfile?.full_name} className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">{initials}</span>
-                )}
+                <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">{avatarInitials}</span>
               </div>
               <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -699,23 +1004,23 @@ const TeacherHeader = ({
             {dropdownOpen && (
               <div className="absolute right-0 mt-2 w-52 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 py-1.5 z-50">
                 <div className="px-4 py-2.5 border-b border-gray-100 dark:border-gray-700">
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{teacherProfile?.full_name}</p>
-                  <p className="text-xs text-gray-400 truncate">{teacherProfile?.email}</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{parentProfile?.full_name}</p>
+                  <p className="text-xs text-gray-400 truncate">{parentProfile?.email}</p>
                 </div>
                 <button
-                  onClick={() => { setDropdownOpen(false); navigate('/teacher/profile'); }}
+                  onClick={() => { setDropdownOpen(false); navigate('/parent/profile'); }}
                   className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
                   <User className="w-4 h-4" />
-                  {t('teacher_layout.header.profile')}
+                  Profile
                 </button>
                 <hr className="my-1 border-gray-100 dark:border-gray-700" />
                 <button
-                  onClick={() => { setDropdownOpen(false); document.dispatchEvent(new Event('teacher:logout')); }}
+                  onClick={() => { setDropdownOpen(false); document.dispatchEvent(new Event('parent:logout')); }}
                   className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
-                  {t('teacher_layout.header.logout')}
+                  Logout
                 </button>
               </div>
             )}
@@ -727,18 +1032,18 @@ const TeacherHeader = ({
 };
 
 // ---------------------------------------------------------------------------
-// TeacherLayout
+// ParentLayout
 // ---------------------------------------------------------------------------
-const TeacherLayout = () => {
+const ParentLayout = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
-  const [user, setUser] = useState(null);
-  const [teacherProfile, setTeacherProfile] = useState(null);
+  const [parentProfile, setParentProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   // ---- Auth check --------------------------------------------------------
   const isAuthenticated = () => {
@@ -757,10 +1062,11 @@ const TeacherLayout = () => {
     }
   };
 
-  // ---- Fetch profile -----------------------------------------------------
-  const fetchTeacherProfile = useCallback(async () => {
+  // ---- Fetch parent profile using correct endpoint ----------------------
+  const fetchParentProfile = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/teachers/profile/`, {
+      console.log("Fetching parent profile from /students/parents/me/");
+      const res = await fetch(`${API_BASE}/students/parents/me/`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('access_token')}`,
           'Content-Type': 'application/json',
@@ -768,12 +1074,17 @@ const TeacherLayout = () => {
         },
       });
       const data = await res.json();
+      console.log("Parent profile response:", data);
+      
       if (data.success) {
-        setTeacherProfile(data.data.teacher);
-        setUser(data.data.user);
+        setParentProfile(data.data);
+      } else {
+        console.error("Failed to fetch parent profile:", data.message);
+        toast.error(data.message || "Failed to load profile");
       }
     } catch (err) {
-      console.error('fetchTeacherProfile:', err);
+      console.error('fetchParentProfile error:', err);
+      toast.error("Failed to load profile");
     } finally {
       setLoading(false);
     }
@@ -798,9 +1109,9 @@ const TeacherLayout = () => {
     } catch { /* silent */ }
     localStorage.clear();
     sessionStorage.clear();
-    toast.success(t('teacher_layout.messages.logoutSuccess'));
+    toast.success("Logged out successfully");
     navigate('/', { replace: true });
-  }, [navigate, t]);
+  }, [navigate]);
 
   // ---- Mount effects -----------------------------------------------------
   useEffect(() => {
@@ -812,14 +1123,14 @@ const TeacherLayout = () => {
     if (userStr) {
       try {
         const u = JSON.parse(userStr);
-        if (u.role !== 'teacher') {
+        if (u.role !== 'parent') {
           navigate('/app/dashboard', { replace: true });
           return;
         }
       } catch { /* ignore */ }
     }
-    fetchTeacherProfile();
-  }, [navigate, fetchTeacherProfile]);
+    fetchParentProfile();
+  }, [navigate, fetchParentProfile]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -833,20 +1144,18 @@ const TeacherLayout = () => {
   }, []);
 
   useEffect(() => {
-    document.addEventListener('teacher:logout', handleLogout);
-    return () => document.removeEventListener('teacher:logout', handleLogout);
+    document.addEventListener('parent:logout', handleLogout);
+    return () => document.removeEventListener('parent:logout', handleLogout);
   }, [handleLogout]);
 
   // ---- Nav items ---------------------------------------------------------
   const menuItems = [
-   
-    { path: '/teacher/timetable', icon: CalendarDays, label: t('teacher_layout.nav.timetable') },
-    { path: '/teacher/grades', icon: BarChart3, label: t('teacher_layout.nav.grades') },
-    { path: '/teacher/attendance', icon: CalendarCheck, label: t('teacher_layout.nav.attendances') },
-    { path: '/teacher/assignments', icon: FileText, label: t('teacher_layout.nav.assignments') },
-    { path: '/teacher/my-students', icon: Users, label: t('teacher_layout.nav.myStudents') },
-    { path: '/teacher/chats', icon: MessageCircle, label: t('teacher_layout.nav.chats') },
-    { path: '/teacher/profile', icon: User, label: t('teacher_layout.nav.profile') },
+    { path: '/parent/dashboard', icon: LayoutDashboard, label: t('parent_layout.nav.dashboard', 'Dashboard') },
+    { path: '/parent/children', icon: Users, label: t('parent_layout.nav.children', 'My Children') },
+    { path: '/parent/payments', icon: CreditCard, label: t('parent_layout.nav.payments', 'Payments') },
+    { path: '/parent/chats', icon: MessageCircle, label: t('parent_layout.nav.chats', 'Messages') },
+    { path: '/parent/teachers', icon: Users, label: t('parent_layout.nav.teachers', 'My Teachers') },
+    { path: '/parent/profile', icon: User, label: t('parent_layout.nav.profile', 'Profile') },
   ];
 
   const isActive = (path) =>
@@ -858,14 +1167,13 @@ const TeacherLayout = () => {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="w-12 h-12 border-[3px] border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">{t('teacher_layout.common.loading')}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Loading...</p>
         </div>
       </div>
     );
   }
 
-  const avatarSrc = teacherProfile?.profile_picture_url;
-  const initials = `${teacherProfile?.first_name?.charAt(0) ?? ''}${teacherProfile?.last_name?.charAt(0) ?? ''}`.toUpperCase();
+  const avatarInitials = parentProfile?.full_name?.charAt(0) || 'P';
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -898,26 +1206,22 @@ const TeacherLayout = () => {
             )}
           </div>
 
-          {/* Teacher card */}
-          {teacherProfile && (
+          {/* Parent card */}
+          {parentProfile && (
             <div className="mx-3 mt-4 p-3 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-100 dark:border-emerald-800/30 flex-shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-11 h-11 rounded-xl overflow-hidden bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center flex-shrink-0 ring-2 ring-emerald-500/20">
-                  {avatarSrc ? (
-                    <img src={avatarSrc} alt={teacherProfile.full_name} className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-base font-bold text-emerald-700 dark:text-emerald-300">{initials}</span>
-                  )}
+                  <span className="text-base font-bold text-emerald-700 dark:text-emerald-300">{avatarInitials}</span>
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-gray-900 dark:text-white truncate leading-tight">
-                    {teacherProfile.full_name}
+                    {parentProfile.full_name}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
-                    {teacherProfile.email}
+                    {parentProfile.email}
                   </p>
                   <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 uppercase tracking-wide">
-                    {t('teacher_layout.common.role')}
+                    {parentProfile.relationship_type || 'Parent'}
                   </span>
                 </div>
               </div>
@@ -927,7 +1231,7 @@ const TeacherLayout = () => {
           {/* Nav */}
           <nav className="flex-1 px-3 py-4 overflow-y-auto">
             <p className="px-3 mb-2 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
-              {t('teacher_layout.nav.menu')}
+              Menu
             </p>
             <ul className="space-y-0.5">
               {menuItems.map((item) => (
@@ -951,7 +1255,7 @@ const TeacherLayout = () => {
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors group"
             >
               <LogOut className="w-[18px] h-[18px] group-hover:-translate-x-0.5 transition-transform" />
-              {t('teacher_layout.header.logout')}
+              Logout
             </button>
           </div>
         </div>
@@ -966,8 +1270,8 @@ const TeacherLayout = () => {
       )}
 
       {/* HEADER */}
-      <TeacherHeader
-        teacherProfile={teacherProfile}
+      <ParentHeader
+        parentProfile={parentProfile}
         onMenuClick={() => setSidebarOpen((v) => !v)}
         sidebarOpen={sidebarOpen}
         isMobile={isMobile}
@@ -979,9 +1283,21 @@ const TeacherLayout = () => {
         ${sidebarOpen && !isMobile ? 'lg:ml-64' : ''}
       `}>
         <div className="p-4 md:p-6">
-          <Outlet context={{ teacherProfile, user, refreshProfile: fetchTeacherProfile }} />
+          <Outlet context={{ parentProfile, refreshProfile: fetchParentProfile }} />
         </div>
       </main>
+
+      {/* Profile Modal */}
+      <ProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        userData={parentProfile}
+        onUpdate={(updated) => {
+          setParentProfile(updated);
+          fetchParentProfile();
+        }}
+        t={t}
+      />
     </div>
   );
 };
@@ -1008,4 +1324,4 @@ const NavItem = ({ item, active, onClick }) => (
   </li>
 );
 
-export default TeacherLayout;
+export default ParentLayout;

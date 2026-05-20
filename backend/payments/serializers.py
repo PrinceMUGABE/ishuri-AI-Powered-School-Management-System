@@ -21,7 +21,7 @@ class ClassLevelCostBasicSerializer(serializers.ModelSerializer):
     """Basic serializer for ClassLevelCost"""
     class Meta:
         model = ClassLevelCost
-        fields = ['id', 'name', 'amount', 'frequency']
+        fields = ['id', 'name', 'amount']
 
 
 class PaymentTransactionSerializer(serializers.ModelSerializer):

@@ -177,7 +177,7 @@ class PaymentService:
             )
             
             # Also notify parents if student has user account
-            for parent_link in assignment.student.parent_students.all():
+            for parent_link in assignment.student.student_parents.all():
                 parent_user = parent_link.parent.user
                 if parent_user:
                     cls._create_parent_payment_notification(
@@ -365,7 +365,7 @@ class PaymentService:
                 students_notified.add(assignment.student.id)
             
             # Send reminder to parents/guardians
-            for parent_link in assignment.student.parent_students.all():
+            for parent_link in assignment.student.student_parents.all():
                 parent = parent_link.parent
                 if parent.user:
                     cls._send_parent_reminder(assignment, parent, reminder_type, days_until_due, days_overdue, priority)
@@ -1058,7 +1058,7 @@ Votre équipe administrative scolaire
                     'high'
                 )
             
-            for parent_link in assignment.student.parent_students.all():
+            for parent_link in assignment.student.student_parents.all():
                 if parent_link.parent.user:
                     cls._send_parent_reminder(
                         assignment,

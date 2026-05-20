@@ -34,6 +34,11 @@ import TeacherStudents from './pages/teacher/MyStudents';
 import TeacherChatManagement from './pages/teacher/TeacherChatManagements';
 import TeacherTimetable from './pages/teacher/TeacherTimetable';
 
+// Parent Layout and Pages (To be implemented)
+import ParentLayout from './components/layout/parent/ParentLayout';
+import ParentChatManagement from './pages/parent/ParentChatManagements';
+import ParentDashboard from './pages/parent/ParentStudents';
+
 // Helper function to check if user is authenticated
 const isAuthenticated = () => {
   const token = localStorage.getItem('access_token');
@@ -130,6 +135,7 @@ function App() {
               </ProtectedRoute>
             }
           >
+            <Route index element={<Navigate to="/teacher/dashboard" replace />} />
             <Route path="dashboard" element={<TeacherTimetable />} />
             <Route path="grades" element={<TeacherAcademicGrades /> } />
             <Route path="profile" element={<TeacherProfile />} />
@@ -137,7 +143,6 @@ function App() {
             <Route path="assignments" element={<TeacherAssignmentManagement />} />
             <Route path="my-students" element={<TeacherStudents />} />
             <Route path="chats" element={<TeacherChatManagement />} />
-            {/* <Route path="timetable" element={<TeacherTimetable />} /> */}
             <Route path="notifications" element={<NotificationCenter />} />
           </Route>
 
@@ -156,13 +161,17 @@ function App() {
           {/* Parent Routes - To be implemented */}
           <Route 
             path="/parent" 
+            
             element={
               <ProtectedRoute allowedRoles={['parent']}>
-                <div>Parent Layout Coming Soon</div>
+                <ParentLayout />
               </ProtectedRoute>
             }
           >
-            <Route path="dashboard" element={<div>Parent Dashboard</div>} />
+            <Route index element={<Navigate to="/app/parent/dashboard" replace />} />
+            <Route path="dashboard" element={<ParentDashboard />} />
+            <Route path="chats" element={<ParentChatManagement />} />
+            <Route path="notifications" element={<NotificationCenter />} />
           </Route>
 
           {/* Fallback */}

@@ -1370,7 +1370,7 @@ def grade_upload_detail(request, upload_id):
     
     elif request.method == 'DELETE':
         if user.role != 'admin':
-            return _err("Only admins can delete grade uploads", status.HTTP_403_FORBIDDEN, lang=lang)
+            return _err("Only admins can delete grade uploads", status.HTTP_403_FORBIDDEN)
         
         try:
             upload_name = f"{upload.subject.name} - {upload.get_grade_type_display()}"
@@ -2209,3 +2209,74 @@ def get_teacher_students_for_classroom(request, classroom_id):
             'success': False,
             'message': 'Classroom not found'
         }, status=status.HTTP_404_NOT_FOUND)
+        
+        
+        
+        
+        
+        
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_student_full_report(request, student_id):
+    """
+    Get full academic report for a student across all terms in the academic year.
+    """
+    lang = get_lang(request)
+    
+    # Check permissions
+    user = request.user
+    try:
+        student = Student.objects.get(id=student_id)
+    except Student.DoesNotExist:
+        return _err("Student not found", status.HTTP_404_NOT_FOUND)
+    
+    if user.role == 'parent':
+        parent = get_object_or_404(Parent, user=user)
+        if not parent.students.filter(id=student_id).exists():
+            return _err(t("permission_denied", lang), status.HTTP_403_FORBIDDEN)
+    elif user.role != 'admin' and user.role != 'student':
+        return _err(t("permission_denied", lang), status.HTTP_403_FORBIDDEN)
+    
+    academic_year_id = request.query_params.get('academic_year_id')
+    if not academic_year_id:
+        academic_year = AcademicYear.objects.filter(is_current=True).first()
+    else:
+        academic_year = get_object_or_404(AcademicYear, id=academic_year_id)
+    
+    # Get all terms for this academic year
+    terms = Term.objects.filter(academic_year=academic_year).order_by('term_number')
+    
+    term_performances = []
+    for term in terms:
+        performance = PerformanceReportGenerator.get_full_report(student, academic_year, term)
+        term_performances.append({
+            'term_id': term.id,
+            'term_name': term.name,
+            'term_number': term.term_number,
+            'is_current': term.is_current,
+            'overall_average': performance['academic_performance']['overall_average'],
+            'grade_letter': performance['academic_performance']['grade_letter'],
+            'subjects_passed': performance['academic_performance']['subjects_passed'],
+            'subjects_failed': performance['academic_performance']['subjects_failed'],
+            'total_subjects': performance['academic_performance']['total_subjects'],
+            'subject_results': performance['academic_performance']['subject_results'],
+            'discipline': performance['discipline']
+        })
+    
+    # Get current term performance
+    current_term = terms.filter(is_current=True).first()
+    current_performance = next((t for t in term_performances if t['is_current']), term_performances[0] if term_performances else None)
+    
+    return Response({
+        'success': True,
+        'data': {
+            'student_id': student.id,
+            'student_name': student.full_name,
+            'student_roll': student.roll_number,
+            'academic_year_id': academic_year.id,
+            'academic_year_name': academic_year.name,
+            'current_term_performance': current_performance,
+            'term_performances': term_performances,
+            'generated_at': timezone.now().isoformat()
+        }
+    })

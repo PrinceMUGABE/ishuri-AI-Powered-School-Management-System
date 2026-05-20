@@ -327,15 +327,16 @@ class PaymentTransaction(models.Model):
                     'bank_receipt_number': _('Bank receipt number is required for bank transfers')
                 })
         
-        # Check if amount exceeds remaining balance
-        if self.payment_assignment:
+        # Only check remaining balance for new/pending transactions,
+        # not when completing an already-processed one
+        if (self.payment_assignment_id and 
+                self.transaction_status == self.TransactionStatus.PENDING):
             if self.amount > self.payment_assignment.remaining_amount:
                 raise ValidationError({
                     'amount': _('Payment amount (${}) exceeds remaining balance (${})').format(
                         self.amount, self.payment_assignment.remaining_amount
                     )
                 })
-    
     def save(self, *args, **kwargs):
         if not self.transaction_reference:
             import uuid
@@ -355,20 +356,27 @@ class PaymentTransaction(models.Model):
         if self.transaction_status != self.TransactionStatus.COMPLETED:
             self.transaction_status = self.TransactionStatus.COMPLETED
             self.paid_at = timezone.now()
-            self.save()
             
-            # Update the payment assignment
+            # Update the payment assignment FIRST
             self.payment_assignment.update_paid_amount(self.amount)
             
-            # Determine payment type
+            # Determine payment type based on updated assignment
             if self.payment_assignment.remaining_amount <= 0:
                 self.payment_type = PaymentType.FULLY_PAID
             else:
                 self.payment_type = PaymentType.PARTIALLY_PAID
-            self.save()
+            
+            # Use update_fields to bypass clean() — the amount was already
+            # validated when the transaction was first saved
+            PaymentTransaction.objects.filter(pk=self.pk).update(
+                transaction_status=self.transaction_status,
+                paid_at=self.paid_at,
+                payment_type=self.payment_type,
+            )
+            # Refresh so self reflects the DB state
+            self.refresh_from_db()
             
             return True
         return False
-    
     def __str__(self):
         return f"{self.transaction_reference} - {self.amount} - {self.transaction_status}"

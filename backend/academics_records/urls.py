@@ -73,4 +73,5 @@ urlpatterns = [
     path('grades/upload/<int:upload_id>/', views.grade_upload_detail, name='grade_upload_detail'),
     path('grades/upload/<int:upload_id>/download/', views.download_grade_upload_file, name='download_grade_upload_file'),
     path('grades/upload/<int:upload_id>/preview/', views.preview_grade_upload_file, name='preview_grade_upload_file'),
+    path('performance/student/<int:student_id>/full-report/', views.get_student_full_report, name='student_full_report'),
 ]
