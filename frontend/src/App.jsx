@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import LandingPage from './components/common/LandingPage';
+import NotificationCenter from './components/common/Natifications';
 
 // Admin Layout and Pages
 import AdminLayout from './components/layout/admin/AdminLayout';
@@ -115,6 +116,7 @@ function App() {
             <Route path="settings" element={<div>Settings Page</div>} />
             <Route path="notifications" element={<div>Notifications Page</div>} />
             <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
+            <Route path="notifications" element={<NotificationCenter />} />
           </Route>
 
           {/* Teacher Routes - To be implemented */}
