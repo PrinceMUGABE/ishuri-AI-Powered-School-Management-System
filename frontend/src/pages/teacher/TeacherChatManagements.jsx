@@ -9,6 +9,7 @@ import {
   ArrowDown, X, Menu, ChevronDown, Trash2
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useWebSocket } from '../../hooks/useWebSocket';
 
 const API_BASE_URL = "http://127.0.0.1:8000/api";
 
@@ -29,9 +30,8 @@ apiClient.interceptors.request.use((config) => {
 const ToastContainer = ({ toasts, removeToast }) => (
   <div className="fixed top-5 right-5 z-50 flex flex-col gap-2">
     {toasts.map(toast => (
-      <div key={toast.id} className={`px-4 py-3 rounded-lg shadow-lg text-sm font-medium flex items-center gap-2 animate-slide-in ${
-        toast.type === "success" ? "bg-green-600" : toast.type === "error" ? "bg-red-600" : "bg-blue-600"
-      } text-white`}>
+      <div key={toast.id} className={`px-4 py-3 rounded-lg shadow-lg text-sm font-medium flex items-center gap-2 animate-slide-in ${toast.type === "success" ? "bg-green-600" : toast.type === "error" ? "bg-red-600" : "bg-blue-600"
+        } text-white`}>
         <span>{toast.message}</span>
         <button onClick={() => removeToast(toast.id)} className="ml-2 hover:opacity-80">×</button>
       </div>
@@ -219,7 +219,7 @@ const VoiceNotePlayer = ({ url, knownDuration = 0, dark }) => {
       setIsPlaying(false);
       clearInterval(intervalRef.current);
     } else {
-      audioRef.current.play().catch(() => {});
+      audioRef.current.play().catch(() => { });
       setIsPlaying(true);
       intervalRef.current = setInterval(() => {
         if (audioRef.current) setCurrentTime(audioRef.current.currentTime);
@@ -269,7 +269,7 @@ const VoiceNotePlayer = ({ url, knownDuration = 0, dark }) => {
 export default function TeacherChatManagement() {
   const { t } = useTranslation();
   const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
-  
+
   useEffect(() => {
     const obs = new MutationObserver(() => setDark(document.documentElement.classList.contains("dark")));
     obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
@@ -292,7 +292,7 @@ export default function TeacherChatManagement() {
   const [showUpload, setShowUpload] = useState(false);
   const [uploadFile, setUploadFile] = useState(null);
   const [uploadType, setUploadType] = useState("image");
-  
+
   const messagesEndRef = useRef(null);
   const messageRefs = useRef({});
   const toastId = useRef(0);
@@ -341,6 +341,49 @@ export default function TeacherChatManagement() {
     }
   }, [addToast, t]);
 
+  const { isConnected, sendReadReceipt } = useWebSocket(
+    selectedRoom?.id,
+    useCallback((wsData) => {
+      if (wsData.type === 'receipt_update') {
+        // Update receipt status for a message
+        setMessages(prevMessages =>
+          prevMessages.map(msg => {
+            if (msg.id === wsData.data.message_id) {
+              // Update the receipt status in the message
+              const updatedReceipts = msg.receipts?.map(receipt => {
+                if (receipt.user_id === wsData.data.user_id) {
+                  return { ...receipt, status: wsData.data.status, read_at: wsData.data.read_at };
+                }
+                return receipt;
+              }) || [];
+              return { ...msg, receipts: updatedReceipts };
+            }
+            return msg;
+          })
+        );
+      } else if (wsData.type === 'message_deleted') {
+        // Remove deleted message from UI
+        setMessages(prevMessages => prevMessages.filter(msg => msg.id !== wsData.messageId));
+      } else if (wsData.type === 'message_updated') {
+        // Update edited message
+        setMessages(prevMessages =>
+          prevMessages.map(msg =>
+            msg.id === wsData.data.message_id
+              ? { ...msg, content: wsData.data.content }
+              : msg
+          )
+        );
+      } else if (wsData.message) {
+        // New message received
+        setMessages(prevMessages => [...prevMessages, wsData.message]);
+        // Mark as read if the message is visible and the chat is open
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
+    }, [])
+  );
+
   // Fetch messages for selected room
   const fetchMessages = useCallback(async (roomId) => {
     if (!roomId) return;
@@ -357,7 +400,7 @@ export default function TeacherChatManagement() {
   }, [addToast, t]);
 
   useEffect(() => { fetchRooms(); }, [fetchRooms]);
-  
+
   useEffect(() => {
     if (selectedRoom) {
       fetchMessages(selectedRoom.id);
@@ -366,7 +409,20 @@ export default function TeacherChatManagement() {
     }
   }, [selectedRoom, fetchMessages]);
 
-  // Send text message
+  useEffect(() => {
+    if (!selectedRoom || !messages.length || !sendReadReceipt) return;
+
+    // Mark all unread messages as read immediately when room is opened
+    messages.forEach(msg => {
+      if (msg.sender_role !== 'admin') {  // not sent by current admin user
+        const alreadyRead = msg.receipts?.some(r => r.status === 'read');
+        if (!alreadyRead) {
+          sendReadReceipt(msg.id);
+        }
+      }
+    });
+  }, [messages, selectedRoom, sendReadReceipt]);
+
   const handleSendMessage = async () => {
     if (!selectedRoom || !messageText.trim()) return;
     setSendingMsg(true);
@@ -378,7 +434,7 @@ export default function TeacherChatManagement() {
       });
       setMessageText("");
       setReplyTo(null);
-      fetchMessages(selectedRoom.id);
+      // ← Remove fetchMessages(selectedRoom.id) — WS broadcast handles it
     } catch (err) {
       addToast(t("chat.messages.error"), "error");
     } finally {
@@ -386,23 +442,25 @@ export default function TeacherChatManagement() {
     }
   };
 
-  // Send voice message
   const handleSendVoice = async (audioBlob, type, durationSecs) => {
     if (!selectedRoom) return;
     setSendingMsg(true);
+    const ext = audioBlob.type.includes("ogg") ? "ogg" : "webm";
     const formData = new FormData();
     formData.append("chatroom_id", selectedRoom.id);
     formData.append("message_type", type);
-    formData.append("file", audioBlob, `voice_${Date.now()}.webm`);
+    formData.append("file", audioBlob, `voice_${Date.now()}.${ext}`);
     if (durationSecs && durationSecs > 0) {
       formData.append("content", String(Math.round(durationSecs)));
     }
     if (replyTo) formData.append("reply_to_id", replyTo.id);
     try {
-      await apiClient.post("/chat/messages/upload/", formData, { headers: { "Content-Type": "multipart/form-data" } });
+      await apiClient.post("/chat/messages/upload/", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
       setShowVoiceRecorder(false);
       setReplyTo(null);
-      fetchMessages(selectedRoom.id);
+      // ← Remove fetchMessages — WS handles it
     } catch (err) {
       addToast(t("chat.messages.error"), "error");
     } finally {
@@ -410,7 +468,6 @@ export default function TeacherChatManagement() {
     }
   };
 
-  // Upload file
   const handleUploadFile = async () => {
     if (!selectedRoom || !uploadFile) return;
     const formData = new FormData();
@@ -419,30 +476,35 @@ export default function TeacherChatManagement() {
     formData.append("file", uploadFile);
     if (replyTo) formData.append("reply_to_id", replyTo.id);
     try {
-      await apiClient.post("/chat/messages/upload/", formData, { headers: { "Content-Type": "multipart/form-data" } });
+      await apiClient.post("/chat/messages/upload/", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
       setShowUpload(false);
       setUploadFile(null);
       setReplyTo(null);
-      fetchMessages(selectedRoom.id);
+      // ← Remove fetchMessages — WS handles it
     } catch (err) {
       addToast(t("chat.messages.error"), "error");
     }
   };
 
-  // Delete message (teacher can only delete their own)
-  const handleDeleteMessage = async (message) => {
-    if (!selectedRoom) return;
+
+
+  const handleDeleteMessage = async () => {
+    if (!selectedMessage) return;
     try {
-      await apiClient.delete(`/chat/messages/${message.id}/delete/sender/`);
+      await apiClient.delete(`/chat/messages/${selectedMessage.id}/delete/admin/`);
       addToast(t("chat.messages.messageDeleted"));
-      fetchMessages(selectedRoom.id);
+      setShowDeleteMsg(false);
+      setSelectedMessage(null);
+      // ← Remove fetchMessages — WS message_deleted handles UI removal
     } catch (err) {
       addToast(t("chat.messages.error"), "error");
     }
   };
 
   const formatTime = (ts) => ts ? new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "";
-  
+
   const getFileIcon = (type) => {
     const icons = { image: <Image size={14} />, video: <Video size={14} />, audio: <Music size={14} />, voice: <Mic size={14} />, pdf: <FileText size={14} />, excel: <FileSpreadsheet size={14} />, ppt: <FileBadge size={14} />, word: <FileCode size={14} /> };
     return icons[type] || <File size={14} />;
@@ -490,12 +552,11 @@ export default function TeacherChatManagement() {
 
       {/* Main Layout */}
       <div className="flex-1 flex overflow-hidden relative">
-        
+
         {/* Sidebar - Chat Rooms */}
-        <div className={`fixed md:relative z-20 w-80 h-full transition-transform duration-300 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`} style={{ background: colors.surface, borderRight: `1px solid ${colors.border}` }}>
-          
+        <div className={`fixed md:relative z-20 w-80 h-full transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`} style={{ background: colors.surface, borderRight: `1px solid ${colors.border}` }}>
+
           <div className="p-4 border-b" style={{ borderColor: colors.border }}>
             <div className="relative">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: colors.text2 }} />
@@ -524,7 +585,7 @@ export default function TeacherChatManagement() {
                 all_students: "All Students", students_teachers: "Students & Teachers", students_parents: "Students & Parents",
                 admin_parent: "Admin & Parent", admin_teacher: "Admin & Teacher", parent_teacher_direct: "Direct Chat"
               }[room.room_type] || room.room_type;
-              
+
               return (
                 <div
                   key={room.id}
@@ -581,7 +642,7 @@ export default function TeacherChatManagement() {
                     {replyTo ? "Cancel reply" : ""}
                   </button>
                 </div>
-                
+
                 {/* Reply indicator */}
                 {replyTo && (
                   <div className="mt-2 p-2 rounded-lg flex justify-between items-center" style={{ background: colors.surface2, borderLeft: `3px solid ${colors.accent}` }}>
@@ -608,6 +669,8 @@ export default function TeacherChatManagement() {
                   return (
                     <div
                       key={msg.id}
+                      data-message-id={msg.id}
+                      className="message-item"
                       ref={el => { if (el) messageRefs.current[msg.id] = el; }}
                       className={`flex gap-2 ${isMine ? "justify-end" : "justify-start"}`}
                     >
@@ -615,7 +678,7 @@ export default function TeacherChatManagement() {
                         {!isMine && (
                           <p className="text-xs font-semibold mb-1" style={{ color: colors.accent }}>{msg.sender_username}</p>
                         )}
-                        
+
                         {/* Reply preview */}
                         {msg.reply_to && (
                           <div
@@ -629,7 +692,7 @@ export default function TeacherChatManagement() {
                             </span>
                           </div>
                         )}
-                        
+
                         <div className="rounded-lg p-2" style={{ background: isMine ? colors.sent : colors.received, border: `1px solid ${colors.border}` }}>
                           {msg.message_type === "text" ? (
                             <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
@@ -647,7 +710,7 @@ export default function TeacherChatManagement() {
                           </div>
                         </div>
                       </div>
-                      
+
                       {/* Message actions - only for teacher's own messages */}
                       {isMine && (
                         <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

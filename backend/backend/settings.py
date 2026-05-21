@@ -16,7 +16,8 @@ SECRET_KEY = 'django-insecure-b!im4w!1n5^td!l(9sb8r)%v(*9ag4r)vdt5-a3xr)^j90-f8#
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
 
 
 # Application definition
@@ -31,6 +32,7 @@ INSTALLED_APPS = [
     "corsheaders",
     'channels',
     'background_task',
+    'daphne',
     
     'rest_framework',
     'rest_framework_simplejwt',

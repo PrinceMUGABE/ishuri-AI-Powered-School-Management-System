@@ -9,6 +9,7 @@ import {
   ArrowDown, X as XIcon
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useWebSocket } from '../../hooks/useWebSocket';
 
 const API_BASE_URL = "http://127.0.0.1:8000/api";
 
@@ -378,6 +379,45 @@ export default function AdminChatManagement() {
 
   const toastId = useRef(0);
 
+  const [showDebug, setShowDebug] = useState(false);
+
+  const { isConnected, sendReadReceipt, debugLog } = useWebSocket(
+    selectedRoom?.id,
+    useCallback((wsData) => {
+      if (wsData.type === 'receipt_update') {
+        setMessages(prevMessages =>
+          prevMessages.map(msg => {
+            if (msg.id === wsData.data.message_id) {
+              const updatedReceipts = msg.receipts?.map(receipt => {
+                if (receipt.user_id === wsData.data.user_id) {
+                  return { ...receipt, status: wsData.data.status, read_at: wsData.data.read_at };
+                }
+                return receipt;
+              }) || [];
+              return { ...msg, receipts: updatedReceipts };
+            }
+            return msg;
+          })
+        );
+      } else if (wsData.type === 'message_deleted') {
+        setMessages(prevMessages => prevMessages.filter(msg => msg.id !== wsData.messageId));
+      } else if (wsData.type === 'message_updated') {
+        setMessages(prevMessages =>
+          prevMessages.map(msg =>
+            msg.id === wsData.data.message_id
+              ? { ...msg, content: wsData.data.content }
+              : msg
+          )
+        );
+      } else if (wsData.message) {
+        setMessages(prevMessages => [...prevMessages, wsData.message]);
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
+    }, [])
+  );
+
   const addToast = useCallback((message, type = "success") => {
     const id = ++toastId.current;
     setToasts(prev => [...prev, { id, message, type }]);
@@ -410,10 +450,11 @@ export default function AdminChatManagement() {
     }
   }, [addToast, t]);
 
+
   const fetchUsers = async () => {
     try {
       const [studentsRes, teachersRes, usersRes] = await Promise.all([
-        apiClient.get("/students/students/"),
+        apiClient.get("/students/"),
         apiClient.get("/teachers/teachers/"),
         apiClient.get("/account/users/")
       ]);
@@ -486,6 +527,20 @@ export default function AdminChatManagement() {
       }
     }
   }, [chatrooms]);
+
+  useEffect(() => {
+    if (!selectedRoom || !messages.length || !sendReadReceipt) return;
+
+    // Mark all unread messages as read immediately when room is opened
+    messages.forEach(msg => {
+      if (msg.sender_role !== 'admin') {  // not sent by current admin user
+        const alreadyRead = msg.receipts?.some(r => r.status === 'read');
+        if (!alreadyRead) {
+          sendReadReceipt(msg.id);
+        }
+      }
+    });
+  }, [messages, selectedRoom, sendReadReceipt]);
 
   const scrollToMessage = (msgId) => {
     const el = messageRefs.current[msgId];
@@ -628,7 +683,7 @@ export default function AdminChatManagement() {
       });
       setMessageText("");
       setReplyTo(null);
-      fetchMessages(selectedRoom.id);
+      // ← Remove fetchMessages(selectedRoom.id) — WS broadcast handles it
     } catch (err) {
       addToast(t("chat.messages.error"), "error");
     } finally {
@@ -644,17 +699,17 @@ export default function AdminChatManagement() {
     formData.append("chatroom_id", selectedRoom.id);
     formData.append("message_type", type);
     formData.append("file", audioBlob, `voice_${Date.now()}.${ext}`);
-    // Store duration (seconds) in content so VoiceNotePlayer can read it back
-    // without relying on audio.duration (which is Infinity for webm/ogg blobs)
     if (durationSecs && durationSecs > 0) {
       formData.append("content", String(Math.round(durationSecs)));
     }
     if (replyTo) formData.append("reply_to_id", replyTo.id);
     try {
-      await apiClient.post("/chat/messages/upload/", formData, { headers: { "Content-Type": "multipart/form-data" } });
+      await apiClient.post("/chat/messages/upload/", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
       setShowVoiceRecorder(false);
       setReplyTo(null);
-      fetchMessages(selectedRoom.id);
+      // ← Remove fetchMessages — WS handles it
     } catch (err) {
       addToast(t("chat.messages.error"), "error");
     } finally {
@@ -670,11 +725,13 @@ export default function AdminChatManagement() {
     formData.append("file", uploadFile);
     if (replyTo) formData.append("reply_to_id", replyTo.id);
     try {
-      await apiClient.post("/chat/messages/upload/", formData, { headers: { "Content-Type": "multipart/form-data" } });
+      await apiClient.post("/chat/messages/upload/", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
       setShowUpload(false);
       setUploadFile(null);
       setReplyTo(null);
-      fetchMessages(selectedRoom.id);
+      // ← Remove fetchMessages — WS handles it
     } catch (err) {
       addToast(t("chat.messages.error"), "error");
     }
@@ -687,12 +744,11 @@ export default function AdminChatManagement() {
       addToast(t("chat.messages.messageDeleted"));
       setShowDeleteMsg(false);
       setSelectedMessage(null);
-      fetchMessages(selectedRoom.id);
+      // ← Remove fetchMessages — WS message_deleted handles UI removal
     } catch (err) {
       addToast(t("chat.messages.error"), "error");
     }
   };
-
   const handleMessageInfo = async (msg) => {
     setSelectedMessage(msg);
     setShowMsgInfo(true);
@@ -884,6 +940,12 @@ export default function AdminChatManagement() {
                 </div>
                 <div style={{ display: "flex", gap: 6 }}>
                   {/* In-chat search toggle */}
+                  <button
+                    onClick={() => setShowDebug(p => !p)}
+                    style={{ padding: "6px 10px", borderRadius: 6, background: isConnected ? "#166534" : c.danger, color: "#fff", border: "none", cursor: "pointer", fontSize: 11, fontWeight: 600 }}
+                  >
+                    {isConnected ? "● WS" : "○ WS"}
+                  </button>
                   <button onClick={() => setShowMessageSearch(p => !p)}
                     style={{ padding: "6px 10px", borderRadius: 6, background: showMessageSearch ? c.accent : c.surface2, color: showMessageSearch ? "#fff" : c.text, border: `1px solid ${c.border}`, cursor: "pointer" }}>
                     <Search size={15} />
@@ -961,6 +1023,8 @@ export default function AdminChatManagement() {
                       return (
                         <div
                           key={msg.id}
+                          data-message-id={msg.id}
+                          className="message-item"
                           ref={el => { if (el) messageRefs.current[msg.id] = el; }}
                           style={{ display: "flex", flexDirection: isMine ? "row-reverse" : "row", gap: 8, transition: "background 0.4s", borderRadius: 8, padding: "2px 4px", background: isHighlighted ? (dark ? "#2a3a2a" : "#bbf7d0") : isInResults ? (dark ? "#1f2a1f" : "#dcfce7") : "transparent" }}
                         >
@@ -1037,6 +1101,26 @@ export default function AdminChatManagement() {
                     })}
                     <div ref={messagesEndRef} />
                   </div>
+
+                  {showDebug && (
+                    <div style={{ background: "#0f1117", borderTop: `1px solid #2d3150`, padding: "8px 12px", fontFamily: "monospace", fontSize: 11, maxHeight: 180, overflowY: "auto", flexShrink: 0 }}>
+                      <div style={{ color: "#9ba3c2", marginBottom: 6, display: "flex", justifyContent: "space-between" }}>
+                        <span>WebSocket log — room {selectedRoom?.id}</span>
+                        <span style={{ color: isConnected ? "#4caf50" : "#ef4444" }}>{isConnected ? "● connected" : "○ disconnected"}</span>
+                      </div>
+                      {debugLog.length === 0 ? (
+                        <div style={{ color: "#6b7280" }}>No events yet…</div>
+                      ) : debugLog.map((e, i) => (
+                        <div key={i} style={{
+                          display: "flex", gap: 8, lineHeight: 1.6,
+                          color: e.type === 'success' ? "#4caf50" : e.type === 'recv' ? "#60a5fa" : e.type === 'error' ? "#ef4444" : e.type === 'warn' ? "#f59e0b" : "#9ba3c2"
+                        }}>
+                          <span style={{ color: "#4b5563", flexShrink: 0 }}>{e.time}</span>
+                          <span>{e.msg}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   {/* Input */}
                   <div style={{ background: c.surface, borderTop: `1px solid ${c.border}`, padding: "10px 14px", flexShrink: 0 }}>

@@ -9,6 +9,7 @@ import {
   Paperclip, CheckCheck, MessageCircle, X, Menu, Trash2, Loader2
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useWebSocket } from '../../hooks/useWebSocket';
 
 const API_BASE_URL = "http://127.0.0.1:8000/api";
 
@@ -29,9 +30,8 @@ apiClient.interceptors.request.use((config) => {
 const ToastContainer = ({ toasts, removeToast }) => (
   <div className="fixed top-5 right-5 z-50 flex flex-col gap-2">
     {toasts.map(toast => (
-      <div key={toast.id} className={`px-4 py-3 rounded-lg shadow-lg text-sm font-medium flex items-center gap-2 animate-slide-in ${
-        toast.type === "success" ? "bg-green-600" : toast.type === "error" ? "bg-red-600" : "bg-blue-600"
-      } text-white`}>
+      <div key={toast.id} className={`px-4 py-3 rounded-lg shadow-lg text-sm font-medium flex items-center gap-2 animate-slide-in ${toast.type === "success" ? "bg-green-600" : toast.type === "error" ? "bg-red-600" : "bg-blue-600"
+        } text-white`}>
         <span>{toast.message}</span>
         <button onClick={() => removeToast(toast.id)} className="ml-2 hover:opacity-80">×</button>
       </div>
@@ -183,7 +183,7 @@ const VoiceNotePlayer = ({ url, knownDuration = 0, dark }) => {
     if (isPlaying) {
       audioRef.current.pause(); setIsPlaying(false); clearInterval(intervalRef.current);
     } else {
-      audioRef.current.play().catch(() => {}); setIsPlaying(true);
+      audioRef.current.play().catch(() => { }); setIsPlaying(true);
       intervalRef.current = setInterval(() => { if (audioRef.current) setCurrentTime(audioRef.current.currentTime); }, 100);
     }
   };
@@ -266,6 +266,7 @@ export default function ParentChatManagement() {
   const messagesEndRef = useRef(null);
   const messageRefs = useRef({});
   const toastId = useRef(0);
+  const [showDebug, setShowDebug] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -314,6 +315,43 @@ export default function ParentChatManagement() {
     }
   }, [addToast, t]);
 
+   const { isConnected, sendReadReceipt, debugLog } = useWebSocket(
+      selectedRoom?.id,
+      useCallback((wsData) => {
+        if (wsData.type === 'receipt_update') {
+          setMessages(prevMessages =>
+            prevMessages.map(msg => {
+              if (msg.id === wsData.data.message_id) {
+                const updatedReceipts = msg.receipts?.map(receipt => {
+                  if (receipt.user_id === wsData.data.user_id) {
+                    return { ...receipt, status: wsData.data.status, read_at: wsData.data.read_at };
+                  }
+                  return receipt;
+                }) || [];
+                return { ...msg, receipts: updatedReceipts };
+              }
+              return msg;
+            })
+          );
+        } else if (wsData.type === 'message_deleted') {
+          setMessages(prevMessages => prevMessages.filter(msg => msg.id !== wsData.messageId));
+        } else if (wsData.type === 'message_updated') {
+          setMessages(prevMessages =>
+            prevMessages.map(msg =>
+              msg.id === wsData.data.message_id
+                ? { ...msg, content: wsData.data.content }
+                : msg
+            )
+          );
+        } else if (wsData.message) {
+          setMessages(prevMessages => [...prevMessages, wsData.message]);
+          setTimeout(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+          }, 100);
+        }
+      }, [])
+    );
+
   // ── Fetch messages ──
   const fetchMessages = useCallback(async (roomId) => {
     if (!roomId) return;
@@ -330,9 +368,6 @@ export default function ParentChatManagement() {
     }
   }, [addToast, t]);
 
-  // ── Auto-open chat with a specific teacher ──
-  // Called after rooms have loaded. Looks for an existing parent-teacher
-  // chatroom for the target teacher; if none found, creates one.
   const autoOpenChatWithTeacher = useCallback(async (target, rooms) => {
     const { teacherUserId, teacherName, studentId } = target;
     if (!teacherUserId) return;
@@ -413,61 +448,98 @@ export default function ParentChatManagement() {
     }
   }, [selectedRoom, fetchMessages]);
 
-  // ── Send text message ──
-  const handleSendMessage = async () => {
-    if (!selectedRoom || !messageText.trim()) return;
-    setSendingMsg(true);
-    try {
-      await apiClient.post("/chat/messages/send/", { chatroom_id: selectedRoom.id, content: messageText.trim(), reply_to_id: replyTo?.id || null });
-      setMessageText(""); setReplyTo(null);
-      fetchMessages(selectedRoom.id);
-    } catch (err) {
-      console.error("Error sending message:", err);
-      addToast(t("chat.messages.error") || "Failed to send", "error");
-    } finally { setSendingMsg(false); }
-  };
+  useEffect(() => {
+    if (!selectedRoom || !messages.length || !sendReadReceipt) return;
 
-  // ── Send voice ──
-  const handleSendVoice = async (audioBlob, type, durationSecs) => {
-    if (!selectedRoom) return;
-    setSendingMsg(true);
-    const formData = new FormData();
-    formData.append("chatroom_id", selectedRoom.id);
-    formData.append("message_type", type);
-    formData.append("file", audioBlob, `voice_${Date.now()}.webm`);
-    if (durationSecs && durationSecs > 0) formData.append("content", String(Math.round(durationSecs)));
-    if (replyTo) formData.append("reply_to_id", replyTo.id);
-    try {
-      await apiClient.post("/chat/messages/upload/", formData, { headers: { "Content-Type": "multipart/form-data" } });
-      setShowVoiceRecorder(false); setReplyTo(null);
-      fetchMessages(selectedRoom.id);
-    } catch (err) { console.error("Error sending voice:", err); addToast(t("chat.messages.error") || "Failed to send voice", "error"); }
-    finally { setSendingMsg(false); }
-  };
+    // Mark all unread messages as read immediately when room is opened
+    messages.forEach(msg => {
+      if (msg.sender_role !== 'admin') {  // not sent by current admin user
+        const alreadyRead = msg.receipts?.some(r => r.status === 'read');
+        if (!alreadyRead) {
+          sendReadReceipt(msg.id);
+        }
+      }
+    });
+  }, [messages, selectedRoom, sendReadReceipt]);
 
-  // ── Upload file ──
-  const handleUploadFile = async () => {
-    if (!selectedRoom || !uploadFile) return;
-    const formData = new FormData();
-    formData.append("chatroom_id", selectedRoom.id);
-    formData.append("message_type", uploadType);
-    formData.append("file", uploadFile);
-    if (replyTo) formData.append("reply_to_id", replyTo.id);
-    try {
-      await apiClient.post("/chat/messages/upload/", formData, { headers: { "Content-Type": "multipart/form-data" } });
-      setShowUpload(false); setUploadFile(null); setReplyTo(null);
-      fetchMessages(selectedRoom.id);
-    } catch (err) { console.error("Error uploading file:", err); addToast(t("chat.messages.error") || "Failed to upload", "error"); }
-  };
+ const handleSendMessage = async () => {
+  if (!selectedRoom || !messageText.trim()) return;
+  setSendingMsg(true);
+  try {
+    await apiClient.post("/chat/messages/send/", {
+      chatroom_id: selectedRoom.id,
+      content: messageText.trim(),
+      reply_to_id: replyTo?.id || null
+    });
+    setMessageText("");
+    setReplyTo(null);
+    // ← Remove fetchMessages(selectedRoom.id) — WS broadcast handles it
+  } catch (err) {
+    addToast(t("chat.messages.error"), "error");
+  } finally {
+    setSendingMsg(false);
+  }
+};
+
+const handleSendVoice = async (audioBlob, type, durationSecs) => {
+  if (!selectedRoom) return;
+  setSendingMsg(true);
+  const ext = audioBlob.type.includes("ogg") ? "ogg" : "webm";
+  const formData = new FormData();
+  formData.append("chatroom_id", selectedRoom.id);
+  formData.append("message_type", type);
+  formData.append("file", audioBlob, `voice_${Date.now()}.${ext}`);
+  if (durationSecs && durationSecs > 0) {
+    formData.append("content", String(Math.round(durationSecs)));
+  }
+  if (replyTo) formData.append("reply_to_id", replyTo.id);
+  try {
+    await apiClient.post("/chat/messages/upload/", formData, {
+      headers: { "Content-Type": "multipart/form-data" }
+    });
+    setShowVoiceRecorder(false);
+    setReplyTo(null);
+    // ← Remove fetchMessages — WS handles it
+  } catch (err) {
+    addToast(t("chat.messages.error"), "error");
+  } finally {
+    setSendingMsg(false);
+  }
+};
+
+const handleUploadFile = async () => {
+  if (!selectedRoom || !uploadFile) return;
+  const formData = new FormData();
+  formData.append("chatroom_id", selectedRoom.id);
+  formData.append("message_type", uploadType);
+  formData.append("file", uploadFile);
+  if (replyTo) formData.append("reply_to_id", replyTo.id);
+  try {
+    await apiClient.post("/chat/messages/upload/", formData, {
+      headers: { "Content-Type": "multipart/form-data" }
+    });
+    setShowUpload(false);
+    setUploadFile(null);
+    setReplyTo(null);
+    // ← Remove fetchMessages — WS handles it
+  } catch (err) {
+    addToast(t("chat.messages.error"), "error");
+  }
+};
 
   // ── Delete (hide) message for receiver ──
-  const handleDeleteMessage = async (message) => {
-    try {
-      await apiClient.delete(`/chat/messages/${message.id}/delete/receiver/`);
-      addToast(t("chat.messages.messageHidden") || "Message hidden", "success");
-      fetchMessages(selectedRoom.id);
-    } catch (err) { console.error("Error deleting message:", err); addToast(t("chat.messages.error") || "Error", "error"); }
-  };
+  const handleDeleteMessage = async () => {
+  if (!selectedMessage) return;
+  try {
+    await apiClient.delete(`/chat/messages/${selectedMessage.id}/delete/admin/`);
+    addToast(t("chat.messages.messageDeleted"));
+    setShowDeleteMsg(false);
+    setSelectedMessage(null);
+    // ← Remove fetchMessages — WS message_deleted handles UI removal
+  } catch (err) {
+    addToast(t("chat.messages.error"), "error");
+  }
+};
 
   const formatTime = (ts) => ts ? new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "";
 
@@ -623,6 +695,12 @@ export default function ParentChatManagement() {
                     <h3 className="font-semibold">{selectedRoom.name}</h3>
                     <p className="text-xs" style={{ color: colors.text2 }}>{getRoomTypeDisplay(selectedRoom.room_type)}</p>
                   </div>
+                  <button
+                    onClick={() => setShowDebug(p => !p)}
+                    style={{ padding: "6px 10px", borderRadius: 6, background: isConnected ? "#166534" : c.danger, color: "#fff", border: "none", cursor: "pointer", fontSize: 11, fontWeight: 600 }}
+                  >
+                    {isConnected ? "● WS" : "○ WS"}
+                  </button>
                 </div>
                 {replyTo && (
                   <div className="mt-2 p-2 rounded-lg flex justify-between items-center" style={{ background: colors.surface2, borderLeft: `3px solid ${colors.accent}` }}>
@@ -649,6 +727,8 @@ export default function ParentChatManagement() {
                   return (
                     <div
                       key={msg.id}
+                      data-message-id={msg.id}
+                      className="message-item" 
                       ref={el => { if (el) messageRefs.current[msg.id] = el; }}
                       className={`flex gap-2 group ${isOutgoing ? "justify-end" : "justify-start"}`}
                     >

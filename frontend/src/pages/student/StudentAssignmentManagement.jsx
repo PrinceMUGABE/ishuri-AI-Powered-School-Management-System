@@ -540,10 +540,10 @@ const StudentAssignments = () => {
               {t('student_assignments.title')}
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              {studentProfile?.full_name} · {t('student_assignments.subtitle')}
+              {t('student_assignments.subtitle')}
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          {/* <div className="flex items-center gap-3">
             <LanguageSwitcher />
             <button
               onClick={() => setDarkMode(!darkMode)}
@@ -557,7 +557,7 @@ const StudentAssignments = () => {
             >
               <RefreshCw className="w-4 h-4 text-gray-500 dark:text-gray-400" />
             </button>
-          </div>
+          </div> */}
         </div>
         
         {/* Stats */}
