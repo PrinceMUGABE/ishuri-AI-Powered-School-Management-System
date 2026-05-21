@@ -1564,6 +1564,12 @@
       "reports": "Rapports",
       "teachers": "Enseignants"
     },
+    "stats": {
+      "totalStudents": "Total Étudiants",
+      "activeStudents": "Étudiants Actifs",
+      "totalParents": "Total Parents",
+      "totalAssignments": "Affectations Actives"
+    },
     "table": {
       "rollNumber": "Numéro d'inscription",
       "fullName": "Nom Complet",
@@ -1581,6 +1587,14 @@
       "term": "Trimestre",
       "relationship": "Relation",
       "subject": "Matière"
+    },
+    "filters": {
+      "allStatus": "Tous Statuts",
+      "allAcademicYears": "Toutes Années Académiques",
+      "allSchoolLevels": "Tous Niveaux Scolaires",
+      "allClassLevels": "Tous Niveaux de Classe",
+      "allClassrooms": "Toutes Salles de Classe",
+      "allRelationships": "Toutes Relations"
     },
     "form": {
       "fullName": "Nom Complet",

@@ -370,7 +370,8 @@
       "clear": "Clear",
       "uploadDocument": "Upload Document",
       "clickToAdd": "Click to add",
-      "editTeacher": "Edit Teacher"
+      "editTeacher": "Edit Teacher",
+      "chat": "Chat"
     },
     "filters": {
       "allStatus": "All Status",
@@ -452,7 +453,10 @@
       "loading": "Loading...",
       "noData": "No data found",
       "noTeachersFound": "No teachers found matching your criteria",
-      "noAssignmentsFound": "No assignments found matching your criteria"
+      "noAssignmentsFound": "No assignments found matching your criteria",
+       "chatCreationError": "Failed to create chatroom",
+      "chatError": "Error setting up chat",
+      "noUserAccount": "No user account linked"
     },
     "errors": {
       "fetchTeachersFailed": "Failed to fetch teachers",
@@ -1531,6 +1535,12 @@
       "reports": "Reports",
       "teachers": "Teachers"
     },
+    "stats": {
+      "totalStudents": "Total Students",
+      "activeStudents": "Active Students",
+      "totalParents": "Total Parents",
+      "totalAssignments": "Active Assignments"
+    },
     "table": {
       "rollNumber": "Roll Number",
       "fullName": "Full Name",
@@ -1599,7 +1609,9 @@
       "downloadReport": "Download Report",
       "printReport": "Print Report",
       "viewFullPerformance": "View Full Performance",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "viewPerformance": "View Performance",
+      "fullReport": "Full Report"
     },
     "messages": {
       "loading": "Loading...",
@@ -1634,6 +1646,14 @@
       "first": "First",
       "last": "Last"
     },
+    "filters": {
+      "allStatus": "All Status",
+      "allAcademicYears": "All Academic Years",
+      "allSchoolLevels": "All School Levels",
+      "allClassLevels": "All Class Levels",
+      "allClassrooms": "All Classrooms",
+      "allRelationships": "All Relationships"
+    },
     "delete": {
       "title": "Delete Record",
       "confirmation": "Are you sure you want to delete this record? This action cannot be undone."
@@ -1655,7 +1675,18 @@
     },
     "labels": {
       "noUserAccount": "No user account"
-    }
+    },
+    "parent_dashboard": {
+    "downloadPDF": "PDF",
+    "json": "JSON",
+    "generatingPDF": "Generating PDF...",
+    "pdfDownloaded": "PDF downloaded successfully!",
+    "pdfError": "Failed to generate PDF",
+    "qualityEducation": "Quality Education for All",
+    "reportFooter": "Official Academic Report",
+    "print": "Print",
+    "close": "Close"
+  }
   },
   "not_authorized_to_view_student": "You are not authorized to view this student's details.",
   "not_authorized_to_view_classroom": "You are not authorized to view this classroom.",

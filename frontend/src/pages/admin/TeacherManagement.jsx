@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import {
@@ -14,7 +15,8 @@ import {
   ExternalLink, UserCheck, UserX, DollarSign, Star,
   TrendingUp, TrendingDown, Activity, Shield, Home,
   PhoneCall, MailOpen, Map, Cake, CalendarCheck as BirthDayIcon,
-  BookMarked, School, ClipboardList, Target, Award as AwardIcon
+  BookMarked, School, ClipboardList, Target, Award as AwardIcon,
+  MessageCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -48,10 +50,10 @@ const Spinner = ({ size = 'md' }) => {
 
 const getStatusBadge = (status) => {
   const colors = {
-    active:    'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
-    inactive:  'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
+    active: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
+    inactive: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
     suspended: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
-    on_leave:  'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300',
+    on_leave: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300',
     completed: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
   };
   return colors[status] || colors.inactive;
@@ -67,6 +69,7 @@ const formatDate = (dateString) => {
 // ─────────────────────────────────────────────────────────────
 const TeacherManagement = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   // ── UI State ──────────────────────────────────────────────
   const [loading, setLoading] = useState(false);
@@ -84,6 +87,7 @@ const TeacherManagement = () => {
   // ── Modal State ───────────────────────────────────────────
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showEditAssignmentModal, setShowEditAssignmentModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
@@ -114,20 +118,38 @@ const TeacherManagement = () => {
     teacher: '', academic_year: '', term: '', school_level: '', class_level: '', subject: '', status: 'active', notes: ''
   });
   const [editAssignment, setEditAssignment] = useState({});
+  const [editAssignmentData, setEditAssignmentData] = useState({
+    id: '',
+    teacher: '',
+    academic_year: '',
+    term: '',
+    school_level: '',
+    class_level: '',
+    subject: '',
+    status: '',
+    notes: ''
+  });
 
   // ── Dropdown Data ─────────────────────────────────────────
   const [schoolLevels, setSchoolLevels] = useState([]);
   const [classLevels, setClassLevels] = useState([]);
   const [filteredClassLevels, setFilteredClassLevels] = useState([]);
+  const [filteredClassLevelsForEdit, setFilteredClassLevelsForEdit] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [academicYears, setAcademicYears] = useState([]);
   const [filteredTerms, setFilteredTerms] = useState([]);
+  const [filteredTermsForEdit, setFilteredTermsForEdit] = useState([]);
   const [terms, setTerms] = useState([]);
 
   // ── Stats ─────────────────────────────────────────────────
   const [stats, setStats] = useState({
-    total_teachers: 0, active_teachers: 0, inactive_teachers: 0, on_leave_teachers: 0,
-    total_assignments: 0, active_assignments: 0, total_timetable_entries: 0
+    total_teachers: 0, 
+    active_teachers: 0, 
+    inactive_teachers: 0, 
+    on_leave_teachers: 0,
+    total_assignments: 0, 
+    active_assignments: 0, 
+    total_timetable_entries: 0
   });
 
   // ─────────────────────────────────────────────────────────
@@ -190,11 +212,12 @@ const TeacherManagement = () => {
     try {
       const response = await apiClient.get('/assignments/');
       if (response.data.success) {
-        setAssignments(response.data.data);
+        const assignmentList = response.data.data;
+        setAssignments(assignmentList);
         setStats(prev => ({
           ...prev,
-          total_assignments: response.data.data.length,
-          active_assignments: response.data.data.filter(a => a.status === 'active').length,
+          total_assignments: assignmentList.length,
+          active_assignments: assignmentList.filter(a => a.status === 'active').length,
         }));
       }
     } catch (error) {
@@ -272,6 +295,19 @@ const TeacherManagement = () => {
     setNewAssignment(prev => ({ ...prev, academic_year: academicYearId, term: '' }));
   };
 
+  // For Edit Assignment
+  const handleSchoolLevelChangeForEdit = (schoolLevelId) => {
+    const filtered = classLevels.filter(cl => cl.school_level === parseInt(schoolLevelId) && cl.is_active);
+    setFilteredClassLevelsForEdit(filtered);
+    setEditAssignmentData(prev => ({ ...prev, school_level: schoolLevelId, class_level: '' }));
+  };
+
+  const handleAcademicYearChangeForEdit = (academicYearId) => {
+    const filtered = terms.filter(term => term.academic_year === parseInt(academicYearId));
+    setFilteredTermsForEdit(filtered);
+    setEditAssignmentData(prev => ({ ...prev, academic_year: academicYearId, term: '' }));
+  };
+
   // ─────────────────────────────────────────────────────────
   // Filtered Data
   // ─────────────────────────────────────────────────────────
@@ -279,7 +315,7 @@ const TeacherManagement = () => {
     let filtered = [...teachers];
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(t => 
+      filtered = filtered.filter(t =>
         t.full_name?.toLowerCase().includes(term) ||
         t.email?.toLowerCase().includes(term) ||
         t.phone_number?.includes(term)
@@ -295,7 +331,7 @@ const TeacherManagement = () => {
     let filtered = [...assignments];
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(a => 
+      filtered = filtered.filter(a =>
         a.teacher_name?.toLowerCase().includes(term) ||
         a.subject_name?.toLowerCase().includes(term) ||
         a.class_level_name?.toLowerCase().includes(term)
@@ -423,6 +459,39 @@ const TeacherManagement = () => {
     }
   };
 
+  const handleUpdateAssignment = async () => {
+    setLoading(true);
+    try {
+      const payload = {
+        teacher: editAssignmentData.teacher,
+        academic_year: editAssignmentData.academic_year,
+        term: editAssignmentData.term,
+        school_level: editAssignmentData.school_level,
+        class_level: editAssignmentData.class_level,
+        subject: editAssignmentData.subject,
+        status: editAssignmentData.status,
+        notes: editAssignmentData.notes || ''
+      };
+      const response = await apiClient.put(`/assignments/${editAssignmentData.id}/`, payload);
+      if (response.data.success) {
+        toast.success(response.data.message || t('teachers.messages.assignmentUpdateSuccess'));
+        setShowEditAssignmentModal(false);
+        setEditAssignmentData({
+          id: '', teacher: '', academic_year: '', term: '', school_level: '', class_level: '', subject: '', status: '', notes: ''
+        });
+        setFilteredClassLevelsForEdit([]);
+        setFilteredTermsForEdit([]);
+        fetchAssignments();
+      } else {
+        toast.error(response.data.message || t('teachers.errors.assignmentUpdateFailed'));
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || t('teachers.errors.assignmentUpdateFailed'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDeleteAssignment = async () => {
     setLoading(true);
     try {
@@ -483,16 +552,101 @@ const TeacherManagement = () => {
   const totalPages = Math.ceil(currentData.length / itemsPerPage);
   const paginatedData = currentData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+  // ── Chat Functions ─────────────────────────────────────────
+  const handleChatWithUser = async (userId, userName, userRole, chatRoomType = null) => {
+    if (!userId) {
+      toast.error(t('teachers.messages.noUserAccount'));
+      return;
+    }
+
+    let roomType = chatRoomType;
+    if (!roomType) {
+      if (userRole === 'teacher') {
+        roomType = 'admin_teacher';
+      } else if (userRole === 'parent') {
+        roomType = 'admin_parent';
+      } else if (userRole === 'student') {
+        roomType = 'admin_student';
+      } else {
+        roomType = 'admin_teacher';
+      }
+    }
+
+    try {
+      const token = localStorage.getItem('access_token');
+
+      const response = await axios.get('http://127.0.0.1:8000/api/chat/chatrooms/all/', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const chatrooms = response.data.chatrooms || [];
+
+      let existingRoom = null;
+
+      if (userRole === 'teacher') {
+        existingRoom = chatrooms.find(room =>
+          room.room_type === 'admin_teacher' &&
+          room.members?.some(member => {
+            const memberId = member.user_id || member.user?.id || member.id;
+            return memberId === userId;
+          })
+        );
+      } else if (userRole === 'parent') {
+        existingRoom = chatrooms.find(room =>
+          room.room_type === 'admin_parent' &&
+          room.members?.some(member => {
+            const memberId = member.user_id || member.user?.id || member.id;
+            return memberId === userId;
+          })
+        );
+      } else {
+        existingRoom = chatrooms.find(room =>
+          (room.room_type === 'admin_teacher' || room.room_type === 'admin_parent') &&
+          room.members?.some(member => {
+            const memberId = member.user_id || member.user?.id || member.id;
+            return memberId === userId;
+          })
+        );
+      }
+
+      let roomId;
+
+      if (existingRoom) {
+        roomId = existingRoom.id;
+      } else {
+        const createResponse = await axios.post('http://127.0.0.1:8000/api/chat/chatrooms/create/', {
+          name: `Chat with ${userName}`,
+          room_type: roomType,
+          user_id: userId
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (createResponse.data.chatroom) {
+          roomId = createResponse.data.chatroom.id;
+        } else {
+          toast.error(t('teachers.messages.chatCreationError'));
+          return;
+        }
+      }
+
+      navigate(`/app/chat?room=${roomId}`);
+
+    } catch (error) {
+      console.error('Error setting up chat:', error);
+      toast.error(t('teachers.messages.chatError'));
+    }
+  };
+
   // ─────────────────────────────────────────────────────────
-  // Teacher Detail Modal
+  // Teacher Detail Modal Component
   // ─────────────────────────────────────────────────────────
   const TeacherDetailModal = () => {
     if (!selectedTeacher) return null;
-    
+
     const teacherAssignments = getTeacherAssignments(selectedTeacher.id);
     const teacherTimetable = getTeacherTimetable(selectedTeacher.id);
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    
+
     const tabs = [
       { id: 'profile', label: t('teachers.detail.profile'), icon: User },
       { id: 'documents', label: t('teachers.detail.documents'), icon: FileText },
@@ -505,13 +659,13 @@ const TeacherManagement = () => {
         <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
           {/* Header */}
           <div className="relative bg-gradient-to-r from-emerald-700 to-teal-800 p-6 text-white">
-            <button 
+            <button
               onClick={() => setShowViewModal(false)}
               className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-white/20 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
-            
+
             <div className="flex items-center gap-4">
               <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center overflow-hidden">
                 {selectedTeacher.profile_picture_url ? (
@@ -520,9 +674,28 @@ const TeacherManagement = () => {
                   <User className="w-10 h-10 text-white/70" />
                 )}
               </div>
-              
+
               <div className="flex-1">
-                <h2 className="text-2xl font-bold">{selectedTeacher.full_name}</h2>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h2 className="text-2xl font-bold">{selectedTeacher.full_name}</h2>
+                  <button
+                    onClick={() => {
+                      let userId = selectedTeacher.user_id;
+                      if (!userId && selectedTeacher.user) userId = selectedTeacher.user.id;
+                      if (!userId && selectedTeacher.user_info) userId = selectedTeacher.user_info.id;
+                      if (userId) {
+                        setShowViewModal(false);
+                        handleChatWithUser(userId, selectedTeacher.full_name, 'teacher');
+                      } else {
+                        toast.error(t('teachers.messages.noUserAccount'));
+                      }
+                    }}
+                    className="px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    {t('teachers.actions.chat')}
+                  </button>
+                </div>
                 <div className="flex items-center gap-3 mt-1 flex-wrap">
                   <span className="flex items-center gap-1 text-sm text-white/80">
                     <Mail className="w-3.5 h-3.5" /> {selectedTeacher.email}
@@ -548,8 +721,8 @@ const TeacherManagement = () => {
                   key={tab.id}
                   onClick={() => setActiveTeacherTab(tab.id)}
                   className={`px-4 py-3 text-sm font-medium transition-all flex items-center gap-2 border-b-2 whitespace-nowrap ${
-                    isActive 
-                      ? 'border-emerald-600 text-emerald-700 dark:text-emerald-400' 
+                    isActive
+                      ? 'border-emerald-600 text-emerald-700 dark:text-emerald-400'
                       : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
                   }`}
                 >
@@ -661,7 +834,6 @@ const TeacherManagement = () => {
                       {t('teachers.detail.documents')}
                     </h3>
                   </div>
-                  
                   {teacherDocuments.length === 0 ? (
                     <div className="text-center py-8 text-gray-400">
                       <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
@@ -700,7 +872,6 @@ const TeacherManagement = () => {
                   <h3 className="font-semibold text-gray-800 dark:text-white">{t('teachers.detail.currentAssignments')}</h3>
                   <span className="text-sm text-gray-500">{teacherAssignments.length} {t('teachers.detail.assignments')}</span>
                 </div>
-                
                 {teacherAssignments.length === 0 ? (
                   <div className="text-center py-8 text-gray-400">
                     <BookOpen className="w-12 h-12 mx-auto mb-2 opacity-50" />
@@ -748,7 +919,6 @@ const TeacherManagement = () => {
             {activeTeacherTab === 'timetable' && (
               <div className="space-y-4">
                 <h3 className="font-semibold text-gray-800 dark:text-white">{t('teachers.detail.weeklyTimetable')}</h3>
-                
                 {Object.keys(teacherTimetable).length === 0 ? (
                   <div className="text-center py-8 text-gray-400">
                     <Calendar className="w-12 h-12 mx-auto mb-2 opacity-50" />
@@ -818,67 +988,85 @@ const TeacherManagement = () => {
   // ─────────────────────────────────────────────────────────
   // Render Table Rows
   // ─────────────────────────────────────────────────────────
-  const renderTeacherRow = (teacher) => (
-    <tr key={teacher.id} className="hover:bg-emerald-50/40 dark:hover:bg-emerald-900/10 transition-colors group">
-      <td className="px-4 py-3">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-700 dark:text-emerald-400 font-semibold text-sm">
-            {teacher.first_name?.[0]}{teacher.last_name?.[0]}
+  const renderTeacherRow = (teacher) => {
+    return (
+      <tr key={teacher.id} className="hover:bg-emerald-50/40 dark:hover:bg-emerald-900/10 transition-colors group">
+        <td className="px-4 py-3">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-700 dark:text-emerald-400 font-semibold text-sm">
+              {teacher.first_name?.[0]}{teacher.last_name?.[0]}
+            </div>
+            <div>
+              <p className="font-semibold text-gray-900 dark:text-white">{teacher.full_name}</p>
+              <p className="text-xs text-gray-400">{teacher.user_info?.username || teacher.user?.username || 'No username'}</p>
+            </div>
           </div>
-          <div>
-            <p className="font-semibold text-gray-900 dark:text-white">{teacher.full_name}</p>
-            <p className="text-xs text-gray-400">{teacher.user_info?.username}</p>
+        </td>
+        <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{teacher.email}</td>
+        <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{teacher.phone_number}</td>
+        <td className="px-4 py-3">
+          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${getStatusBadge(teacher.status)}`}>
+            {teacher.status === 'active' && <CheckCircle className="w-3 h-3" />}
+            {teacher.status === 'inactive' && <AlertCircle className="w-3 h-3" />}
+            {teacher.status === 'on_leave' && <Clock className="w-3 h-3" />}
+            {t(`teachers.status.${teacher.status}`)}
+          </span>
+        </td>
+        <td className="px-4 py-3">
+          <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              onClick={() => {
+                setSelectedTeacher(teacher);
+                setActiveTeacherTab('profile');
+                fetchTeacherDocuments(teacher.id);
+                setShowViewModal(true);
+              }}
+              className="p-1.5 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/20 transition-colors"
+              title={t('teachers.actions.viewDetails')}
+            >
+              <Eye className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
+            </button>
+            <button
+              onClick={() => {
+                let userId = teacher.user_id;
+                if (!userId && teacher.user) userId = teacher.user.id;
+                if (!userId && teacher.user_info) userId = teacher.user_info.id;
+                if (userId) {
+                  handleChatWithUser(userId, teacher.full_name, 'teacher');
+                } else {
+                  toast.error(t('teachers.messages.noUserAccount'));
+                }
+              }}
+              className="p-1.5 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/20 transition-colors"
+              title={t('teachers.actions.chat')}
+            >
+              <MessageCircle className="w-3.5 h-3.5 text-blue-600" />
+            </button>
+            <button
+              onClick={() => {
+                setEditTeacher(teacher);
+                setShowEditModal(true);
+              }}
+              className="p-1.5 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/20 transition-colors"
+              title={t('teachers.actions.edit')}
+            >
+              <Edit className="w-3.5 h-3.5 text-amber-600" />
+            </button>
+            <button
+              onClick={() => {
+                setSelectedTeacher(teacher);
+                setShowDeleteModal(true);
+              }}
+              className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors"
+              title={t('teachers.actions.delete')}
+            >
+              <Trash2 className="w-3.5 h-3.5 text-red-500" />
+            </button>
           </div>
-        </div>
-      </td>
-      <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{teacher.email}</td>
-      <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{teacher.phone_number}</td>
-      <td className="px-4 py-3">
-        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${getStatusBadge(teacher.status)}`}>
-          {teacher.status === 'active' && <CheckCircle className="w-3 h-3" />}
-          {teacher.status === 'inactive' && <AlertCircle className="w-3 h-3" />}
-          {teacher.status === 'on_leave' && <Clock className="w-3 h-3" />}
-          {t(`teachers.status.${teacher.status}`)}
-        </span>
-      </td>
-      <td className="px-4 py-3">
-        <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
-            onClick={() => {
-              setSelectedTeacher(teacher);
-              setActiveTeacherTab('profile');
-              fetchTeacherDocuments(teacher.id);
-              setShowViewModal(true);
-            }}
-            className="p-1.5 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/20 transition-colors"
-            title={t('teachers.actions.viewDetails')}
-          >
-            <Eye className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
-          </button>
-          <button
-            onClick={() => {
-              setEditTeacher(teacher);
-              setShowEditModal(true);
-            }}
-            className="p-1.5 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/20 transition-colors"
-            title={t('teachers.actions.edit')}
-          >
-            <Edit className="w-3.5 h-3.5 text-amber-600" />
-          </button>
-          <button
-            onClick={() => {
-              setSelectedTeacher(teacher);
-              setShowDeleteModal(true);
-            }}
-            className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors"
-            title={t('teachers.actions.delete')}
-          >
-            <Trash2 className="w-3.5 h-3.5 text-red-500" />
-          </button>
-        </div>
-      </td>
-    </tr>
-  );
+        </td>
+      </tr>
+    );
+  };
 
   const renderAssignmentRow = (assignment) => (
     <tr key={assignment.id} className="hover:bg-amber-50/40 dark:hover:bg-amber-900/10 transition-colors group">
@@ -894,6 +1082,31 @@ const TeacherManagement = () => {
       </td>
       <td className="px-4 py-3">
         <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            onClick={() => {
+              setEditAssignmentData({
+                id: assignment.id,
+                teacher: assignment.teacher,
+                academic_year: assignment.academic_year,
+                term: assignment.term,
+                school_level: assignment.school_level,
+                class_level: assignment.class_level,
+                subject: assignment.subject,
+                status: assignment.status,
+                notes: assignment.notes || ''
+              });
+              // Set filtered dropdowns
+              const filteredClasses = classLevels.filter(cl => cl.school_level === assignment.school_level && cl.is_active);
+              setFilteredClassLevelsForEdit(filteredClasses);
+              const filteredTermsList = terms.filter(term => term.academic_year === assignment.academic_year);
+              setFilteredTermsForEdit(filteredTermsList);
+              setShowEditAssignmentModal(true);
+            }}
+            className="p-1.5 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/20 transition-colors"
+            title={t('teachers.actions.edit')}
+          >
+            <Edit className="w-3.5 h-3.5 text-amber-600" />
+          </button>
           <button
             onClick={() => {
               setSelectedAssignment(assignment);
@@ -950,17 +1163,22 @@ const TeacherManagement = () => {
       <div className="space-y-6">
         {timetableData.summary && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            {[
-              { label: t('teachers.timetable.totalTeachers'), value: timetableData.summary.total_teachers, color: 'emerald' },
-              { label: t('teachers.timetable.withTimetable'), value: timetableData.summary.teachers_with_timetable, color: 'teal' },
-              { label: t('teachers.timetable.totalEntries'), value: timetableData.summary.total_timetable_entries, color: 'amber' },
-              { label: t('teachers.timetable.avgPerTeacher'), value: timetableData.summary.average_entries_per_teacher, color: 'orange' },
-            ].map(({ label, value, color }) => (
-              <div key={label} className={`bg-${color}-50 dark:bg-${color}-900/20 rounded-xl p-3 border border-${color}-100 dark:border-${color}-900/30`}>
-                <p className={`text-xs text-${color}-600 dark:text-${color}-400 mb-1`}>{label}</p>
-                <p className={`text-xl font-bold text-${color}-700 dark:text-${color}-300`}>{value}</p>
-              </div>
-            ))}
+            <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 border border-emerald-100 dark:border-emerald-900/30">
+              <p className="text-xs text-emerald-600 dark:text-emerald-400 mb-1">{t('teachers.timetable.totalTeachers')}</p>
+              <p className="text-xl font-bold text-emerald-700 dark:text-emerald-300">{timetableData.summary.total_teachers}</p>
+            </div>
+            <div className="bg-teal-50 dark:bg-teal-900/20 rounded-xl p-3 border border-teal-100 dark:border-teal-900/30">
+              <p className="text-xs text-teal-600 dark:text-teal-400 mb-1">{t('teachers.timetable.withTimetable')}</p>
+              <p className="text-xl font-bold text-teal-700 dark:text-teal-300">{timetableData.summary.teachers_with_timetable}</p>
+            </div>
+            <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-3 border border-amber-100 dark:border-amber-900/30">
+              <p className="text-xs text-amber-600 dark:text-amber-400 mb-1">{t('teachers.timetable.totalEntries')}</p>
+              <p className="text-xl font-bold text-amber-700 dark:text-amber-300">{timetableData.summary.total_timetable_entries}</p>
+            </div>
+            <div className="bg-orange-50 dark:bg-orange-900/20 rounded-xl p-3 border border-orange-100 dark:border-orange-900/30">
+              <p className="text-xs text-orange-600 dark:text-orange-400 mb-1">{t('teachers.timetable.avgPerTeacher')}</p>
+              <p className="text-xl font-bold text-orange-700 dark:text-orange-300">{timetableData.summary.average_entries_per_teacher}</p>
+            </div>
           </div>
         )}
 
@@ -989,7 +1207,7 @@ const TeacherManagement = () => {
                 <thead className="bg-gray-50 dark:bg-gray-800/50">
                   <tr>
                     {[t('teachers.timetable.day'), t('teachers.timetable.startTime'), t('teachers.timetable.endTime'),
-                      t('teachers.timetable.subject'), t('teachers.timetable.classLevel'), t('teachers.timetable.classroom')].map(h => (
+                    t('teachers.timetable.subject'), t('teachers.timetable.classLevel'), t('teachers.timetable.classroom')].map(h => (
                       <th key={h} className="px-3 py-2 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">{h}</th>
                     ))}
                   </tr>
@@ -1022,13 +1240,27 @@ const TeacherManagement = () => {
     );
   };
 
-
+  // ─────────────────────────────────────────────────────────
+  // Navigation Tab Button Helper (fixed dynamic classes)
+  // ─────────────────────────────────────────────────────────
+  const getTabButtonClass = (isActive, color) => {
+    if (isActive) {
+      if (color === 'emerald') return 'bg-emerald-700 text-white shadow-md';
+      if (color === 'amber') return 'bg-amber-700 text-white shadow-md';
+      if (color === 'blue') return 'bg-blue-700 text-white shadow-md';
+      return 'bg-gray-700 text-white shadow-md';
+    }
+    if (color === 'emerald') return 'text-gray-500 hover:text-emerald-700 dark:text-gray-400 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/10';
+    if (color === 'amber') return 'text-gray-500 hover:text-amber-700 dark:text-gray-400 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/10';
+    if (color === 'blue') return 'text-gray-500 hover:text-blue-700 dark:text-gray-400 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/10';
+    return 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50';
+  };
 
   // ─────────────────────────────────────────────────────────
   // Main Render
   // ─────────────────────────────────────────────────────────
   return (
-    <div className={`min-h-screen ${darkMode ? 'dark' : ''}`}>
+    <div className={darkMode ? 'dark' : ''}>
       <div className="p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
         {/* Header */}
         <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
@@ -1053,26 +1285,52 @@ const TeacherManagement = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-6">
-          {[
-            { label: t('teachers.stats.totalTeachers'), value: stats.total_teachers, icon: Users, color: 'emerald' },
-            { label: t('teachers.stats.activeTeachers'), value: stats.active_teachers, icon: UserCheck, color: 'green' },
-            { label: t('teachers.stats.inactiveTeachers'), value: stats.inactive_teachers, icon: UserX, color: 'red' },
-            { label: t('teachers.stats.onLeaveTeachers'), value: stats.on_leave_teachers, icon: Clock, color: 'amber' },
-            { label: t('teachers.stats.totalAssignments'), value: stats.total_assignments, icon: BookOpen, color: 'blue' },
-            { label: t('teachers.stats.timetableEntries'), value: stats.total_timetable_entries, icon: Calendar, color: 'purple' },
-          ].map(({ label, value, icon: Icon, color }) => (
-            <div key={label} className={`bg-gradient-to-br from-${color}-700 to-${color}-900 rounded-2xl p-4 text-white shadow-lg`}>
-              <div className="flex items-center justify-between">
-                <Icon className="w-5 h-5 opacity-80" />
-                <p className="text-2xl font-bold">{value}</p>
-              </div>
-              <p className="text-xs font-medium opacity-80 mt-1">{label}</p>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+          <div className="bg-gradient-to-br from-emerald-700 to-emerald-900 rounded-2xl p-4 text-white shadow-lg">
+            <div className="flex items-center justify-between">
+              <Users className="w-5 h-5 opacity-80" />
+              <p className="text-2xl font-bold">{stats.total_teachers}</p>
             </div>
-          ))}
+            <p className="text-xs font-medium opacity-80 mt-1">{t('teachers.stats.totalTeachers')}</p>
+          </div>
+          <div className="bg-gradient-to-br from-green-700 to-green-900 rounded-2xl p-4 text-white shadow-lg">
+            <div className="flex items-center justify-between">
+              <UserCheck className="w-5 h-5 opacity-80" />
+              <p className="text-2xl font-bold">{stats.active_teachers}</p>
+            </div>
+            <p className="text-xs font-medium opacity-80 mt-1">{t('teachers.stats.activeTeachers')}</p>
+          </div>
+          <div className="bg-gradient-to-br from-red-700 to-red-900 rounded-2xl p-4 text-white shadow-lg">
+            <div className="flex items-center justify-between">
+              <UserX className="w-5 h-5 opacity-80" />
+              <p className="text-2xl font-bold">{stats.inactive_teachers}</p>
+            </div>
+            <p className="text-xs font-medium opacity-80 mt-1">{t('teachers.stats.inactiveTeachers')}</p>
+          </div>
+          <div className="bg-gradient-to-br from-amber-700 to-amber-900 rounded-2xl p-4 text-white shadow-lg">
+            <div className="flex items-center justify-between">
+              <Clock className="w-5 h-5 opacity-80" />
+              <p className="text-2xl font-bold">{stats.on_leave_teachers}</p>
+            </div>
+            <p className="text-xs font-medium opacity-80 mt-1">{t('teachers.stats.onLeaveTeachers')}</p>
+          </div>
+          <div className="bg-gradient-to-br from-blue-700 to-blue-900 rounded-2xl p-4 text-white shadow-lg">
+            <div className="flex items-center justify-between">
+              <BookOpen className="w-5 h-5 opacity-80" />
+              <p className="text-2xl font-bold">{stats.total_assignments}</p>
+            </div>
+            <p className="text-xs font-medium opacity-80 mt-1">{t('teachers.stats.totalAssignments')}</p>
+          </div>
+          <div className="bg-gradient-to-br from-purple-700 to-purple-900 rounded-2xl p-4 text-white shadow-lg">
+            <div className="flex items-center justify-between">
+              <Calendar className="w-5 h-5 opacity-80" />
+              <p className="text-2xl font-bold">{stats.total_timetable_entries}</p>
+            </div>
+            <p className="text-xs font-medium opacity-80 mt-1">{t('teachers.stats.timetableEntries')}</p>
+          </div>
         </div>
 
-        {/* Navigation Tabs */}
+        {/* Navigation Tabs - Fixed dynamic classes */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-1.5 flex gap-1 mb-6 overflow-x-auto">
           {views.map(view => {
             const Icon = view.icon;
@@ -1085,11 +1343,7 @@ const TeacherManagement = () => {
                   setCurrentPage(1);
                   setSearchTerm('');
                 }}
-                className={`px-4 py-2.5 text-sm font-semibold transition-all flex items-center gap-2 rounded-xl whitespace-nowrap flex-1 justify-center
-                  ${isActive
-                    ? `bg-${view.color}-700 text-white shadow-md`
-                    : `text-gray-500 hover:text-${view.color}-700 dark:text-gray-400 dark:hover:text-${view.color}-400 hover:bg-${view.color}-50 dark:hover:bg-${view.color}-900/10`
-                  }`}
+                className={`px-4 py-2.5 text-sm font-semibold transition-all flex items-center gap-2 rounded-xl whitespace-nowrap flex-1 justify-center ${getTabButtonClass(isActive, view.color)}`}
               >
                 <Icon className="w-4 h-4" /> <span>{view.label}</span>
               </button>
@@ -1210,18 +1464,19 @@ const TeacherManagement = () => {
                     education_level: 'bachelor', qualifications: '', birth_date: '', hire_date: new Date().toISOString().split('T')[0],
                     status: 'active', bio: '', specialization_ids: []
                   });
+                  setShowAddModal(true);
                 } else {
                   setNewAssignment({
                     teacher: '', academic_year: '', term: '', school_level: '', class_level: '', subject: '', status: 'active', notes: ''
                   });
                   setFilteredClassLevels([]);
                   setFilteredTerms([]);
+                  setShowAddModal(true);
                 }
-                setShowAddModal(true);
               }}
               className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl flex items-center gap-2 text-sm font-medium shadow-sm transition-colors"
             >
-              <UserPlus className="w-4 h-4" />
+              <Plus className="w-4 h-4" />
               {activeView === 'teachers' ? t('teachers.actions.addTeacher') : t('teachers.actions.addAssignment')}
             </button>
           </div>
@@ -1344,6 +1599,11 @@ const TeacherManagement = () => {
 
         {activeView === 'timetable' && renderTimetableView()}
 
+        {/* ============ MODALS ============ */}
+        
+        {/* Teacher Detail Modal */}
+        {showViewModal && selectedTeacher && <TeacherDetailModal />}
+
         {/* Add Teacher Modal */}
         {showAddModal && activeView === 'teachers' && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -1356,37 +1616,33 @@ const TeacherManagement = () => {
               </div>
               <div className="p-5 space-y-4">
                 <div className="grid grid-cols-2 gap-3">
-                  <input type="text" placeholder={t('teachers.form.firstName')} value={newTeacher.first_name} onChange={e => setNewTeacher({...newTeacher, first_name: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
-                  <input type="text" placeholder={t('teachers.form.lastName')} value={newTeacher.last_name} onChange={e => setNewTeacher({...newTeacher, last_name: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                  <input type="text" placeholder={t('teachers.form.firstName')} value={newTeacher.first_name} onChange={e => setNewTeacher({ ...newTeacher, first_name: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                  <input type="text" placeholder={t('teachers.form.lastName')} value={newTeacher.last_name} onChange={e => setNewTeacher({ ...newTeacher, last_name: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
                 </div>
-                <input type="text" placeholder={t('teachers.form.middleName')} value={newTeacher.middle_name} onChange={e => setNewTeacher({...newTeacher, middle_name: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
-                <input type="email" placeholder={t('teachers.form.email')} value={newTeacher.email} onChange={e => setNewTeacher({...newTeacher, email: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
-                <input type="tel" placeholder={t('teachers.form.phone')} value={newTeacher.phone_number} onChange={e => setNewTeacher({...newTeacher, phone_number: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
-                <textarea placeholder={t('teachers.form.address')} value={newTeacher.address} onChange={e => setNewTeacher({...newTeacher, address: e.target.value})} rows="2" className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
-                
-                <select value={newTeacher.gender} onChange={e => setNewTeacher({...newTeacher, gender: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
+                <input type="text" placeholder={t('teachers.form.middleName')} value={newTeacher.middle_name} onChange={e => setNewTeacher({ ...newTeacher, middle_name: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                <input type="email" placeholder={t('teachers.form.email')} value={newTeacher.email} onChange={e => setNewTeacher({ ...newTeacher, email: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                <input type="tel" placeholder={t('teachers.form.phone')} value={newTeacher.phone_number} onChange={e => setNewTeacher({ ...newTeacher, phone_number: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                <textarea placeholder={t('teachers.form.address')} value={newTeacher.address} onChange={e => setNewTeacher({ ...newTeacher, address: e.target.value })} rows="2" className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                <select value={newTeacher.gender} onChange={e => setNewTeacher({ ...newTeacher, gender: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
                   <option value="male">{t('teachers.gender.male')}</option>
                   <option value="female">{t('teachers.gender.female')}</option>
                   <option value="other">{t('teachers.gender.other')}</option>
                 </select>
-                
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs text-gray-500 mb-1">{t('teachers.form.birthDate')}</label>
-                    <input type="date" value={newTeacher.birth_date} onChange={e => setNewTeacher({...newTeacher, birth_date: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                    <input type="date" value={newTeacher.birth_date} onChange={e => setNewTeacher({ ...newTeacher, birth_date: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
                   </div>
                   <div>
                     <label className="block text-xs text-gray-500 mb-1">{t('teachers.form.hireDate')}</label>
-                    <input type="date" value={newTeacher.hire_date} onChange={e => setNewTeacher({...newTeacher, hire_date: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                    <input type="date" value={newTeacher.hire_date} onChange={e => setNewTeacher({ ...newTeacher, hire_date: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
                   </div>
                 </div>
-                
                 <div className="grid grid-cols-2 gap-3">
-                  <input type="number" placeholder={t('teachers.form.salary')} value={newTeacher.salary} onChange={e => setNewTeacher({...newTeacher, salary: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
-                  <input type="number" placeholder={t('teachers.form.workHoursPerWeek')} value={newTeacher.work_hours_per_week} onChange={e => setNewTeacher({...newTeacher, work_hours_per_week: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                  <input type="number" placeholder={t('teachers.form.salary')} value={newTeacher.salary} onChange={e => setNewTeacher({ ...newTeacher, salary: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                  <input type="number" placeholder={t('teachers.form.workHoursPerWeek')} value={newTeacher.work_hours_per_week} onChange={e => setNewTeacher({ ...newTeacher, work_hours_per_week: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
                 </div>
-                
-                <select value={newTeacher.education_level} onChange={e => setNewTeacher({...newTeacher, education_level: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
+                <select value={newTeacher.education_level} onChange={e => setNewTeacher({ ...newTeacher, education_level: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
                   <option value="a2">{t('teachers.education.a2')}</option>
                   <option value="a1">{t('teachers.education.a1')}</option>
                   <option value="bachelor">{t('teachers.education.bachelor')}</option>
@@ -1394,17 +1650,14 @@ const TeacherManagement = () => {
                   <option value="doctorate">{t('teachers.education.doctorate')}</option>
                   <option value="certificate">{t('teachers.education.certificate')}</option>
                 </select>
-                
-                <textarea placeholder={t('teachers.form.qualifications')} value={newTeacher.qualifications} onChange={e => setNewTeacher({...newTeacher, qualifications: e.target.value})} rows="2" className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
-                
-                <select value={newTeacher.status} onChange={e => setNewTeacher({...newTeacher, status: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
+                <textarea placeholder={t('teachers.form.qualifications')} value={newTeacher.qualifications} onChange={e => setNewTeacher({ ...newTeacher, qualifications: e.target.value })} rows="2" className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                <select value={newTeacher.status} onChange={e => setNewTeacher({ ...newTeacher, status: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
                   <option value="active">{t('teachers.status.active')}</option>
                   <option value="inactive">{t('teachers.status.inactive')}</option>
                   <option value="on_leave">{t('teachers.status.onLeave')}</option>
                   <option value="suspended">{t('teachers.status.suspended')}</option>
                 </select>
-                
-                <textarea placeholder={t('teachers.form.bio')} value={newTeacher.bio} onChange={e => setNewTeacher({...newTeacher, bio: e.target.value})} rows="2" className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                <textarea placeholder={t('teachers.form.bio')} value={newTeacher.bio} onChange={e => setNewTeacher({ ...newTeacher, bio: e.target.value })} rows="2" className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
               </div>
               <div className="sticky bottom-0 bg-white dark:bg-gray-900 px-5 py-4 border-t border-gray-200 dark:border-gray-700 flex gap-3">
                 <button onClick={handleCreateTeacher} disabled={loading} className="flex-1 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl disabled:opacity-60 text-sm font-semibold transition-colors">
@@ -1418,7 +1671,7 @@ const TeacherManagement = () => {
           </div>
         )}
 
-        {/* Add Assignment Modal with Cascading Dropdowns */}
+        {/* Add Assignment Modal */}
         {showAddModal && activeView === 'assignments' && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full">
@@ -1429,13 +1682,12 @@ const TeacherManagement = () => {
                 </button>
               </div>
               <div className="p-5 space-y-4">
-                <select value={newAssignment.teacher} onChange={e => setNewAssignment({...newAssignment, teacher: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
+                <select value={newAssignment.teacher} onChange={e => setNewAssignment({ ...newAssignment, teacher: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
                   <option value="">{t('teachers.form.selectTeacher')}</option>
                   {teachers.filter(t => t.status === 'active').map(t => (
                     <option key={t.id} value={t.id}>{t.full_name}</option>
                   ))}
                 </select>
-                
                 <select value={newAssignment.academic_year} onChange={e => handleAcademicYearChange(e.target.value)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
                   <option value="">{t('teachers.form.selectAcademicYear')}</option>
                   {academicYears.map(year => (
@@ -1444,8 +1696,7 @@ const TeacherManagement = () => {
                     </option>
                   ))}
                 </select>
-                
-                <select value={newAssignment.term} onChange={e => setNewAssignment({...newAssignment, term: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" disabled={!newAssignment.academic_year}>
+                <select value={newAssignment.term} onChange={e => setNewAssignment({ ...newAssignment, term: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" disabled={!newAssignment.academic_year}>
                   <option value="">{newAssignment.academic_year ? t('teachers.form.selectTerm') : t('teachers.form.selectAcademicYearFirst')}</option>
                   {filteredTerms.map(term => (
                     <option key={term.id} value={term.id}>
@@ -1453,41 +1704,138 @@ const TeacherManagement = () => {
                     </option>
                   ))}
                 </select>
-                
                 <select value={newAssignment.school_level} onChange={e => handleSchoolLevelChange(e.target.value)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
                   <option value="">{t('teachers.form.selectSchoolLevel')}</option>
                   {schoolLevels.map(level => (
                     <option key={level.id} value={level.id}>{level.name}</option>
                   ))}
                 </select>
-                
-                <select value={newAssignment.class_level} onChange={e => setNewAssignment({...newAssignment, class_level: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" disabled={!newAssignment.school_level}>
+                <select value={newAssignment.class_level} onChange={e => setNewAssignment({ ...newAssignment, class_level: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" disabled={!newAssignment.school_level}>
                   <option value="">{newAssignment.school_level ? t('teachers.form.selectClassLevel') : t('teachers.form.selectSchoolLevelFirst')}</option>
                   {filteredClassLevels.map(cl => (
                     <option key={cl.id} value={cl.id}>{cl.name} ({cl.code})</option>
                   ))}
                 </select>
-                
-                <select value={newAssignment.subject} onChange={e => setNewAssignment({...newAssignment, subject: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
+                <select value={newAssignment.subject} onChange={e => setNewAssignment({ ...newAssignment, subject: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
                   <option value="">{t('teachers.form.selectSubject')}</option>
                   {subjects.filter(s => s.status === 'active').map(s => (
                     <option key={s.id} value={s.id}>{s.name}</option>
                   ))}
                 </select>
-                
-                <select value={newAssignment.status} onChange={e => setNewAssignment({...newAssignment, status: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
+                <select value={newAssignment.status} onChange={e => setNewAssignment({ ...newAssignment, status: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
                   <option value="active">{t('teachers.status.active')}</option>
                   <option value="inactive">{t('teachers.status.inactive')}</option>
                   <option value="completed">{t('teachers.status.completed')}</option>
                 </select>
-                
-                <textarea placeholder={t('teachers.form.notes')} value={newAssignment.notes} onChange={e => setNewAssignment({...newAssignment, notes: e.target.value})} rows="2" className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                <textarea placeholder={t('teachers.form.notes')} value={newAssignment.notes} onChange={e => setNewAssignment({ ...newAssignment, notes: e.target.value })} rows="2" className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
               </div>
               <div className="sticky bottom-0 bg-white dark:bg-gray-900 px-5 py-4 border-t border-gray-200 dark:border-gray-700 flex gap-3">
                 <button onClick={handleCreateAssignment} disabled={loading} className="flex-1 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl disabled:opacity-60 text-sm font-semibold transition-colors">
                   {loading ? <Spinner /> : t('teachers.actions.create')}
                 </button>
                 <button onClick={() => setShowAddModal(false)} className="flex-1 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 transition-colors">
+                  {t('teachers.actions.cancel')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Assignment Modal */}
+        {showEditAssignmentModal && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full">
+              <div className="sticky top-0 bg-white dark:bg-gray-900 px-5 pt-5 pb-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">{t('teachers.actions.editAssignment')}</h2>
+                <button onClick={() => setShowEditAssignmentModal(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+              <div className="p-5 space-y-4">
+                <select value={editAssignmentData.teacher} onChange={e => setEditAssignmentData({ ...editAssignmentData, teacher: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
+                  <option value="">{t('teachers.form.selectTeacher')}</option>
+                  {teachers.filter(t => t.status === 'active').map(t => (
+                    <option key={t.id} value={t.id}>{t.full_name}</option>
+                  ))}
+                </select>
+                <select 
+                  value={editAssignmentData.academic_year} 
+                  onChange={e => handleAcademicYearChangeForEdit(e.target.value)} 
+                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
+                >
+                  <option value="">{t('teachers.form.selectAcademicYear')}</option>
+                  {academicYears.map(year => (
+                    <option key={year.id} value={year.id}>
+                      {year.name} {year.is_current ? `(${t('teachers.filters.current')})` : ''}
+                    </option>
+                  ))}
+                </select>
+                <select 
+                  value={editAssignmentData.term} 
+                  onChange={e => setEditAssignmentData({ ...editAssignmentData, term: e.target.value })} 
+                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" 
+                  disabled={!editAssignmentData.academic_year}
+                >
+                  <option value="">{editAssignmentData.academic_year ? t('teachers.form.selectTerm') : t('teachers.form.selectAcademicYearFirst')}</option>
+                  {filteredTermsForEdit.map(term => (
+                    <option key={term.id} value={term.id}>
+                      {term.name} {term.is_current ? `(${t('teachers.filters.current')})` : ''}
+                    </option>
+                  ))}
+                </select>
+                <select 
+                  value={editAssignmentData.school_level} 
+                  onChange={e => handleSchoolLevelChangeForEdit(e.target.value)} 
+                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
+                >
+                  <option value="">{t('teachers.form.selectSchoolLevel')}</option>
+                  {schoolLevels.map(level => (
+                    <option key={level.id} value={level.id}>{level.name}</option>
+                  ))}
+                </select>
+                <select 
+                  value={editAssignmentData.class_level} 
+                  onChange={e => setEditAssignmentData({ ...editAssignmentData, class_level: e.target.value })} 
+                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" 
+                  disabled={!editAssignmentData.school_level}
+                >
+                  <option value="">{editAssignmentData.school_level ? t('teachers.form.selectClassLevel') : t('teachers.form.selectSchoolLevelFirst')}</option>
+                  {filteredClassLevelsForEdit.map(cl => (
+                    <option key={cl.id} value={cl.id}>{cl.name} ({cl.code})</option>
+                  ))}
+                </select>
+                <select 
+                  value={editAssignmentData.subject} 
+                  onChange={e => setEditAssignmentData({ ...editAssignmentData, subject: e.target.value })} 
+                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
+                >
+                  <option value="">{t('teachers.form.selectSubject')}</option>
+                  {subjects.filter(s => s.status === 'active').map(s => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+                <select 
+                  value={editAssignmentData.status} 
+                  onChange={e => setEditAssignmentData({ ...editAssignmentData, status: e.target.value })} 
+                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
+                >
+                  <option value="active">{t('teachers.status.active')}</option>
+                  <option value="inactive">{t('teachers.status.inactive')}</option>
+                  <option value="completed">{t('teachers.status.completed')}</option>
+                </select>
+                <textarea 
+                  placeholder={t('teachers.form.notes')} 
+                  value={editAssignmentData.notes} 
+                  onChange={e => setEditAssignmentData({ ...editAssignmentData, notes: e.target.value })} 
+                  rows="2" 
+                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" 
+                />
+              </div>
+              <div className="sticky bottom-0 bg-white dark:bg-gray-900 px-5 py-4 border-t border-gray-200 dark:border-gray-700 flex gap-3">
+                <button onClick={handleUpdateAssignment} disabled={loading} className="flex-1 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl disabled:opacity-60 text-sm font-semibold transition-colors">
+                  {loading ? <Spinner /> : t('teachers.actions.update')}
+                </button>
+                <button onClick={() => setShowEditAssignmentModal(false)} className="flex-1 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-300 transition-colors">
                   {t('teachers.actions.cancel')}
                 </button>
               </div>
@@ -1507,37 +1855,33 @@ const TeacherManagement = () => {
               </div>
               <div className="p-5 space-y-4">
                 <div className="grid grid-cols-2 gap-3">
-                  <input type="text" placeholder={t('teachers.form.firstName')} value={editTeacher.first_name || ''} onChange={e => setEditTeacher({...editTeacher, first_name: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
-                  <input type="text" placeholder={t('teachers.form.lastName')} value={editTeacher.last_name || ''} onChange={e => setEditTeacher({...editTeacher, last_name: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                  <input type="text" placeholder={t('teachers.form.firstName')} value={editTeacher.first_name || ''} onChange={e => setEditTeacher({ ...editTeacher, first_name: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                  <input type="text" placeholder={t('teachers.form.lastName')} value={editTeacher.last_name || ''} onChange={e => setEditTeacher({ ...editTeacher, last_name: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
                 </div>
-                <input type="text" placeholder={t('teachers.form.middleName')} value={editTeacher.middle_name || ''} onChange={e => setEditTeacher({...editTeacher, middle_name: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
-                <input type="email" placeholder={t('teachers.form.email')} value={editTeacher.email || ''} onChange={e => setEditTeacher({...editTeacher, email: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
-                <input type="tel" placeholder={t('teachers.form.phone')} value={editTeacher.phone_number || ''} onChange={e => setEditTeacher({...editTeacher, phone_number: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
-                <textarea placeholder={t('teachers.form.address')} value={editTeacher.address || ''} onChange={e => setEditTeacher({...editTeacher, address: e.target.value})} rows="2" className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
-                
-                <select value={editTeacher.gender || 'male'} onChange={e => setEditTeacher({...editTeacher, gender: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
+                <input type="text" placeholder={t('teachers.form.middleName')} value={editTeacher.middle_name || ''} onChange={e => setEditTeacher({ ...editTeacher, middle_name: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                <input type="email" placeholder={t('teachers.form.email')} value={editTeacher.email || ''} onChange={e => setEditTeacher({ ...editTeacher, email: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                <input type="tel" placeholder={t('teachers.form.phone')} value={editTeacher.phone_number || ''} onChange={e => setEditTeacher({ ...editTeacher, phone_number: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                <textarea placeholder={t('teachers.form.address')} value={editTeacher.address || ''} onChange={e => setEditTeacher({ ...editTeacher, address: e.target.value })} rows="2" className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                <select value={editTeacher.gender || 'male'} onChange={e => setEditTeacher({ ...editTeacher, gender: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
                   <option value="male">{t('teachers.gender.male')}</option>
                   <option value="female">{t('teachers.gender.female')}</option>
                   <option value="other">{t('teachers.gender.other')}</option>
                 </select>
-                
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs text-gray-500 mb-1">{t('teachers.form.birthDate')}</label>
-                    <input type="date" value={editTeacher.birth_date || ''} onChange={e => setEditTeacher({...editTeacher, birth_date: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                    <input type="date" value={editTeacher.birth_date || ''} onChange={e => setEditTeacher({ ...editTeacher, birth_date: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
                   </div>
                   <div>
                     <label className="block text-xs text-gray-500 mb-1">{t('teachers.form.hireDate')}</label>
-                    <input type="date" value={editTeacher.hire_date || ''} onChange={e => setEditTeacher({...editTeacher, hire_date: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                    <input type="date" value={editTeacher.hire_date || ''} onChange={e => setEditTeacher({ ...editTeacher, hire_date: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
                   </div>
                 </div>
-                
                 <div className="grid grid-cols-2 gap-3">
-                  <input type="number" placeholder={t('teachers.form.salary')} value={editTeacher.salary || ''} onChange={e => setEditTeacher({...editTeacher, salary: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
-                  <input type="number" placeholder={t('teachers.form.workHoursPerWeek')} value={editTeacher.work_hours_per_week || 40} onChange={e => setEditTeacher({...editTeacher, work_hours_per_week: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                  <input type="number" placeholder={t('teachers.form.salary')} value={editTeacher.salary || ''} onChange={e => setEditTeacher({ ...editTeacher, salary: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                  <input type="number" placeholder={t('teachers.form.workHoursPerWeek')} value={editTeacher.work_hours_per_week || 40} onChange={e => setEditTeacher({ ...editTeacher, work_hours_per_week: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
                 </div>
-                
-                <select value={editTeacher.education_level || 'bachelor'} onChange={e => setEditTeacher({...editTeacher, education_level: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
+                <select value={editTeacher.education_level || 'bachelor'} onChange={e => setEditTeacher({ ...editTeacher, education_level: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
                   <option value="a2">{t('teachers.education.a2')}</option>
                   <option value="a1">{t('teachers.education.a1')}</option>
                   <option value="bachelor">{t('teachers.education.bachelor')}</option>
@@ -1545,17 +1889,14 @@ const TeacherManagement = () => {
                   <option value="doctorate">{t('teachers.education.doctorate')}</option>
                   <option value="certificate">{t('teachers.education.certificate')}</option>
                 </select>
-                
-                <textarea placeholder={t('teachers.form.qualifications')} value={editTeacher.qualifications || ''} onChange={e => setEditTeacher({...editTeacher, qualifications: e.target.value})} rows="2" className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
-                
-                <select value={editTeacher.status || 'active'} onChange={e => setEditTeacher({...editTeacher, status: e.target.value})} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
+                <textarea placeholder={t('teachers.form.qualifications')} value={editTeacher.qualifications || ''} onChange={e => setEditTeacher({ ...editTeacher, qualifications: e.target.value })} rows="2" className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                <select value={editTeacher.status || 'active'} onChange={e => setEditTeacher({ ...editTeacher, status: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
                   <option value="active">{t('teachers.status.active')}</option>
                   <option value="inactive">{t('teachers.status.inactive')}</option>
                   <option value="on_leave">{t('teachers.status.onLeave')}</option>
                   <option value="suspended">{t('teachers.status.suspended')}</option>
                 </select>
-                
-                <textarea placeholder={t('teachers.form.bio')} value={editTeacher.bio || ''} onChange={e => setEditTeacher({...editTeacher, bio: e.target.value})} rows="2" className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
+                <textarea placeholder={t('teachers.form.bio')} value={editTeacher.bio || ''} onChange={e => setEditTeacher({ ...editTeacher, bio: e.target.value })} rows="2" className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
               </div>
               <div className="sticky bottom-0 bg-white dark:bg-gray-900 px-5 py-4 border-t border-gray-200 dark:border-gray-700 flex gap-3">
                 <button onClick={handleUpdateTeacher} disabled={loading} className="flex-1 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl disabled:opacity-60 text-sm font-semibold transition-colors">

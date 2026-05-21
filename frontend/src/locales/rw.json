@@ -1527,6 +1527,12 @@
       "reports": "Raporo",
       "teachers": "Abarimu"
     },
+    "stats": {
+      "totalStudents": "Abanyeshuri Bose",
+      "activeStudents": "Abanyeshuri Bakora",
+      "totalParents": "Ababyeyi Bose",
+      "totalAssignments": "Ishyirwa mu Byumba"
+    },
     "table": {
       "rollNumber": "Nomero y'Iyandikisha",
       "fullName": "Izina Rizuye",
@@ -1639,6 +1645,14 @@
       "title": "Raporo y'Abanyeshuri",
       "generatedOn": "Yakozwe ku",
       "clickToGenerate": "Kanda ku buto wo hepfo kugira ngo ukore raporo"
+    },
+    "filters": {
+      "allStatus": "Ihame Ryose",
+      "allAcademicYears": "Imyaka y'Amashuri Yose",
+      "allSchoolLevels": "Amashuri Yose",
+      "allClassLevels": "Amasomo Yose",
+      "allClassrooms": "Ibyumba Byose",
+      "allRelationships": "Isano Ryose"
     },
     "performance": {
       "title": "Ibyo Umunyeshuri Yagezeho",

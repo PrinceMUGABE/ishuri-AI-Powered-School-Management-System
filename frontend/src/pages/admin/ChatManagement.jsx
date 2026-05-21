@@ -79,8 +79,8 @@ const VoiceRecorder = ({ onSend, onCancel, c }) => {
       const mimeType = MediaRecorder.isTypeSupported("audio/ogg;codecs=opus")
         ? "audio/ogg;codecs=opus"
         : MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
-        ? "audio/webm;codecs=opus"
-        : "audio/webm";
+          ? "audio/webm;codecs=opus"
+          : "audio/webm";
 
       mediaRecorderRef.current = new MediaRecorder(stream, { mimeType });
       audioChunksRef.current = [];
@@ -254,7 +254,7 @@ const VoiceNotePlayer = ({ url, knownDuration = 0, c }) => {
       setIsPlaying(false);
       clearInterval(intervalRef.current);
     } else {
-      audioRef.current.play().catch(() => {});
+      audioRef.current.play().catch(() => { });
       setIsPlaying(true);
       intervalRef.current = setInterval(() => {
         if (audioRef.current) setCurrentTime(audioRef.current.currentTime);
@@ -461,6 +461,31 @@ export default function AdminChatManagement() {
     setCurrentSearchIdx(0);
     if (results.length > 0) scrollToMessage(results[0]);
   }, [messageSearch, messages]);
+
+  useEffect(() => {
+    // Check URL for room parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomId = urlParams.get('room');
+
+    if (roomId) {
+      // Find the chatroom by ID
+      const room = chatrooms.find(r => r.id === parseInt(roomId));
+      if (room) {
+        setSelectedRoom(room);
+        // Clean up URL without refreshing the page
+        window.history.replaceState({}, '', '/app/chats');
+      } else if (chatrooms.length > 0) {
+        // If room not found in existing rooms, maybe it's a new room being created
+        // Wait a bit and try again
+        const timer = setTimeout(() => {
+          const found = chatrooms.find(r => r.id === parseInt(roomId));
+          if (found) setSelectedRoom(found);
+          window.history.replaceState({}, '', '/app/chats');
+        }, 500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [chatrooms]);
 
   const scrollToMessage = (msgId) => {
     const el = messageRefs.current[msgId];
