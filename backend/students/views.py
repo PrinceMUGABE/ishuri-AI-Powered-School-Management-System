@@ -5,6 +5,7 @@ import random
 from datetime import date
 from decimal import Decimal
 from django.db.models import Prefetch
+from django.db import models
 
 from django.shortcuts import get_object_or_404
 from django.db import transaction
@@ -650,49 +651,143 @@ def get_available_classrooms(request, class_level_id):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def create_parent(request):
-    """Admin: Create a parent/guardian, auto-create user account, send credentials."""
+    """
+    Admin: Create or reuse a parent/guardian and link them to student(s).
+
+    Smart lookup:
+    - If a Parent already exists with the submitted phone_number OR email,
+      reuse that Parent (no new User created) and just add the StudentParent
+      links for any student_ids provided.
+    - Otherwise, create a fresh Parent + User account and send credentials.
+    """
     print(f"\n{SEPARATOR}\n[create_parent] Request received\n{SEPARATOR}")
     lang = get_lang_from_request(request)
 
+    # Validate with the existing serializer (it checks student_ids exist etc.)
     serializer = ParentCreateSerializer(data=request.data)
     if not serializer.is_valid():
-        return Response({'success': False, 'errors': serializer.errors, 'language': lang},
-                        status=status.HTTP_400_BAD_REQUEST)
+        return Response({
+            'success': False,
+            'errors': serializer.errors,
+            'language': lang,
+        }, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        with transaction.atomic():
-            validated = serializer.validated_data
-            full_name = validated.get('full_name', '')
-            email = validated.get('email', '')
+        validated   = serializer.validated_data
+        full_name   = validated.get('full_name', '')
+        email       = validated.get('email', '').lower().strip()
+        phone       = validated.get('phone_number', '').strip()
+        address     = validated.get('physical_address', '')
+        rel_type    = validated.get('relationship_type', 'guardian')
+        student_ids = validated.get('student_ids', [])
 
-            user, raw_password = create_user_for_parent(full_name, email, request.user)
-            parent = serializer.save(user=user, created_by=request.user)
+        with transaction.atomic():
+            # --- Smart lookup: existing parent by phone OR email ---
+            existing_parent = (
+                Parent.objects
+                .filter(
+                    models.Q(phone_number=phone) |
+                    models.Q(email=email)
+                )
+                .first()
+            )
+
+            if existing_parent:
+                print(f"[create_parent] Reusing existing parent id={existing_parent.id} "
+                      f"(phone={phone}, email={email})")
+
+                # Link to all submitted students (skip already-linked ones)
+                newly_linked = []
+                for sid in student_ids:
+                    _, created = StudentParent.objects.get_or_create(
+                        student_id=sid,
+                        parent=existing_parent,
+                    )
+                    if created:
+                        newly_linked.append(sid)
+
+                # Notify the parent's existing user account
+                if existing_parent.user:
+                    students_str = ', '.join(
+                        Student.objects.filter(id__in=newly_linked)
+                        .values_list('full_name', flat=True)
+                    )
+                    if students_str:
+                        _notify_user(
+                            user=existing_parent.user,
+                            notification_type='user_updated',
+                            title='New Student(s) Linked to Your Account',
+                            message=f'You have been linked to student(s): {students_str}.',
+                            created_by=request.user,
+                            extra_data={'student_ids': newly_linked},
+                        )
+
+                return Response({
+                    'success': True,
+                    'message': (
+                        'Existing parent/guardian found and linked to the student(s). '
+                        'No new account was created.'
+                    ),
+                    'language': lang,
+                    'data': {
+                        'reused_existing': True,
+                        'parent': ParentDetailSerializer(existing_parent).data,
+                        'newly_linked_student_ids': newly_linked,
+                    },
+                }, status=status.HTTP_200_OK)
+
+            # --- No existing parent — create brand-new Parent + User ---
+            user_account, raw_password = create_user_for_parent(
+                full_name, email, request.user
+            )
+
+            parent = Parent.objects.create(
+                user=user_account,
+                full_name=full_name,
+                phone_number=phone,
+                email=email,
+                physical_address=address,
+                relationship_type=rel_type,
+                status=Parent.Status.ACTIVE,
+                created_by=request.user,
+            )
+
+            for sid in student_ids:
+                StudentParent.objects.get_or_create(
+                    student_id=sid,
+                    parent=parent,
+                )
 
             if email:
                 send_parent_credentials(parent, raw_password)
 
             _notify_user(
-                user=user,
+                user=user_account,
                 notification_type='user_created',
                 title=get_message('notif_parent_created_title', lang),
                 message=get_message('notif_parent_created_msg', lang),
                 created_by=request.user,
-                extra_data={'role': 'parent'}
+                extra_data={'role': 'parent'},
             )
 
+        print(f"[create_parent] Created new parent {parent.full_name}\n{SEPARATOR}\n")
         return Response({
             'success': True,
             'message': get_message('parent_created', lang),
             'language': lang,
-            'data': ParentDetailSerializer(parent).data,
+            'data': {
+                'reused_existing': False,
+                'parent': ParentDetailSerializer(parent).data,
+            },
         }, status=status.HTTP_201_CREATED)
 
     except Exception as exc:
         logger.error(f"[create_parent] Error: {exc}", exc_info=True)
-        return Response({'success': False, 'message': str(exc), 'language': lang},
-                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
+        return Response({
+            'success': False,
+            'message': str(exc),
+            'language': lang,
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET'])
@@ -722,6 +817,177 @@ def get_my_parent_profile(request):
         return Response({'success': False, 'message': str(exc), 'language': lang},
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def student_add_parent(request):
+    """
+    Logged-in student: Add/link a parent or guardian to their own profile.
+
+    Smart lookup logic:
+    - If a Parent already exists with the submitted phone_number OR email,
+      reuse that Parent (and their existing User account) and just create
+      the StudentParent link — no new User is created.
+    - If no such Parent exists, create a new Parent + User account and
+      send credentials by email.
+    - If the student already has a parent/guardian, block the request and
+      ask them to contact an admin.
+    """
+    print(f"\n{SEPARATOR}\n[student_add_parent] User: {request.user.username}\n{SEPARATOR}")
+    lang = get_lang_from_request(request)
+
+    try:
+        # --- Resolve the student profile ---
+        student = getattr(request.user, 'student_profile', None)
+        if not student:
+            return Response({
+                'success': False,
+                'message': get_message('student_not_found', lang),
+                'language': lang,
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        # --- Guard: student already has parents ---
+        if student.parents.exists():
+            return Response({
+                'success': False,
+                'message': get_message('student_already_has_parents', lang),
+                'detail': get_message('contact_admin_to_update_parents', lang),
+                'language': lang,
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # --- Validate incoming data ---
+        phone_number = (request.data.get('phone_number') or '').strip()
+        email        = (request.data.get('email') or '').strip().lower()
+        full_name    = (request.data.get('full_name') or '').strip()
+        relationship = request.data.get('relationship_type', 'guardian')
+        address      = (request.data.get('physical_address') or '').strip()
+
+        if not full_name:
+            return Response({
+                'success': False,
+                'message': 'full_name is required.',
+                'language': lang,
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        if not phone_number:
+            return Response({
+                'success': False,
+                'message': 'phone_number is required.',
+                'language': lang,
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        if not email:
+            return Response({
+                'success': False,
+                'message': 'email is required.',
+                'language': lang,
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            # --- Smart lookup: existing parent by phone OR email ---
+            existing_parent = (
+                Parent.objects
+                .filter(
+                    models.Q(phone_number=phone_number) |
+                    models.Q(email=email)
+                )
+                .first()
+            )
+
+            if existing_parent:
+                # Reuse — just link if not already linked
+                _, created = StudentParent.objects.get_or_create(
+                    student=student,
+                    parent=existing_parent,
+                    defaults={'is_primary_contact': True},
+                )
+                action = 'linked' if created else 'already_linked'
+                print(f"[student_add_parent] {action} existing parent {existing_parent.id} "
+                      f"to student {student.roll_number}")
+
+                # Notify the parent's user account
+                if existing_parent.user:
+                    _notify_user(
+                        user=existing_parent.user,
+                        notification_type='user_updated',
+                        title='New Student Linked',
+                        message=(
+                            f'Student {student.full_name} ({student.roll_number}) '
+                            f'has been linked to your parent account.'
+                        ),
+                        created_by=request.user,
+                        extra_data={'student_id': student.id},
+                    )
+
+                return Response({
+                    'success': True,
+                    'message': (
+                        'Parent/Guardian linked to your profile successfully.'
+                        if created else
+                        'This parent/guardian is already linked to your profile.'
+                    ),
+                    'language': lang,
+                    'data': {
+                        'reused_existing': True,
+                        'parent': ParentListSerializer(existing_parent).data,
+                    },
+                }, status=status.HTTP_200_OK)
+
+            # --- No existing parent — create brand-new Parent + User ---
+            user_account, raw_password = create_user_for_parent(
+                full_name, email, request.user
+            )
+
+            parent = Parent.objects.create(
+                user=user_account,
+                full_name=full_name,
+                phone_number=phone_number,
+                email=email,
+                physical_address=address,
+                relationship_type=relationship,
+                status=Parent.Status.ACTIVE,
+                created_by=request.user,
+            )
+
+            StudentParent.objects.create(
+                student=student,
+                parent=parent,
+                is_primary_contact=True,
+            )
+
+            print(f"[student_add_parent] Created new parent {parent.id} "
+                  f"for student {student.roll_number}")
+
+            # Send credentials
+            send_parent_credentials(parent, raw_password)
+
+            # Notify parent
+            _notify_user(
+                user=user_account,
+                notification_type='user_created',
+                title=get_message('notif_parent_created_title', lang),
+                message=get_message('notif_parent_created_msg', lang),
+                created_by=request.user,
+                extra_data={'role': 'parent', 'student_id': student.id},
+            )
+
+        return Response({
+            'success': True,
+            'message': get_message('parent_created', lang),
+            'language': lang,
+            'data': {
+                'reused_existing': False,
+                'parent': ParentListSerializer(parent).data,
+            },
+        }, status=status.HTTP_201_CREATED)
+
+    except Exception as exc:
+        logger.error(f"[student_add_parent] Error: {exc}", exc_info=True)
+        return Response({
+            'success': False,
+            'message': str(exc),
+            'language': lang,
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
      
 @api_view(['DELETE'])

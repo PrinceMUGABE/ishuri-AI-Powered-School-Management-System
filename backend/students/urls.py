@@ -15,7 +15,7 @@ urlpatterns = [
 
     # ─── Logged-in student (self) ──────────────────────────────────
     path('me/', views.get_my_student_profile, name='student-me'),
-    
+    path('me/parents/add/', views.student_add_parent, name='student-add-parent'),
     # ─── Classroom assignments ─────────────────────────────────────
     path('<int:student_id>/classrooms/', views.get_student_classroom_assignments, name='student-classrooms'),
     path('classrooms/assign/', views.assign_student_to_classroom, name='assign-classroom'),

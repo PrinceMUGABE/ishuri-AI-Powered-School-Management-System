@@ -39,6 +39,11 @@ import ParentLayout from './components/layout/parent/ParentLayout';
 import ParentChatManagement from './pages/parent/ParentChatManagements';
 import ParentDashboard from './pages/parent/ParentStudents';
 
+// Student Layout and Pages (To be implemented)
+import StudentLayout from './components/layout/student/StudentLayout';
+import StudentDashboard from './pages/student/StudentDashboard';
+import StudentAssignmentManagement from './pages/student/StudentAssignmentManagement';
+
 // Helper function to check if user is authenticated
 const isAuthenticated = () => {
   const token = localStorage.getItem('access_token');
@@ -151,11 +156,11 @@ function App() {
             path="/student" 
             element={
               <ProtectedRoute allowedRoles={['student']}>
-                <div>Student Layout Coming Soon</div>
+                <StudentLayout />
               </ProtectedRoute>
             }
           >
-            <Route path="dashboard" element={<div>Student Dashboard</div>} />
+            <Route index element={<Navigate to="/student/dashboard" replace />} />
           </Route>
 
           {/* Parent Routes - To be implemented */}

@@ -482,7 +482,7 @@ const AcademicReportModal = ({ student, reportData, onClose, t }) => {
       ]);
 
       // Use autoTable function - note: it's imported as autoTable, not doc.autoTable
-      autoTable(doc, {
+      doc.autoTable({
         startY: yPos,
         head: [tableHeaders],
         body: tableBody,
@@ -541,7 +541,7 @@ const AcademicReportModal = ({ student, reportData, onClose, t }) => {
 
       // Grade Scale Table
       addSectionTitle('Grade Scale', accentColor);
-      autoTable(doc, {
+      doc.autoTable({
         startY: yPos,
         head: [['Range', 'Grade']],
         body: gradeScale.map(item => [item.range, item.grade]),
@@ -568,7 +568,7 @@ const AcademicReportModal = ({ student, reportData, onClose, t }) => {
       if (currentPerformance?.discipline) {
         addSectionTitle('Discipline & Attendance', primaryColor);
         
-        autoTable(doc, {
+        doc.autoTable({
           startY: yPos,
           body: [
             ['Attendance Rate', `${(currentPerformance.discipline.attendance_rate ?? 0).toFixed(1)}%`],
@@ -755,16 +755,7 @@ const AcademicReportModal = ({ student, reportData, onClose, t }) => {
             )}
             PDF
           </button>
-          <button onClick={handleDownloadJSON} disabled={saving} style={S.outlineBtn}>
-            <FileText className="w-4 h-4" /> JSON
-          </button>
-          <button onClick={saveToLocalStorage} disabled={saving} style={S.outlineBtn}>
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            Save
-          </button>
-          <button onClick={handlePrint} style={S.outlineBtn}>
-            <Printer className="w-4 h-4" /> Print
-          </button>
+ 
           <button onClick={onClose} style={S.solidBtn}>
             <X className="w-4 h-4" /> Close
           </button>
