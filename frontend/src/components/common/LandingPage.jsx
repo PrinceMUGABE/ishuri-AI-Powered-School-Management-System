@@ -98,7 +98,7 @@ apiClient.interceptors.response.use(
 // Enhanced password validation function
 const validatePassword = (password, t) => {
   const errors = [];
-  
+
   if (!password || password.length < 6) {
     errors.push(t('landingPage.passwordValidation.minLength') || 'Password must be at least 6 characters');
   }
@@ -114,7 +114,7 @@ const validatePassword = (password, t) => {
   if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
     errors.push(t('landingPage.passwordValidation.specialChar') || 'Password must contain at least one special character (!@#$%^&* etc.)');
   }
-  
+
   return errors;
 };
 
@@ -384,7 +384,7 @@ const CheckUsernameModal = ({ onBack, onUsernameFound, onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!username.trim()) {
       toast.error(t('landingPage.forgotPassword.usernameRequired') || 'Username is required');
       return;
@@ -552,7 +552,7 @@ const ResetPasswordModal = ({ username, userData, onBack, onClose, onPasswordRes
 
       if (response.data.success) {
         toast.success(response.data.message || t('landingPage.forgotPassword.passwordResetSuccess'));
-        
+
         // Auto-login after password reset
         const loginResponse = await apiClient.post('/account/login/', {
           username: username,
@@ -563,19 +563,19 @@ const ResetPasswordModal = ({ username, userData, onBack, onClose, onPasswordRes
 
         if (loginResponse.data.success) {
           const { access_token, refresh_token, user } = loginResponse.data.data;
-          
+
           localStorage.setItem('access_token', access_token);
           localStorage.setItem('refresh_token', refresh_token);
           localStorage.setItem('user', JSON.stringify(user));
-          
+
           const userLanguage = user.language || currentLanguage;
           localStorage.setItem('user_language', userLanguage);
           sessionStorage.setItem('selected_language', userLanguage);
-          
+
           await i18n.changeLanguage(userLanguage);
-          
+
           apiClient.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
-          
+
           toast.success(t('landingPage.forgotPassword.loginSuccess') || 'Password reset successful! Logging you in...');
           onPasswordReset(user);
           onClose();
@@ -667,7 +667,7 @@ const ResetPasswordModal = ({ username, userData, onBack, onClose, onPasswordRes
                 </span>
               </div>
               <div className="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                <div 
+                <div
                   className={`h-full transition-all duration-300 ${getPasswordStrengthColor()}`}
                   style={{ width: `${getPasswordStrengthPercent()}%` }}
                 />
@@ -840,7 +840,7 @@ const AddParentModal = ({ onClose, onParentAdded }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.full_name.trim()) {
       toast.error(t('landingPage.addParent.fullNameRequired'));
       return;
@@ -875,8 +875,8 @@ const AddParentModal = ({ onClose, onParentAdded }) => {
         onParentAdded();
         onClose();
       } else {
-        const errorMsg = response.data.errors 
-          ? Object.values(response.data.errors).flat()[0] 
+        const errorMsg = response.data.errors
+          ? Object.values(response.data.errors).flat()[0]
           : response.data.message;
         toast.error(errorMsg || t('landingPage.addParent.error'));
       }
@@ -1067,58 +1067,54 @@ const LandingPage = () => {
       const token = localStorage.getItem('access_token');
       const userStr = localStorage.getItem('user');
 
-      if (token && userStr) {
-        try {
-          const userData = JSON.parse(userStr);
-          apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      if (!token || !userStr) return;   // not logged in, stay on landing page
 
-          if (userData.language) {
-            const userLang = userData.language;
-            i18n.changeLanguage(userLang);
-            localStorage.setItem('user_language', userLang);
-            apiClient.defaults.headers.common['X-Language'] = userLang;
-          }
+      try {
+        const userData = JSON.parse(userStr);
+        apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
-          // If user is a student, check if they have parents
-          if (userData.role === 'student') {
-            setCheckingParent(true);
-            try {
-              const response = await apiClient.get('/students/me/');
-              console.log('[Student Profile]', response.data);
-              
-              const studentData = response.data.data;
-              const hasParents = studentData.parents && studentData.parents.length > 0;
-              
-              if (!hasParents) {
-                setShowAddParentModal(true);
-              } else {
-                navigate('/app/student/dashboard');
-              }
-            } catch (err) {
-              console.error('[Check Parent Error]', err);
-              navigate('/app/student/dashboard');
-            } finally {
-              setCheckingParent(false);
-            }
-          } else {
-            const routes = {
-              admin: '/app/admin/dashboard',
-              teacher: '/app/teacher/dashboard',
-              parent: '/app/parent/dashboard',
-            };
-            navigate(routes[userData.role] || '/app/dashboard');
-          }
-        } catch (err) {
-          console.error('[Session Error]', err);
-          localStorage.removeItem('user');
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
+        if (userData.language) {
+          i18n.changeLanguage(userData.language);
+          localStorage.setItem('user_language', userData.language);
+          apiClient.defaults.headers.common['X-Language'] = userData.language;
         }
+
+        if (userData.role === 'student') {
+          setCheckingParent(true);
+          try {
+            const response = await apiClient.get('/students/me/');
+            const studentData = response.data.data;
+            const hasParents = studentData.parents && studentData.parents.length > 0;
+
+            if (!hasParents) {
+              setShowAddParentModal(true);   // show the add-parent modal, stay on page
+            } else {
+              navigate('/app/student/dashboard', { replace: true });  // ← direct navigate, no reload
+            }
+          } catch (err) {
+            console.error('[Check Parent Error]', err);
+            navigate('/app/student/dashboard', { replace: true });
+          } finally {
+            setCheckingParent(false);
+          }
+        } else {
+          const routes = {
+            admin: '/app/admin/dashboard',
+            teacher: '/app/teacher/dashboard',
+            parent: '/app/parent/dashboard',
+          };
+          navigate(routes[userData.role] || '/app/dashboard', { replace: true });
+        }
+      } catch (err) {
+        console.error('[Session Error]', err);
+        localStorage.removeItem('user');
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
       }
     };
 
     checkSessionAndParent();
-  }, [navigate, i18n]);
+  }, [navigate, i18n]);  // ← removed dependencies that caused re-runs
 
   // Handle scroll for navbar
   useEffect(() => {
@@ -1136,17 +1132,17 @@ const LandingPage = () => {
       localStorage.setItem('user_language', user.language);
       apiClient.defaults.headers.common['X-Language'] = user.language;
     }
-    
-    if (user.role === 'student') {
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
-    }
+
+    // if (user.role === 'student') {
+    //   setTimeout(() => {
+    //     window.location.reload();
+    //   }, 500);
+    // }
   };
 
   const handleParentAdded = () => {
     toast.success(t('landingPage.addParent.success'));
-    navigate('/app/student/dashboard');
+    navigate('/app/student/dashboard', { replace: true });
   };
 
   // Listen for language changes
@@ -1231,8 +1227,8 @@ const LandingPage = () => {
 
       {/* Navbar */}
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
-          ? 'bg-white/95 dark:bg-gray-900/95 shadow-lg backdrop-blur-sm border-b border-green-100 dark:border-green-900/30'
-          : 'bg-transparent'
+        ? 'bg-white/95 dark:bg-gray-900/95 shadow-lg backdrop-blur-sm border-b border-green-100 dark:border-green-900/30'
+        : 'bg-transparent'
         }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -1463,9 +1459,8 @@ const LandingPage = () => {
               <div className="space-y-4">
                 {['green', 'yellow', 'red'].map((zone) => (
                   <div key={zone} className="flex items-start gap-3">
-                    <div className={`w-3 h-3 rounded-full mt-1.5 ${
-                      zone === 'green' ? 'bg-green-500' : zone === 'yellow' ? 'bg-yellow-500' : 'bg-red-500'
-                    }`} />
+                    <div className={`w-3 h-3 rounded-full mt-1.5 ${zone === 'green' ? 'bg-green-500' : zone === 'yellow' ? 'bg-yellow-500' : 'bg-red-500'
+                      }`} />
                     <div>
                       <p className="font-semibold text-gray-900 dark:text-white text-sm">
                         {t(`landingPage.zones.${zone}.title`)}

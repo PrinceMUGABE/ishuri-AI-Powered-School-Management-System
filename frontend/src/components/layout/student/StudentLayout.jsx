@@ -1,4 +1,4 @@
-// ParentLayout.jsx - Fixed Version
+// StudentLayout.jsx — Full i18n (all keys under student_layout.*) + Dark Mode
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -7,96 +7,97 @@ import {
   LayoutDashboard, GraduationCap, CalendarCheck,
   Users, MessageCircle, User, LogOut, Menu, X,
   BarChart3, FileText, Bell, Sun, Sunset, Moon,
-  ChevronDown, Dot, Clock, AlertCircle, Info,
+  ChevronDown, Dot, Clock, AlertCircle,
   CheckCircle, BellOff, Loader2, ChevronRight,
   BookOpen, Calendar, Key, UserCircle, Shield, Save,
-  Eye, EyeOff, Settings, Mail, Phone, MapPin, Edit3, 
-  CalendarDays, DollarSign, CreditCard
+  Eye, EyeOff, Mail, Phone,
+  CalendarDays, CreditCard, Check, FilePlus,
 } from 'lucide-react';
 import ThemeToggle from '../../Common/ThemeToggle';
 import LanguageSwitcher from '../../Common/LanguageSwitcher';
 import toast from 'react-hot-toast';
 
 // ---------------------------------------------------------------------------
-// Constants
+// Constants & API clients
 // ---------------------------------------------------------------------------
-const API_BASE = 'http://127.0.0.1:8000/api';
-const NOTIF_API_URL = 'http://127.0.0.1:8000/api/notifications';
+const API_BASE   = 'http://127.0.0.1:8000/api';
+const NOTIF_BASE = 'http://127.0.0.1:8000/api/notifications';
 
-
-// API Clients
-const apiClient = axios.create({ baseURL: API_BASE, timeout: 30000 });
-const notifApiClient = axios.create({ baseURL: NOTIF_API_URL, timeout: 30000 });
-const chatApiClient = axios.create({ baseURL: CHAT_API_URL, timeout: 30000 });
-
-const addAuthInterceptor = (client) => {
-  client.interceptors.request.use((config) => {
+const mkClient = (base) => {
+  const c = axios.create({ baseURL: base, timeout: 30000 });
+  c.interceptors.request.use((cfg) => {
     const token = localStorage.getItem('access_token');
-    if (token) config.headers['Authorization'] = `Bearer ${token}`;
-    const lang = localStorage.getItem('user_language') || 'en';
-    config.headers['X-Language'] = lang;
-    return config;
+    const lang  = localStorage.getItem('user_language') || 'en';
+    if (token) cfg.headers['Authorization'] = `Bearer ${token}`;
+    cfg.headers['X-Language'] = lang;
+    return cfg;
   });
+  return c;
 };
 
-addAuthInterceptor(apiClient);
-addAuthInterceptor(notifApiClient);
-addAuthInterceptor(chatApiClient);
+const apiClient   = mkClient(API_BASE);
+const notifClient = mkClient(NOTIF_BASE);
 
 // ---------------------------------------------------------------------------
-// Helper Functions
+// Tiny helpers
 // ---------------------------------------------------------------------------
-const formatTimeAgo = (dateString) => {
-  if (!dateString) return 'N/A';
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffMs = now - date;
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMins < 1) return 'Just now';
-  if (diffMins < 60) return `${diffMins} min ago`;
-  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-  return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+const formatTimeAgo = (ds, t) => {
+  if (!ds) return t('student_layout.common.na', 'N/A');
+  const d  = new Date(ds);
+  const ms = Date.now() - d;
+  const m  = Math.floor(ms / 60000);
+  const h  = Math.floor(ms / 3600000);
+  const dy = Math.floor(ms / 86400000);
+  if (m  < 1)  return t('student_layout.time.just_now',    'Just now');
+  if (m  < 60) return t('student_layout.time.minutes_ago', '{{count}}m ago', { count: m });
+  if (h  < 24) return t('student_layout.time.hours_ago',   '{{count}}h ago', { count: h });
+  return t('student_layout.time.days_ago', '{{count}}d ago', { count: dy });
 };
 
-const getPriorityColor = (priority) => {
-  switch (priority?.toLowerCase()) {
-    case 'high': return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400';
-    case 'medium': return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400';
-    case 'low': return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400';
-    default: return 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300';
+const priorityClass = (p) => {
+  switch (p?.toLowerCase()) {
+    case 'high':   return 'bg-red-100    dark:bg-red-900/30    text-red-700    dark:text-red-400';
+    case 'medium': return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700  dark:text-yellow-400';
+    case 'low':    return 'bg-green-100  dark:bg-green-900/30  text-green-700   dark:text-green-400';
+    default:       return 'bg-gray-100   dark:bg-gray-700       text-gray-600    dark:text-gray-300';
   }
 };
 
-const getPriorityIcon = (priority) => {
-  switch (priority?.toLowerCase()) {
-    case 'high': return <AlertCircle size={12} />;
-    case 'medium': return <Clock size={12} />;
-    default: return <Info size={12} />;
-  }
-};
-
-const getNotificationIcon = (type) => {
-  const iconMap = {
-    user_created: <UserCircle size={14} />,
-    user_updated: <User size={14} />,
-    grade_uploaded: <BookOpen size={14} />,
-    grade_approved: <CheckCircle size={14} />,
-    assignment_created: <BookOpen size={14} />,
-    assignment_submitted: <FileText size={14} />,
-    attendance_marked: <Calendar size={14} />,
-    low_attendance_warning: <AlertCircle size={14} />,
-    message_received: <MessageCircle size={14} />,
-    deadline_reminder: <Clock size={14} />,
+const notifIcon = (type) => {
+  const m = {
+    user_created:           <UserCircle    size={14} />,
+    user_updated:           <User          size={14} />,
+    grade_uploaded:         <BookOpen      size={14} />,
+    grade_approved:         <CheckCircle   size={14} />,
+    assignment_created:     <BookOpen      size={14} />,
+    assignment_submitted:   <FileText      size={14} />,
+    attendance_marked:      <Calendar      size={14} />,
+    low_attendance_warning: <AlertCircle   size={14} />,
+    message_received:       <MessageCircle size={14} />,
+    deadline_reminder:      <Clock         size={14} />,
   };
-  return iconMap[type] || <Bell size={14} />;
+  return m[type] || <Bell size={14} />;
 };
 
-// ---------------------------------------------------------------------------
-// Live clock hook
-// ---------------------------------------------------------------------------
+// Password strength helpers
+const pwChecks = (pw) => ({
+  length:    pw.length >= 6,
+  uppercase: /[A-Z]/.test(pw),
+  lowercase: /[a-z]/.test(pw),
+  number:    /[0-9]/.test(pw),
+  special:   /[!@#$%^&*(),.?":{}|<>]/.test(pw),
+});
+
+const pwStrengthPct   = (checks) =>
+  (Object.values(checks).filter(Boolean).length / 5) * 100;
+
+const pwStrengthColor = (pct) => {
+  if (pct === 100) return 'bg-green-500';
+  if (pct >= 60)   return 'bg-yellow-500';
+  return 'bg-red-500';
+};
+
+// Live clock
 const useClock = () => {
   const [now, setNow] = useState(new Date());
   useEffect(() => {
@@ -106,512 +107,668 @@ const useClock = () => {
   return now;
 };
 
-// ---------------------------------------------------------------------------
-// Greeting icon by hour
-// ---------------------------------------------------------------------------
+// Greeting icon
 const GreetingIcon = ({ hour, className }) => {
-  if (hour < 12) return <Sun className={className} />;
+  if (hour < 12) return <Sun    className={className} />;
   if (hour < 18) return <Sunset className={className} />;
   return <Moon className={className} />;
 };
 
 // ---------------------------------------------------------------------------
-// PROFILE MODAL COMPONENT
+// PROFILE MODAL
 // ---------------------------------------------------------------------------
-function ProfileModal({ isOpen, onClose, userData, onUpdate, t }) {
-  const [activeTab, setActiveTab] = useState('profile');
-  const [formData, setFormData] = useState({ full_name: '', phone_number: '', physical_address: '' });
-  const [passwordData, setPasswordData] = useState({ current_password: '', new_password: '', confirm_password: '' });
-  const [showPassword, setShowPassword] = useState({ current: false, new: false, confirm: false });
-  const [loading, setLoading] = useState(false);
-  const [passwordLoading, setPasswordLoading] = useState(false);
-  const [errors, setErrors] = useState({});
-  const [passwordErrors, setPasswordErrors] = useState({});
+function ProfileModal({ isOpen, onClose, studentProfile, onUpdate }) {
+  const { t } = useTranslation();
+
+  const [tab, setTab]           = useState('profile');
+  const [saving, setSaving]     = useState(false);
+  const [pwSaving, setPwSaving] = useState(false);
+
+  const [form, setForm] = useState({
+    full_name: '', email: '', phone_number: '', birth_date: '',
+  });
+  const [pwForm, setPwForm] = useState({
+    current_password: '', new_password: '', confirm_password: '',
+  });
+  const [showPw, setShowPw] = useState({ current: false, new: false, confirm: false });
+  const [checks, setChecks]         = useState(pwChecks(''));
+  const [formErrors, setFormErrors] = useState({});
+  const [pwErrors,   setPwErrors]   = useState({});
+
   const modalRef = useRef(null);
 
   useEffect(() => {
-    if (userData) {
-      setFormData({
-        full_name: userData.full_name || '',
-        phone_number: userData.phone_number || '',
-        physical_address: userData.physical_address || '',
+    if (studentProfile) {
+      setForm({
+        full_name:    studentProfile.full_name    || '',
+        email:        studentProfile.email        || '',
+        phone_number: studentProfile.phone_number || '',
+        birth_date:   studentProfile.birth_date   || '',
       });
     }
-  }, [userData]);
+  }, [studentProfile]);
 
   useEffect(() => {
-    const handleClickOutside = (e) => {
+    if (!isOpen) return;
+    const onKey  = (e) => { if (e.key === 'Escape') onClose(); };
+    const onDown = (e) => {
       if (modalRef.current && !modalRef.current.contains(e.target)) onClose();
     };
-    const handleEsc = (e) => { if (e.key === 'Escape') onClose(); };
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('keydown', handleEsc);
-    }
+    document.addEventListener('keydown',   onKey);
+    document.addEventListener('mousedown', onDown);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleEsc);
+      document.removeEventListener('keydown',   onKey);
+      document.removeEventListener('mousedown', onDown);
     };
   }, [isOpen, onClose]);
 
-  const validateProfileForm = () => {
+  // ── Validate profile ────────────────────────────────────────────────────
+  const validateForm = () => {
     const e = {};
-    if (!formData.full_name?.trim()) e.full_name = 'Full name is required';
-    if (formData.phone_number && !/^(\+?[0-9]{10,15})$/.test(formData.phone_number)) {
-      e.phone_number = 'Invalid phone number format';
+    if (!form.full_name.trim())
+      e.full_name = t('student_layout.profile.errors.full_name_required');
+    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+      e.email = t('student_layout.profile.errors.invalid_email');
+    if (form.phone_number && !/^(\+?[0-9]{10,15})$/.test(form.phone_number))
+      e.phone_number = t('student_layout.profile.errors.invalid_phone');
+    setFormErrors(e);
+    return !Object.keys(e).length;
+  };
+
+  // ── Validate password ───────────────────────────────────────────────────
+  const validatePw = () => {
+    const e = {};
+    if (!pwForm.current_password)
+      e.current_password = t('student_layout.password.errors.current_required');
+    const c = pwChecks(pwForm.new_password);
+    if (!pwForm.new_password)    e.new_password = t('student_layout.password.errors.new_required');
+    else if (!c.length)          e.new_password = t('student_layout.password.errors.min_length');
+    else if (!c.uppercase)       e.new_password = t('student_layout.password.errors.uppercase');
+    else if (!c.lowercase)       e.new_password = t('student_layout.password.errors.lowercase');
+    else if (!c.number)          e.new_password = t('student_layout.password.errors.number');
+    else if (!c.special)         e.new_password = t('student_layout.password.errors.special');
+    if (!pwForm.confirm_password)
+      e.confirm_password = t('student_layout.password.errors.confirm_required');
+    else if (pwForm.new_password !== pwForm.confirm_password)
+      e.confirm_password = t('student_layout.password.errors.mismatch');
+    setPwErrors(e);
+    return !Object.keys(e).length;
+  };
+
+  // ── Save profile ────────────────────────────────────────────────────────
+  const handleSaveProfile = async () => {
+    if (!validateForm()) return;
+    if (!studentProfile?.id) {
+      toast.error(t('student_layout.profile.not_loaded'));
+      return;
     }
-    setErrors(e);
-    return !Object.keys(e).length;
-  };
-
-  const validatePasswordForm = () => {
-    const e = {};
-    if (!passwordData.current_password) e.current_password = 'Current password required';
-    if (!passwordData.new_password) e.new_password = 'New password required';
-    else if (passwordData.new_password.length < 8) e.new_password = 'Password must be at least 8 characters';
-    if (!passwordData.confirm_password) e.confirm_password = 'Please confirm your password';
-    else if (passwordData.new_password !== passwordData.confirm_password) e.confirm_password = 'Passwords do not match';
-    setPasswordErrors(e);
-    return !Object.keys(e).length;
-  };
-
-  const handleProfileUpdate = async () => {
-    if (!validateProfileForm()) return;
-    setLoading(true);
+    setSaving(true);
     try {
-      const response = await apiClient.put(`/students/parents/${userData.id}/update/`, formData);
-      if (response.data?.success) {
-        const updatedUser = { ...userData, ...formData };
-        toast.success(response.data.message || 'Profile updated successfully');
-        onUpdate(updatedUser);
+      const payload = {};
+      if (form.full_name    !== (studentProfile.full_name    || '')) payload.full_name    = form.full_name;
+      if (form.phone_number !== (studentProfile.phone_number || '')) payload.phone_number = form.phone_number || null;
+      if (form.birth_date   !== (studentProfile.birth_date   || '')) payload.birth_date   = form.birth_date   || null;
+      if (form.email        !== (studentProfile.email        || '')) payload.email        = form.email        || null;
+
+      const res = await apiClient.patch(`/students/${studentProfile.id}/update/`, payload);
+      if (res.data?.success) {
+        toast.success(res.data.message || t('student_layout.profile.update_success'));
+        onUpdate(res.data.data);
         onClose();
       } else {
-        toast.error(response.data?.message || 'Failed to update profile');
+        const firstErr = res.data?.errors
+          ? Object.values(res.data.errors).flat()[0]
+          : res.data?.message;
+        toast.error(firstErr || t('student_layout.profile.update_failed'));
       }
     } catch (err) {
-      console.error('Profile update error:', err);
-      toast.error(err.response?.data?.message || 'Failed to update profile');
+      const msg = err.response?.data?.errors
+        ? Object.values(err.response.data.errors).flat()[0]
+        : err.response?.data?.message || t('student_layout.profile.update_failed');
+      toast.error(msg);
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
-  const handlePasswordChange = async () => {
-    if (!validatePasswordForm()) return;
-    setPasswordLoading(true);
+  // ── Change password ─────────────────────────────────────────────────────
+  const handleChangePassword = async () => {
+    if (!validatePw()) return;
+    setPwSaving(true);
     try {
-      const response = await apiClient.post('/account/change-password/', passwordData);
-      if (response.data?.success) {
-        toast.success(response.data.message || 'Password changed successfully');
-        setPasswordData({ current_password: '', new_password: '', confirm_password: '' });
-        setActiveTab('profile');
+      const res = await apiClient.post('/account/change-password/', {
+        current_password: pwForm.current_password,
+        new_password:     pwForm.new_password,
+        confirm_password: pwForm.confirm_password,
+      });
+      if (res.data?.success) {
+        toast.success(res.data.message || t('student_layout.password.change_success'));
+        setPwForm({ current_password: '', new_password: '', confirm_password: '' });
+        setChecks(pwChecks(''));
+        setTab('profile');
       } else {
-        toast.error(response.data?.message || 'Failed to change password');
+        toast.error(res.data?.message || t('student_layout.password.change_failed'));
       }
     } catch (err) {
-      console.error('Password change error:', err);
-      toast.error(err.response?.data?.message || 'Failed to change password');
+      const msg = err.response?.data?.errors
+        ? Object.values(err.response.data.errors).flat()[0]
+        : err.response?.data?.message || t('student_layout.password.change_failed');
+      toast.error(msg);
     } finally {
-      setPasswordLoading(false);
+      setPwSaving(false);
     }
   };
 
   if (!isOpen) return null;
 
-  const isDark = document.documentElement.classList.contains('dark');
+  const pct = pwStrengthPct(checks);
+  const allPwChecksPass =
+    checks.length && checks.uppercase && checks.lowercase &&
+    checks.number  && checks.special  &&
+    pwForm.new_password === pwForm.confirm_password &&
+    pwForm.current_password;
+
+  const inp = (hasErr) =>
+    `w-full px-3 py-2 border rounded-xl text-sm
+     bg-white dark:bg-gray-700/80 text-gray-900 dark:text-white
+     placeholder:text-gray-400 dark:placeholder:text-gray-500
+     focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent
+     transition-colors
+     ${hasErr ? 'border-red-400 dark:border-red-500' : 'border-gray-200 dark:border-gray-600'}`;
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div ref={modalRef} className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl animate-slideUp">
-        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 rounded-t-2xl p-5">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">My Profile</h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage your account settings</p>
-            </div>
-            <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-              <X size={20} className="text-gray-500 dark:text-gray-400" />
-            </button>
+      <div
+        ref={modalRef}
+        className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md shadow-2xl
+                   flex flex-col max-h-[92vh] animate-slideUp"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100 dark:border-gray-700 flex-shrink-0">
+          <div>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+              {t('student_layout.profile.title')}
+            </h2>
+            <p className="text-xs text-gray-400 mt-0.5">
+              {t('student_layout.profile.subtitle')}
+            </p>
           </div>
-        </div>
-
-        <div className="flex border-b border-gray-200 dark:border-gray-700 px-5">
           <button
-            onClick={() => setActiveTab('profile')}
-            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors border-b-2 ${
-              activeTab === 'profile'
-                ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400'
-                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-            }`}
+            onClick={onClose}
+            className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-400"
           >
-            <UserCircle size={16} />
-            Profile Info
-          </button>
-          <button
-            onClick={() => setActiveTab('password')}
-            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors border-b-2 ${
-              activeTab === 'password'
-                ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400'
-                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-            }`}
-          >
-            <Key size={16} />
-            Change Password
+            <X size={18} />
           </button>
         </div>
 
-        <div className="p-5">
-          {activeTab === 'profile' && (
-            <div className="space-y-5">
-              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                  <Shield size={14} />
-                  Account Details
-                </h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Role:</span>
-                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">
-                      Parent
+        {/* Tabs */}
+        <div className="flex gap-1 px-6 pt-3 flex-shrink-0">
+          {[
+            { id: 'profile',  icon: UserCircle, label: t('student_layout.profile.tabs.profile')  },
+            { id: 'password', icon: Key,        label: t('student_layout.profile.tabs.password') },
+          ].map(({ id, icon: Icon, label }) => (
+            <button
+              key={id}
+              onClick={() => setTab(id)}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all
+                ${tab === id
+                  ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-500/30'
+                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+            >
+              <Icon size={14} /> {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+
+          {/* ====== PROFILE TAB ====== */}
+          {tab === 'profile' && (
+            <>
+              <div className="bg-gray-50 dark:bg-gray-700/40 rounded-2xl p-4 space-y-2">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                  <Shield size={11} /> {t('student_layout.profile.account_details')}
+                </p>
+                {[
+                  { label: t('student_layout.profile.fields.roll_number'), value: studentProfile?.roll_number     },
+                  { label: t('student_layout.profile.fields.role'),        value: t('student_layout.common.student') },
+                  { label: t('student_layout.profile.fields.status'),      value: studentProfile?.status          },
+                  { label: t('student_layout.profile.fields.enrolled'),    value: studentProfile?.enrollment_date },
+                ].map(({ label, value }) => (
+                  <div key={label} className="flex justify-between items-center py-0.5">
+                    <span className="text-xs text-gray-400 dark:text-gray-500">{label}</span>
+                    <span className="text-xs font-semibold text-gray-700 dark:text-gray-200 capitalize">
+                      {value || '—'}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center py-1">
-                    <span className="text-sm text-gray-500 dark:text-gray-400">Email:</span>
-                    <span className="text-sm text-gray-900 dark:text-white">{userData?.email || '-'}</span>
-                  </div>
-                </div>
+                ))}
               </div>
 
-              <div>
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Edit Information</h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name *</label>
+              <div className="space-y-3">
+                {/* Full name */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">
+                    {t('student_layout.profile.fields.full_name')} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={form.full_name}
+                    onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+                    className={inp(formErrors.full_name)}
+                    placeholder={t('student_layout.profile.placeholders.full_name')}
+                  />
+                  {formErrors.full_name && (
+                    <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                      <AlertCircle size={10} /> {formErrors.full_name}
+                    </p>
+                  )}
+                </div>
+
+                {/* Email */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">
+                    {t('student_layout.profile.fields.email')}
+                  </label>
+                  <div className="relative">
+                    <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
-                      type="text"
-                      value={formData.full_name}
-                      onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                      className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${
-                        errors.full_name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                      }`}
+                      type="email"
+                      value={form.email}
+                      onChange={(e) => setForm({ ...form, email: e.target.value })}
+                      className={`${inp(formErrors.email)} pl-9`}
+                      placeholder={t('student_layout.profile.placeholders.email')}
                     />
-                    {errors.full_name && <p className="text-xs text-red-500 mt-1">{errors.full_name}</p>}
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number</label>
+                  {formErrors.email && (
+                    <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                      <AlertCircle size={10} /> {formErrors.email}
+                    </p>
+                  )}
+                </div>
+
+                {/* Phone */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">
+                    {t('student_layout.profile.fields.phone')}
+                  </label>
+                  <div className="relative">
+                    <Phone size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
                       type="tel"
-                      value={formData.phone_number}
-                      onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
-                      className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${
-                        errors.phone_number ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                      }`}
-                      placeholder="+250XXXXXXXXX"
+                      value={form.phone_number}
+                      onChange={(e) => setForm({ ...form, phone_number: e.target.value })}
+                      className={`${inp(formErrors.phone_number)} pl-9`}
+                      placeholder={t('student_layout.profile.placeholders.phone')}
                     />
-                    {errors.phone_number && <p className="text-xs text-red-500 mt-1">{errors.phone_number}</p>}
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Address</label>
-                    <textarea
-                      value={formData.physical_address}
-                      onChange={(e) => setFormData({ ...formData, physical_address: e.target.value })}
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
+                  {formErrors.phone_number && (
+                    <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                      <AlertCircle size={10} /> {formErrors.phone_number}
+                    </p>
+                  )}
+                </div>
+
+                {/* Birth date */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">
+                    {t('student_layout.profile.fields.birth_date')}
+                  </label>
+                  <div className="relative">
+                    <CalendarDays size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="date"
+                      value={form.birth_date}
+                      onChange={(e) => setForm({ ...form, birth_date: e.target.value })}
+                      className={`${inp(false)} pl-9`}
                     />
                   </div>
                 </div>
               </div>
-            </div>
+            </>
           )}
 
-          {activeTab === 'password' && (
-            <div className="space-y-5">
-              <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-4 border border-yellow-200 dark:border-yellow-800">
-                <p className="text-sm text-yellow-800 dark:text-yellow-300">
-                  Password must be at least 8 characters long.
+          {/* ====== PASSWORD TAB ====== */}
+          {tab === 'password' && (
+            <>
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/40 rounded-xl p-3">
+                <p className="text-xs text-amber-700 dark:text-amber-300 flex items-start gap-1.5">
+                  <AlertCircle size={13} className="mt-0.5 flex-shrink-0" />
+                  {t('student_layout.password.notice')}{' '}
+                  <strong>{t('student_layout.password.current_label')}</strong>{' '}
+                  {t('student_layout.password.notice_suffix')}
                 </p>
               </div>
 
+              {/* Current password */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Current Password *</label>
+                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">
+                  {t('student_layout.password.fields.current')} <span className="text-red-500">*</span>
+                </label>
                 <div className="relative">
                   <input
-                    type={showPassword.current ? 'text' : 'password'}
-                    value={passwordData.current_password}
-                    onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })}
-                    className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent pr-10 ${
-                      passwordErrors.current_password ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                    }`}
+                    type={showPw.current ? 'text' : 'password'}
+                    value={pwForm.current_password}
+                    onChange={(e) => setPwForm({ ...pwForm, current_password: e.target.value })}
+                    className={`${inp(pwErrors.current_password)} pr-10`}
+                    placeholder={t('student_layout.password.placeholders.current')}
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword({ ...showPassword, current: !showPassword.current })}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400"
+                    onClick={() => setShowPw({ ...showPw, current: !showPw.current })}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    {showPassword.current ? <EyeOff size={16} /> : <Eye size={16} />}
+                    {showPw.current ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
                 </div>
-                {passwordErrors.current_password && <p className="text-xs text-red-500 mt-1">{passwordErrors.current_password}</p>}
+                {pwErrors.current_password && (
+                  <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                    <AlertCircle size={10} /> {pwErrors.current_password}
+                  </p>
+                )}
               </div>
 
+              {/* New password */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">New Password *</label>
+                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">
+                  {t('student_layout.password.fields.new')} <span className="text-red-500">*</span>
+                </label>
                 <div className="relative">
                   <input
-                    type={showPassword.new ? 'text' : 'password'}
-                    value={passwordData.new_password}
-                    onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
-                    className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent pr-10 ${
-                      passwordErrors.new_password ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                    }`}
+                    type={showPw.new ? 'text' : 'password'}
+                    value={pwForm.new_password}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setPwForm({ ...pwForm, new_password: v });
+                      setChecks(pwChecks(v));
+                    }}
+                    className={`${inp(pwErrors.new_password)} pr-10`}
+                    placeholder={t('student_layout.password.placeholders.new')}
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword({ ...showPassword, new: !showPassword.new })}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400"
+                    onClick={() => setShowPw({ ...showPw, new: !showPw.new })}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    {showPassword.new ? <EyeOff size={16} /> : <Eye size={16} />}
+                    {showPw.new ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
                 </div>
-                {passwordErrors.new_password && <p className="text-xs text-red-500 mt-1">{passwordErrors.new_password}</p>}
+                {pwErrors.new_password && (
+                  <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                    <AlertCircle size={10} /> {pwErrors.new_password}
+                  </p>
+                )}
+
+                {/* Strength bar */}
+                {pwForm.new_password && (
+                  <div className="mt-2 space-y-1.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-400">{t('student_layout.password.strength.label')}</span>
+                      <span className="font-semibold text-gray-600 dark:text-gray-300">
+                        {pct === 100
+                          ? t('student_layout.password.strength.strong')
+                          : pct >= 60
+                            ? t('student_layout.password.strength.medium')
+                            : t('student_layout.password.strength.weak')}
+                      </span>
+                    </div>
+                    <div className="w-full h-1.5 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-300 ${pwStrengthColor(pct)}`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-1 pt-1">
+                      {[
+                        { key: 'length',    label: t('student_layout.password.requirements.length')    },
+                        { key: 'uppercase', label: t('student_layout.password.requirements.uppercase') },
+                        { key: 'lowercase', label: t('student_layout.password.requirements.lowercase') },
+                        { key: 'number',    label: t('student_layout.password.requirements.number')    },
+                        { key: 'special',   label: t('student_layout.password.requirements.special')   },
+                      ].map(({ key, label }) => (
+                        <span
+                          key={key}
+                          className={`flex items-center gap-1 text-xs transition-colors
+                            ${checks[key]
+                              ? 'text-green-600 dark:text-green-400'
+                              : 'text-gray-400 dark:text-gray-500'}`}
+                        >
+                          {checks[key]
+                            ? <Check size={10} className="flex-shrink-0" />
+                            : <div className="w-2.5 h-2.5 rounded-full border border-current flex-shrink-0" />
+                          }
+                          {label}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
+              {/* Confirm password */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Confirm New Password *</label>
+                <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">
+                  {t('student_layout.password.fields.confirm')} <span className="text-red-500">*</span>
+                </label>
                 <div className="relative">
                   <input
-                    type={showPassword.confirm ? 'text' : 'password'}
-                    value={passwordData.confirm_password}
-                    onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
-                    className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent pr-10 ${
-                      passwordErrors.confirm_password ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                    }`}
+                    type={showPw.confirm ? 'text' : 'password'}
+                    value={pwForm.confirm_password}
+                    onChange={(e) => setPwForm({ ...pwForm, confirm_password: e.target.value })}
+                    className={`${inp(
+                      pwErrors.confirm_password ||
+                      (pwForm.confirm_password && pwForm.new_password !== pwForm.confirm_password)
+                    )} pr-10`}
+                    placeholder={t('student_layout.password.placeholders.confirm')}
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword({ ...showPassword, confirm: !showPassword.confirm })}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400"
+                    onClick={() => setShowPw({ ...showPw, confirm: !showPw.confirm })}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    {showPassword.confirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                    {showPw.confirm ? <EyeOff size={15} /> : <Eye size={15} />}
                   </button>
                 </div>
-                {passwordErrors.confirm_password && <p className="text-xs text-red-500 mt-1">{passwordErrors.confirm_password}</p>}
+                {pwForm.confirm_password && pwForm.new_password !== pwForm.confirm_password && (
+                  <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                    <AlertCircle size={10} /> {t('student_layout.password.errors.mismatch')}
+                  </p>
+                )}
+                {pwForm.confirm_password && pwForm.new_password === pwForm.confirm_password && pwForm.new_password && (
+                  <p className="text-xs text-green-600 dark:text-green-400 mt-1 flex items-center gap-1">
+                    <Check size={10} /> {t('student_layout.password.match')}
+                  </p>
+                )}
+                {pwErrors.confirm_password && (
+                  <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                    <AlertCircle size={10} /> {pwErrors.confirm_password}
+                  </p>
+                )}
               </div>
-            </div>
+            </>
           )}
         </div>
 
-        <div className="sticky bottom-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-5 flex gap-3">
-          <button onClick={onClose} className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors">
-            Cancel
+        {/* Footer */}
+        <div className="flex gap-3 px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex-shrink-0">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold
+                       bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300
+                       hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+          >
+            {t('student_layout.common.cancel')}
           </button>
           <button
-            onClick={activeTab === 'profile' ? handleProfileUpdate : handlePasswordChange}
-            disabled={loading || passwordLoading}
-            className="flex-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            onClick={tab === 'profile' ? handleSaveProfile : handleChangePassword}
+            disabled={
+              (tab === 'profile'  && saving)    ||
+              (tab === 'password' && (pwSaving || !allPwChecksPass))
+            }
+            className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold
+                       bg-emerald-600 hover:bg-emerald-700 text-white
+                       flex items-center justify-center gap-2
+                       disabled:opacity-50 disabled:cursor-not-allowed transition-colors
+                       shadow-sm shadow-emerald-500/30"
           >
-            {(loading || passwordLoading) ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-            {activeTab === 'profile' ? 'Save Changes' : 'Update Password'}
+            {(saving || pwSaving)
+              ? <Loader2 size={15} className="animate-spin" />
+              : <Save size={15} />
+            }
+            {tab === 'profile'
+              ? t('student_layout.profile.save_changes')
+              : t('student_layout.password.update_button')}
           </button>
         </div>
       </div>
 
       <style>{`
         @keyframes slideUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
+          from { opacity: 0; transform: translateY(16px) scale(0.98); }
+          to   { opacity: 1; transform: translateY(0)    scale(1);    }
         }
-        .animate-slideUp {
-          animation: slideUp 0.3s ease-out;
-        }
+        .animate-slideUp { animation: slideUp 0.25s ease-out; }
       `}</style>
     </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// NOTIFICATIONS DROPDOWN COMPONENT (Client-side filtering)
+// NOTIFICATIONS DROPDOWN
 // ---------------------------------------------------------------------------
-function NotificationsDropdown({ isOpen, onClose, t }) {
+function NotificationsDropdown({ isOpen, onClose }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const [allNotifications, setAllNotifications] = useState([]);
-  const [unreadNotifications, setUnreadNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [markingAll, setMarkingAll] = useState(false);
-  const [error, setError] = useState(null);
 
-  const fetchNotifications = useCallback(async () => {
+  const [notifications, setNotifications] = useState([]);
+  const [unread,        setUnread]         = useState([]);
+  const [loading,       setLoading]        = useState(false);
+  const [markingAll,    setMarkingAll]     = useState(false);
+  const [error,         setError]          = useState(null);
+
+  const fetchNotifs = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await notifApiClient.get('/', {
-        params: { page: 1, page_size: 50 }
-      });
-      
-      let notificationsList = [];
-      
-      if (response.data?.success) {
-        if (response.data.results) {
-          notificationsList = response.data.results;
-        } else if (response.data.data) {
-          notificationsList = Array.isArray(response.data.data) ? response.data.data : [];
-        }
-      } else if (Array.isArray(response.data)) {
-        notificationsList = response.data;
-      }
-      
-      setAllNotifications(notificationsList);
-      
-      const unreadList = notificationsList.filter(n => 
-        n.status === 'unread' || n.is_read === false
-      );
-      setUnreadNotifications(unreadList);
-      setUnreadCount(unreadList.length);
-      
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-      setError(error.response?.data?.message || 'Failed to load notifications');
+      const res = await notifClient.get('/', { params: { page: 1, page_size: 50 } });
+      let list = [];
+      if      (res.data?.results)             list = res.data.results;
+      else if (Array.isArray(res.data?.data)) list = res.data.data;
+      else if (Array.isArray(res.data))       list = res.data;
+      setNotifications(list);
+      setUnread(list.filter((n) => n.status === 'unread' || n.is_read === false));
+    } catch (err) {
+      setError(err.response?.data?.message || t('student_layout.notifications.load_failed'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
-  const markAsRead = async (notificationId) => {
+  const markRead = async (id) => {
     try {
-      await notifApiClient.patch(`/${notificationId}/`);
-      
-      const updatedAllNotifications = allNotifications.map(n =>
-        n.id === notificationId ? { ...n, status: 'read', is_read: true } : n
+      await notifClient.patch(`/${id}/`);
+      const updated = notifications.map((n) =>
+        n.id === id ? { ...n, status: 'read', is_read: true } : n
       );
-      setAllNotifications(updatedAllNotifications);
-      
-      const newUnreadList = unreadNotifications.filter(n => n.id !== notificationId);
-      setUnreadNotifications(newUnreadList);
-      setUnreadCount(newUnreadList.length);
-      
-      toast.success('Marked as read');
-    } catch (error) {
-      console.error('Error marking as read:', error);
-      toast.error('Failed to mark as read');
+      setNotifications(updated);
+      setUnread(updated.filter((n) => n.status === 'unread' || n.is_read === false));
+    } catch {
+      toast.error(t('student_layout.notifications.mark_read_failed'));
     }
   };
 
-  const markAllAsRead = async () => {
+  const markAllRead = async () => {
     setMarkingAll(true);
     try {
-      await notifApiClient.post('/mark-read/', { mark_all: true });
-      
-      const updatedAllNotifications = allNotifications.map(n => ({
-        ...n,
-        status: 'read',
-        is_read: true
-      }));
-      setAllNotifications(updatedAllNotifications);
-      
-      setUnreadNotifications([]);
-      setUnreadCount(0);
-      
-      toast.success('All notifications marked as read');
-    } catch (error) {
-      console.error('Error marking all as read:', error);
-      toast.error('Failed to mark all as read');
+      await notifClient.post('/mark-read/', { mark_all: true });
+      const updated = notifications.map((n) => ({ ...n, status: 'read', is_read: true }));
+      setNotifications(updated);
+      setUnread([]);
+      toast.success(t('student_layout.notifications.all_marked_read'));
+    } catch {
+      toast.error(t('student_layout.notifications.mark_all_failed'));
     } finally {
       setMarkingAll(false);
     }
   };
 
-  const handleViewAll = () => {
-    onClose();
-    navigate('/parent/notifications');
-  };
-
-  useEffect(() => {
-    if (isOpen) {
-      fetchNotifications();
-    }
-  }, [isOpen, fetchNotifications]);
+  useEffect(() => { if (isOpen) fetchNotifs(); }, [isOpen, fetchNotifs]);
 
   return (
-    <div className={`absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 z-50 transition-all duration-200 ${
-      isOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'
-    }`}>
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-        <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-          <Bell size={18} />
-          Notifications
-          {unreadCount > 0 && (
-            <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-              {unreadCount}
+    <div className={`absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 rounded-2xl
+                     shadow-xl border border-gray-200 dark:border-gray-700 z-50
+                     transition-all duration-200
+                     ${isOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'}`}>
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+        <h3 className="font-semibold text-sm text-gray-900 dark:text-white flex items-center gap-2">
+          <Bell size={16} />
+          {t('student_layout.notifications.title')}
+          {unread.length > 0 && (
+            <span className="bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full leading-none">
+              {unread.length}
             </span>
           )}
         </h3>
-        {unreadCount > 0 && (
+        {unread.length > 0 && (
           <button
-            onClick={markAllAsRead}
+            onClick={markAllRead}
             disabled={markingAll}
             className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 disabled:opacity-50"
           >
-            {markingAll ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle size={12} />}
-            Mark all read
+            {markingAll ? <Loader2 size={11} className="animate-spin" /> : <CheckCircle size={11} />}
+            {t('student_layout.notifications.mark_all_read')}
           </button>
         )}
       </div>
 
+      {/* Body */}
       <div className="max-h-96 overflow-y-auto">
         {loading ? (
-          <div className="flex justify-center items-center py-12">
+          <div className="flex justify-center py-12">
             <Loader2 size={28} className="animate-spin text-emerald-600" />
           </div>
         ) : error ? (
           <div className="text-center py-8">
-            <AlertCircle size={32} className="mx-auto mb-2 text-red-500 opacity-50" />
-            <p className="text-sm text-red-500">{error}</p>
-            <button 
-              onClick={fetchNotifications}
-              className="mt-3 text-xs text-emerald-600 hover:underline"
-            >
-              Retry
+            <AlertCircle size={28} className="mx-auto mb-2 text-red-400" />
+            <p className="text-xs text-red-500">{error}</p>
+            <button onClick={fetchNotifs} className="mt-2 text-xs text-emerald-600 hover:underline">
+              {t('student_layout.common.retry')}
             </button>
           </div>
-        ) : unreadNotifications.length === 0 ? (
+        ) : unread.length === 0 ? (
           <div className="text-center py-12">
-            <BellOff size={40} className="mx-auto mb-3 text-gray-400 dark:text-gray-600 opacity-50" />
-            <p className="text-sm text-gray-500 dark:text-gray-400">No unread notifications</p>
+            <BellOff size={36} className="mx-auto mb-3 text-gray-300 dark:text-gray-600" />
+            <p className="text-sm text-gray-400">
+              {t('student_layout.notifications.no_unread')}
+            </p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100 dark:divide-gray-700">
-            {unreadNotifications.slice(0, 10).map((notif) => (
+          <div className="divide-y divide-gray-100 dark:divide-gray-700/60">
+            {unread.slice(0, 10).map((n) => (
               <div
-                key={notif.id}
-                className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer bg-blue-50/30 dark:bg-blue-900/10"
-                onClick={() => markAsRead(notif.id)}
+                key={n.id}
+                onClick={() => markRead(n.id)}
+                className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/40 cursor-pointer
+                           bg-blue-50/40 dark:bg-blue-900/10 transition-colors"
               >
                 <div className="flex gap-3">
-                  <div className={`p-2 rounded-lg flex-shrink-0 ${getPriorityColor(notif.priority)}`}>
-                    {getNotificationIcon(notif.notification_type)}
+                  <div className={`p-2 rounded-xl flex-shrink-0 ${priorityClass(n.priority)}`}>
+                    {notifIcon(n.notification_type)}
                   </div>
-                  
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">
-                        {notif.title}
+                      <p className="text-xs font-semibold text-gray-900 dark:text-white leading-snug">
+                        {n.title}
                       </p>
-                      <span className="w-2 h-2 bg-emerald-500 rounded-full flex-shrink-0 mt-1.5"></span>
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0 mt-1" />
                     </div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
-                      {notif.message}
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">
+                      {n.message}
                     </p>
-                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-400 dark:text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <Clock size={10} />
-                        {formatTimeAgo(notif.created_at)}
-                      </span>
-                      <span className={`px-1.5 py-0.5 rounded-full text-xs flex items-center gap-1 ${getPriorityColor(notif.priority)}`}>
-                        {getPriorityIcon(notif.priority)}
-                        {notif.priority}
-                      </span>
-                    </div>
+                    <span className="text-[10px] text-gray-400 mt-1 flex items-center gap-1">
+                      <Clock size={9} /> {formatTimeAgo(n.created_at, t)}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -620,104 +777,72 @@ function NotificationsDropdown({ isOpen, onClose, t }) {
         )}
       </div>
 
-      <div className="p-3 border-t border-gray-200 dark:border-gray-700">
+      {/* Footer */}
+      <div className="px-4 py-2.5 border-t border-gray-100 dark:border-gray-700">
         <button
-          onClick={handleViewAll}
-          className="w-full text-sm text-emerald-600 dark:text-emerald-400 hover:underline flex items-center justify-center gap-1 py-1 transition-colors"
+          onClick={() => { onClose(); navigate('/app/student/notifications'); }}
+          className="w-full text-xs text-emerald-600 dark:text-emerald-400 hover:underline
+                     flex items-center justify-center gap-1 py-1"
         >
-          View all notifications
-          <ChevronRight size={14} />
+          {t('student_layout.notifications.view_all')} <ChevronRight size={12} />
         </button>
       </div>
     </div>
   );
 }
 
-
 // ---------------------------------------------------------------------------
-// Header component with dropdowns
+// HEADER
 // ---------------------------------------------------------------------------
-const StudentHeader = ({
-  studentProfile,
-  onMenuClick,
-  sidebarOpen,
-  isMobile,
-}) => {
+function StudentHeader({ studentProfile, onMenuClick, sidebarOpen, isMobile, onOpenProfile }) {
   const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
-  const now = useClock();
+  const navigate    = useNavigate();
+  const now         = useClock();
+
   const dropdownRef = useRef(null);
-  const notifRef = useRef(null);
-  const messagesRef = useRef(null);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [showMessages, setShowMessages] = useState(false);
+  const notifRef    = useRef(null);
+
+  const [dropdownOpen,        setDropdownOpen]        = useState(false);
+  const [showNotifications,   setShowNotifications]   = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
-  const [unreadMessages, setUnreadMessages] = useState(0);
 
-  // Fetch unread counts
-  const fetchUnreadCounts = useCallback(async () => {
+  const fetchUnreadCount = useCallback(async () => {
     try {
-      const [notifRes, chatRes] = await Promise.all([
-        notifApiClient.get('/unread-count/'),
-        chatApiClient.get('/chatrooms/parent/')
-      ]);
-      
-      if (notifRes.data?.success) {
-        setUnreadNotifications(notifRes.data.data.unread_count);
-      }
-      
-      if (chatRes.data?.chatrooms) {
-        const total = chatRes.data.chatrooms.reduce((sum, room) => sum + (room.unread_count || 0), 0);
-        setUnreadMessages(total);
-      }
-    } catch (error) {
-      console.error('Error fetching unread counts:', error);
-    }
+      const res = await notifClient.get('/unread-count/');
+      if (res.data?.success) setUnreadNotifications(res.data.data.unread_count ?? 0);
+    } catch { /* silent */ }
   }, []);
 
   useEffect(() => {
-    fetchUnreadCounts();
-    const interval = setInterval(fetchUnreadCounts, 30000);
-    return () => clearInterval(interval);
-  }, [fetchUnreadCounts]);
+    fetchUnreadCount();
+    const id = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(id);
+  }, [fetchUnreadCount]);
 
-  // Close dropdowns on outside click
   useEffect(() => {
-    const handler = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setDropdownOpen(false);
-      }
-      if (notifRef.current && !notifRef.current.contains(e.target)) {
-        setShowNotifications(false);
-      }
-      if (messagesRef.current && !messagesRef.current.contains(e.target)) {
-        setShowMessages(false);
-      }
+    const h = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setDropdownOpen(false);
+      if (notifRef.current    && !notifRef.current.contains(e.target))    setShowNotifications(false);
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
   }, []);
 
-  const hour = now.getHours();
-
+  const hour     = now.getHours();
   const greeting = hour < 12
-    ? t('parent_layout.greeting.morning', 'Good morning')
+    ? t('student_layout.greeting.morning')
     : hour < 18
-      ? t('parent_layout.greeting.afternoon', 'Good afternoon')
-      : t('parent_layout.greeting.evening', 'Good evening');
+      ? t('student_layout.greeting.afternoon')
+      : t('student_layout.greeting.evening');
 
-  const firstName = studentProfile?.full_name?.split(' ')[0] || t('parent_layout.greeting.parent', 'Parent');
+  const firstName = studentProfile?.full_name?.split(' ')[0] || t('student_layout.common.student');
 
-  // Format date
-  const dateStr = now.toLocaleDateString(i18n.language === 'fr' ? 'fr-FR' : i18n.language === 'rw' ? 'rw-RW' : 'en-US', {
-    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
-  });
-
-  // Format time
+  const dateStr = now.toLocaleDateString(
+    i18n.language === 'fr' ? 'fr-FR' : i18n.language === 'rw' ? 'rw-RW' : 'en-US',
+    { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }
+  );
   const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-  const avatarInitials = studentProfile?.full_name?.charAt(0) || 'S';
+  const initials = studentProfile?.full_name?.charAt(0)?.toUpperCase() || 'S';
 
   return (
     <header className={`
@@ -729,97 +854,103 @@ const StudentHeader = ({
     `}>
       <div className="flex items-center justify-between h-full px-4 gap-4">
 
-        {/* Left — hamburger + greeting */}
+        {/* Left */}
         <div className="flex items-center gap-3 min-w-0">
           <button
             onClick={onMenuClick}
             className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex-shrink-0"
-            aria-label="Toggle sidebar"
           >
             <Menu className="w-5 h-5 text-gray-600 dark:text-gray-300" />
           </button>
-
-          <div className="hidden sm:flex items-center gap-2 min-w-0">
-            <GreetingIcon
-              hour={hour}
-              className="w-4 h-4 text-amber-500 flex-shrink-0"
-            />
+          <div className="hidden sm:flex items-center gap-2">
+            <GreetingIcon hour={hour} className="w-4 h-4 text-amber-500 flex-shrink-0" />
             <span className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">
               {greeting}, <span className="text-emerald-600 dark:text-emerald-400">{firstName}</span>
             </span>
           </div>
         </div>
 
-        {/* Centre — date & clock */}
+        {/* Centre */}
         <div className="hidden md:flex flex-col items-center leading-tight select-none">
-          <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">{dateStr}</span>
+          <span className="text-xs text-gray-400 font-medium">{dateStr}</span>
           <span className="text-sm font-bold text-gray-700 dark:text-gray-200 tabular-nums tracking-wide">{timeStr}</span>
         </div>
 
-        {/* Right — actions */}
+        {/* Right */}
         <div className="flex items-center gap-1.5 flex-shrink-0">
           <LanguageSwitcher />
           <ThemeToggle />
 
-
-
-          {/* Notifications Dropdown */}
+          {/* Notifications */}
           <div ref={notifRef} className="relative">
             <button
-              onClick={() => {
-                setShowNotifications(!showNotifications);
-                setShowMessages(false);
-                setDropdownOpen(false);
-              }}
+              onClick={() => { setShowNotifications((v) => !v); setDropdownOpen(false); }}
               className="relative p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              aria-label="Notifications"
+              aria-label={t('student_layout.notifications.title')}
             >
               <Bell className="w-5 h-5 text-gray-600 dark:text-gray-300" />
               {unreadNotifications > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white
+                                 text-[10px] rounded-full flex items-center justify-center font-bold">
                   {unreadNotifications > 9 ? '9+' : unreadNotifications}
                 </span>
               )}
             </button>
-            <NotificationsDropdown 
-              isOpen={showNotifications} 
-              onClose={() => setShowNotifications(false)} 
-              t={t}
+            <NotificationsDropdown
+              isOpen={showNotifications}
+              onClose={() => setShowNotifications(false)}
             />
           </div>
 
           {/* Avatar dropdown */}
-          <div className="relative ml-1" ref={dropdownRef}>
+          <div ref={dropdownRef} className="relative ml-1">
             <button
               onClick={() => setDropdownOpen((v) => !v)}
-              className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-xl
+                         hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
-              <div className="w-8 h-8 rounded-xl overflow-hidden bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center ring-2 ring-emerald-500/30">
-                <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">{avatarInitials}</span>
+              <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-900/40
+                              flex items-center justify-center ring-2 ring-emerald-500/30">
+                <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">{initials}</span>
               </div>
-              <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200
+                                       ${dropdownOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {dropdownOpen && (
-              <div className="absolute right-0 mt-2 w-52 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 py-1.5 z-50">
+              <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-2xl
+                              shadow-xl border border-gray-200 dark:border-gray-700 py-1.5 z-50">
                 <div className="px-4 py-2.5 border-b border-gray-100 dark:border-gray-700">
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{parentProfile?.full_name}</p>
-                  <p className="text-xs text-gray-400 truncate">{parentProfile?.email}</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                    {studentProfile?.full_name}
+                  </p>
+                  <p className="text-xs text-gray-400 truncate">{studentProfile?.email}</p>
+                  <span className="inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full
+                                   bg-emerald-100 dark:bg-emerald-900/30
+                                   text-emerald-700 dark:text-emerald-400 font-semibold uppercase tracking-wide">
+                    {t('student_layout.common.student')}
+                  </span>
                 </div>
+
                 <button
-                  onClick={() => { setDropdownOpen(false); navigate('/parent/profile'); }}
-                  className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  onClick={() => { setDropdownOpen(false); onOpenProfile(); }}
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm
+                             text-gray-700 dark:text-gray-300
+                             hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
-                  <User className="w-4 h-4" />
-                  Profile
+                  <UserCircle className="w-4 h-4" />
+                  {t('student_layout.nav.my_profile')}
                 </button>
+
                 <hr className="my-1 border-gray-100 dark:border-gray-700" />
+
                 <button
-                  onClick={() => { setDropdownOpen(false); document.dispatchEvent(new Event('parent:logout')); }}
-                  className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                  onClick={() => { setDropdownOpen(false); document.dispatchEvent(new Event('student:logout')); }}
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm
+                             text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
-                  Logout
+                  {t('student_layout.nav.logout')}
                 </button>
               </div>
             )}
@@ -828,151 +959,139 @@ const StudentHeader = ({
       </div>
     </header>
   );
-};
+}
 
 // ---------------------------------------------------------------------------
-// StudentLayout
+// NAV ITEM
+// ---------------------------------------------------------------------------
+const NavItem = ({ item, active, onClick }) => (
+  <li>
+    <button
+      onClick={onClick}
+      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium group
+        ${active
+          ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20'
+          : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/60 hover:text-gray-900 dark:hover:text-white'
+        }`}
+    >
+      <item.icon className={`w-[18px] h-[18px] flex-shrink-0 transition-transform
+                              ${active ? '' : 'group-hover:scale-110'}`} />
+      <span className="truncate">{item.label}</span>
+      {active && <Dot className="ml-auto w-4 h-4 opacity-70" />}
+    </button>
+  </li>
+);
+
+// ---------------------------------------------------------------------------
+// STUDENT LAYOUT (main)
 // ---------------------------------------------------------------------------
 const StudentLayout = () => {
-  const { t } = useTranslation();
+  const { t }    = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
-  const [studentProfile, setStudentProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [sidebarOpen,      setSidebarOpen]      = useState(true);
+  const [isMobile,         setIsMobile]         = useState(false);
+  const [studentProfile,   setStudentProfile]   = useState(null);
+  const [loading,          setLoading]          = useState(true);
   const [showProfileModal, setShowProfileModal] = useState(false);
 
-  // ---- Auth check --------------------------------------------------------
   const isAuthenticated = () => {
-    const token = localStorage.getItem('access_token');
+    const token   = localStorage.getItem('access_token');
     const userStr = localStorage.getItem('user');
     if (!token || !userStr) return false;
     try {
       const expiry = localStorage.getItem('token_expiry');
-      if (expiry && Date.now() > parseInt(expiry)) {
-        localStorage.clear();
-        return false;
-      }
+      if (expiry && Date.now() > parseInt(expiry)) { localStorage.clear(); return false; }
       return true;
-    } catch {
-      return false;
-    }
+    } catch { return false; }
   };
 
-  // ---- Fetch student profile using correct endpoint ----------------------
   const fetchStudentProfile = useCallback(async () => {
     try {
-      console.log("Fetching student profile from /students/me/");
-      const res = await fetch(`${API_BASE}/students/me/`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-          'Content-Type': 'application/json',
-          'X-Language': localStorage.getItem('user_language') || 'en',
-        },
-      });
-      const data = await res.json();
-      console.log("Student profile response:", data);
-      
-      if (data.success) {
-        setStudentProfile(data.data);
+      const res = await apiClient.get('/students/me/');
+      if (res.data?.success) {
+        setStudentProfile(res.data.data);
       } else {
-        console.error("Failed to fetch student profile:", data.message);
-        toast.error(data.message || "Failed to load profile");
+        toast.error(res.data?.message || t('student_layout.profile.load_failed'));
       }
     } catch (err) {
       console.error('fetchStudentProfile error:', err);
-      toast.error("Failed to load profile");
+      if (err.response?.status === 401) {
+        localStorage.clear();
+        navigate('/', { replace: true });
+      } else {
+        toast.error(t('student_layout.profile.load_failed'));
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [navigate, t]);
 
-  // ---- Logout ------------------------------------------------------------
   const handleLogout = useCallback(async () => {
     try {
       const refresh = localStorage.getItem('refresh_token');
-      const access = localStorage.getItem('access_token');
-      if (refresh && access) {
-        await fetch(`${API_BASE}/account/logout/`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${access}`,
-            'X-Language': localStorage.getItem('user_language') || 'en',
-          },
-          body: JSON.stringify({ refresh }),
-        });
-      }
+      const access  = localStorage.getItem('access_token');
+      if (refresh && access) await apiClient.post('/account/logout/', { refresh });
     } catch { /* silent */ }
     localStorage.clear();
     sessionStorage.clear();
-    toast.success("Logged out successfully");
+    toast.success(t('student_layout.auth.logout_success'));
     navigate('/', { replace: true });
-  }, [navigate]);
+  }, [navigate, t]);
 
-  // ---- Mount effects -----------------------------------------------------
   useEffect(() => {
-    if (!isAuthenticated()) {
-      navigate('/', { replace: true });
-      return;
-    }
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      try {
-        const u = JSON.parse(userStr);
-        if (u.role !== 'parent') {
-          navigate('/app/dashboard', { replace: true });
-          return;
-        }
-      } catch { /* ignore */ }
-    }
+    if (!isAuthenticated()) { navigate('/', { replace: true }); return; }
+    try {
+      const u = JSON.parse(localStorage.getItem('user') || '{}');
+      if (u.role !== 'student') { navigate('/app/dashboard', { replace: true }); return; }
+    } catch { /* ignore */ }
     fetchStudentProfile();
   }, [navigate, fetchStudentProfile]);
 
   useEffect(() => {
-    const handleResize = () => {
+    const onResize = () => {
       const mobile = window.innerWidth < 1024;
       setIsMobile(mobile);
       setSidebarOpen(!mobile);
     };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
   }, []);
 
   useEffect(() => {
-    document.addEventListener('parent:logout', handleLogout);
-    return () => document.removeEventListener('parent:logout', handleLogout);
+    document.addEventListener('student:logout', handleLogout);
+    return () => document.removeEventListener('student:logout', handleLogout);
   }, [handleLogout]);
 
-  // ---- Nav items ---------------------------------------------------------
   const menuItems = [
-    { path: '/student/dashboard', icon: LayoutDashboard, label: t('student_layout.nav.dashboard', 'Dashboard') },
-    { path: '/student/children', icon: Users, label: t('student_layout.nav.children', 'My Children') },
-    { path: '/student/payments', icon: CreditCard, label: t('student_layout.nav.payments', 'Payments') },
-    { path: '/student/chats', icon: MessageCircle, label: t('student_layout.nav.chats', 'Messages') },
-    { path: '/student/teachers', icon: Users, label: t('student_layout.nav.teachers', 'My Teachers') },
-    { path: '/student/profile', icon: User, label: t('student_layout.nav.profile', 'Profile') },
+    { path: '/app/student/dashboard',  icon: LayoutDashboard, label: t('student_layout.nav.dashboard')  },
+    { path: '/app/student/assignments',     icon: FilePlus,       label: t('student_layout.nav.assignments')},
+    { path: '/app/student/digital-id', icon: CalendarCheck,   label: t('student_layout.nav.digital_id') },
+    // { path: '/app/student/teachers',   icon: Users,           label: t('student_layout.nav.teachers')   },
+    // { path: '/app/student/chats',      icon: MessageCircle,   label: t('student_layout.nav.chats')      },
+    // { path: '/app/student/payments',   icon: CreditCard,      label: t('student_layout.nav.payments')   },
+    // { path: '/app/student/reports',    icon: FileText,        label: t('student_layout.nav.reports')    },
   ];
 
   const isActive = (path) =>
     location.pathname === path || location.pathname.startsWith(`${path}/`);
 
-  // ---- Loading state -----------------------------------------------------
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="w-12 h-12 border-[3px] border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">Loading...</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {t('student_layout.common.loading_dashboard')}
+          </p>
         </div>
       </div>
     );
   }
 
-  const avatarInitials = studentProfile?.full_name?.charAt(0) || 'S';
+  const initials = studentProfile?.full_name?.charAt(0)?.toUpperCase() || 'S';
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -988,17 +1107,22 @@ const StudentLayout = () => {
         <div className="flex flex-col h-full">
 
           {/* Logo */}
-          <div className="flex items-center justify-between px-4 h-16 border-b border-gray-200 dark:border-gray-700/80 flex-shrink-0">
+          <div className="flex items-center justify-between px-4 h-16
+                          border-b border-gray-200 dark:border-gray-700/80 flex-shrink-0">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 bg-emerald-600 rounded-xl flex items-center justify-center shadow-md shadow-emerald-500/30">
+              <div className="w-8 h-8 bg-emerald-600 rounded-xl flex items-center justify-center
+                              shadow-md shadow-emerald-500/30">
                 <GraduationCap className="w-[18px] h-[18px] text-white" />
               </div>
-              <span className="text-base font-bold text-gray-900 dark:text-white tracking-tight">Ishuri</span>
+              <span className="text-base font-bold text-gray-900 dark:text-white tracking-tight">
+                {t('student_layout.app.name')}
+              </span>
             </div>
             {isMobile && (
               <button
                 onClick={() => setSidebarOpen(false)}
                 className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                aria-label={t('student_layout.common.close')}
               >
                 <X className="w-4 h-4 text-gray-500" />
               </button>
@@ -1007,30 +1131,37 @@ const StudentLayout = () => {
 
           {/* Student card */}
           {studentProfile && (
-            <div className="mx-3 mt-4 p-3 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-100 dark:border-emerald-800/30 flex-shrink-0">
+            <div className="mx-3 mt-4 p-3 rounded-2xl
+                            bg-gradient-to-br from-emerald-50 to-teal-50
+                            dark:from-emerald-900/20 dark:to-teal-900/20
+                            border border-emerald-100 dark:border-emerald-800/30 flex-shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-xl overflow-hidden bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center flex-shrink-0 ring-2 ring-emerald-500/20">
-                  <span className="text-base font-bold text-emerald-700 dark:text-emerald-300">{avatarInitials}</span>
+                <div className="w-11 h-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/40
+                                flex items-center justify-center flex-shrink-0
+                                ring-2 ring-emerald-500/20">
+                  <span className="text-base font-bold text-emerald-700 dark:text-emerald-300">{initials}</span>
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-gray-900 dark:text-white truncate leading-tight">
                     {studentProfile.full_name}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
-                    {studentProfile.email}
+                  <p className="text-xs font-mono text-emerald-600 dark:text-emerald-400 truncate mt-0.5">
+                    {studentProfile.roll_number}
                   </p>
-                  <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 uppercase tracking-wide">
-                    {studentProfile.relationship_type || 'Student'}
+                  <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold
+                                   bg-emerald-100 dark:bg-emerald-900/40
+                                   text-emerald-700 dark:text-emerald-300 uppercase tracking-wide">
+                    {studentProfile.current_class_level?.name || t('student_layout.common.student')}
                   </span>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Nav */}
+          {/* Nav links */}
           <nav className="flex-1 px-3 py-4 overflow-y-auto">
             <p className="px-3 mb-2 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
-              Menu
+              {t('student_layout.nav.section_label')}
             </p>
             <ul className="space-y-0.5">
               {menuItems.map((item) => (
@@ -1038,23 +1169,39 @@ const StudentLayout = () => {
                   key={item.path}
                   item={item}
                   active={isActive(item.path)}
-                  onClick={() => {
-                    navigate(item.path);
-                    if (isMobile) setSidebarOpen(false);
-                  }}
+                  onClick={() => { navigate(item.path); if (isMobile) setSidebarOpen(false); }}
                 />
               ))}
             </ul>
+
+            {/* Profile shortcut */}
+            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700/60">
+              <p className="px-3 mb-2 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+                {t('student_layout.nav.account_label')}
+              </p>
+              <button
+                onClick={() => setShowProfileModal(true)}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
+                           text-gray-600 dark:text-gray-400
+                           hover:bg-gray-100 dark:hover:bg-gray-700/60
+                           hover:text-gray-900 dark:hover:text-white transition-all group"
+              >
+                <UserCircle className="w-[18px] h-[18px] flex-shrink-0 group-hover:scale-110 transition-transform" />
+                {t('student_layout.nav.my_profile')}
+              </button>
+            </div>
           </nav>
 
           {/* Logout */}
           <div className="px-3 pb-4 flex-shrink-0 border-t border-gray-100 dark:border-gray-700/80 pt-3">
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors group"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
+                         text-red-500 dark:text-red-400
+                         hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors group"
             >
               <LogOut className="w-[18px] h-[18px] group-hover:-translate-x-0.5 transition-transform" />
-              Logout
+              {t('student_layout.nav.logout')}
             </button>
           </div>
         </div>
@@ -1074,6 +1221,7 @@ const StudentLayout = () => {
         onMenuClick={() => setSidebarOpen((v) => !v)}
         sidebarOpen={sidebarOpen}
         isMobile={isMobile}
+        onOpenProfile={() => setShowProfileModal(true)}
       />
 
       {/* MAIN CONTENT */}
@@ -1086,41 +1234,15 @@ const StudentLayout = () => {
         </div>
       </main>
 
-      {/* Profile Modal */}
+      {/* PROFILE MODAL */}
       <ProfileModal
         isOpen={showProfileModal}
         onClose={() => setShowProfileModal(false)}
-        userData={studentProfile}
-        onUpdate={(updated) => {
-          setStudentProfile(updated);
-          fetchStudentProfile();
-        }}
-        t={t}
+        studentProfile={studentProfile}
+        onUpdate={(updated) => setStudentProfile(updated)}
       />
     </div>
   );
 };
-
-// ---------------------------------------------------------------------------
-// NavItem component
-// ---------------------------------------------------------------------------
-const NavItem = ({ item, active, onClick }) => (
-  <li>
-    <button
-      onClick={onClick}
-      className={`
-        w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-sm font-medium group
-        ${active
-          ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20'
-          : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/60 hover:text-gray-900 dark:hover:text-white'
-        }
-      `}
-    >
-      <item.icon className={`w-[18px] h-[18px] flex-shrink-0 transition-transform duration-150 ${active ? '' : 'group-hover:scale-110'}`} />
-      <span className="truncate">{item.label}</span>
-      {active && <Dot className="ml-auto w-4 h-4 opacity-70" />}
-    </button>
-  </li>
-);
 
 export default StudentLayout;

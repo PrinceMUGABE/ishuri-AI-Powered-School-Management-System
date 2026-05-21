@@ -27,8 +27,6 @@
   "messages": {
     "logoutSuccess": "Déconnecté avec succès"
   },
-  
- 
   "landingPage": {
     "nav": {
       "features": "Fonctionnalités",
@@ -252,11 +250,6 @@
       "invalidCredentials": "Nom d'utilisateur ou mot de passe invalide"
     }
   },
-
-
-
-  
-  
   "teachers": {
     "title": "Gestion des Enseignants",
     "subtitle": "Gérer les enseignants, les affectations, les emplois du temps et les rapports",
@@ -328,7 +321,7 @@
       "term": "Trimestre",
       "editTeacher": "Modifier l'enseignant",
       "age": "Âge",
-      "selectSchoolLevelFirst":"Veuillez sélectionner un cycle scolaire pour charger les niveaux de classe disponibles",
+      "selectSchoolLevelFirst": "Veuillez sélectionner un cycle scolaire pour charger les niveaux de classe disponibles",
       "selectAcademicYearFirst": "Sélectionner l'année académique"
     },
     "gender": {
@@ -378,7 +371,7 @@
       "clear": "Effacer",
       "uploadDocument": "Télécharger un document",
       "clickToAdd": "Cliquer pour ajouter",
-      "editTeacher":"Modifier l'enseignant"
+      "editTeacher": "Modifier l'enseignant"
     },
     "filters": {
       "allStatus": "Tous les statuts",
@@ -501,12 +494,6 @@
       "notes": "Notes supplémentaires sur cette affectation"
     }
   },
-
-
-
-  
-  
- 
   "students": {
     "title": "Gestion des Étudiants",
     "subtitle": "Gérer les étudiants, parents et affectations de classes",
@@ -660,142 +647,136 @@
       "parent_deleted_title": "Compte Parent Supprimé"
     }
   },
-
-
-
   "chat": {
-      "title": "Gestion du Chat",
-      "subtitle": "Gérer les salles, membres et messages",
-      "tabs": {
-        "rooms": "Salles",
-        "messages": "Messages",
-        "members": "Membres"
+    "title": "Gestion du Chat",
+    "subtitle": "Gérer les salles, membres et messages",
+    "tabs": {
+      "rooms": "Salles",
+      "messages": "Messages",
+      "members": "Membres"
+    },
+    "stats": {
+      "totalRooms": "Total Salles",
+      "activeRooms": "Salles Actives",
+      "totalMessages": "Total Messages",
+      "members": "Total Membres"
+    },
+    "room": {
+      "create": "Nouvelle Salle",
+      "name": "Nom de la salle",
+      "type": "Type de salle",
+      "student": "Étudiant lié",
+      "targetUser": "Utilisateur cible",
+      "active": "Actif",
+      "inactive": "Inactif",
+      "types": {
+        "parent_teacher": "Parent–Enseignant",
+        "all_parents": "Tous les Parents",
+        "all_teachers": "Tous les Enseignants",
+        "all_students": "Tous les Étudiants",
+        "students_teachers": "Étudiants & Enseignants",
+        "students_parents": "Étudiants & Parents",
+        "admin_parent": "Admin–Parent",
+        "admin_teacher": "Admin–Enseignant",
+        "parent_teacher_direct": "Parent–Enseignant Direct"
       },
-      "stats": {
-        "totalRooms": "Total Salles",
-        "activeRooms": "Salles Actives",
-        "totalMessages": "Total Messages",
-        "members": "Total Membres"
-      },
-      "room": {
-        "create": "Nouvelle Salle",
-        "name": "Nom de la salle",
-        "type": "Type de salle",
-        "student": "Étudiant lié",
-        "targetUser": "Utilisateur cible",
-        "active": "Actif",
-        "inactive": "Inactif",
-        "types": {
-          "parent_teacher": "Parent–Enseignant",
-          "all_parents": "Tous les Parents",
-          "all_teachers": "Tous les Enseignants",
-          "all_students": "Tous les Étudiants",
-          "students_teachers": "Étudiants & Enseignants",
-          "students_parents": "Étudiants & Parents",
-          "admin_parent": "Admin–Parent",
-          "admin_teacher": "Admin–Enseignant",
-          "parent_teacher_direct": "Parent–Enseignant Direct"
-        },
-        "noRooms": "Aucune salle trouvée",
-        "clickCreate": "Créez votre première salle",
-        "settings": "Paramètres",
-        "delete": "Supprimer la salle",
-        "confirmDelete": "Supprimer cette salle définitivement?",
-        "alreadyExists": "Cette salle existe déjà"
-      },
-      "message": {
-        "send": "Envoyer",
-        "placeholder": "Tapez un message…",
-        "upload": "Télécharger un fichier",
-        "delete": "Supprimer",
-        "info": "Infos message",
-        "noMessages": "Aucun message",
-        "startConversation": "Sélectionnez une salle pour voir les messages",
-        "deleted": "Message supprimé",
-        "updated": "Message modifié",
-        "seenBy": "Lu par",
-        "notSeenBy": "Non lu par",
-        "tickSent": "Envoyé",
-        "tickDelivered": "Livré",
-        "tickRead": "Lu",
-        "reply": "Répondre",
-        "replyingTo": "Réponse à",
-        "cancelReply": "Annuler la réponse",
-        "voiceRecord": "Enregistrement vocal",
-        "startRecording": "Commencer",
-        "stopRecording": "Arrêter",
-        "previewRecording": "Aperçu",
-        "sendRecording": "Envoyer",
-        "cancelRecording": "Annuler",
-        "recordingTime": "Durée: {{seconds}}s",
-        "types": {
-          "text": "Texte",
-          "voice": "Vocal",
-          "audio": "Audio",
-          "video": "Vidéo",
-          "pdf": "PDF",
-          "excel": "Excel",
-          "ppt": "PowerPoint",
-          "word": "Word",
-          "image": "Image"
-        }
-      },
-      "member": {
-        "add": "Ajouter un membre",
-        "remove": "Retirer",
-        "disable": "Désactiver la messagerie",
-        "enable": "Activer la messagerie",
-        "admin": "Admin",
-        "hidden": "Caché",
-        "canSend": "Peut envoyer",
-        "noMembers": "Aucun membre",
-        "userId": "ID Utilisateur",
-        "role": "Rôle",
-        "joinedAt": "Rejoint le"
-      },
-      "actions": {
-        "create": "Créer",
-        "cancel": "Annuler",
-        "save": "Enregistrer",
-        "delete": "Supprimer",
-        "refresh": "Actualiser",
-        "search": "Rechercher…",
-        "loading": "Chargement…",
-        "close": "Fermer",
-        "send": "Envoyer",
-        "update": "Mettre à jour"
-      },
-      "filters": {
-        "allTypes": "Tous types",
-        "allStatus": "Tous statuts"
-      },
-      "messages": {
-        "created": "Salle créée",
-        "deleted": "Salle supprimée",
-        "settingsUpdated": "Paramètres mis à jour",
-        "memberAdded": "Membre ajouté",
-        "memberRemoved": "Membre retiré",
-        "memberDisabled": "Membre désactivé",
-        "memberEnabled": "Membre activé",
-        "messageSent": "Message envoyé",
-        "messageDeleted": "Message supprimé",
-        "error": "Une erreur s'est produite",
-        "fetchError": "Échec du chargement",
-        "confirmDelete": "Cette action est irréversible."
-      },
-      "theme": {
-        "light": "Mode clair",
-        "dark": "Mode sombre"
-      },
-      "lang": {
-        "en": "English",
-        "fr": "Français",
-        "rw": "Kinyarwanda"
+      "noRooms": "Aucune salle trouvée",
+      "clickCreate": "Créez votre première salle",
+      "settings": "Paramètres",
+      "delete": "Supprimer la salle",
+      "confirmDelete": "Supprimer cette salle définitivement?",
+      "alreadyExists": "Cette salle existe déjà"
+    },
+    "message": {
+      "send": "Envoyer",
+      "placeholder": "Tapez un message…",
+      "upload": "Télécharger un fichier",
+      "delete": "Supprimer",
+      "info": "Infos message",
+      "noMessages": "Aucun message",
+      "startConversation": "Sélectionnez une salle pour voir les messages",
+      "deleted": "Message supprimé",
+      "updated": "Message modifié",
+      "seenBy": "Lu par",
+      "notSeenBy": "Non lu par",
+      "tickSent": "Envoyé",
+      "tickDelivered": "Livré",
+      "tickRead": "Lu",
+      "reply": "Répondre",
+      "replyingTo": "Réponse à",
+      "cancelReply": "Annuler la réponse",
+      "voiceRecord": "Enregistrement vocal",
+      "startRecording": "Commencer",
+      "stopRecording": "Arrêter",
+      "previewRecording": "Aperçu",
+      "sendRecording": "Envoyer",
+      "cancelRecording": "Annuler",
+      "recordingTime": "Durée: {{seconds}}s",
+      "types": {
+        "text": "Texte",
+        "voice": "Vocal",
+        "audio": "Audio",
+        "video": "Vidéo",
+        "pdf": "PDF",
+        "excel": "Excel",
+        "ppt": "PowerPoint",
+        "word": "Word",
+        "image": "Image"
       }
     },
-
-
-    
+    "member": {
+      "add": "Ajouter un membre",
+      "remove": "Retirer",
+      "disable": "Désactiver la messagerie",
+      "enable": "Activer la messagerie",
+      "admin": "Admin",
+      "hidden": "Caché",
+      "canSend": "Peut envoyer",
+      "noMembers": "Aucun membre",
+      "userId": "ID Utilisateur",
+      "role": "Rôle",
+      "joinedAt": "Rejoint le"
+    },
+    "actions": {
+      "create": "Créer",
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "delete": "Supprimer",
+      "refresh": "Actualiser",
+      "search": "Rechercher…",
+      "loading": "Chargement…",
+      "close": "Fermer",
+      "send": "Envoyer",
+      "update": "Mettre à jour"
+    },
+    "filters": {
+      "allTypes": "Tous types",
+      "allStatus": "Tous statuts"
+    },
+    "messages": {
+      "created": "Salle créée",
+      "deleted": "Salle supprimée",
+      "settingsUpdated": "Paramètres mis à jour",
+      "memberAdded": "Membre ajouté",
+      "memberRemoved": "Membre retiré",
+      "memberDisabled": "Membre désactivé",
+      "memberEnabled": "Membre activé",
+      "messageSent": "Message envoyé",
+      "messageDeleted": "Message supprimé",
+      "error": "Une erreur s'est produite",
+      "fetchError": "Échec du chargement",
+      "confirmDelete": "Cette action est irréversible."
+    },
+    "theme": {
+      "light": "Mode clair",
+      "dark": "Mode sombre"
+    },
+    "lang": {
+      "en": "English",
+      "fr": "Français",
+      "rw": "Kinyarwanda"
+    }
+  },
   "payments": {
     "title": "Gestion des Paiements",
     "subtitle": "Gérer les paiements des étudiants, les affectations et les transactions",
@@ -956,196 +937,188 @@
       "monthly": "Par Mois"
     }
   },
-
-
   "teacherAr": {
-      "title": "Gestion des Dossiers Académiques",
-      "subtitle": "Gérez vos soumissions de notes, séances de présence et devoirs",
-      "tabs": {
-        "grades": "Notes",
-        "attendance": "Présences",
-        "assignments": "Devoirs"
-      },
-      "stats": {
-        "gradeUploads": "Soumissions de Notes",
-        "pending": "En Attente",
-        "approved": "Approuvé",
-        "rejected": "Rejeté",
-        "sessions": "Séances",
-        "submitted": "Soumis",
-        "assignments": "Devoirs",
-        "total": "Total",
-        "active": "Actif",
-        "overdue": "En Retard"
-      },
-      "status": {
-        "pending": "En attente",
-        "approved": "Approuvé",
-        "rejected": "Rejeté",
-        "active": "Actif",
-        "inactive": "Inactif",
-        "expired": "Expiré"
-      },
-      "filters": {
-        "allClasses": "Toutes les Classes",
-        "allStatus": "Tous les Statuts",
-        "allSubjects": "Toutes les Matières"
-      },
-      "table": {
-        "actions": "Actions"
-      },
-      "grades": {
-        "upload": "Soumettre les Notes",
-        "uploadTitle": "Soumettre une Feuille de Notes",
-        "viewTitle": "Détails de la Soumission",
-        "subject": "Matière",
-        "classLevel": "Niveau de Classe",
-        "term": "Trimestre",
-        "year": "Année Académique",
-        "gradesCount": "Notes",
-        "status": "Statut",
-        "uploadedAt": "Soumis le",
-        "noFile": "Veuillez sélectionner un fichier Excel à soumettre.",
-        "uploadSuccess": "Notes soumises avec succès.",
-        "templateNote": "Format du Fichier Excel",
-        "requiredCols": "Colonnes requises",
-        "optionalCols": "Colonnes optionnelles",
-        "excelFile": "Fichier Excel",
-        "dropLabel": "Glissez-déposez votre fichier Excel ici, ou cliquez pour parcourir",
-        "dropHint": "Formats acceptés : .xlsx, .xls",
-        "uploadBtn": "Soumettre les Notes",
-        "reviewedBy": "Vérifié par",
-        "awaitingReview": "En attente de validation par l'administrateur",
-        "rejectionReason": "Motif du Rejet",
-        "adminNotes": "Notes de l'Administrateur"
-      },
-      "attendance": {
-        "record": "Enregistrer la Présence",
-        "recordTitle": "Enregistrer une Séance de Présence",
-        "viewTitle": "Détails de la Séance de Présence",
-        "subject": "Matière",
-        "classLevel": "Niveau de Classe",
-        "date": "Date",
-        "present": "Présent",
-        "absent": "Absent",
-        "late": "En Retard",
-        "submitted": "Soumis",
-        "yes": "Oui",
-        "submit": "Soumettre",
-        "submitSuccess": "Séance de présence soumise avec succès.",
-        "createSuccess": "Séance de présence créée avec succès.",
-        "noStudents": "Aucun élève trouvé pour cette classe. Veuillez d'abord sélectionner un niveau de classe.",
-        "studentRecords": "Relevé de Présence des Élèves",
-        "markAllPresent": "Tous Présents",
-        "markAllAbsent": "Tous Absents",
-        "selectClassFirst": "Veuillez sélectionner un niveau de classe pour charger les élèves.",
-        "noStudentsInClass": "Aucun élève actif trouvé dans cette classe.",
-        "student": "Élève",
-        "status": "Statut",
-        "remarks": "Remarques",
-        "saveBtn": "Enregistrer la Séance",
-        "classroom": "Salle de Classe"
-      },
-      "assignments": {
-        "upload": "Soumettre un Devoir",
-        "uploadTitle": "Soumettre un Devoir",
-        "viewTitle": "Détails du Devoir",
-        "title": "Titre",
-        "subject": "Matière",
-        "classLevel": "Niveau de Classe",
-        "dueDate": "Date Limite",
-        "totalMarks": "Note Totale",
-        "status": "Statut",
-        "overdue": "En Retard",
-        "noFile": "Veuillez sélectionner un fichier PDF à soumettre.",
-        "uploadSuccess": "Devoir soumis avec succès.",
-        "pdfFile": "Fichier PDF",
-        "dropLabel": "Glissez-déposez votre fichier PDF ici, ou cliquez pour parcourir",
-        "dropHint": "Format accepté : .pdf",
-        "uploadBtn": "Soumettre le Devoir",
-        "downloadPdf": "Télécharger le PDF"
-      },
-      "form": {
-        "classLevel": "Niveau de Classe",
-        "subject": "Matière",
-        "academicYear": "Année Académique",
-        "term": "Trimestre",
-        "select": "Sélectionner",
-        "date": "Date",
-        "startTime": "Heure de Début",
-        "endTime": "Heure de Fin",
-        "classroom": "Salle de Classe",
-        "optional": "Optionnel",
-        "notes": "Notes",
-        "dueDate": "Date Limite",
-        "title": "Titre",
-        "totalMarks": "Note Totale",
-        "description": "Description",
-        "instructions": "Instructions"
-      },
-      "placeholders": {
-        "term": "ex. Trimestre 1",
-        "notes": "Notes optionnelles sur la séance...",
-        "optional": "Optionnel",
-        "title": "Titre du devoir...",
-        "description": "Brève description du devoir...",
-        "instructions": "Instructions étape par étape pour les élèves..."
-      },
-      "actions": {
-        "view": "Voir",
-        "cancel": "Annuler",
-        "close": "Fermer",
-        "delete": "Supprimer",
-        "clickToUpload": "Cliquez ici pour soumettre",
-        "clickToAdd": "Cliquez ici pour ajouter"
-      },
-      "delete": {
-        "title": "Confirmer la Suppression",
-        "confirmation": "Êtes-vous sûr de vouloir supprimer cet élément ?",
-        "warning": "Cette action est permanente et ne peut pas être annulée."
-      },
-      "messages": {
-        "noData": "Aucun enregistrement trouvé.",
-        "loaded": "Données chargées avec succès.",
-        "fetchError": "Échec du chargement des données. Veuillez réessayer.",
-        "createError": "Échec de la création. Veuillez vérifier vos informations.",
-        "updateError": "Échec de la mise à jour.",
-        "deleteSuccess": "Enregistrement supprimé avec succès.",
-        "deleteError": "Échec de la suppression.",
-        "fillRequired": "Veuillez remplir tous les champs obligatoires."
-      },
-      "pagination": {
-        "total": "Total",
-        "first": "Premier",
-        "last": "Dernier"
-      }
+    "title": "Gestion des Dossiers Académiques",
+    "subtitle": "Gérez vos soumissions de notes, séances de présence et devoirs",
+    "tabs": {
+      "grades": "Notes",
+      "attendance": "Présences",
+      "assignments": "Devoirs"
     },
-
-    
+    "stats": {
+      "gradeUploads": "Soumissions de Notes",
+      "pending": "En Attente",
+      "approved": "Approuvé",
+      "rejected": "Rejeté",
+      "sessions": "Séances",
+      "submitted": "Soumis",
+      "assignments": "Devoirs",
+      "total": "Total",
+      "active": "Actif",
+      "overdue": "En Retard"
+    },
+    "status": {
+      "pending": "En attente",
+      "approved": "Approuvé",
+      "rejected": "Rejeté",
+      "active": "Actif",
+      "inactive": "Inactif",
+      "expired": "Expiré"
+    },
+    "filters": {
+      "allClasses": "Toutes les Classes",
+      "allStatus": "Tous les Statuts",
+      "allSubjects": "Toutes les Matières"
+    },
+    "table": {
+      "actions": "Actions"
+    },
+    "grades": {
+      "upload": "Soumettre les Notes",
+      "uploadTitle": "Soumettre une Feuille de Notes",
+      "viewTitle": "Détails de la Soumission",
+      "subject": "Matière",
+      "classLevel": "Niveau de Classe",
+      "term": "Trimestre",
+      "year": "Année Académique",
+      "gradesCount": "Notes",
+      "status": "Statut",
+      "uploadedAt": "Soumis le",
+      "noFile": "Veuillez sélectionner un fichier Excel à soumettre.",
+      "uploadSuccess": "Notes soumises avec succès.",
+      "templateNote": "Format du Fichier Excel",
+      "requiredCols": "Colonnes requises",
+      "optionalCols": "Colonnes optionnelles",
+      "excelFile": "Fichier Excel",
+      "dropLabel": "Glissez-déposez votre fichier Excel ici, ou cliquez pour parcourir",
+      "dropHint": "Formats acceptés : .xlsx, .xls",
+      "uploadBtn": "Soumettre les Notes",
+      "reviewedBy": "Vérifié par",
+      "awaitingReview": "En attente de validation par l'administrateur",
+      "rejectionReason": "Motif du Rejet",
+      "adminNotes": "Notes de l'Administrateur"
+    },
+    "attendance": {
+      "record": "Enregistrer la Présence",
+      "recordTitle": "Enregistrer une Séance de Présence",
+      "viewTitle": "Détails de la Séance de Présence",
+      "subject": "Matière",
+      "classLevel": "Niveau de Classe",
+      "date": "Date",
+      "present": "Présent",
+      "absent": "Absent",
+      "late": "En Retard",
+      "submitted": "Soumis",
+      "yes": "Oui",
+      "submit": "Soumettre",
+      "submitSuccess": "Séance de présence soumise avec succès.",
+      "createSuccess": "Séance de présence créée avec succès.",
+      "noStudents": "Aucun élève trouvé pour cette classe. Veuillez d'abord sélectionner un niveau de classe.",
+      "studentRecords": "Relevé de Présence des Élèves",
+      "markAllPresent": "Tous Présents",
+      "markAllAbsent": "Tous Absents",
+      "selectClassFirst": "Veuillez sélectionner un niveau de classe pour charger les élèves.",
+      "noStudentsInClass": "Aucun élève actif trouvé dans cette classe.",
+      "student": "Élève",
+      "status": "Statut",
+      "remarks": "Remarques",
+      "saveBtn": "Enregistrer la Séance",
+      "classroom": "Salle de Classe"
+    },
+    "assignments": {
+      "upload": "Soumettre un Devoir",
+      "uploadTitle": "Soumettre un Devoir",
+      "viewTitle": "Détails du Devoir",
+      "title": "Titre",
+      "subject": "Matière",
+      "classLevel": "Niveau de Classe",
+      "dueDate": "Date Limite",
+      "totalMarks": "Note Totale",
+      "status": "Statut",
+      "overdue": "En Retard",
+      "noFile": "Veuillez sélectionner un fichier PDF à soumettre.",
+      "uploadSuccess": "Devoir soumis avec succès.",
+      "pdfFile": "Fichier PDF",
+      "dropLabel": "Glissez-déposez votre fichier PDF ici, ou cliquez pour parcourir",
+      "dropHint": "Format accepté : .pdf",
+      "uploadBtn": "Soumettre le Devoir",
+      "downloadPdf": "Télécharger le PDF"
+    },
+    "form": {
+      "classLevel": "Niveau de Classe",
+      "subject": "Matière",
+      "academicYear": "Année Académique",
+      "term": "Trimestre",
+      "select": "Sélectionner",
+      "date": "Date",
+      "startTime": "Heure de Début",
+      "endTime": "Heure de Fin",
+      "classroom": "Salle de Classe",
+      "optional": "Optionnel",
+      "notes": "Notes",
+      "dueDate": "Date Limite",
+      "title": "Titre",
+      "totalMarks": "Note Totale",
+      "description": "Description",
+      "instructions": "Instructions"
+    },
+    "placeholders": {
+      "term": "ex. Trimestre 1",
+      "notes": "Notes optionnelles sur la séance...",
+      "optional": "Optionnel",
+      "title": "Titre du devoir...",
+      "description": "Brève description du devoir...",
+      "instructions": "Instructions étape par étape pour les élèves..."
+    },
+    "actions": {
+      "view": "Voir",
+      "cancel": "Annuler",
+      "close": "Fermer",
+      "delete": "Supprimer",
+      "clickToUpload": "Cliquez ici pour soumettre",
+      "clickToAdd": "Cliquez ici pour ajouter"
+    },
+    "delete": {
+      "title": "Confirmer la Suppression",
+      "confirmation": "Êtes-vous sûr de vouloir supprimer cet élément ?",
+      "warning": "Cette action est permanente et ne peut pas être annulée."
+    },
+    "messages": {
+      "noData": "Aucun enregistrement trouvé.",
+      "loaded": "Données chargées avec succès.",
+      "fetchError": "Échec du chargement des données. Veuillez réessayer.",
+      "createError": "Échec de la création. Veuillez vérifier vos informations.",
+      "updateError": "Échec de la mise à jour.",
+      "deleteSuccess": "Enregistrement supprimé avec succès.",
+      "deleteError": "Échec de la suppression.",
+      "fillRequired": "Veuillez remplir tous les champs obligatoires."
+    },
+    "pagination": {
+      "total": "Total",
+      "first": "Premier",
+      "last": "Dernier"
+    }
+  },
   "userManagement": {
     "title": "Gestion des utilisateurs",
     "subtitle": "Gérer tous les utilisateurs du système",
-    
     "roles": {
       "admin": "Administrateur",
       "teacher": "Enseignant",
       "student": "Étudiant",
       "parent": "Parent"
     },
-    
     "statuses": {
       "active": "Actif",
       "inactive": "Inactif",
       "suspended": "Suspendu"
     },
-    
     "summary": {
       "totalUsers": "Total utilisateurs",
       "activeUsers": "Utilisateurs actifs",
       "inactiveUsers": "Inactifs/Suspendus",
       "studentsTeachers": "Étudiants/Enseignants"
     },
-    
     "table": {
       "id": "ID",
       "username": "Nom d'utilisateur",
@@ -1157,7 +1130,6 @@
       "actions": "Actions",
       "noUsers": "Aucun utilisateur trouvé"
     },
-    
     "form": {
       "username": "Nom d'utilisateur",
       "email": "Email",
@@ -1166,12 +1138,10 @@
       "password": "Mot de passe",
       "confirmPassword": "Confirmer le mot de passe"
     },
-    
     "filters": {
       "allRoles": "Tous les rôles",
       "allStatus": "Tous les statuts"
     },
-    
     "actions": {
       "addUser": "Ajouter un utilisateur",
       "view": "Voir",
@@ -1186,7 +1156,6 @@
       "refresh": "Actualiser",
       "searchPlaceholder": "Rechercher par nom d'utilisateur ou email..."
     },
-    
     "modal": {
       "addNewUser": "Ajouter un utilisateur",
       "editUser": "Modifier l'utilisateur",
@@ -1195,7 +1164,6 @@
       "deleteConfirmation": "Êtes-vous sûr de vouloir supprimer l'utilisateur",
       "deleteWarning": "Cette action est irréversible."
     },
-    
     "pagination": {
       "showing": "Affichage",
       "perPage": "par page",
@@ -1205,7 +1173,6 @@
       "first": "Première",
       "last": "Dernière"
     },
-    
     "messages": {
       "loading": "Chargement...",
       "dataLoaded": "Données chargées avec succès",
@@ -1224,11 +1191,6 @@
       "failedToToggleStatus": "Échec du changement de statut"
     }
   },
-
-  
-  
- 
-  
   "academics": {
     "title": "Gestion académique",
     "subtitle": "Gérer la structure académique de l'école",
@@ -1359,7 +1321,7 @@
       "schoolLevelHoursHint": "Horaires scolaires: {{start}} – {{end}}",
       "breakConstraintHint": "Les pauses doivent respecter les horaires scolaires",
       "subject": "Matière",
-      "classLevel":"Niveau de Classe"
+      "classLevel": "Niveau de Classe"
     },
     "table": {
       "yearName": "Année",
@@ -1402,7 +1364,7 @@
       "recurring": "Récurrent",
       "status": "Statut",
       "subject": "Matière",
-      "classLevel":"Niveau de Classe"
+      "classLevel": "Niveau de Classe"
     },
     "actions": {
       "add": "Ajouter {{name}}",
@@ -1489,9 +1451,6 @@
       "basicInfo": "Informations de base"
     }
   },
-
-
-  
   "teacher_layout": {
     "greeting": {
       "morning": "Bonjour",
@@ -1524,10 +1483,6 @@
       "logoutSuccess": "Vous avez été déconnecté avec succès."
     }
   },
-
-
-
-  
   "teacher": {
     "welcome": "Bienvenue, {{name}} !",
     "teacher": "Enseignant",
@@ -1710,11 +1665,6 @@
   "students_retrieved": "Élèves récupérés avec succès",
   "student_details_retrieved": "Détails de l'élève récupérés avec succès",
   "classroom_not_found": "Salle de classe non trouvée",
- 
-
-  
- 
-  
   "teacherGrades": {
     "common": {
       "loading": "Chargement..."
@@ -1910,7 +1860,6 @@
         "email": "Email",
         "phone": "Téléphone"
       },
-
       "performance": {
         "title": "Performance Académique de l'Étudiant",
         "academicPerformance": "Rapport de Performance Académique"
@@ -1934,7 +1883,6 @@
       "noPerformanceData": "Aucune donnée de performance disponible",
       "noPerformanceDataHint": "Cet étudiant peut ne pas avoir encore de notes enregistrées"
     },
-
     "subjectsAssigned": "Matières Assignées",
     "stats": {
       "totalGrades": "Notes Totales",
@@ -1943,8 +1891,6 @@
       "classrooms": "Classes"
     }
   },
-
-  
   "adminGrades": {
     "header": {
       "title": "Gestion des Notes",
@@ -2068,8 +2014,6 @@
     },
     "refreshed": "Données actualisées avec succès"
   },
-
-  
   "attendance": {
     "header": {
       "title": "Gestion des Présences",
@@ -2243,20 +2187,15 @@
       "deleteError": "Erreur lors de la suppression de la session de présence"
     }
   },
-
-
-  
   "assignment": {
     "title": "Gestion des Devoirs",
     "subtitle": "Gérer et suivre vos devoirs",
     "loading": "Chargement...",
-
     "total_assignments": "Total des Devoirs",
     "active": "Actif",
     "overdue": "En Retard",
     "expired": "Expiré",
     "archived": "Archivé",
-
     "filters": "Filtres",
     "academic_year": "Année Académique",
     "term": "Trimestre",
@@ -2264,28 +2203,24 @@
     "class_level": "Niveau de Classe",
     "subject": "Matière",
     "classroom": "Salle de Classe",
-
     "all_years": "Toutes les Années",
     "all_terms": "Tous les Trimestres",
     "all_levels": "Tous les Niveaux",
     "all_classes": "Toutes les Classes",
     "all_subjects": "Toutes les Matières",
     "all_classrooms": "Toutes les Salles",
-
     "select_year": "Sélectionner l'Année",
     "select_term": "Sélectionner le Trimestre",
     "select_level": "Sélectionner le Niveau",
     "select_class": "Sélectionner la Classe",
     "select_subject": "Sélectionner la Matière",
     "select_classroom": "Sélectionner la Salle",
-
     "upload_assignment": "Téléverser un Devoir",
     "my_assignments": "Mes Devoirs",
     "search_placeholder": "Rechercher des devoirs...",
     "loading_assignments": "Chargement des devoirs...",
     "no_assignments": "Aucun devoir trouvé",
     "upload_first": "Téléversez votre premier devoir pour commencer",
-
     "due_date": "Date Limite",
     "due_time": "Heure Limite",
     "total_marks": "Note Totale",
@@ -2294,18 +2229,15 @@
     "no_due_date": "Pas de date limite",
     "at": "à",
     "not_specified": "Non spécifié",
-
     "view_pdf": "Voir le PDF",
     "view_details": "Voir les Détails",
     "edit": "Modifier",
     "delete": "Supprimer",
-
     "show": "Afficher",
     "per_page": "par page",
     "total": "Total :",
     "first": "Premier",
     "last": "Dernier",
-
     "upload_title": "Téléverser un Devoir",
     "upload_subtitle": "Téléversez un devoir PDF pour vos élèves",
     "click_to_select": "Cliquez pour sélectionner un fichier PDF",
@@ -2323,24 +2255,20 @@
     "uploading": "Téléversement en cours...",
     "upload_button": "Téléverser le Devoir",
     "cancel": "Annuler",
-
     "details_title": "Détails du Devoir",
     "class": "Classe",
     "status": "Statut",
     "not_set": "Non défini",
     "close": "Fermer",
-
     "edit_title": "Modifier le Devoir",
     "status_label": "Statut",
     "saving": "Enregistrement...",
     "save_changes": "Enregistrer les Modifications",
-
     "delete_title": "Supprimer le Devoir",
     "delete_subtitle": "Cette action est irréversible",
     "delete_confirmation": "Êtes-vous sûr de vouloir supprimer",
     "delete_warning": "Cette action est permanente et irréversible. Toutes les données associées seront perdues.",
     "yes_delete": "Oui, Supprimer",
-
     "fetch_assignments_error": "Échec du chargement des devoirs",
     "select_pdf_error": "Veuillez sélectionner un fichier PDF",
     "required_fields_error": "Veuillez remplir tous les champs obligatoires",
@@ -2353,9 +2281,6 @@
     "delete_failed": "Échec de la suppression du devoir",
     "no_pdf_error": "Aucun fichier PDF disponible"
   },
-
-
-  
   "dashboard": {
     "title": "Analytique du Tableau de Bord",
     "subtitle": "Insights et analyses en temps réel pour votre institution",
@@ -2456,8 +2381,6 @@
       "parent": "Parent"
     }
   },
-
-  
   "analytics": {
     "title": "Analytique et Rapports",
     "subtitle": "Analyse complète des données et reporting pour votre institution",
@@ -2548,9 +2471,6 @@
       "payments": "Paiements"
     }
   },
-
-
-  
   "notifications": {
     "title": "Centre de Notifications",
     "subtitle": "Gérer et suivre vos notifications",
@@ -2632,8 +2552,6 @@
       "parent": "Parent"
     }
   },
-
-
   "teacher_timetable": {
     "title": "Mon Emploi du Temps Hebdomadaire",
     "loading": "Chargement de l'emploi du temps...",
@@ -2673,8 +2591,6 @@
       "export_success": "Emploi du temps exporté avec succès"
     }
   },
-
-  
   "parent_dashboard": {
     "title": "Tableau de Bord Parent",
     "welcome": "Bienvenue",
@@ -2682,7 +2598,6 @@
     "fetchError": "Échec du chargement des données parent",
     "performanceError": "Échec du chargement des données de performance",
     "reportError": "Échec du chargement du rapport académique",
-    
     "passed": "Réussi",
     "failed": "Échoué",
     "due": "Échéance",
@@ -2698,14 +2613,12 @@
     "tryAgain": "Réessayer",
     "processing": "Traitement...",
     "pay": "Payer",
-    
     "studentName": "Nom de l'Élève",
     "classLevel": "Niveau de Classe",
     "schoolLevel": "Niveau Scolaire",
     "academicYear": "Année Académique",
     "generatedOn": "Généré le",
     "current": "En cours",
-    
     "overallAverage": "Moyenne Générale",
     "grade": "Note",
     "subjectsPassed": "Matières Réussies",
@@ -2718,10 +2631,8 @@
     "present": "Présent",
     "absent": "Absent",
     "late": "Retard",
-    
     "overallPerformance": "Performance Globale",
     "totalSubjects": "Total Matières",
-    
     "performanceOverview": "Aperçu des Performances",
     "subjectPerformance": "Performances par Matière",
     "viewFullReport": "Voir le Rapport Académique Complet",
@@ -2731,14 +2642,12 @@
     "attendance": "Assiduité",
     "discipline": "Discipline",
     "disciplineScore": "Score de Discipline",
-    
     "feesFullyPaid": "Tous les frais scolaires sont entièrement payés !",
     "feesOutstanding": "Vous avez des frais impayés",
     "remainingBalance": "Solde Restant",
     "schoolFees": "Frais Scolaires",
     "feesRequired": "Frais Requis",
     "paymentRequiredForReport": "Paiement requis pour accéder au rapport académique complet. Veuillez d'abord régler tous les frais.",
-    
     "makePayment": "Effectuer un Paiement",
     "feeName": "Nom des Frais",
     "amountToPay": "Montant à Payer",
@@ -2756,17 +2665,302 @@
     "backendFailed": "Soumission backend échouée",
     "paymentViaPaypack": "Paiement via Paypack",
     "paymentSuccess": "Paiement effectué avec succès !",
-    
     "reportDownloaded": "Rapport téléchargé",
     "academicReport": "Rapport de Performance Académique",
     "reportFooter": "Ceci est un rapport académique officiel. Veuillez contacter l'administration scolaire pour toute divergence.",
     "qualityEducation": "Éducation de Qualité pour Tous",
-    
     "noStudentsTitle": "Aucun Élève Trouvé",
     "noStudentsMessage": "Vous n'êtes lié à aucun élève. Veuillez contacter l'administrateur scolaire.",
     "noPerformanceData": "Aucune donnée de performance disponible pour cet élève",
     "noSubjectData": "Aucune donnée de performance par matière disponible",
     "noPaymentData": "Aucune information de paiement disponible",
     "loadingPerformance": "Chargement des données de performance..."
+  },
+  "student_layout": {
+    "app": {
+      "name": "Ishuri"
+    },
+    "common": {
+      "na": "N/D",
+      "student": "Élève",
+      "cancel": "Annuler",
+      "retry": "Réessayer",
+      "close": "Fermer",
+      "loading_dashboard": "Chargement de votre tableau de bord…"
+    },
+    "time": {
+      "just_now": "À l'instant",
+      "minutes_ago": "il y a {{count}} min",
+      "hours_ago": "il y a {{count}} h",
+      "days_ago": "il y a {{count}} j"
+    },
+    "greeting": {
+      "morning": "Bonjour",
+      "afternoon": "Bon après-midi",
+      "evening": "Bonsoir"
+    },
+    "auth": {
+      "logout_success": "Déconnexion réussie"
+    },
+    "nav": {
+      "section_label": "Navigation",
+      "account_label": "Compte",
+      "dashboard": "Tableau de bord",
+      "grades": "Mes notes",
+      "attendance": "Assiduité",
+      "teachers": "Mes professeurs",
+      "chats": "Messages",
+      "payments": "Paiements",
+      "reports": "Rapports",
+      "my_profile": "Mon profil",
+      "logout": "Déconnexion",
+      "assignments": "Devoirs",
+      "digital_id": "ID numérique"
+    },
+    "profile": {
+      "title": "Mon profil",
+      "subtitle": "Gérez vos informations de compte",
+      "not_loaded": "Profil élève non chargé",
+      "load_failed": "Échec du chargement du profil",
+      "update_success": "Profil mis à jour avec succès",
+      "update_failed": "Échec de la mise à jour du profil",
+      "save_changes": "Enregistrer les modifications",
+      "account_details": "Détails du compte",
+      "tabs": {
+        "profile": "Infos profil",
+        "password": "Changer mot de passe"
+      },
+      "fields": {
+        "roll_number": "Numéro d’étudiant",
+        "role": "Rôle",
+        "status": "Statut",
+        "enrolled": "Inscrit(e)",
+        "full_name": "Nom complet",
+        "email": "Adresse e-mail",
+        "phone": "Numéro de téléphone",
+        "birth_date": "Date de naissance"
+      },
+      "placeholders": {
+        "full_name": "Votre nom complet",
+        "email": "vous@exemple.com",
+        "phone": "+250XXXXXXXXX"
+      },
+      "errors": {
+        "full_name_required": "Le nom complet est requis",
+        "invalid_email": "Adresse e-mail invalide",
+        "invalid_phone": "Le téléphone doit comporter 10 à 15 chiffres (éventuellement commençant par +)"
+      }
+    },
+    "password": {
+      "notice": "Vous avez besoin de votre",
+      "current_label": "mot de passe actuel",
+      "notice_suffix": "pour en définir un nouveau. Votre nouveau mot de passe doit respecter toutes les exigences ci-dessous.",
+      "change_success": "Mot de passe changé avec succès",
+      "change_failed": "Échec du changement de mot de passe",
+      "update_button": "Mettre à jour le mot de passe",
+      "match": "Les mots de passe correspondent",
+      "fields": {
+        "current": "Mot de passe actuel",
+        "new": "Nouveau mot de passe",
+        "confirm": "Confirmer le nouveau mot de passe"
+      },
+      "placeholders": {
+        "current": "Entrez votre mot de passe actuel",
+        "new": "Choisissez un mot de passe sécurisé",
+        "confirm": "Répétez votre nouveau mot de passe"
+      },
+      "strength": {
+        "label": "Robustesse",
+        "strong": "Fort ✓",
+        "medium": "Moyen",
+        "weak": "Faible"
+      },
+      "requirements": {
+        "length": "Au moins 6 caractères",
+        "uppercase": "Lettre majuscule",
+        "lowercase": "Lettre minuscule",
+        "number": "Chiffre",
+        "special": "Caractère spécial"
+      },
+      "errors": {
+        "current_required": "Le mot de passe actuel est requis",
+        "new_required": "Le nouveau mot de passe est requis",
+        "min_length": "Au moins 6 caractères requis",
+        "uppercase": "Doit contenir une lettre majuscule",
+        "lowercase": "Doit contenir une lettre minuscule",
+        "number": "Doit contenir un chiffre",
+        "special": "Doit contenir un caractère spécial",
+        "confirm_required": "Veuillez confirmer votre mot de passe",
+        "mismatch": "Les mots de passe ne correspondent pas"
+      }
+    },
+    "notifications": {
+      "title": "Notifications",
+      "no_unread": "Aucune notification non lue",
+      "mark_all_read": "Tout marquer comme lu",
+      "all_marked_read": "Toutes les notifications ont été marquées comme lues",
+      "load_failed": "Échec du chargement des notifications",
+      "mark_read_failed": "Échec du marquage comme lu",
+      "mark_all_failed": "Échec du marquage de tout comme lu",
+      "view_all": "Voir toutes les notifications"
+    }
+  },
+  "student_dashboard": {
+    "title": "Tableau de bord étudiant",
+    "welcome": "Bon retour",
+    "rollNumber": "Numéro d'étudiant",
+    "classLevel": "Niveau de classe",
+    "schoolLevel": "Niveau scolaire",
+    "age": "Âge",
+    "yearsOld": "ans",
+    "currentGrade": "Note actuelle",
+    "current": "Actuel",
+    "passed": "Réussi",
+    "failed": "Échoué",
+    "performanceOverview": "Aperçu des performances",
+    "overallAverage": "Moyenne générale",
+    "disciplineScore": "Score de discipline",
+    "attendanceRate": "Taux d'assiduité",
+    "overallPerformance": "Performance globale",
+    "subjectsPassed": "Réussis",
+    "subjectsFailed": "Échoués",
+    "totalSubjects": "Total matières",
+    "subjectPerformance": "Performance par matière",
+    "viewFullReport": "Voir le rapport académique complet",
+    "contactInfo": "Coordonnées",
+    "quickStats": "Statistiques rapides",
+    "overallGrade": "Note globale",
+    "attendance": "Assiduité",
+    "discipline": "Discipline",
+    "parents": "Parents/Tuteurs",
+    "myTeachers": "Mes professeurs",
+    "chat": "Discuter",
+    "chatWithTeacher": "Discuter avec {{name}}",
+    "loading": "Chargement de votre tableau de bord...",
+    "loadingPerformance": "Chargement des données de performance...",
+    "loadingTeachers": "Chargement de vos professeurs...",
+    "noPerformanceData": "Aucune donnée de performance disponible",
+    "noSubjectData": "Aucune donnée de matière disponible",
+    "noTeachers": "Aucun professeur n'est encore assigné à votre classe.",
+    "teachersLoadError": "Impossible de charger les professeurs.",
+    "fetchError": "Erreur lors de la récupération des données. Veuillez rafraîchir la page.",
+    "performanceError": "Erreur lors du chargement des performances. Veuillez réessayer.",
+    "reportError": "Erreur lors du chargement du rapport académique. Veuillez réessayer.",
+    "reportDownloaded": "Rapport téléchargé avec succès !",
+    "download": "Télécharger",
+    "print": "Imprimer",
+    "close": "Fermer",
+    "academicReport": "Rapport de performance académique",
+    "reportTitle": "Rapport de performance de l'étudiant",
+    "studentName": "Nom de l'étudiant",
+    "academicYear": "Année académique",
+    "subject": "Matière",
+    "grade": "Note",
+    "semestralGrades": "Notes semestrielles et performance finale",
+    "gradeScale": "Barème des notes",
+    "range": "Intervalle",
+    "disciplineAttendance": "Discipline & Assiduité",
+    "present": "Présent",
+    "absent": "Absent",
+    "late": "En retard",
+    "remarks": "Observations",
+    "qualityEducation": "Une éducation de qualité pour un meilleur avenir",
+    "generatedOn": "Généré le",
+    "reportFooter": "Rapport scolaire officiel - Les Hirondelles de Don Bosco",
+    "profileNotFound": "Profil non trouvé",
+    "profileNotFoundMessage": "Nous n'avons pas pu trouver votre profil étudiant. Veuillez contacter l'administrateur de l'école.",
+    "feeStatus": "Statut des frais scolaires",
+    "fullyPaid": "Entièrement payé",
+    "partiallyPaid": "Partiellement payé",
+    "unpaid": "Impayé",
+    "paidAmount": "Payé",
+    "totalAmount": "Total",
+    "remainingBalance": "Solde restant",
+    "dueDate": "Date d'échéance",
+    "schoolFees": "Frais scolaires",
+    "paymentRequiredForReport": "Veuillez régler tous les frais impayés pour accéder à votre rapport académique",
+    "feesRequired": "Frais requis",
+    "noPaymentData": "Aucun enregistrement de paiement trouvé",
+    "contactAdmin": "Veuillez contacter l'administration de l'école pour les informations sur les frais",
+    "excellent": "Excellent",
+    "average": "Moyen",
+    "needsImprovement": "À améliorer"
+  },
+  "student_assignments": {
+    "title": "Mes Devoirs",
+    "subtitle": "Consultez et téléchargez vos devoirs",
+    "total_assignments": "Total des devoirs",
+    "upcoming": "À venir",
+    "overdue": "En retard",
+    "search_placeholder": "Rechercher par titre, matière ou professeur...",
+    "all_subjects": "Toutes les matières",
+    "all_status": "Tous les statuts",
+    "active": "Actif",
+    "overdue_by": "En retard de {{days}} jours",
+    "due_today": "À rendre aujourd'hui",
+    "due_tomorrow": "À rendre demain",
+    "days_left": "{{days}} jours restants",
+    "due_date": "Date limite",
+    "total_marks": "Notes totales",
+    "status": "Statut",
+    "posted": "Publié",
+    "view": "Voir détails",
+    "download": "Télécharger PDF",
+    "description": "Description",
+    "instructions": "Instructions",
+    "teacher": "Enseignant",
+    "posted_on": "Publié le",
+    "not_specified": "Non spécifié",
+    "view_assignment": "Voir le devoir",
+    "download_pdf": "Télécharger PDF",
+    "loading": "Chargement...",
+    "loading_assignments": "Chargement de vos devoirs...",
+    "no_assignments": "Aucun devoir pour l'instant",
+    "no_assignments_message": "Vous n'avez aucun devoir pour le moment. Revenez plus tard !",
+    "show": "Afficher",
+    "per_page": "par page",
+    "total": "Total",
+    "first": "Premier",
+    "last": "Dernier",
+    "fetch_error": "Échec du chargement des devoirs. Veuillez réessayer.",
+    "no_pdf_error": "Aucun fichier PDF disponible pour ce devoir.",
+    "view_error": "Échec de l'ouverture du devoir. Veuillez réessayer.",
+    "download_success": "Devoir téléchargé avec succès !",
+    "download_error": "Échec du téléchargement du devoir. Veuillez réessayer."
+  },
+  "student_id": {
+    "title": "Carte d'Identité Numérique de l'Élève",
+    "subtitle": "Carte d'Identification Scolaire Officielle",
+    "school_name": "Les Hirondelles de Don Bosco",
+    "school_motto": "Une éducation de qualité pour un avenir meilleur",
+    "id_card": "Carte d'étudiant",
+    "roll_number": "Numéro d'étudiant",
+    "class": "Classe",
+    "school_level": "Niveau scolaire",
+    "birth_date": "Date de naissance",
+    "age": "Âge",
+    "years": "ans",
+    "academic_year": "Année académique",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "transferred": "Transféré",
+    "graduated": "Diplômé",
+    "na": "N/D",
+    "valid_id": "Carte d'Identification Scolaire Valide",
+    "download": "Télécharger la carte",
+    "print": "Imprimer",
+    "loading": "Chargement de votre carte d'identité...",
+    "no_profile": "Profil non trouvé",
+    "no_profile_message": "Nous n'avons pas pu trouver votre profil d'étudiant. Veuillez contacter l'administrateur de l'école.",
+    "retry": "Réessayer",
+    "fetch_error": "Échec du chargement du profil. Veuillez réessayer.",
+    "profile_error": "Erreur lors du chargement du profil étudiant",
+    "download_success": "Carte d'identité téléchargée avec succès !",
+    "download_error": "Échec du téléchargement de la carte d'identité. Veuillez réessayer.",
+    "important_info": "Informations importantes",
+    "info_1": "Cette carte d'identité est la propriété de l'école Les Hirondelles de Don Bosco",
+    "info_2": "Veuillez toujours garder cette carte d'identité avec vous dans l'enceinte de l'école",
+    "info_3": "Signalez immédiatement les cartes d'identité perdues ou volées à l'administration de l'école",
+    "parents_guardians": "Parents / Tuteurs"
   }
 }

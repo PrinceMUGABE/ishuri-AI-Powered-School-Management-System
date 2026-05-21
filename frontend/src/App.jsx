@@ -43,20 +43,23 @@ import ParentDashboard from './pages/parent/ParentStudents';
 import StudentLayout from './components/layout/student/StudentLayout';
 import StudentDashboard from './pages/student/StudentDashboard';
 import StudentAssignmentManagement from './pages/student/StudentAssignmentManagement';
+import StudentAssignments from './pages/student/StudentAssignmentManagement';
+import StudentDigitalId from './pages/student/StudentDigitalId';
+
 
 // Helper function to check if user is authenticated
 const isAuthenticated = () => {
   const token = localStorage.getItem('access_token');
   const user = localStorage.getItem('user');
-  
+
   if (!token || !user) {
     return false;
   }
-  
+
   try {
     const userData = JSON.parse(user);
     const tokenExpiry = localStorage.getItem('token_expiry');
-    
+
     if (tokenExpiry && Date.now() > parseInt(tokenExpiry)) {
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
@@ -65,7 +68,7 @@ const isAuthenticated = () => {
       localStorage.removeItem('user_language');
       return false;
     }
-    
+
     return true;
   } catch (error) {
     console.error('Error checking authentication:', error);
@@ -106,8 +109,8 @@ function App() {
           <Route path="/login" element={<Navigate to="/" replace />} />
 
           {/* Admin Routes */}
-          <Route 
-            path="/app" 
+          <Route
+            path="/app"
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AdminLayout />
@@ -132,8 +135,8 @@ function App() {
           </Route>
 
           {/* Teacher Routes - To be implemented */}
-          <Route 
-            path="/teacher" 
+          <Route
+            path="/teacher"
             element={
               <ProtectedRoute allowedRoles={['teacher']}>
                 <TeacherLayout />
@@ -142,7 +145,7 @@ function App() {
           >
             <Route index element={<Navigate to="/teacher/dashboard" replace />} />
             <Route path="dashboard" element={<TeacherTimetable />} />
-            <Route path="grades" element={<TeacherAcademicGrades /> } />
+            <Route path="grades" element={<TeacherAcademicGrades />} />
             <Route path="profile" element={<TeacherProfile />} />
             <Route path="attendance" element={<TeacherAttendanceManagement />} />
             <Route path="assignments" element={<TeacherAssignmentManagement />} />
@@ -152,21 +155,26 @@ function App() {
           </Route>
 
           {/* Student Routes - To be implemented */}
-          <Route 
-            path="/student" 
+          <Route
+            path="/app/student"
             element={
               <ProtectedRoute allowedRoles={['student']}>
                 <StudentLayout />
               </ProtectedRoute>
             }
           >
-            <Route index element={<Navigate to="/student/dashboard" replace />} />
+            <Route index element={<Navigate to="/app/student/dashboard" replace />} />
+            <Route path="dashboard" element={<StudentDashboard />} />
+            <Route path="assignments" element={<StudentAssignments />} />
+            <Route path="digital-id" element={<StudentDigitalId />} />
+            <Route path="notifications" element={<NotificationCenter />} />
+            <Route path="*" element={<Navigate to="/app/student/dashboard" replace />} />
           </Route>
 
           {/* Parent Routes - To be implemented */}
-          <Route 
-            path="/parent" 
-            
+          <Route
+            path="/parent"
+
             element={
               <ProtectedRoute allowedRoles={['parent']}>
                 <ParentLayout />

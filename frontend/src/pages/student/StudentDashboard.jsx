@@ -1,21 +1,22 @@
-// ParentDashboard.jsx
+// StudentDashboard.jsx
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import { useTranslation } from 'react-i18next';
 import {
-    Users, UserPlus, Edit, Trash2, Search, Eye, X,
+    User, Edit, Search, Eye, X,
     ChevronLeft, ChevronRight, RefreshCw, CheckCircle,
     AlertCircle, GraduationCap, BookOpen, Calendar,
-    Sun, Moon, Plus, Info, Mail, Phone, MapPin,
-    Download, Printer, FileText, BarChart3, Hash,
-    User, UserCheck, Shield, Baby, Link2,
+    Sun, Moon, Info, Mail, Phone, MapPin,
+    FileText, BarChart3, Hash,
+    User as UserIcon, UserCheck, Shield, Baby,
     BookOpenCheck, Filter, TrendingUp, Clock,
     Award, Activity, Star, Heart, MoveRight, Home,
     DoorOpen, Building2, Repeat, AlertTriangle, School,
     Users as UsersIcon, UserCircle, Check, Loader2,
     Wallet, CreditCard, MessageCircle, ChevronDown,
     DollarSign, Receipt, AlertOctagon, ExternalLink,
-    UserSquare2, MessageSquare
+    UserSquare2, MessageSquare, LogOut, Settings,
+    PieChart, Lock, Unlock
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -38,78 +39,14 @@ apiClient.interceptors.request.use((config) => {
 }, (error) => Promise.reject(error));
 
 // ============================================================
-// Paypack Payment Configuration
-// ============================================================
-const PAYPACK_CLIENT_ID = "e428eef2-28f0-11f1-a747-deadd43720af";
-const PAYPACK_CLIENT_SECRET = "8e55dbfe8df9116cc5fd26e474fca8deda39a3ee5e6b4b0d3255bfef95601890afd80709";
-
-const paypackAPI = {
-    authenticate: async () => {
-        try {
-            const response = await axios.post(
-                'https://payments.paypack.rw/api/auth/agents/authorize',
-                { client_id: PAYPACK_CLIENT_ID, client_secret: PAYPACK_CLIENT_SECRET },
-                { headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' } }
-            );
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    },
-    cashin: async (phoneNumber, amount, accessToken) => {
-        try {
-            const response = await axios.post(
-                'https://payments.paypack.rw/api/transactions/cashin',
-                { number: phoneNumber, amount, environment: "development" },
-                { headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' } }
-            );
-            return response.data;
-        } catch (error) {
-            throw error;
-        }
-    },
-    checkTransaction: async (ref, accessToken) => {
-        try {
-            const response = await axios.get(
-                `https://payments.paypack.rw/api/transactions/find/${ref}`,
-                { headers: { 'Authorization': `Bearer ${accessToken}` } }
-            );
-            if (response.data && response.data.ref) {
-                if (response.data.amount && response.data.client && response.data.kind) {
-                    return { status: 'success', data: response.data, ref };
-                }
-            }
-            return { status: 'pending', message: 'Transaction still processing', ref, data: response.data };
-        } catch (error) {
-            if (error.response && error.response.status === 404) {
-                return { status: 'pending', message: 'Transaction still processing', ref };
-            }
-            return { status: 'error', message: error.message, ref };
-        }
-    }
-};
-
-// ============================================================
 // Helper Functions
 // ============================================================
 const Spinner = () => (
     <div className="w-4 h-4 border-2 border-green-700 border-t-transparent rounded-full animate-spin mx-auto" />
 );
 
-const getStatusColors = (status) => {
-    const colors = {
-        active: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-        inactive: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
-        waiting: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
-        partially_paid: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-        completed: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-        overdue: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
-    };
-    return colors[status] || colors.inactive;
-};
-
 // ============================================================
-// Performance Chart Component
+// Performance Chart Component (Color-coded based on score)
 // ============================================================
 const PerformanceChart = ({ percentage, label }) => {
     const getColorClasses = () => {
@@ -121,7 +58,9 @@ const PerformanceChart = ({ percentage, label }) => {
         <div className="mb-3">
             <div className="flex justify-between items-center mb-1">
                 <span className="text-xs text-gray-600 dark:text-gray-400">{label}</span>
-                <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">{percentage}%</span>
+                <span className={`text-xs font-semibold ${
+                    percentage >= 80 ? 'text-green-600' : percentage >= 50 ? 'text-yellow-600' : 'text-red-600'
+                }`}>{percentage}%</span>
             </div>
             <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div
@@ -134,238 +73,49 @@ const PerformanceChart = ({ percentage, label }) => {
 };
 
 // ============================================================
-// Subject Performance Card
+// Subject Performance Card (Color-coded based on AI zone classification)
 // ============================================================
 const SubjectPerformanceCard = ({ subject, t }) => {
+    const percentage = subject.final_percentage || 0;
+    
     const getBorderColor = () => {
-        if (subject.final_percentage >= 80) return 'border-green-500';
-        if (subject.final_percentage >= 50) return 'border-yellow-500';
+        if (percentage >= 80) return 'border-green-500';
+        if (percentage >= 50) return 'border-yellow-500';
         return 'border-red-500';
     };
+    
     const getBgColor = () => {
-        if (subject.final_percentage >= 80) return 'bg-green-50 dark:bg-green-900/20';
-        if (subject.final_percentage >= 50) return 'bg-yellow-50 dark:bg-yellow-900/20';
+        if (percentage >= 80) return 'bg-green-50 dark:bg-green-900/20';
+        if (percentage >= 50) return 'bg-yellow-50 dark:bg-yellow-900/20';
         return 'bg-red-50 dark:bg-red-900/20';
     };
+    
+    const getStatusIcon = () => {
+        if (percentage >= 80) return <CheckCircle className="w-4 h-4 text-green-600" />;
+        if (percentage >= 50) return <AlertCircle className="w-4 h-4 text-yellow-600" />;
+        return <AlertTriangle className="w-4 h-4 text-red-600" />;
+    };
+    
+    const getZoneLabel = () => {
+        if (percentage >= 80) return t('student_dashboard.excellent');
+        if (percentage >= 50) return t('student_dashboard.average');
+        return t('student_dashboard.needsImprovement');
+    };
+    
     return (
         <div className={`p-3 rounded-xl border-l-4 ${getBorderColor()} ${getBgColor()}`}>
-            <div className="flex justify-between items-center">
-                <div>
-                    <p className="font-semibold text-gray-800 dark:text-white">{subject.subject_name}</p>
-                    <p className="text-xs text-gray-500">{subject.grade_letter || 'N/A'}</p>
+            <div className="flex justify-between items-start">
+                <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                        <p className="font-semibold text-gray-800 dark:text-white">{subject.subject_name}</p>
+                        {getStatusIcon()}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">{getZoneLabel()}</p>
+                    <p className="text-xs text-gray-400">{subject.grade_letter || 'N/A'}</p>
                 </div>
                 <div className="text-right">
-                    <p className="text-xl font-bold text-gray-800 dark:text-white">{subject.final_percentage?.toFixed(1) || 0}%</p>
-                    <p className="text-xs text-gray-500">{subject.passed ? t('parent_dashboard.passed') : t('parent_dashboard.failed')}</p>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-// ============================================================
-// Payment Status Card
-// ============================================================
-const PaymentStatusCard = ({ payment, onPay, t }) => {
-    const totalAmount = parseFloat(payment.total_amount) || 0;
-    const paidAmount = parseFloat(payment.paid_amount) || 0;
-    const remainingAmount = parseFloat(payment.remaining_amount) || 0;
-    const percentage = totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0;
-    const statusColor = getStatusColors(payment.status);
-    return (
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
-            <div className="flex justify-between items-start mb-2">
-                <div>
-                    <p className="font-semibold text-gray-800 dark:text-white">{payment.fee_name}</p>
-                    <p className="text-xs text-gray-500">{t('parent_dashboard.due')}: {payment.due_date || 'N/A'}</p>
-                </div>
-                <span className={`text-xs px-2 py-1 rounded-full ${statusColor}`}>
-                    {payment.status_display || payment.status}
-                </span>
-            </div>
-            <div className="mb-3">
-                <div className="flex justify-between text-xs mb-1">
-                    <span>{t('parent_dashboard.paid')}: {paidAmount.toFixed(2)} FRW</span>
-                    <span>{t('parent_dashboard.total')}: {totalAmount.toFixed(2)} FRW</span>
-                </div>
-                <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                    <div className="h-full bg-green-500 rounded-full transition-all" style={{ width: `${Math.min(percentage, 100)}%` }} />
-                </div>
-            </div>
-            <div className="flex justify-between items-center">
-                <p className="text-sm font-semibold">
-                    {t('parent_dashboard.remaining')}: {remainingAmount.toFixed(2)} FRW
-                </p>
-                {remainingAmount > 0 && (
-                    <button onClick={() => onPay(payment)} className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs rounded-lg flex items-center gap-1 transition-colors">
-                        <Wallet className="w-3 h-3" /> {t('parent_dashboard.payNow')}
-                    </button>
-                )}
-            </div>
-        </div>
-    );
-};
-
-// ============================================================
-// Payment Modal
-// ============================================================
-const PaymentModal = ({ payment, onClose, onSuccess, parentPhone, t }) => {
-    const [loading, setLoading] = useState(false);
-    const [phoneNumber, setPhoneNumber] = useState(parentPhone || '');
-    const [amount, setAmount] = useState(0);
-    const [step, setStep] = useState('form');
-    const [error, setError] = useState('');
-    const [transactionRef, setTransactionRef] = useState('');
-
-    const maxAmount = useMemo(() => {
-        const remaining = payment?.remaining_amount;
-        if (typeof remaining === 'number') return remaining;
-        if (typeof remaining === 'string') return parseFloat(remaining) || 0;
-        return 0;
-    }, [payment?.remaining_amount]);
-
-    const feeName = payment?.fee_name || payment?.class_level_cost_details?.name || t('parent_dashboard.schoolFees');
-    const isAlreadyPaid = useMemo(() => maxAmount <= 0, [maxAmount]);
-
-    useEffect(() => {
-        if (isAlreadyPaid) { setError('This payment has already been fully paid.'); setAmount(0); }
-        else { setAmount(maxAmount); }
-    }, [maxAmount, isAlreadyPaid]);
-
-    useEffect(() => {
-        if (isAlreadyPaid && step === 'form') {
-            toast.error('This payment has already been completed.');
-            setTimeout(() => onClose(), 2000);
-        }
-    }, [isAlreadyPaid, step, onClose]);
-
-    const handleSubmit = async () => {
-        if (isAlreadyPaid) { setError('This payment has already been completed.'); return; }
-        if (!phoneNumber || phoneNumber.length < 10) { setError(t('parent_dashboard.validPhoneRequired')); return; }
-        if (amount <= 0) { setError('Please enter a valid amount'); return; }
-        if (amount > maxAmount) { setError(`Amount cannot exceed remaining balance of ${maxAmount.toFixed(2)} FRW`); return; }
-
-        setLoading(true); setStep('processing'); setError('');
-        try {
-            const cleanPhone = phoneNumber.replace(/^\+/, '');
-            const auth = await paypackAPI.authenticate();
-            const accessToken = auth.access;
-            if (!accessToken) throw new Error(t('parent_dashboard.authFailed'));
-
-            const paymentResult = await paypackAPI.cashin(phoneNumber, amount, accessToken);
-            if (paymentResult.status === 'success' || paymentResult.ref) {
-                const ref = paymentResult.ref || paymentResult.transaction_ref;
-                setTransactionRef(ref);
-                toast.success('Payment request sent to your phone. Please enter your PIN.');
-                await new Promise(resolve => setTimeout(resolve, 8000));
-
-                let retryCount = 0; const maxRetries = 15; let transactionCompleted = false;
-                while (retryCount < maxRetries && !transactionCompleted) {
-                    const status = await paypackAPI.checkTransaction(ref, accessToken);
-                    if (status.status === 'success' || (status.data && status.data.amount && status.data.client && status.data.kind)) {
-                        transactionCompleted = true;
-                        const paymentId = payment?.id || payment?.payment_id;
-                        const backendResponse = await apiClient.post('/payments/make-payment/', {
-                            payment_assignment_id: paymentId, amount, payment_method: 'mobile_money',
-                            phone_number: cleanPhone, mobile_money_provider: 'mtn', transaction_reference: ref,
-                            notes: `${t('parent_dashboard.paymentViaPaypack')} ${new Date().toISOString()}`
-                        });
-                        if (backendResponse.data.success) { setStep('success'); toast.success(t('parent_dashboard.paymentSuccess')); setTimeout(() => { onSuccess(); onClose(); }, 2000); }
-                        else throw new Error(backendResponse.data.message || 'Backend submission failed');
-                        break;
-                    } else {
-                        await new Promise(resolve => setTimeout(resolve, Math.min(5000 + (retryCount * 2000), 15000)));
-                        retryCount++;
-                    }
-                }
-                if (!transactionCompleted) {
-                    const finalCheck = await paypackAPI.checkTransaction(ref, accessToken);
-                    if (finalCheck.data && finalCheck.data.amount && finalCheck.data.client) {
-                        const paymentId = payment?.id || payment?.payment_id;
-                        await apiClient.post('/payments/make-payment/', { payment_assignment_id: paymentId, amount, payment_method: 'mobile_money', phone_number: cleanPhone, mobile_money_provider: 'mtn', transaction_reference: ref, notes: `${t('parent_dashboard.paymentViaPaypack')} ${new Date().toISOString()} (Delayed confirmation)` });
-                        setStep('success'); toast.success(t('parent_dashboard.paymentSuccess'));
-                        setTimeout(() => { onSuccess(); onClose(); }, 2000);
-                    } else {
-                        setError('Payment is taking longer than expected. Please check your phone.'); setStep('error');
-                    }
-                }
-            } else throw new Error(paymentResult.message || t('parent_dashboard.initiationFailed'));
-        } catch (err) {
-            setError(err.message || t('parent_dashboard.paymentFailed')); setStep('error');
-        } finally { setLoading(false); }
-    };
-
-    if (step === 'success') return (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl max-w-md w-full mx-4 p-6 text-center">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"><CheckCircle className="w-8 h-8 text-green-600" /></div>
-                <h2 className="text-xl font-bold mb-2">{t('parent_dashboard.paymentSuccessful')}</h2>
-                <p className="text-gray-500 mb-4">{amount.toFixed(2)} FRW {t('parent_dashboard.paymentProcessed')}</p>
-                <p className="text-xs text-gray-400">{t('parent_dashboard.transactionRef')}: {transactionRef}</p>
-                <button onClick={onClose} className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg">{t('parent_dashboard.close')}</button>
-            </div>
-        </div>
-    );
-    if (step === 'error') return (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl max-w-md w-full mx-4 p-6 text-center">
-                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4"><AlertOctagon className="w-8 h-8 text-red-600" /></div>
-                <h2 className="text-xl font-bold mb-2">{t('parent_dashboard.paymentFailed')}</h2>
-                <p className="text-gray-500 mb-4">{error}</p>
-                <div className="flex gap-3">
-                    <button onClick={() => { setStep('form'); setError(''); }} className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg">{t('parent_dashboard.tryAgain')}</button>
-                    <button onClick={onClose} className="flex-1 px-4 py-2 bg-gray-200 rounded-lg">{t('parent_dashboard.cancel')}</button>
-                </div>
-            </div>
-        </div>
-    );
-    if (step === 'processing') return (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl max-w-md w-full mx-4 p-6 text-center">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4"><Loader2 className="w-8 h-8 text-blue-600 animate-spin" /></div>
-                <h2 className="text-xl font-bold mb-2">Processing Payment</h2>
-                <div className="space-y-2 text-left mb-4">
-                    <p className="text-sm">1. Check your phone for the payment prompt</p>
-                    <p className="text-sm">2. Enter your mobile money PIN</p>
-                    <p className="text-sm">3. Wait for confirmation</p>
-                </div>
-                <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                    <p className="text-xs text-yellow-800 dark:text-yellow-300">⚠️ Do not close this window. The transaction will be confirmed automatically.</p>
-                </div>
-                <div className="mt-4"><Spinner /></div>
-                <p className="text-xs text-gray-500 mt-2">Transaction Ref: {transactionRef?.substring(0, 8)}...</p>
-                <button onClick={() => setStep('form')} className="mt-4 text-sm text-gray-500 hover:text-gray-700">Cancel</button>
-            </div>
-        </div>
-    );
-
-    return (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl max-w-md w-full mx-4 p-6">
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-bold">{t('parent_dashboard.makePayment')}</h2>
-                    <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5" /></button>
-                </div>
-                <div className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium mb-1">{t('parent_dashboard.feeName')}</label>
-                        <p className="text-gray-800 dark:text-white font-semibold">{feeName}</p>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium mb-1">{t('parent_dashboard.amountToPay')}</label>
-                        <input type="number" value={amount} onChange={e => setAmount(parseFloat(e.target.value) || 0)} max={maxAmount} min={0.01} step={0.01} disabled={isAlreadyPaid} className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none disabled:opacity-50" />
-                        <p className="text-xs text-gray-500 mt-1">{t('parent_dashboard.maxAmount')}: {maxAmount.toFixed(2)} FRW</p>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium mb-1">{t('parent_dashboard.phoneNumber')}</label>
-                        <input type="tel" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} placeholder="078XXXXXXX" className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none" />
-                        <p className="text-xs text-gray-500 mt-1">Enter phone number in format: 078XXXXXXX</p>
-                    </div>
-                    {error && <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-lg text-red-600 text-sm">{error}</div>}
-                    <button onClick={handleSubmit} disabled={loading || amount <= 0 || !phoneNumber || isAlreadyPaid} className="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                        {loading ? <Spinner /> : <Wallet className="w-4 h-4" />}
-                        {loading ? t('parent_dashboard.processing') : `${t('parent_dashboard.pay')} ${amount.toFixed(2)} FRW`}
-                    </button>
+                    <p className="text-2xl font-bold text-gray-800 dark:text-white">{percentage.toFixed(1)}%</p>
+                    <p className="text-xs text-gray-500">{subject.passed ? t('student_dashboard.passed') : t('student_dashboard.failed')}</p>
                 </div>
             </div>
         </div>
@@ -375,7 +125,7 @@ const PaymentModal = ({ payment, onClose, onSuccess, parentPhone, t }) => {
 // ============================================================
 // Teacher Card Component
 // ============================================================
-const TeacherCard = ({ teacher, student, onChatClick, t }) => {
+const TeacherCard = ({ teacher, onChatClick, t }) => {
     const initials = teacher.full_name
         ?.split(' ')
         .map(n => n[0])
@@ -383,7 +133,6 @@ const TeacherCard = ({ teacher, student, onChatClick, t }) => {
         .join('')
         .toUpperCase() || '?';
 
-    // Pick a consistent color based on name hash
     const colorSets = [
         { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-300' },
         { bg: 'bg-purple-100 dark:bg-purple-900/30', text: 'text-purple-700 dark:text-purple-300' },
@@ -396,18 +145,11 @@ const TeacherCard = ({ teacher, student, onChatClick, t }) => {
 
     return (
         <div className="flex items-start gap-3 p-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:border-green-200 dark:hover:border-green-700 hover:shadow-sm transition-all group">
-            {/* Avatar */}
             <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 ${bg} ${text}`}>
                 {initials}
             </div>
-
-            {/* Info */}
             <div className="flex-1 min-w-0">
                 <p className="font-semibold text-gray-800 dark:text-white text-sm truncate">{teacher.full_name}</p>
-                {/* {teacher.email && (
-                    <p className="text-xs text-gray-400 truncate">{teacher.email}</p>
-                )} */}
-                {/* Subjects */}
                 <div className="flex flex-wrap gap-1 mt-1.5">
                     {(teacher.subjects || []).map(subject => (
                         <span
@@ -419,22 +161,20 @@ const TeacherCard = ({ teacher, student, onChatClick, t }) => {
                     ))}
                 </div>
             </div>
-
-            {/* Chat button */}
-            <button
+            {/* <button
                 onClick={() => onChatClick(teacher)}
-                title={`Chat with ${teacher.full_name}`}
+                title={t('student_dashboard.chatWithTeacher', { name: teacher.full_name })}
                 className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 text-white text-xs font-medium transition-colors opacity-90 group-hover:opacity-100"
             >
                 <MessageCircle className="w-3.5 h-3.5" />
-                Chat
-            </button>
+                {t('student_dashboard.chat')}
+            </button> */}
         </div>
     );
 };
 
 // ============================================================
-// Teachers Panel Component (shown under student selector)
+// Teachers Panel Component
 // ============================================================
 const TeachersPanel = ({ student, onChatWithTeacher, t }) => {
     const [teachers, setTeachers] = useState([]);
@@ -448,7 +188,7 @@ const TeachersPanel = ({ student, onChatWithTeacher, t }) => {
         setError(null);
         setTeachers([]);
 
-        apiClient.get(`/students/${student.id}/teachers-with-subjects/`)
+        apiClient.get(`/students/get_my_current_teachers/`)
             .then(res => {
                 if (cancelled) return;
                 const data = res.data?.data;
@@ -458,21 +198,21 @@ const TeachersPanel = ({ student, onChatWithTeacher, t }) => {
             .catch(err => {
                 if (cancelled) return;
                 console.error('Failed to fetch teachers:', err);
-                setError('Could not load teachers.');
+                setError(t('student_dashboard.teachersLoadError'));
             })
             .finally(() => {
                 if (!cancelled) setLoading(false);
             });
 
         return () => { cancelled = true; };
-    }, [student?.id]);
+    }, [student?.id, t]);
 
     if (loading) {
         return (
             <div className="mt-3 px-1 py-4 text-center">
                 <div className="flex items-center justify-center gap-2 text-gray-500 text-sm">
                     <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
-                    Loading teachers…
+                    {t('student_dashboard.loadingTeachers')}
                 </div>
             </div>
         );
@@ -489,7 +229,7 @@ const TeachersPanel = ({ student, onChatWithTeacher, t }) => {
     if (teachers.length === 0) {
         return (
             <div className="mt-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 text-center">
-                <p className="text-sm text-gray-500">No teachers assigned to this student's classroom yet.</p>
+                <p className="text-sm text-gray-500">{t('student_dashboard.noTeachers')}</p>
             </div>
         );
     }
@@ -497,13 +237,12 @@ const TeachersPanel = ({ student, onChatWithTeacher, t }) => {
     return (
         <div className="mt-3 space-y-2">
             <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide px-1">
-                Teachers ({teachers.length})
+                {t('student_dashboard.myTeachers')} ({teachers.length})
             </p>
             {teachers.map(teacher => (
                 <TeacherCard
                     key={teacher.id}
                     teacher={teacher}
-                    student={student}
                     onChatClick={onChatWithTeacher}
                     t={t}
                 />
@@ -513,100 +252,73 @@ const TeachersPanel = ({ student, onChatWithTeacher, t }) => {
 };
 
 // ============================================================
-// Student Selector Component (with Teachers Panel embedded)
+// Fee Status Card Component
 // ============================================================
-const StudentSelector = ({ students, selectedStudent, onSelect, onChatWithTeacher, t }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const [showTeachers, setShowTeachers] = useState(false);
-
-    // Auto-show teachers when student is selected
-    useEffect(() => {
-        setShowTeachers(false);
-        // Small delay so it feels like a fresh load
-        const timer = setTimeout(() => setShowTeachers(true), 200);
-        return () => clearTimeout(timer);
-    }, [selectedStudent?.id]);
-
+const FeeStatusCard = ({ payment, t }) => {
+    const totalAmount = parseFloat(payment.total_amount) || 0;
+    const paidAmount = parseFloat(payment.paid_amount) || 0;
+    const remainingAmount = parseFloat(payment.remaining_amount) || 0;
+    const percentage = totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0;
+    
+    const getStatusColor = () => {
+        if (remainingAmount <= 0) return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 border-green-200';
+        if (paidAmount > 0) return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300 border-yellow-200';
+        return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 border-red-200';
+    };
+    
+    const getStatusIcon = () => {
+        if (remainingAmount <= 0) return <CheckCircle className="w-4 h-4 text-green-600" />;
+        if (paidAmount > 0) return <AlertCircle className="w-4 h-4 text-yellow-600" />;
+        return <AlertTriangle className="w-4 h-4 text-red-600" />;
+    };
+    
+    const getStatusText = () => {
+        if (remainingAmount <= 0) return t('student_dashboard.fullyPaid');
+        if (paidAmount > 0) return t('student_dashboard.partiallyPaid');
+        return t('student_dashboard.unpaid');
+    };
+    
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
-            {/* Dropdown trigger */}
-            <div className="relative">
-                <button
-                    onClick={() => setIsOpen(!isOpen)}
-                    className="flex items-center gap-3 p-3 bg-gradient-to-r from-green-50 to-amber-50 dark:from-green-900/20 dark:to-amber-900/20 rounded-xl border-2 border-green-200 dark:border-green-800 w-full md:w-auto"
-                >
-                    <div className="w-10 h-10 rounded-full bg-green-700 flex items-center justify-center text-white font-bold">
-                        {selectedStudent?.full_name?.[0] || 'S'}
-                    </div>
-                    <div className="flex-1 text-left">
-                        <p className="font-semibold text-gray-800 dark:text-white">{selectedStudent?.full_name}</p>
-                        <p className="text-xs text-gray-500">{t('parent_dashboard.rollNumber')}: {selectedStudent?.roll_number}</p>
-                    </div>
-                    <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                </button>
-
-                {isOpen && (
-                    <>
-                        <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
-                        <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 z-20 max-h-64 overflow-y-auto">
-                            {students.map(student => (
-                                <button
-                                    key={student.id}
-                                    onClick={() => { onSelect(student); setIsOpen(false); }}
-                                    className={`w-full flex items-center gap-3 p-3 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors text-left ${selectedStudent?.id === student.id ? 'bg-green-50 dark:bg-green-900/20' : ''}`}
-                                >
-                                    <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white text-sm">
-                                        {student.full_name?.[0] || 'S'}
-                                    </div>
-                                    <div>
-                                        <p className="font-medium text-gray-800 dark:text-white">{student.full_name}</p>
-                                        <p className="text-xs text-gray-500">{t('parent_dashboard.class')}: {student.current_class_level?.name || 'N/A'}</p>
-                                    </div>
-                                </button>
-                            ))}
-                        </div>
-                    </>
+        <div className={`p-4 rounded-xl border ${getStatusColor()}`}>
+            <div className="flex justify-between items-start mb-2">
+                <div className="flex items-center gap-2">
+                    {getStatusIcon()}
+                    <p className="font-semibold">{payment.class_level_cost_details?.name || t('student_dashboard.schoolFees')}</p>
+                </div>
+                <span className="text-xs px-2 py-1 rounded-full bg-white/50 dark:bg-gray-800/50">
+                    {getStatusText()}
+                </span>
+            </div>
+            <div className="mb-3">
+                <div className="flex justify-between text-xs mb-1">
+                    <span>{t('student_dashboard.paid')}: {paidAmount.toLocaleString()} FRW</span>
+                    <span>{t('student_dashboard.total')}: {totalAmount.toLocaleString()} FRW</span>
+                </div>
+                <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div 
+                        className={`h-full rounded-full transition-all ${
+                            percentage >= 100 ? 'bg-green-500' : percentage > 0 ? 'bg-yellow-500' : 'bg-red-500'
+                        }`}
+                        style={{ width: `${Math.min(percentage, 100)}%` }}
+                    />
+                </div>
+            </div>
+            <div className="flex justify-between items-center">
+                <p className="text-sm font-semibold">
+                    {t('student_dashboard.remaining')}: {remainingAmount.toLocaleString()} FRW
+                </p>
+                {payment.due_date && remainingAmount > 0 && (
+                    <p className="text-xs text-gray-500">
+                        {t('student_dashboard.dueDate')}: {new Date(payment.due_date).toLocaleDateString()}
+                    </p>
                 )}
             </div>
-
-            {/* Student meta info */}
-            {selectedStudent && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                    {selectedStudent.current_class_level?.name && (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 text-xs font-medium">
-                            <GraduationCap className="w-3 h-3" />
-                            {selectedStudent.current_class_level.name}
-                        </span>
-                    )}
-                    {selectedStudent.current_school_level?.name && (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-xs font-medium">
-                            <School className="w-3 h-3" />
-                            {selectedStudent.current_school_level.name}
-                        </span>
-                    )}
-                    {selectedStudent.status && (
-                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${getStatusColors(selectedStudent.status)}`}>
-                            <CheckCircle className="w-3 h-3" />
-                            {selectedStudent.status}
-                        </span>
-                    )}
-                </div>
-            )}
-
-            {/* ── Teachers Panel ── */}
-            {selectedStudent && showTeachers && (
-                <TeachersPanel
-                    student={selectedStudent}
-                    onChatWithTeacher={onChatWithTeacher}
-                    t={t}
-                />
-            )}
         </div>
     );
 };
 
 // ============================================================
-// Academic Report Modal
+// Academic Report Modal (with print/download)
 // ============================================================
 const AcademicReportModal = ({ student, reportData, onClose, t }) => {
     const [selectedTerm, setSelectedTerm] = useState(null);
@@ -628,7 +340,7 @@ const AcademicReportModal = ({ student, reportData, onClose, t }) => {
         link.setAttribute('href', 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr));
         link.setAttribute('download', `academic_report_${student.roll_number}_${new Date().toISOString().split('T')[0]}.json`);
         link.click();
-        toast.success(t('parent_dashboard.reportDownloaded'));
+        toast.success(t('student_dashboard.reportDownloaded'));
     };
 
     if (!reportData) return null;
@@ -720,9 +432,9 @@ const AcademicReportModal = ({ student, reportData, onClose, t }) => {
         <div style={S.overlay}>
             <div style={S.modal}>
                 <div style={S.stickyBar} className="print:hidden">
-                    <button onClick={handleDownload} style={S.outlineBtn}><Download className="w-4 h-4" /> {t('parent_dashboard.download') || 'Download'}</button>
-                    <button onClick={handlePrint} style={S.outlineBtn}><Printer className="w-4 h-4" /> {t('parent_dashboard.print') || 'Print'}</button>
-                    <button onClick={onClose} style={S.solidBtn}><X className="w-4 h-4" /> {t('parent_dashboard.close')}</button>
+                    <button onClick={handleDownload} style={S.outlineBtn}><Download className="w-4 h-4" /> {t('student_dashboard.download')}</button>
+                    <button onClick={handlePrint} style={S.outlineBtn}><Printer className="w-4 h-4" /> {t('student_dashboard.print')}</button>
+                    <button onClick={onClose} style={S.solidBtn}><X className="w-4 h-4" /> {t('student_dashboard.close')}</button>
                 </div>
                 <div style={S.body}>
                     <div style={S.headerRow}>
@@ -731,36 +443,36 @@ const AcademicReportModal = ({ student, reportData, onClose, t }) => {
                             <div style={S.logoText}>Les Hirondelles<br />de Don Bosco</div>
                         </div>
                         <div>
-                            <h1 style={S.reportTitle}>Student Performance Report</h1>
-                            <p style={{ margin: '4px 0 0', fontFamily: 'sans-serif', fontSize: '13px', color: C.textMuted }}>{t('parent_dashboard.academicReport')}</p>
+                            <h1 style={S.reportTitle}>{t('student_dashboard.reportTitle')}</h1>
+                            <p style={{ margin: '4px 0 0', fontFamily: 'sans-serif', fontSize: '13px', color: C.textMuted }}>{t('student_dashboard.academicReport')}</p>
                         </div>
                     </div>
                     <table style={S.infoTable}>
                         <tbody>
                             <tr>
-                                <td style={{ ...S.infoTd, ...S.infoLabel }}>{t('parent_dashboard.studentName')}</td>
+                                <td style={{ ...S.infoTd, ...S.infoLabel }}>{t('student_dashboard.studentName')}</td>
                                 <td style={{ ...S.infoTd, ...S.infoValue }}>{student.full_name}</td>
-                                <td style={{ ...S.infoTd, ...S.infoLabel }}>{t('parent_dashboard.classLevel')}</td>
+                                <td style={{ ...S.infoTd, ...S.infoLabel }}>{t('student_dashboard.classLevel')}</td>
                                 <td style={{ ...S.infoTd, ...S.infoValue }}>{student.current_class_level?.name || 'N/A'}</td>
                             </tr>
                             <tr>
-                                <td style={{ ...S.infoTd, ...S.infoLabel }}>{t('parent_dashboard.academicYear')}</td>
+                                <td style={{ ...S.infoTd, ...S.infoLabel }}>{t('student_dashboard.academicYear')}</td>
                                 <td style={{ ...S.infoTd, ...S.infoValue }}>{reportData.academic_year_name}</td>
-                                <td style={{ ...S.infoTd, ...S.infoLabel }}>{t('parent_dashboard.rollNumber')}</td>
+                                <td style={{ ...S.infoTd, ...S.infoLabel }}>{t('student_dashboard.rollNumber')}</td>
                                 <td style={{ ...S.infoTd, ...S.infoValue }}>{student.roll_number}</td>
                             </tr>
                         </tbody>
                     </table>
                     <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={S.greenHeader}>Semestral Grades and Final Performance</div>
+                            <div style={S.greenHeader}>{t('student_dashboard.semestralGrades')}</div>
                             <table style={S.gradeTable}>
                                 <thead>
                                     <tr>
-                                        <th style={{ ...S.thLeft, minWidth: '130px' }}>{t('parent_dashboard.subject')}</th>
+                                        <th style={{ ...S.thLeft, minWidth: '130px' }}>{t('student_dashboard.subject')}</th>
                                         {terms.map(term => <th key={term.term_id} style={S.th}>{term.term_name}</th>)}
-                                        <th style={S.th}>{t('parent_dashboard.overallAverage')}</th>
-                                        <th style={S.th}>{t('parent_dashboard.grade')}</th>
+                                        <th style={S.th}>{t('student_dashboard.overallAverage')}</th>
+                                        <th style={S.th}>{t('student_dashboard.grade')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -784,7 +496,7 @@ const AcademicReportModal = ({ student, reportData, onClose, t }) => {
                                         );
                                     })}
                                     <tr>
-                                        <td style={S.tdTotalLabel}>{t('parent_dashboard.overallAverage')}</td>
+                                        <td style={S.tdTotalLabel}>{t('student_dashboard.overallAverage')}</td>
                                         {terms.map((_, i) => <td key={i} style={S.tdTotalCell} />)}
                                         <td style={{ ...S.tdTotalCell, background: totalAvg !== null ? getScoreBg(totalAvg) : C.totalRowBg, color: totalAvg !== null ? getScoreColor(totalAvg) : C.totalRowText, fontSize: '14px' }}>
                                             {totalAvg !== null ? totalAvg.toFixed(2) : '—'}
@@ -797,12 +509,12 @@ const AcademicReportModal = ({ student, reportData, onClose, t }) => {
                             </table>
                         </div>
                         <div style={{ width: '155px', flexShrink: 0 }}>
-                            <div style={S.amberHeader}>Grade Scale</div>
+                            <div style={S.amberHeader}>{t('student_dashboard.gradeScale')}</div>
                             <table style={S.scaleTable}>
                                 <thead>
                                     <tr>
-                                        <th style={S.scaleTh}>Range</th>
-                                        <th style={{ ...S.scaleTh, textAlign: 'center' }}>Grade</th>
+                                        <th style={S.scaleTh}>{t('student_dashboard.range')}</th>
+                                        <th style={{ ...S.scaleTh, textAlign: 'center' }}>{t('student_dashboard.grade')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -821,13 +533,13 @@ const AcademicReportModal = ({ student, reportData, onClose, t }) => {
                     </div>
                     {currentPerformance?.discipline && (
                         <div style={{ marginTop: '24px' }}>
-                            <div style={S.greenHeader}>{t('parent_dashboard.disciplineAttendance')}</div>
+                            <div style={S.greenHeader}>{t('student_dashboard.disciplineAttendance')}</div>
                             <div style={S.disciplineGrid}>
                                 {[
-                                    { label: t('parent_dashboard.attendanceRate'), value: `${(currentPerformance.discipline.attendance_rate ?? 0).toFixed(1)}%` },
-                                    { label: t('parent_dashboard.present'), value: currentPerformance.discipline.present ?? 0 },
-                                    { label: t('parent_dashboard.absent'), value: currentPerformance.discipline.absent ?? 0 },
-                                    { label: t('parent_dashboard.late'), value: currentPerformance.discipline.late ?? 0 },
+                                    { label: t('student_dashboard.attendanceRate'), value: `${(currentPerformance.discipline.attendance_rate ?? 0).toFixed(1)}%` },
+                                    { label: t('student_dashboard.present'), value: currentPerformance.discipline.present ?? 0 },
+                                    { label: t('student_dashboard.absent'), value: currentPerformance.discipline.absent ?? 0 },
+                                    { label: t('student_dashboard.late'), value: currentPerformance.discipline.late ?? 0 },
                                 ].map(item => (
                                     <div key={item.label} style={S.disciplineCard}>
                                         <div style={S.disciplineLabel}>{item.label}</div>
@@ -839,13 +551,13 @@ const AcademicReportModal = ({ student, reportData, onClose, t }) => {
                     )}
                     {currentPerformance?.remarks && (
                         <div style={S.remarks}>
-                            <strong style={{ color: C.primary }}>Remarks: </strong>
+                            <strong style={{ color: C.primary }}>{t('student_dashboard.remarks')}: </strong>
                             {currentPerformance.remarks}
                         </div>
                     )}
                     <div style={S.footer}>
-                        <p style={{ margin: '0 0 4px' }}>Les Hirondelles de Don Bosco — {t('parent_dashboard.qualityEducation')}</p>
-                        <p style={{ margin: 0 }}>{t('parent_dashboard.generatedOn')}: {new Date().toLocaleDateString()} &nbsp;|&nbsp; {t('parent_dashboard.reportFooter')}</p>
+                        <p style={{ margin: '0 0 4px' }}>Les Hirondelles de Don Bosco — {t('student_dashboard.qualityEducation')}</p>
+                        <p style={{ margin: 0 }}>{t('student_dashboard.generatedOn')}: {new Date().toLocaleDateString()} &nbsp;|&nbsp; {t('student_dashboard.reportFooter')}</p>
                     </div>
                 </div>
             </div>
@@ -854,182 +566,182 @@ const AcademicReportModal = ({ student, reportData, onClose, t }) => {
 };
 
 // ============================================================
-// Main Parent Dashboard Component
+// Main Student Dashboard Component
 // ============================================================
 const StudentDashboard = () => {
     const { t } = useTranslation();
 
     const [darkMode, setDarkMode] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [parentProfile, setParentProfile] = useState(null);
-    const [students, setStudents] = useState([]);
-    const [selectedStudent, setSelectedStudent] = useState(null);
+    const [studentProfile, setStudentProfile] = useState(null);
     const [performanceData, setPerformanceData] = useState(null);
     const [paymentData, setPaymentData] = useState([]);
     const [paymentSummary, setPaymentSummary] = useState(null);
-    const [showPaymentModal, setShowPaymentModal] = useState(false);
-    const [selectedPayment, setSelectedPayment] = useState(null);
     const [showReportModal, setShowReportModal] = useState(false);
     const [reportData, setReportData] = useState(null);
     const [loadingPerformance, setLoadingPerformance] = useState(false);
-    const [loadingPayments, setLoadingPayments] = useState(false);
     const [loadingReport, setLoadingReport] = useState(false);
+    const [loadingPayments, setLoadingPayments] = useState(false);
     const [currentAcademicYear, setCurrentAcademicYear] = useState(null);
     const [academicYears, setAcademicYears] = useState([]);
+    const [selectedAcademicYearId, setSelectedAcademicYearId] = useState(null);
 
-    // Fetch parent profile and students
-    const fetchParentData = useCallback(async () => {
+    // Fetch student profile
+    const fetchStudentProfile = useCallback(async () => {
         setLoading(true);
         try {
-            const parentRes = await apiClient.get('/students/parents/me/');
-            if (parentRes.data.success) {
-                setParentProfile(parentRes.data.data);
-                const studentList = parentRes.data.data.students || [];
-                setStudents(studentList);
-                if (studentList.length > 0) setSelectedStudent(studentList[0]);
+            const studentRes = await apiClient.get('/students/me/');
+            if (studentRes.data.success) {
+                setStudentProfile(studentRes.data.data);
             }
             const yearRes = await apiClient.get('/academics/academic-years/');
             const years = yearRes.data.data?.results || yearRes.data.data || [];
             setAcademicYears(years);
             const current = years.find(y => y.is_current);
-            if (current) setCurrentAcademicYear(current);
+            if (current) {
+                setCurrentAcademicYear(current);
+                setSelectedAcademicYearId(current.id);
+            }
         } catch (error) {
-            console.error('Error fetching parent data:', error);
-            toast.error(t('parent_dashboard.fetchError'));
+            console.error('Error fetching student data:', error);
+            toast.error(t('student_dashboard.fetchError'));
         } finally {
             setLoading(false);
         }
     }, [t]);
 
-    const fetchStudentPerformance = useCallback(async (studentId, academicYearId) => {
-        if (!studentId) return;
+    // Fetch student payments
+    const fetchStudentPayments = useCallback(async () => {
+        if (!studentProfile) return;
+        setLoadingPayments(true);
+        try {
+            const res = await apiClient.get(`/payments/my-payments/`);
+            if (res.data.success) {
+                const payments = res.data.data || [];
+                setPaymentData(payments);
+                
+                // Calculate summary
+                let totalAssigned = 0, totalPaid = 0, totalRemaining = 0;
+                let completedCount = 0, pendingCount = 0, overdueCount = 0;
+                
+                payments.forEach(p => {
+                    const totalAmount = parseFloat(p.total_amount) || 0;
+                    const paidAmount = parseFloat(p.paid_amount) || 0;
+                    const remainingAmount = parseFloat(p.remaining_amount) || 0;
+                    
+                    totalAssigned += totalAmount;
+                    totalPaid += paidAmount;
+                    totalRemaining += remainingAmount;
+                    
+                    if (p.status === 'completed') completedCount++;
+                    if (p.status === 'overdue') overdueCount++;
+                    if (p.status !== 'completed') pendingCount++;
+                });
+                
+                setPaymentSummary({
+                    total_assigned: totalAssigned,
+                    total_paid: totalPaid,
+                    total_remaining: totalRemaining,
+                    completed_count: completedCount,
+                    pending_count: pendingCount,
+                    overdue_count: overdueCount,
+                    is_fully_paid: totalRemaining <= 0
+                });
+            }
+        } catch (error) {
+            console.error('Error fetching payments:', error);
+            // Don't show error toast - just log it
+        } finally {
+            setLoadingPayments(false);
+        }
+    }, [studentProfile]);
+
+    const fetchStudentPerformance = useCallback(async (academicYearId) => {
+        if (!studentProfile) return;
         setLoadingPerformance(true);
         try {
-            const url = `/academics-records/performance/student/${studentId}/`;
+            const url = `/academics-records/performance/me/`;
             const params = new URLSearchParams();
             if (academicYearId) params.append('academic_year_id', academicYearId);
             const res = await apiClient.get(`${url}?${params.toString()}`);
             if (res.data.success) setPerformanceData(res.data.data);
         } catch (error) {
             console.error('Error fetching performance:', error);
-            toast.error(t('parent_dashboard.performanceError'));
+            toast.error(t('student_dashboard.performanceError'));
         } finally {
             setLoadingPerformance(false);
         }
-    }, [t]);
+    }, [studentProfile, t]);
 
-    const fetchStudentPayments = useCallback(async (studentId) => {
-        if (!studentId) return;
-        setLoadingPayments(true);
-        try {
-            const res = await apiClient.get(`/payments/student/${studentId}/`);
-            if (res.data.success) {
-                const payments = res.data.data || [];
-                setPaymentData(payments);
-                const summary = { total_assigned: 0, total_paid: 0, total_remaining: 0, completed_count: 0, pending_count: 0, overdue_count: 0, is_fully_paid: true };
-                payments.forEach(p => {
-                    const totalAmount = typeof p.total_amount === 'number' ? p.total_amount : parseFloat(p.total_amount) || 0;
-                    const paidAmount = typeof p.paid_amount === 'number' ? p.paid_amount : parseFloat(p.paid_amount) || 0;
-                    const remainingAmount = typeof p.remaining_amount === 'number' ? p.remaining_amount : parseFloat(p.remaining_amount) || 0;
-                    summary.total_assigned += totalAmount;
-                    summary.total_paid += paidAmount;
-                    summary.total_remaining += remainingAmount;
-                    if (p.status === 'completed') summary.completed_count++;
-                    if (p.status === 'overdue') summary.overdue_count++;
-                    if (p.status !== 'completed') summary.pending_count++;
-                    if (remainingAmount > 0) summary.is_fully_paid = false;
-                });
-                summary.total_assigned = Number(summary.total_assigned.toFixed(2));
-                summary.total_paid = Number(summary.total_paid.toFixed(2));
-                summary.total_remaining = Number(summary.total_remaining.toFixed(2));
-                setPaymentSummary(summary);
-            }
-        } catch (error) {
-            console.error('Error fetching payments:', error);
-            toast.error(t('parent_dashboard.fetchError'));
-        } finally {
-            setLoadingPayments(false);
-        }
-    }, [t]);
-
-    const fetchAcademicReport = useCallback(async (studentId, academicYearId) => {
-        if (!studentId) return;
+    const fetchAcademicReport = useCallback(async (academicYearId) => {
+        if (!studentProfile) return;
+        
+        // Check if fees are fully paid before allowing report access
         if (!paymentSummary?.is_fully_paid) {
-            toast.error(t('parent_dashboard.paymentRequiredForReport'));
+            toast.error(t('student_dashboard.paymentRequiredForReport'));
             return;
         }
+        
         setLoadingReport(true);
         try {
-            const url = `/academics-records/performance/student/${studentId}/full-report/`;
+            const url = `/academics-records/performance/student/my-full-report/`;
             const params = new URLSearchParams();
             if (academicYearId) params.append('academic_year_id', academicYearId);
             const res = await apiClient.get(`${url}?${params.toString()}`);
-            if (res.data.success) { setReportData(res.data.data); setShowReportModal(true); }
+            if (res.data.success) {
+                setReportData(res.data.data);
+                setShowReportModal(true);
+            }
         } catch (error) {
             console.error('Error fetching report:', error);
-            toast.error(t('parent_dashboard.reportError'));
+            toast.error(t('student_dashboard.reportError'));
         } finally {
             setLoadingReport(false);
         }
-    }, [paymentSummary, t]);
-
-    const handleStudentSelect = (student) => {
-        setSelectedStudent(student);
-        setPerformanceData(null);
-        fetchStudentPerformance(student.id, currentAcademicYear?.id);
-        fetchStudentPayments(student.id);
-    };
-
-    const handlePaymentClick = (payment) => {
-        const safePayment = {
-            id: payment.id,
-            fee_name: payment.fee_name || payment.class_level_cost_details?.name || 'School Fees',
-            remaining_amount: typeof payment.remaining_amount === 'number' ? payment.remaining_amount : parseFloat(payment.remaining_amount) || 0,
-            total_amount: typeof payment.total_amount === 'number' ? payment.total_amount : parseFloat(payment.total_amount) || 0,
-            paid_amount: typeof payment.paid_amount === 'number' ? payment.paid_amount : parseFloat(payment.paid_amount) || 0,
-            status: payment.status,
-            status_display: payment.status_display,
-            due_date: payment.payment_due_date || payment.due_date,
-            class_level_cost_details: payment.class_level_cost_details
-        };
-        setSelectedPayment(safePayment);
-        setShowPaymentModal(true);
-    };
-
-    const handlePaymentSuccess = async () => {
-        setSelectedPayment(null);
-        setShowPaymentModal(false);
-        if (selectedStudent) await fetchStudentPayments(selectedStudent.id);
-        toast.success('Payment completed successfully!');
-    };
+    }, [studentProfile, paymentSummary, t]);
 
     const handleViewReport = () => {
-        if (selectedStudent) fetchAcademicReport(selectedStudent.id, currentAcademicYear?.id);
+        fetchAcademicReport(selectedAcademicYearId);
     };
 
-    // ── Navigate to chat and auto-open/create chatroom with teacher ──
+    const handleAcademicYearChange = (yearId) => {
+        setSelectedAcademicYearId(yearId);
+        fetchStudentPerformance(yearId);
+    };
+
+    // Navigate to chat
     const handleChatWithTeacher = useCallback(async (teacher) => {
-        // Store teacher info in sessionStorage so ParentChatManagement can pick it up
         sessionStorage.setItem('chatTarget', JSON.stringify({
             teacherUserId: teacher.user?.id,
             teacherName: teacher.full_name,
-            studentId: selectedStudent?.id,
-            studentName: selectedStudent?.full_name,
-            studentRollNumber: selectedStudent?.roll_number,
+            studentId: studentProfile?.id,
+            studentName: studentProfile?.full_name,
+            studentRollNumber: studentProfile?.roll_number,
         }));
-        window.location.href = '/parent/chats';
-    }, [selectedStudent]);
+        window.location.href = '/student/chats';
+    }, [studentProfile]);
 
-    const handleChat = () => { window.location.href = '/parent/chats'; };
-
-    useEffect(() => { fetchParentData(); }, [fetchParentData]);
+    const handleLogout = () => {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        window.location.href = '/login';
+    };
 
     useEffect(() => {
-        if (selectedStudent && currentAcademicYear) {
-            fetchStudentPerformance(selectedStudent.id, currentAcademicYear.id);
-            fetchStudentPayments(selectedStudent.id);
+        fetchStudentProfile();
+    }, [fetchStudentProfile]);
+
+    useEffect(() => {
+        if (studentProfile) {
+            fetchStudentPayments();
         }
-    }, [selectedStudent, currentAcademicYear, fetchStudentPerformance, fetchStudentPayments]);
+    }, [studentProfile, fetchStudentPayments]);
+
+    useEffect(() => {
+        if (studentProfile && selectedAcademicYearId) {
+            fetchStudentPerformance(selectedAcademicYearId);
+        }
+    }, [studentProfile, selectedAcademicYearId, fetchStudentPerformance]);
 
     const chartData = useMemo(() => {
         if (!performanceData) return null;
@@ -1045,21 +757,50 @@ const StudentDashboard = () => {
         };
     }, [performanceData]);
 
+    // Determine overall fee status color
+    const getOverallFeeStatus = () => {
+        if (!paymentSummary) return 'bg-gray-100 text-gray-600';
+        if (paymentSummary.is_fully_paid) return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300';
+        if (paymentSummary.total_paid > 0) return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300';
+        return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300';
+    };
+
+    const getOverallFeeStatusText = () => {
+        if (!paymentSummary) return t('student_dashboard.loading');
+        if (paymentSummary.is_fully_paid) return t('student_dashboard.fullyPaid');
+        if (paymentSummary.total_paid > 0) return t('student_dashboard.partiallyPaid');
+        return t('student_dashboard.unpaid');
+    };
+
+    const getOverallFeeStatusIcon = () => {
+        if (!paymentSummary) return null;
+        if (paymentSummary.is_fully_paid) return <CheckCircle className="w-5 h-5 text-green-600" />;
+        if (paymentSummary.total_paid > 0) return <AlertCircle className="w-5 h-5 text-yellow-600" />;
+        return <AlertTriangle className="w-5 h-5 text-red-600" />;
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-                <div className="text-center"><Spinner /><p className="mt-4 text-gray-500">{t('parent_dashboard.loading')}</p></div>
+                <div className="text-center">
+                    <Spinner />
+                    <p className="mt-4 text-gray-500">{t('student_dashboard.loading')}</p>
+                </div>
             </div>
         );
     }
 
-    if (!parentProfile || students.length === 0) {
+    if (!studentProfile) {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
                 <div className="text-center p-6">
-                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4"><Users className="w-10 h-10 text-gray-400" /></div>
-                    <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">{t('parent_dashboard.noStudentsTitle')}</h2>
-                    <p className="text-gray-500">{t('parent_dashboard.noStudentsMessage')}</p>
+                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <User className="w-10 h-10 text-gray-400" />
+                    </div>
+                    <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                        {t('student_dashboard.profileNotFound')}
+                    </h2>
+                    <p className="text-gray-500">{t('student_dashboard.profileNotFoundMessage')}</p>
                 </div>
             </div>
         );
@@ -1072,49 +813,125 @@ const StudentDashboard = () => {
                 {/* Header */}
                 <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{t('parent_dashboard.title')}</h1>
-                        <p className="text-gray-500 text-sm">{t('parent_dashboard.welcome')}, {parentProfile?.full_name}</p>
+                        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+                            {t('student_dashboard.title')}
+                        </h1>
+                        <p className="text-gray-500 text-sm">
+                            {t('student_dashboard.welcome')}, {studentProfile?.full_name}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">
+                            {t('student_dashboard.rollNumber')}: {studentProfile?.roll_number}
+                        </p>
                     </div>
                     <div className="flex gap-2">
-                        <button onClick={handleChat} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center gap-2 text-sm font-medium transition-colors">
-                            <MessageCircle className="w-4 h-4" />{t('parent_dashboard.chat')}
-                        </button>
-                        <button onClick={() => setDarkMode(!darkMode)} className="p-2 bg-white dark:bg-gray-800 border rounded-xl shadow-sm">
+                        {/* Academic Year Selector */}
+                        {academicYears.length > 0 && (
+                            <select
+                                value={selectedAcademicYearId || ''}
+                                onChange={(e) => handleAcademicYearChange(e.target.value)}
+                                className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                            >
+                                {academicYears.map(year => (
+                                    <option key={year.id} value={year.id}>
+                                        {year.name} {year.is_current ? `(${t('student_dashboard.current')})` : ''}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
+                        <button
+                            onClick={() => setDarkMode(!darkMode)}
+                            className="p-2 bg-white dark:bg-gray-800 border rounded-xl shadow-sm"
+                        >
                             {darkMode ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-gray-500" />}
+                        </button>
+                        <button
+                            onClick={handleLogout}
+                            className="p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl shadow-sm hover:bg-red-100 transition-colors"
+                        >
+                            <LogOut className="w-4 h-4 text-red-600" />
                         </button>
                     </div>
                 </div>
 
-                {/* Student Selector (now includes Teachers Panel) */}
+                {/* Overall Fee Status Banner */}
+                {paymentSummary && (
+                    <div className={`mb-6 p-4 rounded-xl border ${getOverallFeeStatus()} flex justify-between items-center flex-wrap gap-3`}>
+                        <div className="flex items-center gap-3">
+                            {getOverallFeeStatusIcon()}
+                            <div>
+                                <p className="font-semibold">{t('student_dashboard.feeStatus')}: {getOverallFeeStatusText()}</p>
+                                <p className="text-sm">
+                                    {t('student_dashboard.paidAmount')}: {(paymentSummary.total_paid || 0).toLocaleString()} FRW / 
+                                    {t('student_dashboard.totalAmount')}: {(paymentSummary.total_assigned || 0).toLocaleString()} FRW
+                                </p>
+                            </div>
+                        </div>
+                        {!paymentSummary.is_fully_paid && (
+                            <div className="text-sm">
+                                <p className="font-semibold text-red-600 dark:text-red-400">
+                                    {t('student_dashboard.remainingBalance')}: {(paymentSummary.total_remaining || 0).toLocaleString()} FRW
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Student Info Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                                <GraduationCap className="w-5 h-5 text-green-600" />
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-500">{t('student_dashboard.classLevel')}</p>
+                                <p className="font-semibold">{studentProfile?.current_class_level?.name || 'N/A'}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                                <School className="w-5 h-5 text-blue-600" />
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-500">{t('student_dashboard.schoolLevel')}</p>
+                                <p className="font-semibold">{studentProfile?.current_school_level?.name || 'N/A'}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                                <Calendar className="w-5 h-5 text-purple-600" />
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-500">{t('student_dashboard.age')}</p>
+                                <p className="font-semibold">{studentProfile?.age || 'N/A'} {t('student_dashboard.yearsOld')}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                                <Award className="w-5 h-5 text-amber-600" />
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-500">{t('student_dashboard.currentGrade')}</p>
+                                <p className="font-semibold">{chartData?.grade_letter || 'N/A'}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Teachers Panel */}
                 <div className="mb-6">
-                    <StudentSelector
-                        students={students}
-                        selectedStudent={selectedStudent}
-                        onSelect={handleStudentSelect}
+                    <TeachersPanel
+                        student={studentProfile}
                         onChatWithTeacher={handleChatWithTeacher}
                         t={t}
                     />
                 </div>
-
-                {/* Payment Summary Banner */}
-                {paymentSummary && (
-                    <div className={`mb-6 p-4 rounded-xl border ${paymentSummary.is_fully_paid ? 'bg-green-50 dark:bg-green-900/20 border-green-200' : paymentSummary.overdue_count > 0 ? 'bg-red-50 dark:bg-red-900/20 border-red-200' : 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200'}`}>
-                        <div className="flex flex-wrap justify-between items-center gap-3">
-                            <div className="flex items-center gap-3">
-                                {paymentSummary.is_fully_paid ? <CheckCircle className="w-6 h-6 text-green-600" /> : paymentSummary.overdue_count > 0 ? <AlertOctagon className="w-6 h-6 text-red-600" /> : <AlertCircle className="w-6 h-6 text-yellow-600" />}
-                                <div>
-                                    <p className="font-semibold">{paymentSummary.is_fully_paid ? t('parent_dashboard.feesFullyPaid') : t('parent_dashboard.feesOutstanding')}</p>
-                                    <p className="text-sm">{t('parent_dashboard.remainingBalance')}: {(typeof paymentSummary.total_remaining === 'number' ? paymentSummary.total_remaining : 0).toFixed(2)} FRW</p>
-                                </div>
-                            </div>
-                            {!paymentSummary.is_fully_paid && (
-                                <button onClick={() => { const unpaidPayment = paymentData.find(p => parseFloat(p.remaining_amount) > 0); if (unpaidPayment) handlePaymentClick(unpaidPayment); }} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-2 text-sm">
-                                    <Wallet className="w-4 h-4" /> {t('parent_dashboard.payNow')}
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                )}
 
                 {/* Main Content Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -1123,17 +940,21 @@ const StudentDashboard = () => {
                     <div className="lg:col-span-2 space-y-6">
                         <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
                             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                                <TrendingUp className="w-5 h-5 text-green-600" />{t('parent_dashboard.performanceOverview')}
+                                <TrendingUp className="w-5 h-5 text-green-600" />
+                                {t('student_dashboard.performanceOverview')}
                             </h2>
                             {loadingPerformance ? (
-                                <div className="py-8 text-center"><Spinner /><p className="mt-2 text-gray-500">{t('parent_dashboard.loadingPerformance')}</p></div>
+                                <div className="py-8 text-center">
+                                    <Spinner />
+                                    <p className="mt-2 text-gray-500">{t('student_dashboard.loadingPerformance')}</p>
+                                </div>
                             ) : chartData ? (
                                 <>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                         <div>
-                                            <PerformanceChart percentage={chartData.overallAverage} label={t('parent_dashboard.overallAverage')} />
-                                            <PerformanceChart percentage={chartData.disciplineScore} label={t('parent_dashboard.disciplineScore')} />
-                                            <PerformanceChart percentage={chartData.attendanceRate} label={t('parent_dashboard.attendanceRate')} />
+                                            <PerformanceChart percentage={chartData.overallAverage} label={t('student_dashboard.overallAverage')} />
+                                            <PerformanceChart percentage={chartData.disciplineScore} label={t('student_dashboard.disciplineScore')} />
+                                            <PerformanceChart percentage={chartData.attendanceRate} label={t('student_dashboard.attendanceRate')} />
                                         </div>
                                         <div className="flex items-center justify-center">
                                             <div className="text-center">
@@ -1149,93 +970,147 @@ const StudentDashboard = () => {
                                                         <span className="text-2xl font-bold text-gray-800 dark:text-white">{chartData.overallAverage.toFixed(0)}%</span>
                                                     </div>
                                                 </div>
-                                                <p className="text-sm text-gray-500 mt-2">{t('parent_dashboard.overallPerformance')}</p>
+                                                <p className="text-sm text-gray-500 mt-2">{t('student_dashboard.overallPerformance')}</p>
                                             </div>
                                         </div>
                                     </div>
                                     <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                                        <div className="text-center"><p className="text-2xl font-bold text-green-600">{chartData.subjectsPassed}</p><p className="text-xs text-gray-500">{t('parent_dashboard.subjectsPassed')}</p></div>
-                                        <div className="text-center"><p className="text-2xl font-bold text-red-600">{chartData.subjectsFailed}</p><p className="text-xs text-gray-500">{t('parent_dashboard.subjectsFailed')}</p></div>
-                                        <div className="text-center"><p className="text-2xl font-bold text-blue-600">{chartData.totalSubjects}</p><p className="text-xs text-gray-500">{t('parent_dashboard.totalSubjects')}</p></div>
+                                        <div className="text-center">
+                                            <p className="text-2xl font-bold text-green-600">{chartData.subjectsPassed}</p>
+                                            <p className="text-xs text-gray-500">{t('student_dashboard.subjectsPassed')}</p>
+                                        </div>
+                                        <div className="text-center">
+                                            <p className="text-2xl font-bold text-red-600">{chartData.subjectsFailed}</p>
+                                            <p className="text-xs text-gray-500">{t('student_dashboard.subjectsFailed')}</p>
+                                        </div>
+                                        <div className="text-center">
+                                            <p className="text-2xl font-bold text-blue-600">{chartData.totalSubjects}</p>
+                                            <p className="text-xs text-gray-500">{t('student_dashboard.totalSubjects')}</p>
+                                        </div>
                                     </div>
                                 </>
                             ) : (
-                                <div className="text-center py-8 text-gray-500">{t('parent_dashboard.noPerformanceData')}</div>
+                                <div className="text-center py-8 text-gray-500">{t('student_dashboard.noPerformanceData')}</div>
                             )}
                         </div>
 
-                        {/* Subject Performance */}
+                        {/* Subject Performance - Color-coded */}
                         <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
                             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                                <BookOpen className="w-5 h-5 text-green-600" />{t('parent_dashboard.subjectPerformance')}
+                                <BookOpen className="w-5 h-5 text-green-600" />
+                                {t('student_dashboard.subjectPerformance')}
                             </h2>
-                            {loadingPerformance ? <div className="py-8 text-center"><Spinner /></div>
-                                : chartData?.subjectResults?.length > 0 ? (
-                                    <div className="space-y-2">
-                                        {chartData.subjectResults.map(subject => (
-                                            <SubjectPerformanceCard key={subject.subject_id} subject={subject} t={t} />
-                                        ))}
-                                    </div>
-                                ) : <div className="text-center py-8 text-gray-500">{t('parent_dashboard.noSubjectData')}</div>
-                            }
+                            {loadingPerformance ? (
+                                <div className="py-8 text-center"><Spinner /></div>
+                            ) : chartData?.subjectResults?.length > 0 ? (
+                                <div className="space-y-2">
+                                    {chartData.subjectResults.map(subject => (
+                                        <SubjectPerformanceCard key={subject.subject_id} subject={subject} t={t} />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-8 text-gray-500">{t('student_dashboard.noSubjectData')}</div>
+                            )}
+                            
+                            {/* View Report Button - Only enabled if fees are fully paid */}
                             <button
                                 onClick={handleViewReport}
-                                disabled={!paymentSummary?.is_fully_paid}
-                                className={`w-full mt-6 py-3 rounded-xl text-white font-medium transition-colors flex items-center justify-center gap-2 ${paymentSummary?.is_fully_paid ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 cursor-not-allowed'}`}
+                                disabled={loadingReport || !paymentSummary?.is_fully_paid}
+                                className={`w-full mt-6 py-3 rounded-xl text-white font-medium transition-colors flex items-center justify-center gap-2 ${
+                                    paymentSummary?.is_fully_paid 
+                                        ? 'bg-green-600 hover:bg-green-700' 
+                                        : 'bg-gray-400 cursor-not-allowed'
+                                }`}
                             >
-                                <FileText className="w-4 h-4" />
-                                {t('parent_dashboard.viewFullReport')}
-                                {!paymentSummary?.is_fully_paid && <span className="text-xs ml-2">({t('parent_dashboard.feesRequired')})</span>}
+                                {loadingReport ? <Spinner /> : paymentSummary?.is_fully_paid ? <FileText className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+                                {t('student_dashboard.viewFullReport')}
+                                {!paymentSummary?.is_fully_paid && (
+                                    <span className="text-xs ml-2">({t('student_dashboard.feesRequired')})</span>
+                                )}
                             </button>
                         </div>
                     </div>
 
-                    {/* Right Column - Payments & Quick Stats */}
+                    {/* Right Column - Fee Status & Quick Stats */}
                     <div className="lg:col-span-1 space-y-6">
+                        {/* Fee Status Section */}
                         <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
                             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                                <Wallet className="w-5 h-5 text-green-600" />{t('parent_dashboard.paymentStatus')}
+                                <Wallet className="w-5 h-5 text-green-600" />
+                                {t('student_dashboard.feeStatus')}
                             </h2>
-                            {loadingPayments ? <div className="py-8 text-center"><Spinner /></div>
-                                : paymentData.length > 0 ? (
-                                    <div className="space-y-3">
-                                        {paymentData.map(payment => (
-                                            <PaymentStatusCard
-                                                key={payment.id}
-                                                payment={{ id: payment.id, fee_name: payment.class_level_cost_details?.name || t('parent_dashboard.schoolFees'), total_amount: payment.total_amount, paid_amount: payment.paid_amount, remaining_amount: payment.remaining_amount, status: payment.status, status_display: payment.status_display, due_date: payment.payment_due_date }}
-                                                onPay={handlePaymentClick}
-                                                t={t}
-                                            />
-                                        ))}
-                                    </div>
-                                ) : <div className="text-center py-8 text-gray-500">{t('parent_dashboard.noPaymentData')}</div>
-                            }
+                            {loadingPayments ? (
+                                <div className="py-8 text-center"><Spinner /></div>
+                            ) : paymentData.length > 0 ? (
+                                <div className="space-y-3">
+                                    {paymentData.map(payment => (
+                                        <FeeStatusCard key={payment.id} payment={payment} t={t} />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-8 text-gray-500">
+                                    <p>{t('student_dashboard.noPaymentData')}</p>
+                                    <p className="text-xs mt-2">{t('student_dashboard.contactAdmin')}</p>
+                                </div>
+                            )}
                         </div>
 
+                        {/* Quick Stats */}
                         <div className="bg-gradient-to-br from-green-700 to-green-900 rounded-2xl p-6 text-white">
-                            <h3 className="font-semibold mb-3">{t('parent_dashboard.quickStats')}</h3>
+                            <h3 className="font-semibold mb-3">{t('student_dashboard.quickStats')}</h3>
                             <div className="space-y-2 text-sm">
-                                <div className="flex justify-between"><span>{t('parent_dashboard.overallGrade')}:</span><span className="font-bold">{chartData?.grade_letter || 'N/A'}</span></div>
-                                <div className="flex justify-between"><span>{t('parent_dashboard.attendance')}:</span><span className="font-bold">{chartData?.attendanceRate?.toFixed(1) || 0}%</span></div>
-                                <div className="flex justify-between"><span>{t('parent_dashboard.discipline')}:</span><span className="font-bold">{chartData?.disciplineScore?.toFixed(1) || 0}%</span></div>
+                                <div className="flex justify-between">
+                                    <span>{t('student_dashboard.overallGrade')}:</span>
+                                    <span className="font-bold">{chartData?.grade_letter || 'N/A'}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span>{t('student_dashboard.attendance')}:</span>
+                                    <span className={`font-bold ${
+                                        (chartData?.attendanceRate || 0) >= 80 ? 'text-green-300' : 
+                                        (chartData?.attendanceRate || 0) >= 50 ? 'text-yellow-300' : 'text-red-300'
+                                    }`}>
+                                        {chartData?.attendanceRate?.toFixed(1) || 0}%
+                                    </span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span>{t('student_dashboard.discipline')}:</span>
+                                    <span className={`font-bold ${
+                                        (chartData?.disciplineScore || 0) >= 80 ? 'text-green-300' : 
+                                        (chartData?.disciplineScore || 0) >= 50 ? 'text-yellow-300' : 'text-red-300'
+                                    }`}>
+                                        {chartData?.disciplineScore?.toFixed(1) || 0}%
+                                    </span>
+                                </div>
                             </div>
                         </div>
+
+                        {/* Parents/Guardians */}
+                        {studentProfile?.parents && studentProfile.parents.length > 0 && (
+                            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                                    <UsersIcon className="w-5 h-5 text-green-600" />
+                                    {t('student_dashboard.parents')}
+                                </h2>
+                                <div className="space-y-3">
+                                    {studentProfile.parents.map(parent => (
+                                        <div key={parent.id} className="p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl">
+                                            <p className="font-medium text-gray-800 dark:text-white">{parent.full_name}</p>
+                                            <p className="text-xs text-gray-500">{parent.relationship_type_display}</p>
+                                            {parent.phone_number && (
+                                                <p className="text-xs text-gray-400 mt-1">{parent.phone_number}</p>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
                 {/* Modals */}
-                {showPaymentModal && selectedPayment && (
-                    <PaymentModal
-                        payment={selectedPayment}
-                        onClose={() => { setShowPaymentModal(false); setSelectedPayment(null); }}
-                        onSuccess={handlePaymentSuccess}
-                        parentPhone={parentProfile?.phone_number}
-                        t={t}
-                    />
-                )}
-                {showReportModal && reportData && selectedStudent && (
+                {showReportModal && reportData && studentProfile && (
                     <AcademicReportModal
-                        student={selectedStudent}
+                        student={studentProfile}
                         reportData={reportData}
                         onClose={() => { setShowReportModal(false); setReportData(null); }}
                         t={t}

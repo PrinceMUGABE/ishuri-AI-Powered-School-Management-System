@@ -1798,7 +1798,175 @@ def get_teachers_for_student(request, student_id):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
         
-        
+     
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_my_current_teachers(request):
+    """
+    Get all teachers who teach the currently logged-in student, with subject details.
+    Subjects are deduplicated per teacher.
+    """
+    print(f"\n{SEPARATOR}\n[get_my_current_teachers] User: {request.user.username}\n{SEPARATOR}")
+    lang = get_lang_from_request(request)
+    user = request.user
+
+    try:
+        # ── Permission checks ──────────────────────────────────────
+        if user.role != 'student':
+            return Response({
+                'success': False,
+                'message': get_message('permission_denied', lang),
+                'language': lang,
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        # Get the student profile from the logged-in user
+        student = getattr(user, 'student_profile', None)
+        if not student:
+            return Response({
+                'success': False,
+                'message': get_message('student_not_found', lang),
+                'language': lang,
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        # ── Resolve student's active classroom assignment ───────────
+        classroom_assignment = (
+            StudentClassroomAssignment.objects
+            .filter(student=student, status='active')
+            .select_related('classroom', 'academic_year', 'term')
+            .first()
+        )
+
+        if not classroom_assignment:
+            return Response({
+                'success': True,
+                'language': lang,
+                'data': {
+                    'student': {
+                        'id': student.id,
+                        'full_name': student.full_name,
+                        'roll_number': student.roll_number,
+                    },
+                    'classroom': None,
+                    'teachers': [],
+                    'total_teachers': 0,
+                    'message': 'Student is not currently assigned to any classroom.',
+                },
+            })
+
+        classroom = classroom_assignment.classroom
+        academic_year = classroom_assignment.academic_year
+        term = classroom_assignment.term
+
+        # ── Fetch timetable entries for this classroom ─────────────
+        timetable_filter = {
+            'classroom': classroom,
+            'academic_year': academic_year,
+        }
+        if term:
+            timetable_filter['term'] = term
+
+        timetable_entries = (
+            TeacherTimetable.objects
+            .filter(**timetable_filter)
+            .select_related(
+                'teacher',
+                'teacher__user',
+                'subject',
+            )
+            .order_by('teacher__id', 'subject__id')
+            .distinct()
+        )
+
+        # ── Build teacher map with deduplicated subjects ────────────
+        teacher_map = {}
+        seen_teacher_subject = set()
+
+        for entry in timetable_entries:
+            teacher = entry.teacher
+            subject = entry.subject
+            tid = teacher.id
+            sid = subject.id
+            pair = (tid, sid)
+
+            if pair in seen_teacher_subject:
+                continue
+            seen_teacher_subject.add(pair)
+
+            if tid not in teacher_map:
+                specialization = None
+                if hasattr(teacher, 'specialization'):
+                    raw = teacher.specialization
+                    if raw:
+                        if hasattr(teacher, 'get_specialization_display'):
+                            specialization = teacher.get_specialization_display()
+                        else:
+                            specialization = str(raw)
+
+                teacher_map[tid] = {
+                    'id': teacher.id,
+                    'full_name': teacher.full_name,
+                    'email': teacher.email,
+                    'phone_number': getattr(teacher, 'phone_number', None),
+                    'specialization': specialization,
+                    'status': teacher.status,
+                    'user': {
+                        'id': teacher.user.id,
+                        'username': teacher.user.username,
+                        'role': teacher.user.role,
+                    } if teacher.user else None,
+                    'subjects': [],
+                }
+
+            teacher_map[tid]['subjects'].append({
+                'id': subject.id,
+                'name': subject.name,
+                'code': subject.code,
+                'description': getattr(subject, 'description', None),
+            })
+
+        teachers_list = []
+        for teacher_data in teacher_map.values():
+            teacher_data['total_subjects'] = len(teacher_data['subjects'])
+            teachers_list.append(teacher_data)
+
+        teachers_list.sort(key=lambda x: x['full_name'])
+
+        print(
+            f"[get_my_current_teachers] {len(teachers_list)} teachers, "
+            f"{len(seen_teacher_subject)} unique teacher-subject pairs "
+            f"for student {student.roll_number} in classroom {classroom.name}"
+        )
+
+        return Response({
+            'success': True,
+            'language': lang,
+            'data': {
+                'student': {
+                    'id': student.id,
+                    'full_name': student.full_name,
+                    'roll_number': student.roll_number,
+                    'class_level': student.current_class_level.name if student.current_class_level else None,
+                    'school_level': student.current_school_level.name if student.current_school_level else None,
+                },
+                'classroom': {
+                    'id': classroom.id,
+                    'name': classroom.name,
+                    'code': classroom.code,
+                    'capacity': classroom.capacity,
+                },
+                'academic_year': academic_year.name,
+                'term': term.name if term else None,
+                'teachers': teachers_list,
+                'total_teachers': len(teachers_list),
+            },
+        })
+
+    except Exception as exc:
+        logger.error(f"[get_my_current_teachers] Error: {exc}", exc_info=True)
+        return Response(
+            {'success': False, 'message': str(exc), 'language': lang},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        ) 
         
 # -------------------------------------------------------------------
 # TEACHER VIEWS (for teacher dashboard)

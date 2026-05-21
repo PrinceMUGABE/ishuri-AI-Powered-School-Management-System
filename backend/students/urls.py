@@ -44,5 +44,6 @@ urlpatterns = [
     path('me/teachers-with-subjects/', views.get_teachers_for_student, name='student-me-teachers-with-subjects'),
     path('teacher/student/<int:student_id>/with-subjects/', views.teacher_get_student_full_detail, name='teacher-student-full-detail'),
     path('teacher/my-students/', views.teacher_get_my_students, name='teacher-my-students'),
+    path('get_my_current_teachers/', views.get_my_current_teachers, name='student-my-current-teachers'),
 
 ]

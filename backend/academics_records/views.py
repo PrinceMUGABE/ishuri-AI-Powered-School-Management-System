@@ -2280,3 +2280,72 @@ def get_student_full_report(request, student_id):
             'generated_at': timezone.now().isoformat()
         }
     })
+    
+    
+    
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_my_full_report(request):
+    """
+    Get full academic report for the currently logged-in student across all terms in the academic year.
+    """
+    lang = get_lang(request)
+    
+    # Check if the logged-in user is a student
+    user = request.user
+    
+    if user.role != 'student':
+        return _err(t("permission_denied", lang), status.HTTP_403_FORBIDDEN)
+    
+    try:
+        student = Student.objects.get(user=user)
+    except Student.DoesNotExist:
+        return _err("Student profile not found", status.HTTP_404_NOT_FOUND)
+    
+    academic_year_id = request.query_params.get('academic_year_id')
+    if not academic_year_id:
+        academic_year = AcademicYear.objects.filter(is_current=True).first()
+        if not academic_year:
+            return _err("No current academic year found", status.HTTP_404_NOT_FOUND)
+    else:
+        academic_year = get_object_or_404(AcademicYear, id=academic_year_id)
+    
+    # Get all terms for this academic year
+    terms = Term.objects.filter(academic_year=academic_year).order_by('term_number')
+    
+    if not terms.exists():
+        return _err("No terms found for this academic year", status.HTTP_404_NOT_FOUND)
+    
+    term_performances = []
+    for term in terms:
+        performance = PerformanceReportGenerator.get_full_report(student, academic_year, term)
+        term_performances.append({
+            'term_id': term.id,
+            'term_name': term.name,
+            'term_number': term.term_number,
+            'is_current': term.is_current,
+            'overall_average': performance['academic_performance']['overall_average'],
+            'grade_letter': performance['academic_performance']['grade_letter'],
+            'subjects_passed': performance['academic_performance']['subjects_passed'],
+            'subjects_failed': performance['academic_performance']['subjects_failed'],
+            'total_subjects': performance['academic_performance']['total_subjects'],
+            'subject_results': performance['academic_performance']['subject_results'],
+            'discipline': performance['discipline']
+        })
+    
+    # Get current term performance
+    current_performance = next((t for t in term_performances if t['is_current']), term_performances[0] if term_performances else None)
+    
+    return Response({
+        'success': True,
+        'data': {
+            'student_id': student.id,
+            'student_name': student.full_name,
+            'student_roll': student.roll_number,
+            'academic_year_id': academic_year.id,
+            'academic_year_name': academic_year.name,
+            'current_term_performance': current_performance,
+            'term_performances': term_performances,
+            'generated_at': timezone.now().isoformat()
+        }
+    })

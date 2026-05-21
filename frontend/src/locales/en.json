@@ -454,7 +454,7 @@
       "noData": "No data found",
       "noTeachersFound": "No teachers found matching your criteria",
       "noAssignmentsFound": "No assignments found matching your criteria",
-       "chatCreationError": "Failed to create chatroom",
+      "chatCreationError": "Failed to create chatroom",
       "chatError": "Error setting up chat",
       "noUserAccount": "No user account linked"
     },
@@ -1677,16 +1677,16 @@
       "noUserAccount": "No user account"
     },
     "parent_dashboard": {
-    "downloadPDF": "PDF",
-    "json": "JSON",
-    "generatingPDF": "Generating PDF...",
-    "pdfDownloaded": "PDF downloaded successfully!",
-    "pdfError": "Failed to generate PDF",
-    "qualityEducation": "Quality Education for All",
-    "reportFooter": "Official Academic Report",
-    "print": "Print",
-    "close": "Close"
-  }
+      "downloadPDF": "PDF",
+      "json": "JSON",
+      "generatingPDF": "Generating PDF...",
+      "pdfDownloaded": "PDF downloaded successfully!",
+      "pdfError": "Failed to generate PDF",
+      "qualityEducation": "Quality Education for All",
+      "reportFooter": "Official Academic Report",
+      "print": "Print",
+      "close": "Close"
+    }
   },
   "not_authorized_to_view_student": "You are not authorized to view this student's details.",
   "not_authorized_to_view_classroom": "You are not authorized to view this classroom.",
@@ -1695,7 +1695,6 @@
   "students_retrieved": "Students retrieved successfully",
   "student_details_retrieved": "Student details retrieved successfully",
   "classroom_not_found": "Classroom not found",
-
   "teacherGrades": {
     "common": {
       "loading": "Loading..."
@@ -1922,8 +1921,6 @@
       "classrooms": "Classes"
     }
   },
-
-  
   "adminGrades": {
     "header": {
       "title": "Grade Management",
@@ -2047,8 +2044,6 @@
     },
     "refreshed": "Data refreshed successfully"
   },
-
-  
   "attendance": {
     "header": {
       "title": "Attendance Management",
@@ -2222,20 +2217,15 @@
       "deleteError": "Error deleting attendance session"
     }
   },
-
-
-  
   "assignment": {
     "title": "Assignment Management",
     "subtitle": "Manage and track your assignments",
     "loading": "Loading...",
-
     "total_assignments": "Total Assignments",
     "active": "Active",
     "overdue": "Overdue",
     "expired": "Expired",
     "archived": "Archived",
-
     "filters": "Filters",
     "academic_year": "Academic Year",
     "term": "Term",
@@ -2243,28 +2233,24 @@
     "class_level": "Class Level",
     "subject": "Subject",
     "classroom": "Classroom",
-
     "all_years": "All Years",
     "all_terms": "All Terms",
     "all_levels": "All Levels",
     "all_classes": "All Classes",
     "all_subjects": "All Subjects",
     "all_classrooms": "All Classrooms",
-
     "select_year": "Select Year",
     "select_term": "Select Term",
     "select_level": "Select Level",
     "select_class": "Select Class",
     "select_subject": "Select Subject",
     "select_classroom": "Select Classroom",
-
     "upload_assignment": "Upload Assignment",
     "my_assignments": "My Assignments",
     "search_placeholder": "Search assignments...",
     "loading_assignments": "Loading assignments...",
     "no_assignments": "No assignments found",
     "upload_first": "Upload your first assignment to get started",
-
     "due_date": "Due Date",
     "due_time": "Due Time",
     "total_marks": "Total Marks",
@@ -2273,18 +2259,15 @@
     "no_due_date": "No due date",
     "at": "at",
     "not_specified": "Not specified",
-
     "view_pdf": "View PDF",
     "view_details": "View Details",
     "edit": "Edit",
     "delete": "Delete",
-
     "show": "Show",
     "per_page": "per page",
     "total": "Total:",
     "first": "First",
     "last": "Last",
-
     "upload_title": "Upload Assignment",
     "upload_subtitle": "Upload a PDF assignment for your students",
     "click_to_select": "Click to select a PDF file",
@@ -2302,24 +2285,20 @@
     "uploading": "Uploading...",
     "upload_button": "Upload Assignment",
     "cancel": "Cancel",
-
     "details_title": "Assignment Details",
     "class": "Class",
     "status": "Status",
     "not_set": "Not set",
     "close": "Close",
-
     "edit_title": "Edit Assignment",
     "status_label": "Status",
     "saving": "Saving...",
     "save_changes": "Save Changes",
-
     "delete_title": "Delete Assignment",
     "delete_subtitle": "This action cannot be undone",
     "delete_confirmation": "Are you sure you want to delete",
     "delete_warning": "This action is permanent and cannot be undone. All related data will be lost.",
     "yes_delete": "Yes, Delete",
-
     "fetch_assignments_error": "Failed to fetch assignments",
     "select_pdf_error": "Please select a PDF file",
     "required_fields_error": "Please fill in all required fields",
@@ -2332,9 +2311,6 @@
     "delete_failed": "Failed to delete assignment",
     "no_pdf_error": "No PDF file available"
   },
-
-
-  
   "dashboard": {
     "title": "Dashboard Analytics",
     "subtitle": "Real-time insights and analytics for your institution",
@@ -2435,9 +2411,6 @@
       "parent": "Parent"
     }
   },
-
-
-  
   "analytics": {
     "title": "Analytics & Reports",
     "subtitle": "Comprehensive data analysis and reporting for your institution",
@@ -2572,9 +2545,6 @@
       "Overdue": "Overdue"
     }
   },
-
-
-  
   "notifications": {
     "title": "Notification Center",
     "subtitle": "Manage and track your notifications",
@@ -2656,8 +2626,6 @@
       "parent": "Parent"
     }
   },
-
-
   "teacher_timetable": {
     "title": "My Weekly Timetable",
     "loading": "Loading timetable...",
@@ -2697,8 +2665,6 @@
       "export_success": "Timetable exported successfully"
     }
   },
-
-  
   "parent_dashboard": {
     "title": "Parent Dashboard",
     "welcome": "Welcome",
@@ -2706,7 +2672,6 @@
     "fetchError": "Failed to load parent data",
     "performanceError": "Failed to load performance data",
     "reportError": "Failed to load academic report",
-    
     "passed": "Passed",
     "failed": "Failed",
     "due": "Due",
@@ -2722,14 +2687,12 @@
     "tryAgain": "Try Again",
     "processing": "Processing...",
     "pay": "Pay",
-    
     "studentName": "Student Name",
     "classLevel": "Class Level",
     "schoolLevel": "School Level",
     "academicYear": "Academic Year",
     "generatedOn": "Generated On",
     "current": "Current",
-    
     "overallAverage": "Overall Average",
     "grade": "Grade",
     "subjectsPassed": "Subjects Passed",
@@ -2742,10 +2705,8 @@
     "present": "Present",
     "absent": "Absent",
     "late": "Late",
-    
     "overallPerformance": "Overall Performance",
     "totalSubjects": "Total Subjects",
-    
     "performanceOverview": "Performance Overview",
     "subjectPerformance": "Subject Performance",
     "viewFullReport": "View Full Academic Report",
@@ -2755,14 +2716,12 @@
     "attendance": "Attendance",
     "discipline": "Discipline",
     "disciplineScore": "Discipline Score",
-    
     "feesFullyPaid": "All school fees are fully paid!",
     "feesOutstanding": "You have outstanding fees",
     "remainingBalance": "Remaining Balance",
     "schoolFees": "School Fees",
     "feesRequired": "Fees Required",
     "paymentRequiredForReport": "Payment required to access full academic report. Please clear all fees first.",
-    
     "makePayment": "Make Payment",
     "feeName": "Fee Name",
     "amountToPay": "Amount to Pay",
@@ -2780,17 +2739,302 @@
     "backendFailed": "Backend submission failed",
     "paymentViaPaypack": "Payment via Paypack",
     "paymentSuccess": "Payment completed successfully!",
-    
     "reportDownloaded": "Report downloaded",
     "academicReport": "Academic Performance Report",
     "reportFooter": "This is an official academic report. Please contact the school administration for any discrepancies.",
     "qualityEducation": "Quality Education for All",
-    
     "noStudentsTitle": "No Students Found",
     "noStudentsMessage": "You are not linked to any student. Please contact the school administrator.",
     "noPerformanceData": "No performance data available for this student",
     "noSubjectData": "No subject performance data available",
     "noPaymentData": "No payment information available",
     "loadingPerformance": "Loading performance data..."
+  },
+  "student_layout": {
+    "app": {
+      "name": "Ishuri"
+    },
+    "common": {
+      "na": "N/A",
+      "student": "Student",
+      "cancel": "Cancel",
+      "retry": "Retry",
+      "close": "Close",
+      "loading_dashboard": "Loading your dashboard…"
+    },
+    "time": {
+      "just_now": "Just now",
+      "minutes_ago": "{{count}}m ago",
+      "hours_ago": "{{count}}h ago",
+      "days_ago": "{{count}}d ago"
+    },
+    "greeting": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    },
+    "auth": {
+      "logout_success": "Logged out successfully"
+    },
+    "nav": {
+      "section_label": "Navigation",
+      "account_label": "Account",
+      "dashboard": "Dashboard",
+      "grades": "My Grades",
+      "attendance": "Attendance",
+      "teachers": "My Teachers",
+      "chats": "Messages",
+      "payments": "Payments",
+      "reports": "Reports",
+      "my_profile": "My Profile",
+      "logout": "Logout",
+      "assignments": "Assignments",
+      "digital_id": "Digital ID"
+    },
+    "profile": {
+      "title": "My Profile",
+      "subtitle": "Manage your account information",
+      "not_loaded": "Student profile not loaded yet",
+      "load_failed": "Failed to load profile",
+      "update_success": "Profile updated successfully",
+      "update_failed": "Failed to update profile",
+      "save_changes": "Save Changes",
+      "account_details": "Account Details",
+      "tabs": {
+        "profile": "Profile Info",
+        "password": "Change Password"
+      },
+      "fields": {
+        "roll_number": "Roll Number",
+        "role": "Role",
+        "status": "Status",
+        "enrolled": "Enrolled",
+        "full_name": "Full Name",
+        "email": "Email Address",
+        "phone": "Phone Number",
+        "birth_date": "Date of Birth"
+      },
+      "placeholders": {
+        "full_name": "Your full name",
+        "email": "you@example.com",
+        "phone": "+250XXXXXXXXX"
+      },
+      "errors": {
+        "full_name_required": "Full name is required",
+        "invalid_email": "Invalid email address",
+        "invalid_phone": "Phone must be 10–15 digits (optionally starting with +)"
+      }
+    },
+    "password": {
+      "notice": "You need your",
+      "current_label": "current password",
+      "notice_suffix": "to set a new one. Your new password must meet all requirements below.",
+      "change_success": "Password changed successfully",
+      "change_failed": "Failed to change password",
+      "update_button": "Update Password",
+      "match": "Passwords match",
+      "fields": {
+        "current": "Current Password",
+        "new": "New Password",
+        "confirm": "Confirm New Password"
+      },
+      "placeholders": {
+        "current": "Enter your current password",
+        "new": "Choose a strong password",
+        "confirm": "Repeat your new password"
+      },
+      "strength": {
+        "label": "Strength",
+        "strong": "Strong ✓",
+        "medium": "Medium",
+        "weak": "Weak"
+      },
+      "requirements": {
+        "length": "At least 6 chars",
+        "uppercase": "Uppercase letter",
+        "lowercase": "Lowercase letter",
+        "number": "Number",
+        "special": "Special character"
+      },
+      "errors": {
+        "current_required": "Current password is required",
+        "new_required": "New password is required",
+        "min_length": "At least 6 characters required",
+        "uppercase": "Must contain an uppercase letter",
+        "lowercase": "Must contain a lowercase letter",
+        "number": "Must contain a number",
+        "special": "Must contain a special character",
+        "confirm_required": "Please confirm your password",
+        "mismatch": "Passwords do not match"
+      }
+    },
+    "notifications": {
+      "title": "Notifications",
+      "no_unread": "No unread notifications",
+      "mark_all_read": "Mark all read",
+      "all_marked_read": "All notifications marked as read",
+      "load_failed": "Failed to load notifications",
+      "mark_read_failed": "Failed to mark as read",
+      "mark_all_failed": "Failed to mark all as read",
+      "view_all": "View all notifications"
+    }
+  },
+  "student_dashboard": {
+    "title": "Student Dashboard",
+    "welcome": "Welcome back",
+    "rollNumber": "Roll Number",
+    "classLevel": "Class Level",
+    "schoolLevel": "School Level",
+    "age": "Age",
+    "yearsOld": "years",
+    "currentGrade": "Current Grade",
+    "current": "Current",
+    "passed": "Passed",
+    "failed": "Failed",
+    "performanceOverview": "Performance Overview",
+    "overallAverage": "Overall Average",
+    "disciplineScore": "Discipline Score",
+    "attendanceRate": "Attendance Rate",
+    "overallPerformance": "Overall Performance",
+    "subjectsPassed": "Passed",
+    "subjectsFailed": "Failed",
+    "totalSubjects": "Total Subjects",
+    "subjectPerformance": "Subject Performance",
+    "viewFullReport": "View Full Academic Report",
+    "contactInfo": "Contact Information",
+    "quickStats": "Quick Stats",
+    "overallGrade": "Overall Grade",
+    "attendance": "Attendance",
+    "discipline": "Discipline",
+    "parents": "Parents/Guardians",
+    "myTeachers": "My Teachers",
+    "chat": "Chat",
+    "chatWithTeacher": "Chat with {{name}}",
+    "loading": "Loading your dashboard...",
+    "loadingPerformance": "Loading performance data...",
+    "loadingTeachers": "Loading your teachers...",
+    "noPerformanceData": "No performance data available",
+    "noSubjectData": "No subject data available",
+    "noTeachers": "No teachers assigned to your classroom yet.",
+    "teachersLoadError": "Could not load teachers.",
+    "fetchError": "Error fetching data. Please refresh the page.",
+    "performanceError": "Error loading performance data. Please try again.",
+    "reportError": "Error loading academic report. Please try again.",
+    "reportDownloaded": "Report downloaded successfully!",
+    "download": "Download",
+    "print": "Print",
+    "close": "Close",
+    "academicReport": "Academic Performance Report",
+    "reportTitle": "Student Performance Report",
+    "studentName": "Student Name",
+    "academicYear": "Academic Year",
+    "subject": "Subject",
+    "grade": "Grade",
+    "semestralGrades": "Semestral Grades and Final Performance",
+    "gradeScale": "Grade Scale",
+    "range": "Range",
+    "disciplineAttendance": "Discipline & Attendance",
+    "present": "Present",
+    "absent": "Absent",
+    "late": "Late",
+    "remarks": "Remarks",
+    "qualityEducation": "Quality Education for a Better Future",
+    "generatedOn": "Generated on",
+    "reportFooter": "Official School Report - Les Hirondelles de Don Bosco",
+    "profileNotFound": "Profile Not Found",
+    "profileNotFoundMessage": "We couldn't find your student profile. Please contact the school administrator.",
+    "feeStatus": "School Fees Status",
+    "fullyPaid": "Fully Paid",
+    "partiallyPaid": "Partially Paid",
+    "unpaid": "Unpaid",
+    "paidAmount": "Paid",
+    "totalAmount": "Total",
+    "remainingBalance": "Remaining Balance",
+    "dueDate": "Due Date",
+    "schoolFees": "School Fees",
+    "paymentRequiredForReport": "Please clear all outstanding fees to access your academic report",
+    "feesRequired": "Fees required",
+    "noPaymentData": "No payment records found",
+    "contactAdmin": "Please contact the school administration for fee information",
+    "excellent": "Excellent",
+    "average": "Average",
+    "needsImprovement": "Needs Improvement"
+  },
+  "student_assignments": {
+    "title": "My Assignments",
+    "subtitle": "View and download your course assignments",
+    "total_assignments": "Total Assignments",
+    "upcoming": "Upcoming",
+    "overdue": "Overdue",
+    "search_placeholder": "Search by title, subject, or teacher...",
+    "all_subjects": "All Subjects",
+    "all_status": "All Status",
+    "active": "Active",
+    "overdue_by": "Overdue by {{days}} days",
+    "due_today": "Due today",
+    "due_tomorrow": "Due tomorrow",
+    "days_left": "{{days}} days left",
+    "due_date": "Due Date",
+    "total_marks": "Total Marks",
+    "status": "Status",
+    "posted": "Posted",
+    "view": "View Details",
+    "download": "Download PDF",
+    "description": "Description",
+    "instructions": "Instructions",
+    "teacher": "Teacher",
+    "posted_on": "Posted On",
+    "not_specified": "Not specified",
+    "view_assignment": "View Assignment",
+    "download_pdf": "Download PDF",
+    "loading": "Loading...",
+    "loading_assignments": "Loading your assignments...",
+    "no_assignments": "No Assignments Yet",
+    "no_assignments_message": "You don't have any assignments at the moment. Check back later!",
+    "show": "Show",
+    "per_page": "per page",
+    "total": "Total",
+    "first": "First",
+    "last": "Last",
+    "fetch_error": "Failed to load assignments. Please try again.",
+    "no_pdf_error": "No PDF file available for this assignment.",
+    "view_error": "Failed to open the assignment. Please try again.",
+    "download_success": "Assignment downloaded successfully!",
+    "download_error": "Failed to download the assignment. Please try again."
+  },
+  "student_id": {
+    "title": "Digital Student ID",
+    "subtitle": "Official School Identification Card",
+    "school_name": "Les Hirondelles de Don Bosco",
+    "school_motto": "Quality Education for a Better Future",
+    "id_card": "Student ID Card",
+    "roll_number": "Roll Number",
+    "class": "Class",
+    "school_level": "School Level",
+    "birth_date": "Date of Birth",
+    "age": "Age",
+    "years": "years",
+    "academic_year": "Academic Year",
+    "active": "Active",
+    "inactive": "Inactive",
+    "transferred": "Transferred",
+    "graduated": "Graduated",
+    "na": "N/A",
+    "valid_id": "Valid School Identification",
+    "download": "Download ID Card",
+    "print": "Print",
+    "loading": "Loading your ID card...",
+    "no_profile": "Profile Not Found",
+    "no_profile_message": "We couldn't find your student profile. Please contact the school administrator.",
+    "retry": "Retry",
+    "fetch_error": "Failed to load profile. Please try again.",
+    "profile_error": "Error loading student profile",
+    "download_success": "ID Card downloaded successfully!",
+    "download_error": "Failed to download ID Card. Please try again.",
+    "important_info": "Important Information",
+    "info_1": "This ID card is the property of Les Hirondelles de Don Bosco School",
+    "info_2": "Please keep this ID card with you at all times while on school premises",
+    "info_3": "Report lost or stolen ID cards immediately to the school administration",
+    "parents_guardians": "Parents / Guardians"
   }
 }

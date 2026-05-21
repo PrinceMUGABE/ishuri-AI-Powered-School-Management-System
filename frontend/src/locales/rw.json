@@ -1477,7 +1477,7 @@
       "myStudents": "Abanyeshuri Banjye",
       "chats": "Inyinganwe",
       "profile": "Umwirondoro",
-      "timetable":"Ibihe by'amasomo"
+      "timetable": "Ibihe by'amasomo"
     },
     "common": {
       "loading": "Gutegura umwanya wawe…",
@@ -1487,10 +1487,6 @@
       "logoutSuccess": "Wasohowe neza."
     }
   },
-
-
-
-  
   "teacher": {
     "welcome": "Murakaza neza, {{name}}!",
     "teacher": "Umwarimu",
@@ -1671,11 +1667,6 @@
   "students_retrieved": "Abanyeshuri bakuwe neza",
   "student_details_retrieved": "Ibiranga umunyeshuri byakuwe neza",
   "classroom_not_found": "Ikirasi nticyabonetse",
-  
-
-
-  
- 
   "teacherGrades": {
     "common": {
       "loading": "Kuramo..."
@@ -1894,7 +1885,6 @@
       "noPerformanceData": "Ntan makuru y'imikorere arahari",
       "noPerformanceDataHint": "Uyu munyeshuri ashobora kuba atarabona amanota yanditswe"
     },
-
     "subjectsAssigned": "Amasomo Yashinzwe",
     "stats": {
       "totalGrades": "Amanota Yose",
@@ -1903,8 +1893,6 @@
       "classrooms": "Ibyiciro"
     }
   },
-
-  
   "adminGrades": {
     "header": {
       "title": "Gestion des Notes",
@@ -2028,8 +2016,6 @@
     },
     "refreshed": "Amakuru yavuguruwe neza"
   },
-
-  
   "attendance": {
     "header": {
       "title": "Gucunga Ibitaro",
@@ -2203,20 +2189,15 @@
       "deleteError": "Ikosa ry'kusiba inama y'ibitiro"
     }
   },
-
-
-  
   "assignment": {
     "title": "Gucunga Imirimo y'Ishuri",
     "subtitle": "Gucunga no gukurikirana imirimo y'ishuri",
     "loading": "Biragenda...",
-
     "total_assignments": "Imirimo Yose",
     "active": "Irakora",
     "overdue": "Yarenze Igihe",
     "expired": "Irangiye",
     "archived": "Yabitswe",
-
     "filters": "Gushungura",
     "academic_year": "Umwaka w'Ishuri",
     "term": "Igice cy'Umwaka",
@@ -2224,28 +2205,24 @@
     "class_level": "Urwego rw'Iklasi",
     "subject": "Isomo",
     "classroom": "Icyumba cy'Amasomo",
-
     "all_years": "Imyaka Yose",
     "all_terms": "Ibice Byose",
     "all_levels": "Intera Zose",
     "all_classes": "Iklasi Zose",
     "all_subjects": "Amasomo Yose",
     "all_classrooms": "Ibyumba Byose",
-
     "select_year": "Hitamo Umwaka",
     "select_term": "Hitamo Igice",
     "select_level": "Hitamo Urwego",
     "select_class": "Hitamo Iklasi",
     "select_subject": "Hitamo Isomo",
     "select_classroom": "Hitamo Icyumba",
-
     "upload_assignment": "Ohereza Akazi",
     "my_assignments": "Imirimo Yanjye",
     "search_placeholder": "Shakisha imirimo...",
     "loading_assignments": "Gushakisha imirimo...",
     "no_assignments": "Nta mirimo yabonetse",
     "upload_first": "Ohereza akazi kawe ka mbere gutangira",
-
     "due_date": "Itariki yo Gurangiza",
     "due_time": "Igihe cyo Gurangiza",
     "total_marks": "Amanota Yose",
@@ -2254,18 +2231,15 @@
     "no_due_date": "Nta tariki yo gurangiza",
     "at": "saa",
     "not_specified": "Ntibisobanurwa",
-
     "view_pdf": "Reba PDF",
     "view_details": "Reba Ibisobanuro",
     "edit": "Hindura",
     "delete": "Siba",
-
     "show": "Erekana",
     "per_page": "ku ipaji",
     "total": "Igiteranyo:",
     "first": "Iya mbere",
     "last": "Iya nyuma",
-
     "upload_title": "Ohereza Akazi",
     "upload_subtitle": "Ohereza PDF y'akazi ku banyeshuri bawe",
     "click_to_select": "Kanda hano guhitamo dosiye ya PDF",
@@ -2283,24 +2257,20 @@
     "uploading": "Kohereza...",
     "upload_button": "Ohereza Akazi",
     "cancel": "Hagarika",
-
     "details_title": "Ibisobanuro by'Akazi",
     "class": "Iklasi",
     "status": "Imimerere",
     "not_set": "Ntibishyizweho",
     "close": "Funga",
-
     "edit_title": "Hindura Akazi",
     "status_label": "Imimerere",
     "saving": "Kubika...",
     "save_changes": "Bika Impinduka",
-
     "delete_title": "Siba Akazi",
     "delete_subtitle": "Ibi ntishobora gusubirwaho",
     "delete_confirmation": "Urashaka gusiba",
     "delete_warning": "Ibi ni bisanzwe kandi ntishobora gusubirwaho. Amakuru yose arebana nabyo azabuzwa.",
     "yes_delete": "Yego, Siba",
-
     "fetch_assignments_error": "Kuronka imirimo byanze",
     "select_pdf_error": "Hitamo dosiye ya PDF",
     "required_fields_error": "Uzuza ibice byose bisabwa",
@@ -2313,9 +2283,6 @@
     "delete_failed": "Gusiba akazi byanze",
     "no_pdf_error": "Nta dosiye ya PDF ihari"
   },
-
-
-  
   "dashboard": {
     "title": "Ibipimo bya Dashboard",
     "subtitle": "Ibisobanuro birambuye n'isesengura ry'ikigo cyawe",
@@ -2416,8 +2383,6 @@
       "parent": "Umubyeyi"
     }
   },
-
-  
   "analytics": {
     "title": "Isesengura na Raporo",
     "subtitle": "Isesengura rirambuye ry'amakuru na raporo z'ikigo cyawe",
@@ -2552,9 +2517,6 @@
       "Overdue": "Byatinze"
     }
   },
-
-
-  
   "notifications": {
     "title": "Ibirimo by'Imenyesha",
     "subtitle": "Genzura n'icungire imenyesha yawe",
@@ -2636,8 +2598,6 @@
       "parent": "Umubyeyi"
     }
   },
-
- 
   "teacher_timetable": {
     "title": "Igihe Cyanjyewe cya Buri Cyumweru",
     "loading": "Gutwara igihe cy'amasomo...",
@@ -2677,8 +2637,6 @@
       "export_success": "Igihe cyoherejwe neza"
     }
   },
-
-  
   "parent_dashboard": {
     "title": "Ikibaho cy'Umubyeyi",
     "welcome": "Murakaza neza",
@@ -2686,7 +2644,6 @@
     "fetchError": "Gutwara amakuru y'umubyeyi byananiwe",
     "performanceError": "Gutwara amakuru y'ibyagezweho byananiwe",
     "reportError": "Gutwara raporo y'amashuri byananiwe",
-    
     "passed": "Yatsinze",
     "failed": "Yananiwe",
     "due": "Igihe cyo kwishyura",
@@ -2702,14 +2659,12 @@
     "tryAgain": "Gerageza Bundi",
     "processing": "Birakorwa...",
     "pay": "Kwishyura",
-    
     "studentName": "Izina ry'Umunyeshuri",
     "classLevel": "Urwego rw'Ishuri",
     "schoolLevel": "Urwego rw'Amashuri",
     "academicYear": "Umwaka w'Amashuri",
     "generatedOn": "Yakozwe ku",
     "current": "Igihe",
-    
     "overallAverage": "Impuzandengo",
     "grade": "Amanota",
     "subjectsPassed": "Amasomo Yatsinze",
@@ -2722,10 +2677,8 @@
     "present": "Yahari",
     "absent": "Ntawahari",
     "late": "Atinze",
-    
     "overallPerformance": "Ibyagezweho Byose",
     "totalSubjects": "Amasomo Yose",
-    
     "performanceOverview": "Ibyagezweho mu Masomo",
     "subjectPerformance": "Ibyagezweho ku Masomo",
     "viewFullReport": "Reba Raporo Yuzuye",
@@ -2735,14 +2688,12 @@
     "attendance": "Itabaza",
     "discipline": "Imyitwarire",
     "disciplineScore": "Amanota y'Imyitwarire",
-    
     "feesFullyPaid": "Amafaranga y'amashuri yose yishyuwe!",
     "feesOutstanding": "Urasigaye kwishyura",
     "remainingBalance": "Ikisigaye",
     "schoolFees": "Amafaranga y'Ishuri",
     "feesRequired": "Kwishyura",
     "paymentRequiredForReport": "Kwishyura kurakenewe kugira ngo ubone raporo yuzuye ya amashuri. Nyamuneka kwishyura amafaranga yose mbere.",
-    
     "makePayment": "Kwishyura",
     "feeName": "Izina ry'ishyurwa",
     "amountToPay": "Amafaranga yo Kwishyura",
@@ -2760,17 +2711,302 @@
     "backendFailed": "Kohereza amakuru byananiwe",
     "paymentViaPaypack": "Ishyurwa rikoresheje Paypack",
     "paymentSuccess": "Kwishyura byagenze neza!",
-    
     "reportDownloaded": "Raporo yakuwe",
     "academicReport": "Raporo y'Ibyagezweho mu Masomo",
     "reportFooter": "Iyi ni raporo yemewe ya amashuri. Nyamuneka uvugane n'ubuyobozi bw'ishuri niba hari amakosa.",
     "qualityEducation": "Uburezi Bwiza kuri Bose",
-    
     "noStudentsTitle": "Nta Munyeshuri Wabonetse",
     "noStudentsMessage": "Nta munyeshuri ufite. Nyamuneka uvugane n'ubuyobozi bw'ishuri.",
     "noPerformanceData": "Nta makuru y'ibyagezweho aboneka kuri uyu munyeshuri",
     "noSubjectData": "Nta makuru y'ibyagezweho ku masomo aboneka",
     "noPaymentData": "Nta makuru y'ishyurwa aboneka",
     "loadingPerformance": "Gutwara ibyagezweho..."
+  },
+  "student_layout": {
+    "app": {
+      "name": "Ishuri"
+    },
+    "common": {
+      "na": "N/A",
+      "student": "Umunyeshuri",
+      "cancel": "Guhagarika",
+      "retry": "Ongera ugerageze",
+      "close": "Gufunga",
+      "loading_dashboard": "Turimo gupakira dashboard yawe…"
+    },
+    "time": {
+      "just_now": "Vuba aha",
+      "minutes_ago": "hashize {{count}} mn",
+      "hours_ago": "hashize {{count}} sa",
+      "days_ago": "hashize {{count}} iminsi"
+    },
+    "greeting": {
+      "morning": "Mwaramutse",
+      "afternoon": "Mwiriwe",
+      "evening": "Mwiriwe nijoro"
+    },
+    "auth": {
+      "logout_success": "Wasohotse neza"
+    },
+    "nav": {
+      "section_label": "Ubugenzuzi",
+      "account_label": "Konti",
+      "dashboard": "Dashboard",
+      "grades": "Amanota yanjye",
+      "attendance": "Igitabo cy’itariki",
+      "teachers": "Abarezi banjye",
+      "chats": "Ubutumwa",
+      "payments": "Ishyuza",
+      "reports": "Raporo",
+      "my_profile": "Ibyaranjye",
+      "logout": "Sohoka",
+      "assignments": "Imikoro",
+      "digital_id": "Indangamuntu"
+    },
+    "profile": {
+      "title": "Ibyaranjye",
+      "subtitle": "Genzura amakuru ya konti yawe",
+      "not_loaded": "Ibyaranjye ntabwo byapakiwe",
+      "load_failed": "Gupakira ibyaranjye byananiwe",
+      "update_success": "Ibyaranjye byahinduwe neza",
+      "update_failed": "Kuvugurura ibyaranjye byananiwe",
+      "save_changes": "Kubika impinduka",
+      "account_details": "Amarangamutwe ya konti",
+      "tabs": {
+        "profile": "Amakuru yanjye",
+        "password": "Hindura ijambobanga"
+      },
+      "fields": {
+        "roll_number": "Nomero y’umunyeshuri",
+        "role": "Uruhare",
+        "status": "Ibyifuzo",
+        "enrolled": "Yanditse",
+        "full_name": "Izina rizuye",
+        "email": "Aderesi ya imeri",
+        "phone": "Nomero ya terefone",
+        "birth_date": "Itariki y’ivuka"
+      },
+      "placeholders": {
+        "full_name": "Izina ryawe rizuye",
+        "email": "wowe@urugero.com",
+        "phone": "+250XXXXXXXXX"
+      },
+      "errors": {
+        "full_name_required": "Izina rizuye birakenewe",
+        "invalid_email": "Aderesi ya imeri si yo",
+        "invalid_phone": "Nomero ya terefone igomba kuba imibare 10–15 (ishobora gutangirana na +)"
+      }
+    },
+    "password": {
+      "notice": "Ukeneye",
+      "current_label": "ijambobanga uri bukoresha",
+      "notice_suffix": "kugira ngo ushyireho rishya. Ijambobanga ryawe rishya rigomba gukurikiza ibyo bisabwa byose haruguru.",
+      "change_success": "Ijambobanga ryahinduwe neza",
+      "change_failed": "Kuvugurura ijambobanga byananiwe",
+      "update_button": "Vugurura ijambobanga",
+      "match": "Ijambobanga rirahuje",
+      "fields": {
+        "current": "Ijambobanga uri bukoresha",
+        "new": "Ijambobanga rishya",
+        "confirm": "Emeza ijambobanga rishya"
+      },
+      "placeholders": {
+        "current": "Shyiramo ijambobanga uri bukoresha",
+        "new": "Hitamo ijambobanga rikomeye",
+        "confirm": "Subiramo ijambobanga ryawe rishya"
+      },
+      "strength": {
+        "label": "Imbaraga",
+        "strong": "Rikomeye ✓",
+        "medium": "Riringaniye",
+        "weak": "Rikeneje"
+      },
+      "requirements": {
+        "length": "Buri gihe n’inyuguti 6",
+        "uppercase": "Inyuguti nkuru",
+        "lowercase": "Inyuguti ntoya",
+        "number": "Imibare",
+        "special": "Inyuguti idasanzwe"
+      },
+      "errors": {
+        "current_required": "Ijambobanga uri bukoresha birakenewe",
+        "new_required": "Ijambobanga rishya birakenewe",
+        "min_length": "Buri gihe n’inyuguti 6 birakenewe",
+        "uppercase": "Igomba kuba irimo inyuguti nkuru",
+        "lowercase": "Igomba kuba irimo inyuguti ntoya",
+        "number": "Igomba kuba irimo umubare",
+        "special": "Igomba kuba irimo inyuguti idasanzwe",
+        "confirm_required": "Nyamuneka emeza ijambobanga ryawe",
+        "mismatch": "Ijambobanga ntabwo rirahuje"
+      }
+    },
+    "notifications": {
+      "title": "Imenyesha",
+      "no_unread": "Nta menyesha utaribonye",
+      "mark_all_read": "Shyira byose nk’uko warebye",
+      "all_marked_read": "Imenyesha byose byashyizwe nk’uko warebye",
+      "load_failed": "Gupakira imenyesha byananiwe",
+      "mark_read_failed": "Gushyira nk’uko warebye byananiwe",
+      "mark_all_failed": "Gushyira byose nk’uko warebye byananiwe",
+      "view_all": "Reba imenyesha byose"
+    }
+  },
+  "student_dashbord": {
+    "title": "Dashbord y'umunyeshuri",
+    "welcome": "Turagusuhuye",
+    "rollNumber": "Nomero y'umunyeshuri",
+    "classLevel": "Urwego rw'ishuri",
+    "schoolLevel": "Urwego rw'igikorwa",
+    "age": "Imyaka",
+    "yearsOld": "imyaka",
+    "currentGrade": "Amanota ubu",
+    "current": "Ubu",
+    "passed": "Yatsinze",
+    "failed": "Yananiranye",
+    "performanceOverview": "Ibyerekeye imikorere",
+    "overallAverage": "Impuzandengo rusange",
+    "disciplineScore": "Amanota y'imyitwarire",
+    "attendanceRate": "Igipimo cy'itabira",
+    "overallPerformance": "Imikorere rusange",
+    "subjectsPassed": "Yatsinze",
+    "subjectsFailed": "Yananiranye",
+    "totalSubjects": "Inyigo zose",
+    "subjectPerformance": "Imikorere ku nyigo",
+    "viewFullReport": "Reba raporo y'amasomo yose",
+    "contactInfo": "Amakuru yo guhamagara",
+    "quickStats": "Ibihwihwike byihuse",
+    "overallGrade": "Amanota rusange",
+    "attendance": "Itabira",
+    "discipline": "Imyitwarire",
+    "parents": "Ababyeyi/Abarezi",
+    "myTeachers": "Abarezi banjye",
+    "chat": "Kuganira",
+    "chatWithTeacher": "Ganira na {{name}}",
+    "loading": "Turi gupakira dashbord yawe...",
+    "loadingPerformance": "Turi gupakira amakuru y'imikorere...",
+    "loadingTeachers": "Turi gupakira abarezi bawe...",
+    "noPerformanceData": "Nta makuru y'imikorere ahaboneka",
+    "noSubjectData": "Nta makuru y'inyigo ahaboneka",
+    "noTeachers": "Nta mwarimu ugenewe ishuri ryakaba",
+    "teachersLoadError": "Ntabwo byashobotse gupakira abarezi.",
+    "fetchError": "Habaye ikibazo mu gupakira amakuru. Nyamuneka ongera ugarura urupapuro.",
+    "performanceError": "Habaye ikibazo mu gupakira imikorere. Nyamuneka ongera ugerageze.",
+    "reportError": "Habaye ikibazo mu gupakira raporo y'amasomo. Nyamuneka ongera ugerageze.",
+    "reportDownloaded": "Raporo yakuwe neza!",
+    "download": "Kuweka",
+    "print": "Gucapa",
+    "close": "Gufunga",
+    "academicReport": "Raporo y'amasomo",
+    "reportTitle": "Raporo y'umunyeshuri",
+    "studentName": "Izina ry'umunyeshuri",
+    "academicYear": "Umwaka w'amashuri",
+    "subject": "Inyigo",
+    "grade": "Amanota",
+    "semestralGrades": "Amanota ya trimestre n'umusozo",
+    "gradeScale": "Igipimo cy'amota",
+    "range": "Urutonde",
+    "disciplineAttendance": "Imyitwarire n'itabira",
+    "present": "Yari hari",
+    "absent": "Yabuze",
+    "late": "Atinze",
+    "remarks": "Ibitekerezo by'inyongera",
+    "qualityEducation": "Uburezi bwiza kuri ejo heza",
+    "generatedOn": "Yakozwe ku",
+    "reportFooter": "Raporo y'ishuri - Les Hirondelles de Don Bosco",
+    "profileNotFound": "Ibyaranjye ntibiboneka",
+    "profileNotFoundMessage": "Ntabwo twabonye ibyaranjye nk'umunyeshuri. Nyamuneka uvuganishe n'umuyobozi w'ishuri.",
+    "feeStatus": "Imyanya y'ishuri",
+    "fullyPaid": "Yishyuwe burundu",
+    "partiallyPaid": "Yishyuwe igice",
+    "unpaid": "Ntago yishyuwe",
+    "paidAmount": "Yishyuwe",
+    "totalAmount": "Igiteranyo",
+    "remainingBalance": "Igisigaye",
+    "dueDate": "Itariki ya nyuma",
+    "schoolFees": "Imyanya y'ishuri",
+    "paymentRequiredForReport": "Nyamuneka uruze amafaranga asigaye kugira ngo ubone raporo yawe y'amasomo",
+    "feesRequired": "Bisaba amafaranga",
+    "noPaymentData": "Nta makuru y'ishyuza aboneka",
+    "contactAdmin": "Nyamuneka uvuganishe n'ubuyobozi bw'ishuri kubijyanye n'ishyuza",
+    "excellent": "Byiza cyane",
+    "average": "Biringaniye",
+    "needsImprovement": "Bisaba kunoza"
+  },
+  "student_assignments": {
+    "title": "Imikoro yanjye",
+    "subtitle": "Reba ukure ibikorwa byawe",
+    "total_assignments": "Ibikorwa byose",
+    "upcoming": "Biri imbere",
+    "overdue": "Byatinze",
+    "search_placeholder": "Shakisha izina, inyigo, cyangwa umwarimu...",
+    "all_subjects": "Inyigo zose",
+    "all_status": "Imiterere yose",
+    "active": "Gikora",
+    "overdue_by": "Byatinze n'iminsi {{days}}",
+    "due_today": "Kuri uyu munsi",
+    "due_tomorrow": "Kazoza",
+    "days_left": "Hasigaye iminsi {{days}}",
+    "due_date": "Itariki ya nyuma",
+    "total_marks": "Amanota yose",
+    "status": "Imiterere",
+    "posted": "Yashyizwe",
+    "view": "Reba ibyangombwa",
+    "download": "Kuweka PDF",
+    "description": "Ibisobanuro",
+    "instructions": "Amabwiriza",
+    "teacher": "Umwarimu",
+    "posted_on": "Yashyizwe ku",
+    "not_specified": "Ntabwo bisobanuwe",
+    "view_assignment": "Reba igikorwa",
+    "download_pdf": "Kuweka PDF",
+    "loading": "Turi gutwika...",
+    "loading_assignments": "Turi gutwika ibikorwa byawe...",
+    "no_assignments": "Nta kigikorwa",
+    "no_assignments_message": "Ubu nta kigikorwa ufite. Garuka nyuma!",
+    "show": "Kwerekana",
+    "per_page": "ku rupapuro",
+    "total": "Igiteranyo",
+    "first": "Icya mbere",
+    "last": "Icya nyuma",
+    "fetch_error": "Gutwika ibikorwa byananiwe. Nyamuneka ongera ugerageze.",
+    "no_pdf_error": "Nta dosiye ya PDF ihari kuri iki gikorwa.",
+    "view_error": "Gufungura igikorwa byananiwe. Nyamuneka ongera ugerageze.",
+    "download_success": "Igikorwa cyakuwe neza!",
+    "download_error": "Gukuramo igikorwa byananiwe. Nyamuneka ongera ugerageze."
+  },
+  "student_id": {
+    "title": "Ijambo ry'Umunyeshuri rya Digitale",
+    "subtitle": "Ijambo ry'Umunyeshuri ry'ishuri",
+    "school_name": "Les Hirondelles de Don Bosco",
+    "school_motto": "Uburezi bwiza kuri ejo heza",
+    "id_card": "Ijambo ry'umunyeshuri",
+    "roll_number": "Nomero y'umunyeshuri",
+    "class": "Icyiciro",
+    "school_level": "Urwego rw'amashuri",
+    "birth_date": "Itariki y'Amavuko",
+    "age": "Imyaka",
+    "years": "imyaka",
+    "academic_year": "Umwaka w'amashuri",
+    "active": "Gikora",
+    "inactive": "Ntigikora",
+    "transferred": "Yimuwe",
+    "graduated": "Yarangije",
+    "na": "N/A",
+    "valid_id": "Ijambo ry'ishuri rizemewe",
+    "download": "Kuweka Ijambo",
+    "print": "Gucapa",
+    "loading": "Turi gutwika ijambo ryawe...",
+    "no_profile": "Ibyaranjye ntibiboneka",
+    "no_profile_message": "Ntabwo twabonye ibyaranjye nk'umunyeshuri. Nyamuneka uvuganishe n'umuyobozi w'ishuri.",
+    "retry": "Ongera ugerageze",
+    "fetch_error": "Gupakira ibyaranjye byananiwe. Nyamuneka ongera ugerageze.",
+    "profile_error": "Habaye ikibazo mu gupakira ibyaranjye",
+    "download_success": "Ijambo ryakuwe neza!",
+    "download_error": "Kuramo ijambo byananiwe. Nyamuneka ongera ugerageze.",
+    "important_info": "Amakuru y'Ingirakamaro",
+    "info_1": "Iri jambo ni irya Les Hirondelles de Don Bosco School",
+    "info_2": "Nyamuneka ujye utwara iri jambo igihe cyose uri mu ishuri",
+    "info_3": "Menyesha ubuyobozi bw'ishuri ako kanya iyo ujeje ijambo ryawe cyangwa ryibwe",
+    "parents_guardians": "Ababyeyi / Abarezi"
   }
 }
