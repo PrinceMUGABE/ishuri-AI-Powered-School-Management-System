@@ -191,7 +191,6 @@ class ParentDetailSerializer(serializers.ModelSerializer):
 
 
 class ParentCreateSerializer(serializers.ModelSerializer):
-    """Used when creating a parent. student_ids ties parent to student(s)."""
     student_ids = serializers.ListField(
         child=serializers.IntegerField(),
         write_only=True,
@@ -205,6 +204,12 @@ class ParentCreateSerializer(serializers.ModelSerializer):
             'full_name', 'phone_number', 'email',
             'physical_address', 'relationship_type', 'student_ids'
         ]
+        # ↓ ADD THIS — suppress DRF's auto-injected UniqueValidator on
+        # phone_number and email so the view's smart-lookup can run first.
+        extra_kwargs = {
+            'phone_number': {'validators': []},
+            'email':        {'validators': []},
+        }
 
     def validate_student_ids(self, value):
         if not value:
@@ -228,6 +233,7 @@ class ParentCreateSerializer(serializers.ModelSerializer):
             StudentParent.objects.get_or_create(student_id=sid, parent=parent)
         return parent
 
+        
 
 class ParentUpdateSerializer(serializers.ModelSerializer):
     class Meta:

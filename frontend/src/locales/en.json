@@ -798,7 +798,8 @@
     "subtitle": "Manage student payments, assignments, and transactions",
     "tabs": {
       "assignments": "Payment Assignments",
-      "overview": "Overview"
+      "overview": "Overview",
+      "bulk": "Bulk"
     },
     "table": {
       "student": "Student",
@@ -951,6 +952,20 @@
       "termly": "Per Term",
       "yearly": "Per Year",
       "monthly": "Per Month"
+    },
+    "bulk": {
+      "selectMode": "Select Mode",
+      "configureAssignment": "Configure Assignment",
+      "bySchoolLevel": "By School Level",
+      "bySchoolLevelDesc": "By School Level Desc",
+      "byClassLevel": "By Class Level",
+      "byClassLevelDesc": "By Class Level Desc",
+      "assign":"Assign",
+      "selectAll":"Select All",
+      "selectSchoolLevel":"Select School Level",
+      "selectSchoolLevelFirst":"Select school level first",
+      "schoolLevel":"School Level",
+      "classLevel":"Class Level"
     }
   },
   "teacherAr": {
@@ -1337,7 +1352,8 @@
       "schoolLevelHoursHint": "School hours: {{start}} – {{end}}",
       "breakConstraintHint": "Breaks must fit within school hours",
       "subject": "Subject",
-      "classLevel": "Class Level"
+      "classLevel": "Class Level",
+      "paymentType":"Payment Type"
     },
     "table": {
       "yearName": "Year",
@@ -1345,6 +1361,8 @@
       "endDate": "End Date",
       "current": "Current",
       "actions": "Actions",
+      "description": "Description",
+      "active": "Active",
       "academicYear": "Academic Year",
       "termName": "Term",
       "levelName": "Level",

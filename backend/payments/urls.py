@@ -32,4 +32,10 @@ urlpatterns = [
     
     # Overdue reports
     path('overdue/', views.get_overdue_payments, name='get_overdue_payments'),
+
+
+    # Bulk assignment endpoints
+    path('assignments/bulk/school-level/', views.bulk_assign_by_school_level, name='bulk_assign_by_school_level'),
+    path('assignments/bulk/class-level/',  views.bulk_assign_by_class_level,  name='bulk_assign_by_class_level'),
+    path('assignments/bulk/all-students/', views.bulk_assign_all_students,    name='bulk_assign_all_students'),
 ]

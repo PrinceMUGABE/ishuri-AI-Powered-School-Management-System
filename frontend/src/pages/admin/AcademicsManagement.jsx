@@ -105,6 +105,8 @@ const AcademicsManagement = () => {
   const [daySettings, setDaySettings] = useState([]);
   const [schoolBreaks, setSchoolBreaks] = useState([]);
   const [holidays, setHolidays] = useState([]);
+  const [selectedClassLevelsForCost, setSelectedClassLevelsForCost] = useState([]);
+  const [selectedClassLevelsForAssignment, setSelectedClassLevelsForAssignment] = useState([]);
 
   // Filter states for each tab
   const [tabFilters, setTabFilters] = useState({
@@ -164,7 +166,7 @@ const AcademicsManagement = () => {
     { id: 'assignments', labelKey: 'academics.tabs.assignments', icon: ClipboardList },
     { id: 'payment-types', labelKey: 'academics.tabs.paymentTypes', icon: Tag },
     { id: 'costs', labelKey: 'academics.tabs.feeStructures', icon: Wallet },
-    { id: 'day-settings', labelKey: 'academics.tabs.daySettings', icon: SunMedium },
+    // { id: 'day-settings', labelKey: 'academics.tabs.daySettings', icon: SunMedium },
     { id: 'school-breaks', labelKey: 'academics.tabs.schoolBreaks', icon: Coffee },
     { id: 'holidays', labelKey: 'academics.tabs.holidays', icon: Gift },
   ];
@@ -229,7 +231,7 @@ const AcademicsManagement = () => {
     try {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
-      
+
       // Add filter params for the current tab
       const currentFilters = tabFilters[activeTab] || {};
       Object.entries(currentFilters).forEach(([key, value]) => {
@@ -268,7 +270,7 @@ const AcademicsManagement = () => {
           'assignments': setAssignments,
           'payment-types': setPaymentTypes,
           'costs': setCosts,
-          'day-settings': setDaySettings,
+          // 'day-settings': setDaySettings,
           'school-breaks': setSchoolBreaks,
           'holidays': setHolidays,
         };
@@ -319,6 +321,7 @@ const AcademicsManagement = () => {
       cl => cl.school_level === parseInt(schoolLevelId) && cl.is_active
     );
     setFilteredClassLevelsForAssignment(filtered);
+    setSelectedClassLevelsForAssignment([]); // reset selections
     setNewItem(prev => ({ ...prev, school_level: schoolLevelId, class_level: '' }));
   };
 
@@ -329,6 +332,7 @@ const AcademicsManagement = () => {
       cl => cl.school_level === parseInt(schoolLevelId) && cl.is_active
     );
     setFilteredClassLevelsForCost(filtered);
+    setSelectedClassLevelsForCost([]); // reset selections
     setNewItem(prev => ({ ...prev, school_level: schoolLevelId, class_level: '' }));
   };
 
@@ -345,7 +349,8 @@ const AcademicsManagement = () => {
     'academic-years': academicYears, 'terms': terms, 'school-levels': schoolLevels,
     'class-levels': classLevels, 'classrooms': classrooms, 'subjects': subjects,
     'assignments': assignments, 'payment-types': paymentTypes, 'costs': costs,
-    'day-settings': daySettings, 'school-breaks': schoolBreaks, 'holidays': holidays,
+    'school-breaks': schoolBreaks, 'holidays': holidays,
+    // 'day-settings': daySettings, 'school-breaks': schoolBreaks, 'holidays': holidays,
   };
 
   const rawData = dataMap[activeTab] ?? [];
@@ -428,17 +433,111 @@ const AcademicsManagement = () => {
         'school-breaks': '/school-breaks/', 'holidays': '/holidays/',
       };
 
+      // ── costs: submit one request per selected class level ────────
+      if (activeTab === 'costs') {
+        if (selectedClassLevelsForCost.length === 0) {
+          toast.error(t('academics.messages.selectAtLeastOneClassLevel') || 'Select at least one class level');
+          setLoading(false);
+          return;
+        }
+
+        const basePayload = { ...newItem };
+        delete basePayload.school_level;
+        delete basePayload.class_level;
+
+        const results = await Promise.allSettled(
+          selectedClassLevelsForCost.map(classLevelId =>
+            apiClient.post('/class-level-costs/', { ...basePayload, class_level: classLevelId })
+          )
+        );
+
+        const succeeded = results.filter(r => r.status === 'fulfilled' && r.value.data.success);
+        const failed = results.filter(r => r.status === 'rejected' || !r.value?.data?.success);
+
+        if (succeeded.length > 0) {
+          toast.success(
+            `${succeeded.length} fee structure${succeeded.length > 1 ? 's' : ''} created successfully` +
+            (failed.length > 0 ? ` (${failed.length} failed)` : '')
+          );
+        }
+        if (failed.length > 0 && succeeded.length === 0) {
+          const firstError = failed[0];
+          const errMsg = firstError.reason?.response?.data?.message
+            || firstError.value?.data?.message
+            || t('academics.messages.createError');
+          toast.error(errMsg);
+        }
+
+        if (succeeded.length > 0) {
+          setShowAddModal(false);
+          setNewItem({});
+          setSelectedSchoolLevelForCost('');
+          setFilteredClassLevelsForCost([]);
+          setSelectedClassLevelsForCost([]);
+          fetchData();
+          fetchDropdownData();
+          fetchDashboardStats();
+        }
+        setLoading(false);
+        return;
+      }
+      // ── assignments: submit one request per selected class level ──
+      if (activeTab === 'assignments') {
+        if (selectedClassLevelsForAssignment.length === 0) {
+          toast.error(t('academics.messages.selectAtLeastOneClassLevel') || 'Select at least one class level');
+          setLoading(false);
+          return;
+        }
+
+        const basePayload = { ...newItem };
+        delete basePayload.school_level;
+        delete basePayload.class_level;
+
+        const results = await Promise.allSettled(
+          selectedClassLevelsForAssignment.map(classLevelId =>
+            apiClient.post('/class-level-subjects/', { ...basePayload, class_level: classLevelId })
+          )
+        );
+
+        const succeeded = results.filter(r => r.status === 'fulfilled' && r.value.data.success);
+        const failed = results.filter(r => r.status === 'rejected' || !r.value?.data?.success);
+
+        if (succeeded.length > 0) {
+          toast.success(
+            `${succeeded.length} subject assignment${succeeded.length > 1 ? 's' : ''} created successfully` +
+            (failed.length > 0 ? ` (${failed.length} failed)` : '')
+          );
+        }
+        if (failed.length > 0 && succeeded.length === 0) {
+          const firstError = failed[0];
+          const errMsg = firstError.reason?.response?.data?.message
+            || firstError.value?.data?.message
+            || t('academics.messages.createError');
+          toast.error(errMsg);
+        }
+
+        if (succeeded.length > 0) {
+          setShowAddModal(false);
+          setNewItem({});
+          setSelectedSchoolLevelForAssignment('');
+          setFilteredClassLevelsForAssignment([]);
+          setSelectedClassLevelsForAssignment([]);
+          fetchData();
+          fetchDropdownData();
+          fetchDashboardStats();
+        }
+        setLoading(false);
+        return;
+      }
+
+      // ── all other tabs ─────────────────────────────────────────────
       const payload = { ...newItem };
       if (activeTab === 'classrooms' && !payload.status) payload.status = 'active';
       if (activeTab === 'subjects' && !payload.status) payload.status = 'active';
       if (activeTab === 'payment-types') payload.is_active = true;
       if (activeTab === 'day-settings') payload.is_active = true;
       if (activeTab === 'school-breaks') payload.is_active = true;
-
-      // Remove school_level from payload if it exists (it's not a model field)
-      if (activeTab === 'assignments' || activeTab === 'costs') {
-        delete payload.school_level;
-      }
+      if (activeTab === 'assignments') delete payload.school_level;
 
       const response = await apiClient.post(urlMap[activeTab], payload);
       if (response.data.success) {
@@ -446,9 +545,7 @@ const AcademicsManagement = () => {
         setShowAddModal(false);
         setNewItem({});
         setSelectedSchoolLevelForAssignment('');
-        setSelectedSchoolLevelForCost('');
         setFilteredClassLevelsForAssignment([]);
-        setFilteredClassLevelsForCost([]);
         fetchData();
         fetchDropdownData();
         fetchDashboardStats();
@@ -955,7 +1052,7 @@ const AcademicsManagement = () => {
     ],
     'assignments': [
       { name: 'school_level', label: t('academics.form.schoolLevel'), type: 'select', required: true, options: schoolLevels.map(s => ({ value: s.id, label: s.name })), onChange: handleSchoolLevelChangeForAssignment },
-      { name: 'class_level', label: t('academics.form.classLevel'), type: 'select', required: true, options: filteredClassLevelsForAssignment.map(c => ({ value: c.id, label: `${c.name} (${c.code})` })) },
+      { name: 'class_level', label: t('academics.form.classLevel'), type: 'multi-class-level-assignment', required: true }, // ← changed
       { name: 'subject', label: t('academics.form.subject'), type: 'select', required: true, options: subjects.filter(s => s.status === 'active').map(s => ({ value: s.id, label: s.name })) },
       { name: 'teaching_frequency', label: t('academics.form.teachingFrequency'), type: 'select', required: true, options: [{ value: 'daily', label: t('academics.frequency.daily') }, { value: 'weekly', label: t('academics.frequency.weekly') }] },
       { name: 'hours_per_week', label: t('academics.form.hoursPerWeek'), type: 'number', required: true, placeholder: '4' },
@@ -970,7 +1067,7 @@ const AcademicsManagement = () => {
       { name: 'name', label: t('academics.form.feeName'), type: 'text', required: true, placeholder: 'Tuition Fee' },
       { name: 'academic_year', label: t('academics.form.academicYear'), type: 'select', required: true, options: academicYears.map(y => ({ value: y.id, label: y.name })) },
       { name: 'school_level', label: t('academics.form.schoolLevel'), type: 'select', required: true, options: schoolLevels.map(s => ({ value: s.id, label: s.name })), onChange: handleSchoolLevelChangeForCost },
-      { name: 'class_level', label: t('academics.form.classLevel'), type: 'select', required: true, options: filteredClassLevelsForCost.map(c => ({ value: c.id, label: `${c.name} (${c.code})` })) },
+      { name: 'class_level', label: t('academics.form.classLevel'), type: 'multi-class-level', required: true },
       { name: 'payment_type', label: t('academics.form.paymentType'), type: 'select', required: true, options: paymentTypes.map(p => ({ value: p.id, label: p.name })) },
       { name: 'amount', label: t('academics.form.amount'), type: 'number', required: true, placeholder: '50000' },
       { name: 'is_mandatory', label: t('academics.form.mandatory'), type: 'checkbox' },
@@ -1036,6 +1133,157 @@ const AcademicsManagement = () => {
         customOnChange = (e) => handleSchoolLevelChangeForCost(e.target.value);
       }
 
+      // ── Multi class-level checklist (costs tab only) ─────────────
+      if (field.type === 'multi-class-level') {
+        return (
+          <div key={field.name} className="space-y-1">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              {field.label} <span className="text-red-500">*</span>
+            </label>
+
+            {filteredClassLevelsForCost.length === 0 ? (
+              <p className="text-xs text-gray-400 dark:text-gray-500 italic py-2">
+                {selectedSchoolLevelForCost
+                  ? t('academics.messages.noClassLevelsInSchoolLevel')
+                  : t('academics.form.selectSchoolLevelFirst')}
+              </p>
+            ) : (
+              <div className="border border-gray-200 dark:border-gray-600 rounded-xl overflow-hidden">
+                {/* Select-all / deselect-all header */}
+                <label className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={
+                      filteredClassLevelsForCost.length > 0 &&
+                      selectedClassLevelsForCost.length === filteredClassLevelsForCost.length
+                    }
+                    onChange={e =>
+                      setSelectedClassLevelsForCost(
+                        e.target.checked ? filteredClassLevelsForCost.map(c => c.id) : []
+                      )
+                    }
+                    className="w-4 h-4 rounded accent-green-700"
+                  />
+                  <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">
+                    {selectedClassLevelsForCost.length === filteredClassLevelsForCost.length
+                      ? t('academics.form.deselectAll') || 'Deselect all'
+                      : t('academics.form.selectAll') || 'Select all'}
+                  </span>
+                  {selectedClassLevelsForCost.length > 0 && (
+                    <span className="ml-auto px-1.5 py-0.5 bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-xs rounded-md font-semibold">
+                      {selectedClassLevelsForCost.length} selected
+                    </span>
+                  )}
+                </label>
+
+                {/* Individual rows */}
+                <div className="max-h-48 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700">
+                  {filteredClassLevelsForCost.map(cl => (
+                    <label
+                      key={cl.id}
+                      className="flex items-center gap-2 px-3 py-2.5 cursor-pointer hover:bg-green-50 dark:hover:bg-green-900/10 transition-colors"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedClassLevelsForCost.includes(cl.id)}
+                        onChange={e =>
+                          setSelectedClassLevelsForCost(prev =>
+                            e.target.checked
+                              ? [...prev, cl.id]
+                              : prev.filter(id => id !== cl.id)
+                          )
+                        }
+                        className="w-4 h-4 rounded accent-green-700"
+                      />
+                      <span className="text-sm text-gray-800 dark:text-white">{cl.name}</span>
+                      <code className="ml-auto text-xs bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-gray-500 dark:text-gray-400">
+                        {cl.code}
+                      </code>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      // ── Multi class-level checklist (assignments tab only) ────────
+      if (field.type === 'multi-class-level-assignment') {
+        return (
+          <div key={field.name} className="space-y-1">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              {field.label} <span className="text-red-500">*</span>
+            </label>
+
+            {filteredClassLevelsForAssignment.length === 0 ? (
+              <p className="text-xs text-gray-400 dark:text-gray-500 italic py-2">
+                {selectedSchoolLevelForAssignment
+                  ? t('academics.messages.noClassLevelsInSchoolLevel')
+                  : t('academics.form.selectSchoolLevelFirst')}
+              </p>
+            ) : (
+              <div className="border border-gray-200 dark:border-gray-600 rounded-xl overflow-hidden">
+                {/* Select-all / deselect-all header */}
+                <label className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={
+                      filteredClassLevelsForAssignment.length > 0 &&
+                      selectedClassLevelsForAssignment.length === filteredClassLevelsForAssignment.length
+                    }
+                    onChange={e =>
+                      setSelectedClassLevelsForAssignment(
+                        e.target.checked ? filteredClassLevelsForAssignment.map(c => c.id) : []
+                      )
+                    }
+                    className="w-4 h-4 rounded accent-green-700"
+                  />
+                  <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">
+                    {selectedClassLevelsForAssignment.length === filteredClassLevelsForAssignment.length
+                      ? t('academics.form.deselectAll') || 'Deselect all'
+                      : t('academics.form.selectAll') || 'Select all'}
+                  </span>
+                  {selectedClassLevelsForAssignment.length > 0 && (
+                    <span className="ml-auto px-1.5 py-0.5 bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-xs rounded-md font-semibold">
+                      {selectedClassLevelsForAssignment.length} selected
+                    </span>
+                  )}
+                </label>
+
+                {/* Individual rows */}
+                <div className="max-h-48 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700">
+                  {filteredClassLevelsForAssignment.map(cl => (
+                    <label
+                      key={cl.id}
+                      className="flex items-center gap-2 px-3 py-2.5 cursor-pointer hover:bg-green-50 dark:hover:bg-green-900/10 transition-colors"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedClassLevelsForAssignment.includes(cl.id)}
+                        onChange={e =>
+                          setSelectedClassLevelsForAssignment(prev =>
+                            e.target.checked
+                              ? [...prev, cl.id]
+                              : prev.filter(id => id !== cl.id)
+                          )
+                        }
+                        className="w-4 h-4 rounded accent-green-700"
+                      />
+                      <span className="text-sm text-gray-800 dark:text-white">{cl.name}</span>
+                      <code className="ml-auto text-xs bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-gray-500 dark:text-gray-400">
+                        {cl.code}
+                      </code>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      // ── All other field types ─────────────────────────────────────
       return (
         <div key={field.name} className="space-y-1">
           <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
@@ -1438,13 +1686,15 @@ const AcademicsManagement = () => {
               </p>
             </div>
             <button
-              onClick={() => { 
-                setNewItem({}); 
+              onClick={() => {
+                setNewItem({});
                 setSelectedSchoolLevelForAssignment('');
                 setSelectedSchoolLevelForCost('');
                 setFilteredClassLevelsForAssignment([]);
                 setFilteredClassLevelsForCost([]);
-                setShowAddModal(true); 
+                setSelectedClassLevelsForCost([]);
+                setSelectedClassLevelsForAssignment([]);
+                setShowAddModal(true);
               }}
               className="px-4 py-2.5 bg-green-700 hover:bg-green-800 text-white text-sm font-semibold rounded-xl flex items-center gap-2 shadow-md transition-all"
             >

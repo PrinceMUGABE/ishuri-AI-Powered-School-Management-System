@@ -8,7 +8,8 @@ import {
   Sun, Moon, Download, Printer, FileText, Calendar, Clock,
   Wallet, Phone, Building, Receipt, TrendingUp, TrendingDown,
   User, GraduationCap, BookOpen, Shield, Link, Filter,
-  Send, Ban, CheckSquare, AlertTriangle, Info, Loader
+  Send, Ban, CheckSquare, AlertTriangle, Info, Loader, Users,
+  ChevronDown
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -127,6 +128,22 @@ const FeeManagement = () => {
   const [filteredStudents, setFilteredStudents] = useState([]);
   const [showStudentDropdown, setShowStudentDropdown] = useState(false);
 
+  // ── Bulk Assignment State ─────────────────────────────────
+  const [showBulkModal, setShowBulkModal] = useState(false);
+  const [bulkMode, setBulkMode] = useState('school_level'); // 'school_level' | 'class_level' | 'all_students'
+  const [schoolLevels, setSchoolLevels] = useState([]);
+  const [classLevels, setClassLevels] = useState([]);
+  const [filteredClassLevelsForBulk, setFilteredClassLevelsForBulk] = useState([]);
+  const [bulkForm, setBulkForm] = useState({
+    school_level_id: '',
+    class_level_id: '',
+    class_level_cost_ids: [],
+    academic_year_id: '',
+    payment_due_date: '',
+    payment_start_date: new Date().toISOString().split('T')[0],
+  });
+  const [bulkResult, setBulkResult] = useState(null); // summary after submission
+
   // ─────────────────────────────────────────────────────────
   // Fetch Data
   // ─────────────────────────────────────────────────────────
@@ -167,6 +184,28 @@ const FeeManagement = () => {
       }
     } catch (err) {
       console.error('Error fetching fee structures:', err);
+    }
+  }, []);
+
+  const fetchSchoolLevels = useCallback(async () => {
+    try {
+      const res = await apiClient.get('/academics/school-levels/');
+      if (res.data.success) {
+        setSchoolLevels(res.data.data?.results ?? res.data.data ?? []);
+      }
+    } catch (err) {
+      console.error('Error fetching school levels:', err);
+    }
+  }, []);
+
+  const fetchClassLevels = useCallback(async () => {
+    try {
+      const res = await apiClient.get('/academics/class-levels/');
+      if (res.data.success) {
+        setClassLevels(res.data.data?.results ?? res.data.data ?? []);
+      }
+    } catch (err) {
+      console.error('Error fetching class levels:', err);
     }
   }, []);
 
@@ -239,7 +278,9 @@ const FeeManagement = () => {
     fetchStudents();
     fetchAcademicYears();
     fetchFeeStructures();
-  }, [fetchStudents, fetchAcademicYears, fetchFeeStructures]);
+    fetchSchoolLevels();
+    fetchClassLevels();
+  }, [fetchStudents, fetchAcademicYears, fetchFeeStructures, fetchSchoolLevels, fetchClassLevels]);
 
   useEffect(() => {
     fetchAssignments();
@@ -427,6 +468,74 @@ const FeeManagement = () => {
     }
   };
 
+  const handleBulkAssign = async () => {
+    if (bulkForm.class_level_cost_ids.length === 0) {
+      toast.error(t('payments.messages.selectAtLeastOneFee') || 'Select at least one fee structure');
+      return;
+    }
+    if (!bulkForm.academic_year_id || !bulkForm.payment_due_date) {
+      toast.error(t('payments.messages.fillAllFields'));
+      return;
+    }
+    if (bulkMode === 'school_level' && !bulkForm.school_level_id) {
+      toast.error(t('payments.messages.selectSchoolLevel') || 'Select a school level');
+      return;
+    }
+    if (bulkMode === 'class_level' && (!bulkForm.school_level_id || !bulkForm.class_level_id)) {
+      toast.error(t('payments.messages.selectClassLevel') || 'Select a school level and class level');
+      return;
+    }
+
+    setLoading(true);
+    setBulkResult(null);
+    try {
+      const basePayload = {
+        class_level_cost_ids: bulkForm.class_level_cost_ids,
+        academic_year_id: parseInt(bulkForm.academic_year_id),
+        payment_due_date: bulkForm.payment_due_date,
+        payment_start_date: bulkForm.payment_start_date,
+      };
+
+      const endpointMap = {
+        school_level: {
+          url: '/payments/assignments/bulk/school-level/',
+          payload: { ...basePayload, school_level_id: parseInt(bulkForm.school_level_id) },
+        },
+        class_level: {
+          url: '/payments/assignments/bulk/class-level/',
+          payload: {
+            ...basePayload,
+            school_level_id: parseInt(bulkForm.school_level_id),
+            class_level_id: parseInt(bulkForm.class_level_id),
+          },
+        },
+        all_students: {
+          url: '/payments/assignments/bulk/all-students/',
+          payload: basePayload,
+        },
+      };
+
+      const { url, payload } = endpointMap[bulkMode];
+      console.log('🚀 Bulk Assign:', { mode: bulkMode, url, payload });
+
+      const res = await apiClient.post(url, payload);
+      console.log('✅ Bulk Assign Response:', res.data);
+
+      if (res.data.success) {
+        setBulkResult(res.data.data);
+        toast.success(res.data.message);
+        fetchAssignments();
+      } else {
+        toast.error(res.data.message || t('payments.messages.createError'));
+      }
+    } catch (err) {
+      console.error('❌ Bulk assign error:', err.response?.data);
+      toast.error(err.response?.data?.message || t('payments.messages.createError'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // ─────────────────────────────────────────────────────────
   // View Assignment Details
   // ─────────────────────────────────────────────────────────
@@ -462,6 +571,7 @@ const FeeManagement = () => {
   // ─────────────────────────────────────────────────────────
   const tabs = [
     { id: 'assignments', label: t('payments.tabs.assignments'), icon: CreditCard },
+    { id: 'bulk', label: t('payments.tabs.bulk') || 'Bulk Assign', icon: Users },  // ← add
     { id: 'overview', label: t('payments.tabs.overview'), icon: TrendingUp },
   ];
 
@@ -527,17 +637,17 @@ const FeeManagement = () => {
       </td>
       <td className="px-4 py-3">
         <span className="text-sm font-semibold text-gray-900 dark:text-white">
-          ${parseFloat(assignment.total_amount).toLocaleString()}
+          {parseFloat(assignment.total_amount).toLocaleString()} FRW
         </span>
       </td>
       <td className="px-4 py-3">
         <span className="text-sm text-green-600 dark:text-green-400 font-semibold">
-          ${parseFloat(assignment.paid_amount).toLocaleString()}
+          {parseFloat(assignment.paid_amount).toLocaleString()} FRW
         </span>
       </td>
       <td className="px-4 py-3">
         <span className={`text-sm font-semibold ${assignment.remaining_amount > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
-          ${parseFloat(assignment.remaining_amount).toLocaleString()}
+          {parseFloat(assignment.remaining_amount).toLocaleString()} FRW
         </span>
       </td>
       <td className="px-4 py-3 text-sm text-gray-500">
@@ -632,25 +742,25 @@ const FeeManagement = () => {
     const summaryCards = [
       {
         label: t('payments.summary.totalAssigned'),
-        value: `$${parseFloat(paymentSummary.total_assigned).toLocaleString()}`,
+        value: `FRW${parseFloat(paymentSummary.total_assigned).toLocaleString()}`,
         icon: CreditCard,
         color: 'blue',
       },
       {
         label: t('payments.summary.totalPaid'),
-        value: `$${parseFloat(paymentSummary.total_paid).toLocaleString()}`,
+        value: `FRW${parseFloat(paymentSummary.total_paid).toLocaleString()}`,
         icon: CheckCircle,
         color: 'green',
       },
       {
         label: t('payments.summary.totalRemaining'),
-        value: `$${parseFloat(paymentSummary.total_remaining).toLocaleString()}`,
+        value: `FRW${parseFloat(paymentSummary.total_remaining).toLocaleString()}`,
         icon: AlertCircle,
         color: 'red',
       },
       {
         label: t('payments.summary.totalOverdue'),
-        value: `$${parseFloat(paymentSummary.total_overdue).toLocaleString()}`,
+        value: `FRW${parseFloat(paymentSummary.total_overdue).toLocaleString()}`,
         icon: AlertTriangle,
         color: 'orange',
       },
@@ -776,19 +886,19 @@ const FeeManagement = () => {
             <div>
               <p className="text-xs text-gray-500">{t('payments.details.total')}</p>
               <p className="text-sm font-bold text-gray-900 dark:text-white">
-                ${parseFloat(selectedAssignment.total_amount).toLocaleString()}
+                {parseFloat(selectedAssignment.total_amount).toLocaleString()} FRW
               </p>
             </div>
             <div>
               <p className="text-xs text-gray-500">{t('payments.details.paid')}</p>
               <p className="text-sm font-bold text-green-600 dark:text-green-400">
-                ${parseFloat(selectedAssignment.paid_amount).toLocaleString()}
+                {parseFloat(selectedAssignment.paid_amount).toLocaleString()} FRW
               </p>
             </div>
             <div>
               <p className="text-xs text-gray-500">{t('payments.details.remaining')}</p>
               <p className="text-sm font-bold text-red-600 dark:text-red-400">
-                ${parseFloat(selectedAssignment.remaining_amount).toLocaleString()}
+                {parseFloat(selectedAssignment.remaining_amount).toLocaleString()} FRW
               </p>
             </div>
           </div>
@@ -832,8 +942,8 @@ const FeeManagement = () => {
                 <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                   <div className="flex items-center gap-2">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center ${tx.transaction_status === 'completed'
-                        ? 'bg-green-100 dark:bg-green-900/30'
-                        : 'bg-yellow-100 dark:bg-yellow-900/30'
+                      ? 'bg-green-100 dark:bg-green-900/30'
+                      : 'bg-yellow-100 dark:bg-yellow-900/30'
                       }`}>
                       {tx.transaction_status === 'completed'
                         ? <CheckCircle className="w-4 h-4 text-green-600" />
@@ -841,7 +951,7 @@ const FeeManagement = () => {
                       }
                     </div>
                     <div>
-                      <p className="text-sm font-semibold">${parseFloat(tx.amount).toLocaleString()}</p>
+                      <p className="text-sm font-semibold">FRw {parseFloat(tx.amount).toLocaleString()}</p>
                       <p className="text-xs text-gray-400">{tx.payment_method_display}</p>
                     </div>
                   </div>
@@ -1178,6 +1288,399 @@ const FeeManagement = () => {
           </div>
         )}
 
+        {activeTab === 'bulk' ? (
+          <div className="space-y-5">
+            {/* Mode Selector */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                {t('payments.bulk.selectMode') || 'Select assignment scope'}
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {[
+                  {
+                    id: 'school_level',
+                    label: t('payments.bulk.bySchoolLevel') || 'By School Level',
+                    desc: t('payments.bulk.bySchoolLevelDesc') || 'Assign to all students in a school level',
+                    icon: GraduationCap,
+                    color: 'blue',
+                  },
+                  {
+                    id: 'class_level',
+                    label: t('payments.bulk.byClassLevel') || 'By Class Level',
+                    desc: t('payments.bulk.byClassLevelDesc') || 'Assign to all students in a specific class',
+                    icon: BookOpen,
+                    color: 'amber',
+                  },
+                  // {
+                  //   id: 'all_students',
+                  //   label: t('payments.bulk.allStudents') || 'All Students',
+                  //   desc: t('payments.bulk.allStudentsDesc') || 'Assign school-wide to every active student',
+                  //   icon: Users,
+                  //   color: 'green',
+                  // },
+                ].map(mode => {
+                  const Icon = mode.icon;
+                  const isActive = bulkMode === mode.id;
+                  const colorMap = {
+                    blue: { active: 'border-blue-600 bg-blue-50 dark:bg-blue-900/20', icon: 'text-blue-600', badge: 'bg-blue-600' },
+                    amber: { active: 'border-amber-500 bg-amber-50 dark:bg-amber-900/20', icon: 'text-amber-600', badge: 'bg-amber-500' },
+                    green: { active: 'border-green-600 bg-green-50 dark:bg-green-900/20', icon: 'text-green-700', badge: 'bg-green-700' },
+                  };
+                  const c = colorMap[mode.color];
+                  return (
+                    <button
+                      key={mode.id}
+                      onClick={() => {
+                        setBulkMode(mode.id);
+                        setBulkForm(prev => ({ ...prev, school_level_id: '', class_level_id: '', class_level_cost_ids: [] }));
+                        setFilteredClassLevelsForBulk([]);
+                        setBulkResult(null);
+                      }}
+                      className={`p-4 rounded-xl border-2 text-left transition-all ${isActive
+                        ? c.active
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                        }`}
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <Icon className={`w-5 h-5 ${isActive ? c.icon : 'text-gray-400'}`} />
+                        <span className={`text-sm font-semibold ${isActive ? '' : 'text-gray-700 dark:text-gray-300'}`}>
+                          {mode.label}
+                        </span>
+                        {isActive && (
+                          <span className={`ml-auto px-1.5 py-0.5 ${c.badge} text-white text-xs rounded-full font-bold`}>✓</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-400">{mode.desc}</p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Bulk Form */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-200 dark:border-gray-700 space-y-4">
+              <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                <Filter className="w-4 h-4 text-green-700" />
+                {t('payments.bulk.configureAssignment') || 'Configure Assignment'}
+              </h3>
+
+              {/* School Level (school_level + class_level modes) */}
+              {(bulkMode === 'school_level' || bulkMode === 'class_level') && (
+                <div>
+                  <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                    {t('payments.bulk.schoolLevel') || 'School Level'} <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={bulkForm.school_level_id}
+                    onChange={e => {
+                      const slId = e.target.value;
+                      const filtered = classLevels.filter(
+                        cl => cl.school_level === parseInt(slId) && cl.is_active
+                      );
+                      setFilteredClassLevelsForBulk(filtered);
+                      setBulkForm(prev => ({ ...prev, school_level_id: slId, class_level_id: '', class_level_cost_ids: [] }));
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 outline-none text-sm"
+                  >
+                    <option value="">{t('payments.bulk.selectSchoolLevel') || 'Select school level…'}</option>
+                    {schoolLevels.filter(sl => sl.is_active).map(sl => (
+                      <option key={sl.id} value={sl.id}>{sl.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Class Level (class_level mode only) */}
+              {bulkMode === 'class_level' && (
+                <div>
+                  <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                    {t('payments.bulk.classLevel') || 'Class Level'} <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={bulkForm.class_level_id}
+                    onChange={e => setBulkForm(prev => ({ ...prev, class_level_id: e.target.value, class_level_cost_ids: [] }))}
+                    disabled={!bulkForm.school_level_id}
+                    className={`w-full px-3 py-2 border rounded-xl text-sm outline-none transition-all ${!bulkForm.school_level_id
+                      ? 'bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-400 cursor-not-allowed'
+                      : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700'
+                      }`}
+                  >
+                    <option value="">
+                      {bulkForm.school_level_id
+                        ? (t('payments.bulk.selectClassLevel') || 'Select class level…')
+                        : (t('payments.bulk.selectSchoolLevelFirst') || 'Select school level first')}
+                    </option>
+                    {filteredClassLevelsForBulk.map(cl => (
+                      <option key={cl.id} value={cl.id}>{cl.name} ({cl.code})</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Academic Year */}
+              <div>
+                <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                  {t('payments.form.academicYear')} <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={bulkForm.academic_year_id}
+                  onChange={e => setBulkForm(prev => ({ ...prev, academic_year_id: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 outline-none text-sm"
+                >
+                  <option value="">{t('payments.filters.allAcademicYears')}</option>
+                  {academicYears.map(y => (
+                    <option key={y.id} value={y.id}>{y.name}{y.is_current ? ' (Current)' : ''}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Dates */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                    {t('payments.form.startDate')}
+                  </label>
+                  <input
+                    type="date"
+                    value={bulkForm.payment_start_date}
+                    onChange={e => setBulkForm(prev => ({ ...prev, payment_start_date: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 outline-none text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                    {t('payments.form.dueDate')} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={bulkForm.payment_due_date}
+                    onChange={e => setBulkForm(prev => ({ ...prev, payment_due_date: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-700 outline-none text-sm"
+                  />
+                </div>
+              </div>
+
+              {/* Fee Structures checklist */}
+              <div>
+                <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                  {t('payments.form.feeStructures')} <span className="text-red-500">*</span>
+                </label>
+
+                {/* Filter the visible fee structures based on scope */}
+                {(() => {
+                  const visibleFees = feeStructures.filter(fs => {
+                    if (bulkMode === 'class_level' && bulkForm.class_level_id) {
+                      return fs.class_level === parseInt(bulkForm.class_level_id);
+                    }
+                    if (bulkMode === 'school_level' && bulkForm.school_level_id) {
+                      const classLevelIds = filteredClassLevelsForBulk.map(cl => cl.id);
+                      return classLevelIds.includes(fs.class_level);
+                    }
+                    return true; // all_students — show everything
+                  });
+
+                  if (visibleFees.length === 0) {
+                    return (
+                      <p className="text-sm text-gray-400 italic py-3 text-center border border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
+                        {bulkMode !== 'all_students' && !bulkForm.school_level_id
+                          ? (t('payments.bulk.selectScopeFeeHint') || 'Select a scope above to filter fee structures')
+                          : (t('payments.messages.noFeeStructures') || 'No fee structures found')}
+                      </p>
+                    );
+                  }
+
+                  const allSelected = visibleFees.every(fs => bulkForm.class_level_cost_ids.includes(fs.id));
+
+                  return (
+                    <div className="border border-gray-200 dark:border-gray-600 rounded-xl overflow-hidden">
+                      {/* Select-all header */}
+                      <label className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={allSelected && visibleFees.length > 0}
+                          onChange={e =>
+                            setBulkForm(prev => ({
+                              ...prev,
+                              class_level_cost_ids: e.target.checked
+                                ? [...new Set([...prev.class_level_cost_ids, ...visibleFees.map(fs => fs.id)])]
+                                : prev.class_level_cost_ids.filter(id => !visibleFees.find(fs => fs.id === id)),
+                            }))
+                          }
+                          className="w-4 h-4 rounded accent-green-700"
+                        />
+                        <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">
+                          {allSelected ? (t('payments.bulk.deselectAll') || 'Deselect all') : (t('payments.bulk.selectAll') || 'Select all')}
+                        </span>
+                        {bulkForm.class_level_cost_ids.length > 0 && (
+                          <span className="ml-auto px-1.5 py-0.5 bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-xs rounded-md font-semibold">
+                            {bulkForm.class_level_cost_ids.length} selected
+                          </span>
+                        )}
+                      </label>
+
+                      {/* Fee rows */}
+                      <div className="max-h-52 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700">
+                        {visibleFees.map(fs => (
+                          <label
+                            key={fs.id}
+                            className="flex items-center gap-2 px-3 py-2.5 cursor-pointer hover:bg-green-50 dark:hover:bg-green-900/10 transition-colors"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={bulkForm.class_level_cost_ids.includes(fs.id)}
+                              onChange={e =>
+                                setBulkForm(prev => ({
+                                  ...prev,
+                                  class_level_cost_ids: e.target.checked
+                                    ? [...prev.class_level_cost_ids, fs.id]
+                                    : prev.class_level_cost_ids.filter(id => id !== fs.id),
+                                }))
+                              }
+                              className="w-4 h-4 rounded accent-green-700"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm text-gray-800 dark:text-white truncate">{fs.name}</p>
+                              <p className="text-xs text-gray-400">
+                                {fs.class_level_name || `Class level ${fs.class_level}`}
+                              </p>
+                            </div>
+                            <span className="text-sm font-semibold text-green-700 dark:text-green-400 shrink-0">
+                              {new Intl.NumberFormat('en-RW').format(fs.amount)} RWF
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* Submit */}
+              <button
+                onClick={handleBulkAssign}
+                disabled={
+                  loading ||
+                  bulkForm.class_level_cost_ids.length === 0 ||
+                  !bulkForm.academic_year_id ||
+                  !bulkForm.payment_due_date ||
+                  (bulkMode === 'school_level' && !bulkForm.school_level_id) ||
+                  (bulkMode === 'class_level' && (!bulkForm.school_level_id || !bulkForm.class_level_id))
+                }
+                className="w-full py-3 bg-green-700 hover:bg-green-800 text-white rounded-xl font-semibold text-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    {t('payments.bulk.assigning') || 'Assigning…'}
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    {t('payments.bulk.assign') || 'Assign Fee Structures'}
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Result Summary */}
+            {bulkResult && (
+              <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-200 dark:border-gray-700 space-y-4">
+                <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  {t('payments.bulk.resultSummary') || 'Assignment Result'}
+                </h3>
+
+                {/* Counts */}
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { label: t('payments.bulk.created') || 'Created', value: bulkResult.created_count, color: 'green' },
+                    { label: t('payments.bulk.skipped') || 'Skipped', value: bulkResult.skipped_count, color: 'amber' },
+                    { label: t('payments.bulk.errors') || 'Errors', value: bulkResult.error_count, color: 'red' },
+                  ].map(item => (
+                    <div
+                      key={item.label}
+                      className={`rounded-xl p-3 text-center border ${item.color === 'green' ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-900/30' :
+                        item.color === 'amber' ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-900/30' :
+                          'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-900/30'
+                        }`}
+                    >
+                      <p className={`text-2xl font-bold ${item.color === 'green' ? 'text-green-700 dark:text-green-300' :
+                        item.color === 'amber' ? 'text-amber-700 dark:text-amber-300' :
+                          'text-red-700 dark:text-red-300'
+                        }`}>
+                        {item.value}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5">{item.label}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Skipped detail */}
+                {bulkResult.skipped_count > 0 && (
+                  <details className="group">
+                    <summary className="cursor-pointer text-sm font-medium text-amber-700 dark:text-amber-400 flex items-center gap-1 list-none">
+                      <AlertTriangle className="w-4 h-4" />
+                      {t('payments.bulk.viewSkipped') || `View ${bulkResult.skipped_count} skipped`}
+                      <ChevronDown className="w-3 h-3 ml-auto group-open:rotate-180 transition-transform" />
+                    </summary>
+                    <div className="mt-2 max-h-40 overflow-y-auto space-y-1">
+                      {bulkResult.skipped.map((s, i) => (
+                        <div key={i} className="flex justify-between text-xs p-2 bg-amber-50 dark:bg-amber-900/10 rounded-lg">
+                          <span className="font-medium text-gray-700 dark:text-gray-300 truncate mr-2">
+                            {s.student} — {s.cost}
+                          </span>
+                          <span className="text-amber-600 dark:text-amber-400 shrink-0">{s.reason}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                )}
+
+                {/* Errors detail */}
+                {bulkResult.error_count > 0 && (
+                  <details className="group">
+                    <summary className="cursor-pointer text-sm font-medium text-red-700 dark:text-red-400 flex items-center gap-1 list-none">
+                      <AlertCircle className="w-4 h-4" />
+                      {t('payments.bulk.viewErrors') || `View ${bulkResult.error_count} errors`}
+                      <ChevronDown className="w-3 h-3 ml-auto group-open:rotate-180 transition-transform" />
+                    </summary>
+                    <div className="mt-2 max-h-40 overflow-y-auto space-y-1">
+                      {bulkResult.errors.map((e, i) => (
+                        <div key={i} className="flex justify-between text-xs p-2 bg-red-50 dark:bg-red-900/10 rounded-lg">
+                          <span className="font-medium text-gray-700 dark:text-gray-300 truncate mr-2">
+                            {e.student} — {e.cost}
+                          </span>
+                          <span className="text-red-600 dark:text-red-400 shrink-0">{e.reason}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                )}
+
+                {/* Reset */}
+                <button
+                  onClick={() => {
+                    setBulkResult(null);
+                    setBulkForm({
+                      school_level_id: '',
+                      class_level_id: '',
+                      class_level_cost_ids: [],
+                      academic_year_id: academicYears.find(y => y.is_current)?.id || '',
+                      payment_due_date: '',
+                      payment_start_date: new Date().toISOString().split('T')[0],
+                    });
+                    setFilteredClassLevelsForBulk([]);
+                  }}
+                  className="w-full py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors"
+                >
+                  {t('payments.bulk.newBulkAssignment') || 'Start New Bulk Assignment'}
+                </button>
+              </div>
+            )}
+          </div>
+        ) : null}
+
+
         {/* Create Assignment Modal */}
         {showCreateModal && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
@@ -1380,7 +1883,7 @@ const FeeManagement = () => {
                 <div className="flex justify-between mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
                   <span className="text-sm">{t('payments.table.remaining')}:</span>
                   <span className="text-lg font-bold text-red-600">
-                    ${parseFloat(selectedAssignment.remaining_amount).toLocaleString()}
+                    FRW {parseFloat(selectedAssignment.remaining_amount).toLocaleString()}
                   </span>
                 </div>
               </div>

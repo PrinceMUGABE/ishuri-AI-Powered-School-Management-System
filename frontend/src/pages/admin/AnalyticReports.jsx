@@ -15,9 +15,9 @@ import {
   BarChart3, PieChart, LineChart, Activity, UserCheck, Moon, Sun
 } from "lucide-react";
 import {
-  BarChart, Bar, LineChart as ReLineChart, Line, 
+  BarChart, Bar, LineChart as ReLineChart, Line,
   PieChart as RePieChart, Pie, Cell, AreaChart, Area,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, 
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer, RadialBarChart, RadialBar
 } from 'recharts';
 import * as XLSX from 'xlsx';
@@ -160,7 +160,7 @@ function ColumnVisibilityManager({ columns, visibleColumns, onToggleColumn, onSe
 
   return (
     <div className="column-manager relative">
-      <button 
+      <button
         className="btn-manage-columns flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
         onClick={() => setShowManager(!showManager)}
       >
@@ -174,13 +174,13 @@ function ColumnVisibilityManager({ columns, visibleColumns, onToggleColumn, onSe
           <div className="dropdown-header p-3 border-b border-gray-200 dark:border-gray-700">
             <strong className="text-gray-900 dark:text-white text-sm">{t('analytics.selectColumns', 'Select columns to display')}</strong>
             <div className="dropdown-actions flex gap-3 mt-2">
-              <button 
+              <button
                 onClick={onSelectAll}
                 className="text-xs text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300"
               >
                 {t('analytics.selectAll', 'Select All')}
               </button>
-              <button 
+              <button
                 onClick={onClearAll}
                 className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
               >
@@ -283,16 +283,16 @@ function AnalyticsChart({ title, data, type, dataKey, nameKey, height = 300 }) {
         return (
           <BarChart data={data}>
             <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid.stroke} />
-            <XAxis 
-              dataKey={nameKey} 
+            <XAxis
+              dataKey={nameKey}
               stroke={chartTheme.axis.style.tick.fill}
               tick={{ fill: chartTheme.axis.style.tick.fill, fontSize: 12 }}
             />
-            <YAxis 
+            <YAxis
               stroke={chartTheme.axis.style.tick.fill}
               tick={{ fill: chartTheme.axis.style.tick.fill, fontSize: 12 }}
             />
-            <Tooltip 
+            <Tooltip
               contentStyle={chartTheme.tooltip.contentStyle}
               labelStyle={{ color: isDark ? '#f9fafb' : '#111827' }}
               formatter={(value) => [typeof value === 'number' ? formatNumber(value) : value, '']}
@@ -304,16 +304,16 @@ function AnalyticsChart({ title, data, type, dataKey, nameKey, height = 300 }) {
         return (
           <ReLineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid.stroke} />
-            <XAxis 
-              dataKey={nameKey} 
+            <XAxis
+              dataKey={nameKey}
               stroke={chartTheme.axis.style.tick.fill}
               tick={{ fill: chartTheme.axis.style.tick.fill, fontSize: 12 }}
             />
-            <YAxis 
+            <YAxis
               stroke={chartTheme.axis.style.tick.fill}
               tick={{ fill: chartTheme.axis.style.tick.fill, fontSize: 12 }}
             />
-            <Tooltip 
+            <Tooltip
               contentStyle={chartTheme.tooltip.contentStyle}
               labelStyle={{ color: isDark ? '#f9fafb' : '#111827' }}
             />
@@ -339,7 +339,7 @@ function AnalyticsChart({ title, data, type, dataKey, nameKey, height = 300 }) {
                 <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
               ))}
             </Pie>
-            <Tooltip 
+            <Tooltip
               contentStyle={chartTheme.tooltip.contentStyle}
               labelStyle={{ color: isDark ? '#f9fafb' : '#111827' }}
             />
@@ -351,21 +351,21 @@ function AnalyticsChart({ title, data, type, dataKey, nameKey, height = 300 }) {
           <AreaChart data={data}>
             <defs>
               <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={COLORS.primary} stopOpacity={0.8}/>
-                <stop offset="95%" stopColor={COLORS.primary} stopOpacity={0}/>
+                <stop offset="5%" stopColor={COLORS.primary} stopOpacity={0.8} />
+                <stop offset="95%" stopColor={COLORS.primary} stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid.stroke} />
-            <XAxis 
-              dataKey={nameKey} 
+            <XAxis
+              dataKey={nameKey}
               stroke={chartTheme.axis.style.tick.fill}
               tick={{ fill: chartTheme.axis.style.tick.fill, fontSize: 12 }}
             />
-            <YAxis 
+            <YAxis
               stroke={chartTheme.axis.style.tick.fill}
               tick={{ fill: chartTheme.axis.style.tick.fill, fontSize: 12 }}
             />
-            <Tooltip 
+            <Tooltip
               contentStyle={chartTheme.tooltip.contentStyle}
               labelStyle={{ color: isDark ? '#f9fafb' : '#111827' }}
             />
@@ -392,26 +392,26 @@ function AnalyticsChart({ title, data, type, dataKey, nameKey, height = 300 }) {
 // ============================================================================
 const formatValueByType = (value, type, key) => {
   if (value === null || value === undefined) return '-';
-  
+
   const lowerKey = (key || '').toLowerCase();
-  
+
   if (type === 'currency') return formatCurrency(value);
   if (type === 'percentage') return formatPercentage(value);
   if (type === 'date') return formatDate(value);
   if (type === 'number') return formatNumber(value);
-  
+
   if (lowerKey.includes('status')) return formatStatus(value);
   if (lowerKey === 'education_level') return formatEducationLevel(value);
   if (lowerKey === 'relationship_type') return formatRelationshipType(value);
   if (lowerKey === 'gender') return formatGender(value);
-  
-  if (lowerKey === 'is_active' || lowerKey === 'is_current' || 
-      lowerKey === 'is_published' || lowerKey === 'is_overdue' ||
-      lowerKey === 'is_compulsory' || lowerKey === 'is_mandatory' ||
-      lowerKey === 'is_fully_completed') {
+
+  if (lowerKey === 'is_active' || lowerKey === 'is_current' ||
+    lowerKey === 'is_published' || lowerKey === 'is_overdue' ||
+    lowerKey === 'is_compulsory' || lowerKey === 'is_mandatory' ||
+    lowerKey === 'is_fully_completed') {
     return formatBoolean(value);
   }
-  
+
   return String(value);
 };
 
@@ -451,12 +451,12 @@ export default function AnalyticsReports() {
     const checkDarkMode = () => {
       setIsDarkMode(document.documentElement.classList.contains('dark'));
     };
-    
+
     checkDarkMode();
-    
+
     const observer = new MutationObserver(checkDarkMode);
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    
+
     return () => observer.disconnect();
   }, []);
 
@@ -722,7 +722,7 @@ export default function AnalyticsReports() {
         apiClient.get('/academic-years/'),
         apiClient.get('/school-levels/')
       ]);
-      
+
       if (yearsRes.data?.academic_years) {
         setAcademicYears(yearsRes.data.academic_years);
       }
@@ -791,39 +791,39 @@ export default function AnalyticsReports() {
   // Detect column types from actual data
   const detectColumnType = (key, value) => {
     const lowerKey = key.toLowerCase();
-    
-    if (lowerKey.includes('amount') || lowerKey.includes('revenue') || 
-        lowerKey.includes('price') || lowerKey.includes('salary') ||
-        lowerKey.includes('total_value') || lowerKey.includes('expected') ||
-        lowerKey.includes('collected') || lowerKey.includes('fee')) {
+
+    if (lowerKey.includes('amount') || lowerKey.includes('revenue') ||
+      lowerKey.includes('price') || lowerKey.includes('salary') ||
+      lowerKey.includes('total_value') || lowerKey.includes('expected') ||
+      lowerKey.includes('collected') || lowerKey.includes('fee')) {
       return 'currency';
     }
-    
-    if (lowerKey.includes('rate') || lowerKey.includes('percentage') || 
-        lowerKey.includes('score') || lowerKey.includes('active_percentage') ||
-        lowerKey.includes('completion') || lowerKey.includes('collection_rate') ||
-        lowerKey.includes('attendance_rate')) {
+
+    if (lowerKey.includes('rate') || lowerKey.includes('percentage') ||
+      lowerKey.includes('score') || lowerKey.includes('active_percentage') ||
+      lowerKey.includes('completion') || lowerKey.includes('collection_rate') ||
+      lowerKey.includes('attendance_rate')) {
       return 'percentage';
     }
-    
-    if ((lowerKey.includes('date') || lowerKey === 'created_at' || lowerKey === 'updated_at' || 
-         lowerKey.includes('enrollment') || lowerKey.includes('hire') ||
-         lowerKey.includes('birth') || lowerKey.includes('session_date') ||
-         lowerKey.includes('paid_at') || lowerKey.includes('assigned_at')) &&
-         value && typeof value === 'string' && (value.includes('-') || value.includes('/'))) {
+
+    if ((lowerKey.includes('date') || lowerKey === 'created_at' || lowerKey === 'updated_at' ||
+      lowerKey.includes('enrollment') || lowerKey.includes('hire') ||
+      lowerKey.includes('birth') || lowerKey.includes('session_date') ||
+      lowerKey.includes('paid_at') || lowerKey.includes('assigned_at')) &&
+      value && typeof value === 'string' && (value.includes('-') || value.includes('/'))) {
       return 'date';
     }
-    
-    if (lowerKey.includes('is_') || lowerKey.includes('has_') || 
-        lowerKey === 'active' || lowerKey === 'current' ||
-        lowerKey.includes('overdue') || lowerKey.includes('published')) {
+
+    if (lowerKey.includes('is_') || lowerKey.includes('has_') ||
+      lowerKey === 'active' || lowerKey === 'current' ||
+      lowerKey.includes('overdue') || lowerKey.includes('published')) {
       return 'boolean';
     }
-    
+
     if (typeof value === 'number' && !isNaN(value)) {
       return 'number';
     }
-    
+
     return 'text';
   };
 
@@ -845,10 +845,10 @@ export default function AnalyticsReports() {
 
       const response = await apiClient.get(config.endpoint, { params });
       const data = response.data;
-      
+
       let detailsData = null;
       let analyticsData = null;
-      
+
       if (config.isOverview) {
         detailsData = data;
         analyticsData = data;
@@ -860,18 +860,18 @@ export default function AnalyticsReports() {
         } else {
           detailsData = data;
         }
-        
+
         if (config.analyticsKey && data[config.analyticsKey]) {
           analyticsData = data[config.analyticsKey];
         } else {
           analyticsData = data.analytics || data;
         }
       }
-      
+
       setReportData(detailsData);
       setReportSummary(analyticsData || {});
       setReportAnalytics(analyticsData || {});
-      
+
       if (detailsData && Array.isArray(detailsData) && detailsData.length > 0) {
         const firstRow = detailsData[0];
         const columns = Object.keys(firstRow).map(key => {
@@ -880,7 +880,7 @@ export default function AnalyticsReports() {
           return { key, label: key, type: detectedType };
         });
         setReportColumns(columns);
-        
+
         const initialVisible = {};
         columns.forEach(col => {
           initialVisible[col.key] = true;
@@ -914,7 +914,7 @@ export default function AnalyticsReports() {
 
       doc.setFillColor(16, 185, 129);
       doc.rect(0, 0, pageWidth, 8, 'F');
-      
+
       doc.setFontSize(18);
       doc.setTextColor(16, 185, 129);
       doc.setFont('helvetica', 'bold');
@@ -991,7 +991,7 @@ export default function AnalyticsReports() {
         yPos += 8;
 
         const visibleCols = reportColumns.filter(col => visibleColumns[col.key] !== false);
-        
+
         if (visibleCols.length > 0) {
           const headers = visibleCols.map(col => t(`analytics.columns.${col.label}`, col.label));
           const tableData = reportData.map(item => {
@@ -1028,7 +1028,7 @@ export default function AnalyticsReports() {
     try {
       const config = reportTypes.find(r => r.value === reportType);
       const visibleCols = reportColumns.filter(col => visibleColumns[col.key] !== false);
-      
+
       let exportData = [];
       if (reportData && Array.isArray(reportData)) {
         exportData = reportData.map(item => {
@@ -1057,9 +1057,9 @@ export default function AnalyticsReports() {
     try {
       const visibleCols = reportColumns.filter(col => visibleColumns[col.key] !== false);
       const headers = visibleCols.map(col => t(`analytics.columns.${col.label}`, col.label));
-      
+
       const csvRows = [headers.join(',')];
-      
+
       if (reportData && Array.isArray(reportData)) {
         for (const row of reportData) {
           const values = visibleCols.map(col => {
@@ -1126,7 +1126,7 @@ export default function AnalyticsReports() {
   // Get formatted visible data for table
   const getFormattedVisibleData = () => {
     if (!reportData || !Array.isArray(reportData)) return [];
-    
+
     const visibleCols = reportColumns.filter(col => visibleColumns[col.key] !== false);
     return reportData.map(row => {
       const formattedRow = {};
@@ -1145,9 +1145,10 @@ export default function AnalyticsReports() {
   const currentConfig = reportTypes.find(r => r.value === reportType);
 
   // Prepare chart data from analytics
+  // Prepare chart data from analytics
   const prepareChartData = () => {
     const charts = [];
-    
+
     if (reportAnalytics.by_role) {
       charts.push({
         title: 'usersByRole',
@@ -1157,7 +1158,7 @@ export default function AnalyticsReports() {
         nameKey: 'name'
       });
     }
-    
+
     if (reportAnalytics.by_status) {
       charts.push({
         title: 'distributionByStatus',
@@ -1167,7 +1168,7 @@ export default function AnalyticsReports() {
         nameKey: 'name'
       });
     }
-    
+
     if (reportAnalytics.monthly_registrations?.length > 0) {
       charts.push({
         title: 'monthlyTrend',
@@ -1177,7 +1178,7 @@ export default function AnalyticsReports() {
         nameKey: 'month'
       });
     }
-    
+
     if (reportAnalytics.monthly_collection_trend?.length > 0) {
       charts.push({
         title: 'revenueTrend',
@@ -1187,7 +1188,7 @@ export default function AnalyticsReports() {
         nameKey: 'month'
       });
     }
-    
+
     if (reportAnalytics.payment_status_distribution) {
       charts.push({
         title: 'paymentStatus',
@@ -1197,7 +1198,7 @@ export default function AnalyticsReports() {
         nameKey: 'name'
       });
     }
-    
+
     if (reportAnalytics.grade_status_distribution) {
       charts.push({
         title: 'gradeStatus',
@@ -1207,17 +1208,32 @@ export default function AnalyticsReports() {
         nameKey: 'name'
       });
     }
-    
-    if (reportAnalytics.students_per_class_level?.length > 0) {
-      charts.push({
-        title: 'studentsByClassLevel',
-        data: reportAnalytics.students_per_class_level,
-        type: 'bar',
-        dataKey: 'count',
-        nameKey: 'current_class_level__name'
+
+    // This calculates status distribution from your student data
+    if (reportData && Array.isArray(reportData) && reportData.length > 0) {
+      const statusCounts = {};
+      reportData.forEach(student => {
+        const status = student.status || 'unknown';
+        statusCounts[status] = (statusCounts[status] || 0) + 1;
       });
+
+      if (Object.keys(statusCounts).length > 0) {
+        const statusData = Object.entries(statusCounts).map(([name, value]) => ({
+          name: name.charAt(0).toUpperCase() + name.slice(1), // Capitalize: 'active' → 'Active'
+          value: value
+        }));
+
+        charts.push({
+          title: 'studentsByStatus',
+          data: statusData,
+          type: 'pie', // You can change to 'bar' if you prefer
+          dataKey: 'value',
+          nameKey: 'name'
+        });
+      }
     }
-    
+
+    // Keep Students by School Level (this was already there)
     if (reportAnalytics.students_per_school_level?.length > 0) {
       charts.push({
         title: 'studentsBySchoolLevel',
@@ -1227,7 +1243,7 @@ export default function AnalyticsReports() {
         nameKey: 'current_school_level__name'
       });
     }
-    
+
     return charts;
   };
 
@@ -1250,8 +1266,8 @@ export default function AnalyticsReports() {
 
   return (
     <div className="analytics-reports min-h-screen bg-gray-50 dark:bg-gray-900">
-      <ToastContainer 
-        position="top-right" 
+      <ToastContainer
+        position="top-right"
         autoClose={5000}
         theme={isDarkMode ? 'dark' : 'light'}
       />
@@ -1272,11 +1288,10 @@ export default function AnalyticsReports() {
           {reportTypes.map(type => (
             <button
               key={type.value}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
-                reportType === type.value
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${reportType === type.value
                   ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-md'
                   : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
+                }`}
               onClick={() => {
                 setReportType(type.value);
                 setReportData(null);
@@ -1311,7 +1326,7 @@ export default function AnalyticsReports() {
                 </select>
               </div>
             )}
-            
+
             {terms.length > 0 && (
               <div className="filter-group">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -1329,7 +1344,7 @@ export default function AnalyticsReports() {
                 </select>
               </div>
             )}
-            
+
             {schoolLevels.length > 0 && (
               <div className="filter-group">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -1347,7 +1362,7 @@ export default function AnalyticsReports() {
                 </select>
               </div>
             )}
-            
+
             {classLevels.length > 0 && (
               <div className="filter-group">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -1365,7 +1380,7 @@ export default function AnalyticsReports() {
                 </select>
               </div>
             )}
-            
+
             <div className="filter-group">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 {t('analytics.filters.startDate', 'Start Date')}
@@ -1377,7 +1392,7 @@ export default function AnalyticsReports() {
                 onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
               />
             </div>
-            
+
             <div className="filter-group">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 {t('analytics.filters.endDate', 'End Date')}
@@ -1389,7 +1404,7 @@ export default function AnalyticsReports() {
                 onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
               />
             </div>
-            
+
             <div className="filter-group">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 {t('analytics.filters.status', 'Status')}
@@ -1407,7 +1422,7 @@ export default function AnalyticsReports() {
               </select>
             </div>
           </div>
-          
+
           <div className="flex justify-end gap-3 mt-4">
             <button
               onClick={generateReport}
@@ -1455,7 +1470,7 @@ export default function AnalyticsReports() {
                   CSV
                 </button>
               </div>
-              
+
               {reportColumns.length > 0 && (
                 <ColumnVisibilityManager
                   columns={reportColumns}
@@ -1594,14 +1609,14 @@ export default function AnalyticsReports() {
                           <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                             {Object.entries(row).map(([key, value], cellIdx) => {
                               const valueStr = String(value).toLowerCase();
-                              const isStatus = key.toLowerCase().includes('status') || 
-                                              key.toLowerCase().includes('completed') ||
-                                              key.toLowerCase().includes('active') ||
-                                              key.toLowerCase().includes('overdue') ||
-                                              valueStr === 'yes' || valueStr === 'no';
-                              
+                              const isStatus = key.toLowerCase().includes('status') ||
+                                key.toLowerCase().includes('completed') ||
+                                key.toLowerCase().includes('active') ||
+                                key.toLowerCase().includes('overdue') ||
+                                valueStr === 'yes' || valueStr === 'no';
+
                               const statusClass = isStatus ? getStatusBadgeClass(valueStr) : '';
-                              
+
                               return (
                                 <td key={cellIdx} className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
                                   {isStatus && statusClass ? (

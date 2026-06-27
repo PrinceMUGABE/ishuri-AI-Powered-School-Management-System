@@ -80,6 +80,7 @@ const StudentForm = React.memo(({
     onChange(name, value);
   };
 
+
   const fields = useMemo(() => [
     { name: 'full_name', label: t('students.form.fullName'), type: 'text', required: true },
     { name: 'email', label: t('students.form.email'), type: 'email', required: false },
@@ -105,6 +106,19 @@ const StudentForm = React.memo(({
       type: 'select',
       required: false,
       options: filteredClassLevels.map(c => ({ value: c.id, label: c.name })),
+    },
+    // ── Status field ──
+    {
+      name: 'status',
+      label: t('students.form.status') || 'Status',
+      type: 'select',
+      required: false,
+      options: [
+        { value: 'active', label: t('students.status.active') || 'Active' },
+        { value: 'inactive', label: t('students.status.inactive') || 'Inactive' },
+        { value: 'transferred', label: t('students.status.transferred') || 'Transferred' },
+        { value: 'graduated', label: t('students.status.graduated') || 'Graduated' },
+      ],
     },
   ], [academicYears, schoolLevels, filteredClassLevels, t]);
 
@@ -277,7 +291,7 @@ const AcademicReportModal = ({ student, reportData, onClose, t }) => {
   // Save report to localStorage
   const saveToLocalStorage = useCallback(() => {
     if (!student || !reportData) return;
-    
+
     setSaving(true);
     try {
       const savedReports = JSON.parse(localStorage.getItem('saved_academic_reports') || '[]');
@@ -291,12 +305,12 @@ const AcademicReportModal = ({ student, reportData, onClose, t }) => {
         generatedAt: new Date().toISOString(),
         reportData: reportData
       };
-      
+
       // Remove any existing report for same student and academic year
-      const filteredReports = savedReports.filter(r => 
+      const filteredReports = savedReports.filter(r =>
         !(r.studentId === student.id && r.academicYear === reportData.academic_year_name)
       );
-      
+
       filteredReports.unshift(newReport);
       // Keep only last 50 reports
       const trimmedReports = filteredReports.slice(0, 50);
@@ -496,7 +510,7 @@ const AcademicReportModal = ({ student, reportData, onClose, t }) => {
         },
         didDrawCell: (data) => {
           const { column, row, cell, doc: pdfDoc } = data;
-          
+
           // Color grade cells
           if (column.index === tableHeaders.length - 1 && row.section === 'body') {
             const grade = cell.text[0];
@@ -567,7 +581,7 @@ const AcademicReportModal = ({ student, reportData, onClose, t }) => {
       // Discipline & Attendance
       if (currentPerformance?.discipline) {
         addSectionTitle('Discipline & Attendance', primaryColor);
-        
+
         doc.autoTable({
           startY: yPos,
           body: [
@@ -578,13 +592,13 @@ const AcademicReportModal = ({ student, reportData, onClose, t }) => {
           ],
           margin: { left: margin, right: margin },
           styles: { fontSize: 10, cellPadding: 4 },
-          columnStyles: { 
-            0: { cellWidth: 60, fontStyle: 'bold', textColor: primaryColor }, 
-            1: { cellWidth: 40, halign: 'center' } 
+          columnStyles: {
+            0: { cellWidth: 60, fontStyle: 'bold', textColor: primaryColor },
+            1: { cellWidth: 40, halign: 'center' }
           },
           theme: 'grid',
         });
-        
+
         yPos = doc.lastAutoTable.finalY + 10;
       }
 
@@ -616,7 +630,7 @@ const AcademicReportModal = ({ student, reportData, onClose, t }) => {
       // Save PDF
       const filename = `Academic_Report_${student.roll_number}_${new Date().toISOString().split('T')[0]}.pdf`;
       doc.save(filename);
-      
+
       // Save to localStorage
       saveToLocalStorage();
 
@@ -630,7 +644,7 @@ const AcademicReportModal = ({ student, reportData, onClose, t }) => {
   }, [reportData, student, saveToLocalStorage, terms, currentPerformance]);
 
   const handlePrint = () => window.print();
-  
+
   const handleDownloadJSON = () => {
     const dataStr = JSON.stringify(reportData, null, 2);
     const blob = new Blob([dataStr], { type: 'application/json' });
@@ -699,15 +713,15 @@ const AcademicReportModal = ({ student, reportData, onClose, t }) => {
   const S = {
     overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '16px' },
     modal: { background: C.white, borderRadius: '12px', maxWidth: '1000px', width: '100%', maxHeight: '92vh', overflowY: 'auto', fontFamily: "'Georgia', 'Times New Roman', serif", color: C.text, boxShadow: '0 25px 60px rgba(0,0,0,0.35)' },
-    stickyBar: { 
-      position: 'sticky', 
-      top: 0, 
-      background: C.white, 
-      borderBottom: `3px solid ${C.primary}`, 
-      padding: '10px 20px', 
-      display: 'flex', 
-      justifyContent: 'flex-end', 
-      gap: '8px', 
+    stickyBar: {
+      position: 'sticky',
+      top: 0,
+      background: C.white,
+      borderBottom: `3px solid ${C.primary}`,
+      padding: '10px 20px',
+      display: 'flex',
+      justifyContent: 'flex-end',
+      gap: '8px',
       zIndex: 10,
       '@media print': { display: 'none' } // Hide buttons when printing
     },
@@ -755,12 +769,12 @@ const AcademicReportModal = ({ student, reportData, onClose, t }) => {
             )}
             PDF
           </button>
- 
+
           <button onClick={onClose} style={S.solidBtn}>
             <X className="w-4 h-4" /> Close
           </button>
         </div>
-        
+
         {/* Report Content - Visible when printing */}
         <div style={S.body}>
           <div style={S.headerRow}>
@@ -773,7 +787,7 @@ const AcademicReportModal = ({ student, reportData, onClose, t }) => {
               <p style={{ margin: '4px 0 0', fontFamily: 'sans-serif', fontSize: '13px', color: C.textMuted }}>Academic Performance Report</p>
             </div>
           </div>
-          
+
           <table style={S.infoTable}>
             <tbody>
               <tr>
@@ -790,7 +804,7 @@ const AcademicReportModal = ({ student, reportData, onClose, t }) => {
               </tr>
             </tbody>
           </table>
-          
+
           <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={S.greenHeader}>Semestral Grades and Final Performance</div>
@@ -859,7 +873,7 @@ const AcademicReportModal = ({ student, reportData, onClose, t }) => {
               </table>
             </div>
           </div>
-          
+
           {currentPerformance?.discipline && (
             <div style={{ marginTop: '24px' }}>
               <div style={S.greenHeader}>Discipline & Attendance</div>
@@ -878,21 +892,21 @@ const AcademicReportModal = ({ student, reportData, onClose, t }) => {
               </div>
             </div>
           )}
-          
+
           {currentPerformance?.remarks && (
             <div style={S.remarks}>
               <strong style={{ color: C.primary }}>Remarks: </strong>
               {currentPerformance.remarks}
             </div>
           )}
-          
+
           <div style={S.footer}>
             <p style={{ margin: '0 0 4px' }}>Les Hirondelles de Don Bosco — Quality Education for All</p>
             <p style={{ margin: 0 }}>Generated on: {new Date().toLocaleDateString()} | Official Academic Report</p>
           </div>
         </div>
       </div>
-      
+
       {/* Print-specific CSS to hide buttons */}
       <style jsx global>{`
         @media print {
@@ -1443,9 +1457,36 @@ const StudentManagement = () => {
 
   // ── Modal Handlers ─────────────────────────────────────────
   const openEditModal = useCallback((item) => {
-    setEditItem({ ...item });
+    // For students, the API returns nested objects for the FK fields
+    // (e.g. current_class_level: { id: 3, name: 'P3', ... }).
+    // The form fields use _id suffixed keys and expect plain scalar values,
+    // so we normalise them here before handing to editItem.
+    const normalized = { ...item };
+
+    if (activeTab === 'students') {
+      // Flatten nested FK objects → scalar IDs that match the form field names
+      normalized.current_academic_year_id =
+        item.current_academic_year?.id ?? item.current_academic_year_id ?? '';
+      normalized.current_school_level_id =
+        item.current_school_level?.id ?? item.current_school_level_id ?? '';
+      normalized.current_class_level_id =
+        item.current_class_level?.id ?? item.current_class_level_id ?? '';
+
+      // Ensure status is preserved (it's already a scalar value)
+      normalized.status = item.status || 'active';
+
+      // Pre-populate the cascading class-level dropdown with the student's
+      // current school level so the class-level options are visible immediately.
+      const schoolLevelId =
+        item.current_school_level?.id ?? item.current_school_level_id;
+      if (schoolLevelId) {
+        fetchClassLevelsBySchool(String(schoolLevelId));
+      }
+    }
+
+    setEditItem(normalized);
     setShowEditModal(true);
-  }, []);
+  }, [activeTab, fetchClassLevelsBySchool]);
 
   const openViewModal = useCallback(async (item, tabType) => {
     setSelectedItem(item);
@@ -2137,6 +2178,21 @@ const StudentManagement = () => {
 
   const getCurrentTabLabel = useCallback(() => tabs.find(tab => tab.id === activeTab)?.label || '', [activeTab, tabs]);
 
+  const handleAddNew = useCallback(() => {
+    setNewItem({
+      status: 'active', // Default to active for new students
+      full_name: '',
+      email: '',
+      phone_number: '',
+      birth_date: '',
+      current_academic_year_id: '',
+      current_school_level_id: '',
+      current_class_level_id: '',
+    });
+    setShowAddModal(true);
+  }, []);
+
+
   // ── Main Render ────────────────────────────────────────────
   return (
     <div className={darkMode ? 'dark' : ''}>
@@ -2158,6 +2214,7 @@ const StudentManagement = () => {
         </div>
 
         {/* Header */}
+
         <div className="flex justify-between items-center flex-wrap gap-3">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">{t('students.title')}</h1>
@@ -2173,7 +2230,10 @@ const StudentManagement = () => {
               </button>
             )}
             {activeTab !== 'reports' && (
-              <button onClick={() => { setNewItem({}); setShowAddModal(true); }} className="px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded-xl flex items-center gap-2 text-sm font-medium">
+              <button
+                onClick={handleAddNew}
+                className="px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded-xl flex items-center gap-2 text-sm font-medium"
+              >
                 <Plus className="w-4 h-4" /> {`${t('students.actions.addNew')} ${getCurrentTabLabel()}`}
               </button>
             )}

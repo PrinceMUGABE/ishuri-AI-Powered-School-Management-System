@@ -308,12 +308,69 @@ def teacher_detail(request, pk):
                 if not serializer.is_valid():
                     print(f"[VALIDATION_ERRORS] {serializer.errors}")
                     return _err(f"Validation failed: {', '.join([str(v) for v in serializer.errors.values()])}")
-                
+
+                # ── Status-change guard ──────────────────────────────────────────
+                incoming_status = request.data.get('status')
+                RESTRICTED_STATUSES = {'inactive', 'on_leave', 'suspended'}
+
+                if (
+                    incoming_status
+                    and incoming_status in RESTRICTED_STATUSES
+                    and teacher.status == 'active'
+                    and incoming_status != teacher.status
+                ):
+                    active_assignments = TeacherAssignment.objects.filter(
+                        teacher=teacher,
+                        status='active'
+                    ).select_related('subject', 'class_level', 'term', 'academic_year')
+
+                    if active_assignments.exists():
+                        duties = [
+                            {
+                                'assignment_id':  a.id,
+                                'subject':        a.subject.name,
+                                'class_level':    a.class_level.name,
+                                'term':           a.term.name,
+                                'academic_year':  a.academic_year.name,
+                                'required_hours': a.required_hours_per_week,
+                            }
+                            for a in active_assignments
+                        ]
+
+                        status_label = {
+                            'inactive':  'inactive',
+                            'on_leave':  'on leave',
+                            'suspended': 'suspended',
+                        }[incoming_status]
+
+                        warning_message = (
+                            f'Cannot set teacher "{teacher.full_name}" to {status_label}. '
+                            f'They still have {len(duties)} active assignment(s). '
+                            f'Please relieve them of those duties first before changing their status.'
+                        )
+
+                        print(f"[STATUS_CHANGE_BLOCKED] {warning_message}")
+
+                        return Response({
+                            'success':           False,
+                            'blocked':           True,
+                            'message':           warning_message,
+                            'current_status':    teacher.status,
+                            'requested_status':  incoming_status,
+                            'active_assignments_count': len(duties),
+                            'active_assignments': duties,
+                            'hint': (
+                                'To proceed: update or deactivate each listed assignment, '
+                                'then retry the status change.'
+                            ),
+                        }, status=status.HTTP_409_CONFLICT)
+                # ── End guard ────────────────────────────────────────────────────
+
                 old_name = teacher.full_name
                 with transaction.atomic():
                     serializer.save()
                     print(f"[TEACHER_UPDATED] id={teacher.id}, old_name={old_name}, new_name={teacher.full_name}")
-                
+
                 try:
                     NotificationService.create_academic_notification(
                         user=request.user,
@@ -327,9 +384,9 @@ def teacher_detail(request, pk):
                     )
                 except Exception as e:
                     print_error(f"Notification failed: {str(e)}", e)
-                
+
                 return _ok(serializer.data, get_translation('teacher_update_success', lang, name=old_name))
-                
+
             except IntegrityError as e:
                 print_error(f"IntegrityError in PUT: {str(e)}", e)
                 if 'email' in str(e).lower():
@@ -339,6 +396,7 @@ def teacher_detail(request, pk):
                 print_error(f"Error in PUT teacher_detail: {str(e)}", e)
                 return _err(get_translation('operation_failed', lang), status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+                
         # DELETE method
         try:
             if teacher.assignments.filter(status='active').exists():

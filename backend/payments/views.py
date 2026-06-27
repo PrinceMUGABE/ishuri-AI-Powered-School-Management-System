@@ -937,3 +937,277 @@ def get_overdue_payments(request):
             'message': 'An unexpected error occurred',
             'error': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
+# ─── Bulk Assignment Serializers (inline, no extra file needed) ───────────────
+
+from rest_framework import serializers as drf_serializers
+
+class BulkAssignBySchoolLevelSerializer(drf_serializers.Serializer):
+    school_level_id    = drf_serializers.IntegerField()
+    class_level_cost_ids = drf_serializers.ListField(
+        child=drf_serializers.IntegerField(), min_length=1
+    )
+    academic_year_id   = drf_serializers.IntegerField()
+    payment_due_date   = drf_serializers.DateField()
+    payment_start_date = drf_serializers.DateField(required=False)
+
+
+class BulkAssignByClassLevelSerializer(drf_serializers.Serializer):
+    school_level_id    = drf_serializers.IntegerField()
+    class_level_id     = drf_serializers.IntegerField()
+    class_level_cost_ids = drf_serializers.ListField(
+        child=drf_serializers.IntegerField(), min_length=1
+    )
+    academic_year_id   = drf_serializers.IntegerField()
+    payment_due_date   = drf_serializers.DateField()
+    payment_start_date = drf_serializers.DateField(required=False)
+
+
+class BulkAssignAllStudentsSerializer(drf_serializers.Serializer):
+    class_level_cost_ids = drf_serializers.ListField(
+        child=drf_serializers.IntegerField(), min_length=1
+    )
+    academic_year_id   = drf_serializers.IntegerField()
+    payment_due_date   = drf_serializers.DateField()
+    payment_start_date = drf_serializers.DateField(required=False)
+
+
+def _build_bulk_summary(result):
+    """Convert service result into a JSON-safe response body."""
+    from .serializers import StudentPaymentAssignmentSerializer
+    return {
+        'created_count': len(result['created']),
+        'skipped_count': len(result['skipped']),
+        'error_count':   len(result['errors']),
+        'created': StudentPaymentAssignmentSerializer(result['created'], many=True).data,
+        'skipped': result['skipped'],
+        'errors':  result['errors'],
+    }
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def bulk_assign_by_school_level(request):
+    """
+    Assign one or more fee structures to every active student
+    who belongs to the given school level.
+
+    Fee structures are matched to students by class level — a student
+    only receives a fee if its class_level matches their current_class_level.
+
+    Body:
+        school_level_id        (int, required)
+        class_level_cost_ids   ([int], required)
+        academic_year_id       (int, required)
+        payment_due_date       (date YYYY-MM-DD, required)
+        payment_start_date     (date YYYY-MM-DD, optional – defaults to today)
+    """
+    serializer = BulkAssignBySchoolLevelSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(
+            {'success': False, 'message': 'Validation error', 'errors': serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    data = serializer.validated_data
+
+    # Resolve objects
+    try:
+        from academics.models import SchoolLevel, AcademicYear
+        school_level  = SchoolLevel.objects.get(id=data['school_level_id'])
+        academic_year = AcademicYear.objects.get(id=data['academic_year_id'])
+    except Exception as e:
+        return Response(
+            {'success': False, 'message': str(e)},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    payment_start_date = data.get('payment_start_date', timezone.now().date())
+
+    try:
+        result = PaymentService.bulk_assign_by_school_level(
+            school_level=school_level,
+            class_level_cost_ids=data['class_level_cost_ids'],
+            academic_year=academic_year,
+            payment_due_date=data['payment_due_date'],
+            payment_start_date=payment_start_date,
+            created_by=request.user,
+            request=request
+        )
+
+        summary = _build_bulk_summary(result)
+        print(f"\n✅ BULK ASSIGN (school level={school_level.name}): "
+              f"{summary['created_count']} created, "
+              f"{summary['skipped_count']} skipped, "
+              f"{summary['error_count']} errors")
+
+        return Response(
+            {
+                'success': True,
+                'message': (
+                    f"{summary['created_count']} assignment(s) created for students "
+                    f"in school level '{school_level.name}'"
+                ),
+                'data': summary
+            },
+            status=status.HTTP_201_CREATED
+        )
+
+    except Exception as e:
+        print_error_response(str(e), traceback.format_exc())
+        return Response(
+            {'success': False, 'message': 'An unexpected error occurred', 'error': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def bulk_assign_by_class_level(request):
+    """
+    Assign one or more fee structures to every active student
+    in a specific class level within a school level.
+
+    Body:
+        school_level_id        (int, required)
+        class_level_id         (int, required)
+        class_level_cost_ids   ([int], required)
+        academic_year_id       (int, required)
+        payment_due_date       (date YYYY-MM-DD, required)
+        payment_start_date     (date YYYY-MM-DD, optional – defaults to today)
+    """
+    serializer = BulkAssignByClassLevelSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(
+            {'success': False, 'message': 'Validation error', 'errors': serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    data = serializer.validated_data
+
+    try:
+        from academics.models import SchoolLevel, ClassLevel, AcademicYear
+        school_level  = SchoolLevel.objects.get(id=data['school_level_id'])
+        class_level   = ClassLevel.objects.get(
+            id=data['class_level_id'],
+            school_level=school_level   # ensure it belongs to the given school level
+        )
+        academic_year = AcademicYear.objects.get(id=data['academic_year_id'])
+    except Exception as e:
+        return Response(
+            {'success': False, 'message': str(e)},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    payment_start_date = data.get('payment_start_date', timezone.now().date())
+
+    try:
+        result = PaymentService.bulk_assign_by_class_level(
+            class_level=class_level,
+            class_level_cost_ids=data['class_level_cost_ids'],
+            academic_year=academic_year,
+            payment_due_date=data['payment_due_date'],
+            payment_start_date=payment_start_date,
+            created_by=request.user,
+            request=request
+        )
+
+        summary = _build_bulk_summary(result)
+        print(f"\n✅ BULK ASSIGN (class level={class_level.name}): "
+              f"{summary['created_count']} created, "
+              f"{summary['skipped_count']} skipped, "
+              f"{summary['error_count']} errors")
+
+        return Response(
+            {
+                'success': True,
+                'message': (
+                    f"{summary['created_count']} assignment(s) created for students "
+                    f"in class level '{class_level.name}' "
+                    f"({school_level.name})"
+                ),
+                'data': summary
+            },
+            status=status.HTTP_201_CREATED
+        )
+
+    except Exception as e:
+        print_error_response(str(e), traceback.format_exc())
+        return Response(
+            {'success': False, 'message': 'An unexpected error occurred', 'error': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def bulk_assign_all_students(request):
+    """
+    Assign one or more fee structures to ALL active students school-wide.
+
+    Fee structures are still scoped to a class level — a student receives
+    a fee only when the fee's class_level matches their current_class_level.
+    Mismatches are returned in the 'skipped' list.
+
+    Body:
+        class_level_cost_ids   ([int], required)
+        academic_year_id       (int, required)
+        payment_due_date       (date YYYY-MM-DD, required)
+        payment_start_date     (date YYYY-MM-DD, optional – defaults to today)
+    """
+    serializer = BulkAssignAllStudentsSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(
+            {'success': False, 'message': 'Validation error', 'errors': serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    data = serializer.validated_data
+
+    try:
+        from academics.models import AcademicYear
+        academic_year = AcademicYear.objects.get(id=data['academic_year_id'])
+    except AcademicYear.DoesNotExist:
+        return Response(
+            {'success': False, 'message': 'Academic year not found'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    payment_start_date = data.get('payment_start_date', timezone.now().date())
+
+    try:
+        result = PaymentService.bulk_assign_all_students(
+            class_level_cost_ids=data['class_level_cost_ids'],
+            academic_year=academic_year,
+            payment_due_date=data['payment_due_date'],
+            payment_start_date=payment_start_date,
+            created_by=request.user,
+            request=request
+        )
+
+        summary = _build_bulk_summary(result)
+        print(f"\n✅ BULK ASSIGN (all students): "
+              f"{summary['created_count']} created, "
+              f"{summary['skipped_count']} skipped, "
+              f"{summary['error_count']} errors")
+
+        return Response(
+            {
+                'success': True,
+                'message': (
+                    f"{summary['created_count']} assignment(s) created across all active students"
+                ),
+                'data': summary
+            },
+            status=status.HTTP_201_CREATED
+        )
+
+    except Exception as e:
+        print_error_response(str(e), traceback.format_exc())
+        return Response(
+            {'success': False, 'message': 'An unexpected error occurred', 'error': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

@@ -105,6 +105,10 @@ const TeacherManagement = () => {
   const [holidays, setHolidays] = useState([]);
   const [teacherDocuments, setTeacherDocuments] = useState([]);
   const [reportData, setReportData] = useState(null);
+  const [selectedClassLevelsForNewAssignment, setSelectedClassLevelsForNewAssignment] = useState([]);
+  const [blockedStatusWarning, setBlockedStatusWarning] = useState({
+    show: false, message: '', hint: '', assignments: [], count: 0
+  });
 
   // ── Form State ────────────────────────────────────────────
   const [newTeacher, setNewTeacher] = useState({
@@ -143,12 +147,12 @@ const TeacherManagement = () => {
 
   // ── Stats ─────────────────────────────────────────────────
   const [stats, setStats] = useState({
-    total_teachers: 0, 
-    active_teachers: 0, 
-    inactive_teachers: 0, 
+    total_teachers: 0,
+    active_teachers: 0,
+    inactive_teachers: 0,
     on_leave_teachers: 0,
-    total_assignments: 0, 
-    active_assignments: 0, 
+    total_assignments: 0,
+    active_assignments: 0,
     total_timetable_entries: 0
   });
 
@@ -286,6 +290,7 @@ const TeacherManagement = () => {
   const handleSchoolLevelChange = (schoolLevelId) => {
     const filtered = classLevels.filter(cl => cl.school_level === parseInt(schoolLevelId) && cl.is_active);
     setFilteredClassLevels(filtered);
+    setSelectedClassLevelsForNewAssignment([]); // ← reset
     setNewAssignment(prev => ({ ...prev, school_level: schoolLevelId, class_level: '' }));
   };
 
@@ -388,6 +393,7 @@ const TeacherManagement = () => {
     setLoading(true);
     try {
       const response = await apiClient.put(`/teachers/${editTeacher.id}/`, editTeacher);
+
       if (response.data.success) {
         toast.success(response.data.message || t('teachers.messages.updateSuccess'));
         setShowEditModal(false);
@@ -399,8 +405,37 @@ const TeacherManagement = () => {
       } else {
         toast.error(response.data.message || t('teachers.errors.updateFailed'));
       }
-    } catch (error) {
-      toast.error(error.response?.data?.message || t('teachers.errors.updateFailed'));
+
+    } catch (err) {
+      const data = err.response?.data;
+
+      // ── Duty conflict: blocked status change ──────────────────────────
+      if (err.response?.status === 409 && data?.blocked) {
+        const assignmentLines = (data.active_assignments || [])
+          .map(a => `• ${a.subject} → ${a.class_level} (${a.term}, ${a.academic_year})`)
+          .join('\n');
+
+        toast.error(
+          `${data.message}\n\n${assignmentLines}`,
+          {
+            duration: 8000,
+            style: { whiteSpace: 'pre-line', maxWidth: '480px' },
+          }
+        );
+
+        // Optionally surface a more detailed inline warning in the modal
+        setBlockedStatusWarning({
+          show: true,
+          message: data.message,
+          hint: data.hint,
+          assignments: data.active_assignments || [],
+          count: data.active_assignments_count,
+        });
+        return; // keep the modal open
+      }
+      // ─────────────────────────────────────────────────────────────────
+
+      toast.error(data?.message || t('teachers.errors.updateFailed'));
     } finally {
       setLoading(false);
     }
@@ -427,30 +462,56 @@ const TeacherManagement = () => {
   };
 
   const handleCreateAssignment = async () => {
+    if (selectedClassLevelsForNewAssignment.length === 0) {
+      toast.error(t('teachers.errors.selectAtLeastOneClassLevel') || 'Select at least one class level');
+      return;
+    }
+
     setLoading(true);
     try {
-      const payload = {
+      const basePayload = {
         teacher: newAssignment.teacher,
         academic_year: newAssignment.academic_year,
         term: newAssignment.term,
         school_level: newAssignment.school_level,
-        class_level: newAssignment.class_level,
         subject: newAssignment.subject,
         status: newAssignment.status || 'active',
         notes: newAssignment.notes || ''
       };
-      const response = await apiClient.post('/assignments/', payload);
-      if (response.data.success) {
-        toast.success(response.data.message || t('teachers.messages.assignmentCreateSuccess'));
+
+      const results = await Promise.allSettled(
+        selectedClassLevelsForNewAssignment.map(classLevelId =>
+          apiClient.post('/assignments/', { ...basePayload, class_level: classLevelId })
+        )
+      );
+
+      const succeeded = results.filter(r => r.status === 'fulfilled' && r.value.data.success);
+      const failed = results.filter(r => r.status === 'rejected' || !r.value?.data?.success);
+
+      if (succeeded.length > 0) {
+        toast.success(
+          `${succeeded.length} assignment${succeeded.length > 1 ? 's' : ''} created successfully` +
+          (failed.length > 0 ? ` (${failed.length} failed)` : '')
+        );
+      }
+      if (failed.length > 0 && succeeded.length === 0) {
+        const firstError = failed[0];
+        const errMsg = firstError.reason?.response?.data?.message
+          || firstError.value?.data?.message
+          || t('teachers.errors.assignmentCreateFailed');
+        toast.error(errMsg);
+      }
+
+      if (succeeded.length > 0) {
         setShowAddModal(false);
         setNewAssignment({
-          teacher: '', academic_year: '', term: '', school_level: '', class_level: '', subject: '', status: 'active', notes: ''
+          teacher: '', academic_year: '', term: '', school_level: '',
+          class_level: '', subject: '', status: 'active', notes: ''
         });
         setFilteredClassLevels([]);
         setFilteredTerms([]);
+        setSelectedClassLevelsForNewAssignment([]);
         fetchAssignments();
-      } else {
-        toast.error(response.data.message || t('teachers.errors.assignmentCreateFailed'));
       }
     } catch (error) {
       toast.error(error.response?.data?.message || t('teachers.errors.assignmentCreateFailed'));
@@ -720,11 +781,10 @@ const TeacherManagement = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTeacherTab(tab.id)}
-                  className={`px-4 py-3 text-sm font-medium transition-all flex items-center gap-2 border-b-2 whitespace-nowrap ${
-                    isActive
-                      ? 'border-emerald-600 text-emerald-700 dark:text-emerald-400'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
-                  }`}
+                  className={`px-4 py-3 text-sm font-medium transition-all flex items-center gap-2 border-b-2 whitespace-nowrap ${isActive
+                    ? 'border-emerald-600 text-emerald-700 dark:text-emerald-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                    }`}
                 >
                   <TabIcon className="w-4 h-4" />
                   {tab.label}
@@ -965,6 +1025,7 @@ const TeacherManagement = () => {
             <button
               onClick={() => {
                 setEditTeacher(selectedTeacher);
+                setBlockedStatusWarning({ show: false, message: '', hint: '', assignments: [], count: 0 });
                 setShowEditModal(true);
                 setShowViewModal(false);
               }}
@@ -1045,6 +1106,7 @@ const TeacherManagement = () => {
             <button
               onClick={() => {
                 setEditTeacher(teacher);
+                setBlockedStatusWarning({ show: false, message: '', hint: '', assignments: [], count: 0 });
                 setShowEditModal(true);
               }}
               className="p-1.5 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/20 transition-colors"
@@ -1471,6 +1533,7 @@ const TeacherManagement = () => {
                   });
                   setFilteredClassLevels([]);
                   setFilteredTerms([]);
+                  setSelectedClassLevelsForNewAssignment([]);
                   setShowAddModal(true);
                 }
               }}
@@ -1600,7 +1663,7 @@ const TeacherManagement = () => {
         {activeView === 'timetable' && renderTimetableView()}
 
         {/* ============ MODALS ============ */}
-        
+
         {/* Teacher Detail Modal */}
         {showViewModal && selectedTeacher && <TeacherDetailModal />}
 
@@ -1710,12 +1773,71 @@ const TeacherManagement = () => {
                     <option key={level.id} value={level.id}>{level.name}</option>
                   ))}
                 </select>
-                <select value={newAssignment.class_level} onChange={e => setNewAssignment({ ...newAssignment, class_level: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" disabled={!newAssignment.school_level}>
-                  <option value="">{newAssignment.school_level ? t('teachers.form.selectClassLevel') : t('teachers.form.selectSchoolLevelFirst')}</option>
-                  {filteredClassLevels.map(cl => (
-                    <option key={cl.id} value={cl.id}>{cl.name} ({cl.code})</option>
-                  ))}
-                </select>
+                {!newAssignment.school_level ? (
+                  <div className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800/50 text-sm text-gray-400 italic">
+                    {t('teachers.form.selectSchoolLevelFirst')}
+                  </div>
+                ) : filteredClassLevels.length === 0 ? (
+                  <div className="w-full px-3 py-2 border border-amber-200 dark:border-amber-800 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-sm text-amber-600 dark:text-amber-400">
+                    {t('teachers.errors.noClassLevelsInSchoolLevel') || 'No class levels found for this school level'}
+                  </div>
+                ) : (
+                  <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                    {/* Select-all / deselect-all header */}
+                    <label className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={
+                          filteredClassLevels.length > 0 &&
+                          selectedClassLevelsForNewAssignment.length === filteredClassLevels.length
+                        }
+                        onChange={e =>
+                          setSelectedClassLevelsForNewAssignment(
+                            e.target.checked ? filteredClassLevels.map(c => c.id) : []
+                          )
+                        }
+                        className="w-4 h-4 rounded accent-emerald-700"
+                      />
+                      <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">
+                        {selectedClassLevelsForNewAssignment.length === filteredClassLevels.length
+                          ? t('teachers.form.deselectAll') || 'Deselect all'
+                          : t('teachers.form.selectAll') || 'Select all'}
+                      </span>
+                      {selectedClassLevelsForNewAssignment.length > 0 && (
+                        <span className="ml-auto px-1.5 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs rounded-md font-semibold">
+                          {selectedClassLevelsForNewAssignment.length} selected
+                        </span>
+                      )}
+                    </label>
+
+                    {/* Individual rows */}
+                    <div className="max-h-40 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700">
+                      {filteredClassLevels.map(cl => (
+                        <label
+                          key={cl.id}
+                          className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-emerald-50 dark:hover:bg-emerald-900/10 transition-colors"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedClassLevelsForNewAssignment.includes(cl.id)}
+                            onChange={e =>
+                              setSelectedClassLevelsForNewAssignment(prev =>
+                                e.target.checked
+                                  ? [...prev, cl.id]
+                                  : prev.filter(id => id !== cl.id)
+                              )
+                            }
+                            className="w-4 h-4 rounded accent-emerald-700"
+                          />
+                          <span className="text-sm text-gray-800 dark:text-white">{cl.name}</span>
+                          <code className="ml-auto text-xs bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-gray-500 dark:text-gray-400">
+                            {cl.code}
+                          </code>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <select value={newAssignment.subject} onChange={e => setNewAssignment({ ...newAssignment, subject: e.target.value })} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700">
                   <option value="">{t('teachers.form.selectSubject')}</option>
                   {subjects.filter(s => s.status === 'active').map(s => (
@@ -1758,9 +1880,9 @@ const TeacherManagement = () => {
                     <option key={t.id} value={t.id}>{t.full_name}</option>
                   ))}
                 </select>
-                <select 
-                  value={editAssignmentData.academic_year} 
-                  onChange={e => handleAcademicYearChangeForEdit(e.target.value)} 
+                <select
+                  value={editAssignmentData.academic_year}
+                  onChange={e => handleAcademicYearChangeForEdit(e.target.value)}
                   className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
                 >
                   <option value="">{t('teachers.form.selectAcademicYear')}</option>
@@ -1770,10 +1892,10 @@ const TeacherManagement = () => {
                     </option>
                   ))}
                 </select>
-                <select 
-                  value={editAssignmentData.term} 
-                  onChange={e => setEditAssignmentData({ ...editAssignmentData, term: e.target.value })} 
-                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" 
+                <select
+                  value={editAssignmentData.term}
+                  onChange={e => setEditAssignmentData({ ...editAssignmentData, term: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
                   disabled={!editAssignmentData.academic_year}
                 >
                   <option value="">{editAssignmentData.academic_year ? t('teachers.form.selectTerm') : t('teachers.form.selectAcademicYearFirst')}</option>
@@ -1783,9 +1905,9 @@ const TeacherManagement = () => {
                     </option>
                   ))}
                 </select>
-                <select 
-                  value={editAssignmentData.school_level} 
-                  onChange={e => handleSchoolLevelChangeForEdit(e.target.value)} 
+                <select
+                  value={editAssignmentData.school_level}
+                  onChange={e => handleSchoolLevelChangeForEdit(e.target.value)}
                   className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
                 >
                   <option value="">{t('teachers.form.selectSchoolLevel')}</option>
@@ -1793,10 +1915,10 @@ const TeacherManagement = () => {
                     <option key={level.id} value={level.id}>{level.name}</option>
                   ))}
                 </select>
-                <select 
-                  value={editAssignmentData.class_level} 
-                  onChange={e => setEditAssignmentData({ ...editAssignmentData, class_level: e.target.value })} 
-                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" 
+                <select
+                  value={editAssignmentData.class_level}
+                  onChange={e => setEditAssignmentData({ ...editAssignmentData, class_level: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
                   disabled={!editAssignmentData.school_level}
                 >
                   <option value="">{editAssignmentData.school_level ? t('teachers.form.selectClassLevel') : t('teachers.form.selectSchoolLevelFirst')}</option>
@@ -1804,9 +1926,9 @@ const TeacherManagement = () => {
                     <option key={cl.id} value={cl.id}>{cl.name} ({cl.code})</option>
                   ))}
                 </select>
-                <select 
-                  value={editAssignmentData.subject} 
-                  onChange={e => setEditAssignmentData({ ...editAssignmentData, subject: e.target.value })} 
+                <select
+                  value={editAssignmentData.subject}
+                  onChange={e => setEditAssignmentData({ ...editAssignmentData, subject: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
                 >
                   <option value="">{t('teachers.form.selectSubject')}</option>
@@ -1814,21 +1936,21 @@ const TeacherManagement = () => {
                     <option key={s.id} value={s.id}>{s.name}</option>
                   ))}
                 </select>
-                <select 
-                  value={editAssignmentData.status} 
-                  onChange={e => setEditAssignmentData({ ...editAssignmentData, status: e.target.value })} 
+                <select
+                  value={editAssignmentData.status}
+                  onChange={e => setEditAssignmentData({ ...editAssignmentData, status: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
                 >
                   <option value="active">{t('teachers.status.active')}</option>
                   <option value="inactive">{t('teachers.status.inactive')}</option>
                   <option value="completed">{t('teachers.status.completed')}</option>
                 </select>
-                <textarea 
-                  placeholder={t('teachers.form.notes')} 
-                  value={editAssignmentData.notes} 
-                  onChange={e => setEditAssignmentData({ ...editAssignmentData, notes: e.target.value })} 
-                  rows="2" 
-                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" 
+                <textarea
+                  placeholder={t('teachers.form.notes')}
+                  value={editAssignmentData.notes}
+                  onChange={e => setEditAssignmentData({ ...editAssignmentData, notes: e.target.value })}
+                  rows="2"
+                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
                 />
               </div>
               <div className="sticky bottom-0 bg-white dark:bg-gray-900 px-5 py-4 border-t border-gray-200 dark:border-gray-700 flex gap-3">
@@ -1849,7 +1971,7 @@ const TeacherManagement = () => {
             <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
               <div className="sticky top-0 bg-white dark:bg-gray-900 px-5 pt-5 pb-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white">{t('teachers.actions.editTeacher')}</h2>
-                <button onClick={() => setShowEditModal(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
+                <button onClick={() => { setShowEditModal(false); setBlockedStatusWarning({ show: false, message: '', hint: '', assignments: [], count: 0 }); }} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
                   <X className="w-5 h-5 text-gray-500" />
                 </button>
               </div>
@@ -1898,6 +2020,51 @@ const TeacherManagement = () => {
                 </select>
                 <textarea placeholder={t('teachers.form.bio')} value={editTeacher.bio || ''} onChange={e => setEditTeacher({ ...editTeacher, bio: e.target.value })} rows="2" className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700" />
               </div>
+              {/* ── Duty-conflict warning banner ─────────────────────────── */}
+              {blockedStatusWarning.show && (
+                <div className="mx-5 mb-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 rounded-xl">
+                  <div className="flex items-start gap-2 mb-2">
+                    <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+                        {blockedStatusWarning.message}
+                      </p>
+                      {blockedStatusWarning.hint && (
+                        <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                          {blockedStatusWarning.hint}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {blockedStatusWarning.assignments.length > 0 && (
+                    <ul className="mt-2 space-y-1 max-h-40 overflow-y-auto">
+                      {blockedStatusWarning.assignments.map(a => (
+                        <li
+                          key={a.assignment_id}
+                          className="flex items-center gap-2 text-xs bg-amber-100 dark:bg-amber-900/30 rounded-lg px-2 py-1.5"
+                        >
+                          <BookOpen className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0" />
+                          <span className="font-semibold text-amber-800 dark:text-amber-200">{a.subject}</span>
+                          <span className="text-amber-500">→</span>
+                          <span className="text-amber-700 dark:text-amber-300">{a.class_level}</span>
+                          <span className="ml-auto text-amber-500 shrink-0 whitespace-nowrap">
+                            {a.term} · {a.academic_year}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  <button
+                    onClick={() => setBlockedStatusWarning({ show: false, message: '', hint: '', assignments: [], count: 0 })}
+                    className="mt-3 text-xs text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-200 underline"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              )}
+
               <div className="sticky bottom-0 bg-white dark:bg-gray-900 px-5 py-4 border-t border-gray-200 dark:border-gray-700 flex gap-3">
                 <button onClick={handleUpdateTeacher} disabled={loading} className="flex-1 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl disabled:opacity-60 text-sm font-semibold transition-colors">
                   {loading ? <Spinner /> : t('teachers.actions.update')}

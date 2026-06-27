@@ -1086,4 +1086,273 @@ Votre équipe administrative scolaire
             return user.language
         
         return 'en'
+
+    @staticmethod
+    def bulk_assign_by_school_level(school_level, class_level_cost_ids, academic_year,
+                                    payment_due_date, payment_start_date, created_by, request=None):
+        """
+        Assign one or more fee structures to ALL active students in a given school level.
+        Returns a summary dict: {created, skipped, errors}.
+        """
+        from students.models import Student
+        from academics.models import ClassLevelCost
+        from django.db import transaction
+        from decimal import Decimal
+
+        students = Student.objects.filter(
+            current_school_level=school_level,
+            status='active'
+        ).select_related('current_class_level')
+
+        print(f"\n\nFetched students in this school level {students.count()}\n\n")
+
+        costs = ClassLevelCost.objects.filter(id__in=class_level_cost_ids)
+
+        created, skipped, errors = [], [], []
+
+        with transaction.atomic():
+            for student in students:
+                for cost in costs:
+                    # Only assign if the cost belongs to the student's current class level
+                    if cost.class_level != student.current_class_level:
+                        skipped.append({
+                            'student': student.full_name,
+                            'cost': cost.name,
+                            'reason': f'Fee structure class level ({cost.class_level}) '
+                                    f'does not match student class level ({student.current_class_level})'
+                        })
+                        continue
+
+                    exists = StudentPaymentAssignment.objects.filter(
+                        student=student,
+                        class_level_cost=cost,
+                        academic_year=academic_year
+                    ).exists()
+
+                    if exists:
+                        skipped.append({
+                            'student': student.full_name,
+                            'cost': cost.name,
+                            'reason': 'Assignment already exists'
+                        })
+                        continue
+
+                    try:
+                        assignment = StudentPaymentAssignment.objects.create(
+                            student=student,
+                            class_level_cost=cost,
+                            academic_year=academic_year,
+                            total_amount=cost.amount,
+                            paid_amount=Decimal('0.00'),
+                            remaining_amount=cost.amount,
+                            payment_start_date=payment_start_date,
+                            payment_due_date=payment_due_date,
+                            status=PaymentStatus.WAITING,
+                            created_by=created_by
+                        )
+                        created.append(assignment)
+
+                        # Notify the student
+                        if student.user:
+                            try:
+                                from notifications.services import NotificationService
+                                NotificationService.create_academic_notification(
+                                    user=student.user,
+                                    notification_type='fee_assigned',
+                                    title='New Fee Structure Assigned',
+                                    message=f'A fee of {cost.amount} RWF for "{cost.name}" '
+                                            f'has been assigned to your account.',
+                                    created_by=created_by,
+                                    extra_data={'assignment_id': assignment.id}
+                                )
+                            except Exception:
+                                pass
+
+                    except Exception as e:
+                        errors.append({
+                            'student': student.full_name,
+                            'cost': cost.name,
+                            'reason': str(e)
+                        })
+
+        return {'created': created, 'skipped': skipped, 'errors': errors}
+
+
+    @staticmethod
+    def bulk_assign_by_class_level(class_level, class_level_cost_ids, academic_year,
+                                    payment_due_date, payment_start_date, created_by, request=None):
+        """
+        Assign one or more fee structures to ALL active students in a given class level.
+        The fee structures must belong to the same class level.
+        Returns a summary dict: {created, skipped, errors}.
+        """
+        from students.models import Student
+        from academics.models import ClassLevelCost
+        from django.db import transaction
+        from decimal import Decimal
+
+        students = Student.objects.filter(
+            current_class_level=class_level,
+            status='active'
+        )
+
+        print(f"\n\nFetched students in this class level {students.count()}\n\n")
+
+        costs = ClassLevelCost.objects.filter(id__in=class_level_cost_ids)
+
+        created, skipped, errors = [], [], []
+
+        with transaction.atomic():
+            for student in students:
+                for cost in costs:
+                    if cost.class_level != class_level:
+                        skipped.append({
+                            'student': student.full_name,
+                            'cost': cost.name,
+                            'reason': f'Fee structure does not belong to class level {class_level.name}'
+                        })
+                        continue
+
+                    exists = StudentPaymentAssignment.objects.filter(
+                        student=student,
+                        class_level_cost=cost,
+                        academic_year=academic_year
+                    ).exists()
+
+                    if exists:
+                        skipped.append({
+                            'student': student.full_name,
+                            'cost': cost.name,
+                            'reason': 'Assignment already exists'
+                        })
+                        continue
+
+                    try:
+                        assignment = StudentPaymentAssignment.objects.create(
+                            student=student,
+                            class_level_cost=cost,
+                            academic_year=academic_year,
+                            total_amount=cost.amount,
+                            paid_amount=Decimal('0.00'),
+                            remaining_amount=cost.amount,
+                            payment_start_date=payment_start_date,
+                            payment_due_date=payment_due_date,
+                            status=PaymentStatus.WAITING,
+                            created_by=created_by
+                        )
+                        created.append(assignment)
+
+                        if student.user:
+                            try:
+                                from notifications.services import NotificationService
+                                NotificationService.create_academic_notification(
+                                    user=student.user,
+                                    notification_type='fee_assigned',
+                                    title='New Fee Structure Assigned',
+                                    message=f'A fee of {cost.amount} RWF for "{cost.name}" '
+                                            f'has been assigned to your account.',
+                                    created_by=created_by,
+                                    extra_data={'assignment_id': assignment.id}
+                                )
+                            except Exception:
+                                pass
+
+                    except Exception as e:
+                        errors.append({
+                            'student': student.full_name,
+                            'cost': cost.name,
+                            'reason': str(e)
+                        })
+
+        return {'created': created, 'skipped': skipped, 'errors': errors}
+
+
+    @staticmethod
+    def bulk_assign_all_students(class_level_cost_ids, academic_year,
+                                payment_due_date, payment_start_date, created_by, request=None):
+        """
+        Assign one or more fee structures to ALL active students school-wide.
+        Each fee structure is only assigned to students whose current_class_level
+        matches the fee structure's class_level — mismatches are silently skipped.
+        Returns a summary dict: {created, skipped, errors}.
+        """
+        from students.models import Student
+        from academics.models import ClassLevelCost
+        from django.db import transaction
+        from decimal import Decimal
+
+        students = Student.objects.filter(status='active').select_related('current_class_level')
+        costs = ClassLevelCost.objects.filter(id__in=class_level_cost_ids)
+
+        created, skipped, errors = [], [], []
+
+        with transaction.atomic():
+            for student in students:
+                for cost in costs:
+                    # Silently skip class level mismatches — caller asked for "all students"
+                    # but a fee structure is still scoped to a class level
+                    if cost.class_level != student.current_class_level:
+                        skipped.append({
+                            'student': student.full_name,
+                            'cost': cost.name,
+                            'reason': f'Class level mismatch: student is in '
+                                    f'{student.current_class_level}, cost is for {cost.class_level}'
+                        })
+                        continue
+
+                    exists = StudentPaymentAssignment.objects.filter(
+                        student=student,
+                        class_level_cost=cost,
+                        academic_year=academic_year
+                    ).exists()
+
+                    if exists:
+                        skipped.append({
+                            'student': student.full_name,
+                            'cost': cost.name,
+                            'reason': 'Assignment already exists'
+                        })
+                        continue
+
+                    try:
+                        assignment = StudentPaymentAssignment.objects.create(
+                            student=student,
+                            class_level_cost=cost,
+                            academic_year=academic_year,
+                            total_amount=cost.amount,
+                            paid_amount=Decimal('0.00'),
+                            remaining_amount=cost.amount,
+                            payment_start_date=payment_start_date,
+                            payment_due_date=payment_due_date,
+                            status=PaymentStatus.WAITING,
+                            created_by=created_by
+                        )
+                        created.append(assignment)
+
+                        if student.user:
+                            try:
+                                from notifications.services import NotificationService
+                                NotificationService.create_academic_notification(
+                                    user=student.user,
+                                    notification_type='fee_assigned',
+                                    title='New Fee Structure Assigned',
+                                    message=f'A fee of {cost.amount} RWF for "{cost.name}" '
+                                            f'has been assigned to your account.',
+                                    created_by=created_by,
+                                    extra_data={'assignment_id': assignment.id}
+                                )
+                            except Exception:
+                                pass
+
+                    except Exception as e:
+                        errors.append({
+                            'student': student.full_name,
+                            'cost': cost.name,
+                            'reason': str(e)
+                        })
+
+        return {'created': created, 'skipped': skipped, 'errors': errors}
+
+
+    
  
