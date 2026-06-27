@@ -10,7 +10,7 @@ import {
   GraduationCap, BookOpen, UserCheck, AlertTriangle,
   ChevronDown, Info, Loader2, Activity, Send,
   Link as LinkIcon, Calendar as CalendarIcon, Clock as ClockIcon,
-  FileSignature, Paperclip, Link, Eye as EyeIcon, Award, Archive 
+  FileSignature, Paperclip, Link, Eye as EyeIcon, Award
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -544,16 +544,16 @@ const TeacherAssignmentManagement = () => {
   );
 
   const StatusBadge = ({ status, isOverdue }) => {
-    if (isOverdue && status === 'active') {
-      return <span className="inline-flex px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300">{t('assignment.overdue')}</span>;
-    }
-    const colors = {
-      active: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-      expired: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
-      archived: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
-    };
-    return <span className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${colors[status] || colors.active}`}>{t(`assignment.${status}`)}</span>;
+  if (isOverdue && status === 'active') {
+    return <span className="inline-flex px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300">{t('assignment.overdue')}</span>;
+  }
+  const colors = {
+    active: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+    expired: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
+    archived: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
   };
+  return <span className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${colors[status] || colors.active}`}>{t(`assignment.${status}`)}</span>;
+};
 
   // ────────────────────────────────────────────────────────────
   // Render

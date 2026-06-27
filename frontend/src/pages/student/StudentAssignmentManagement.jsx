@@ -8,7 +8,7 @@ import {
   AlertCircle, CheckCircle, XCircle, ExternalLink, Loader2,
   File, FolderOpen, Link as LinkIcon, Award, ChevronDown,
   RefreshCw, Info, Activity, TrendingUp, Users,
-  Calendar as CalendarIcon, Clock as ClockIcon, AlertTriangle
+  Calendar as CalendarIcon, Clock as ClockIcon, AlertTriangle, Archive
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
