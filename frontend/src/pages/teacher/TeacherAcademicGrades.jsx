@@ -81,6 +81,13 @@ const getGradeLetter = (percentage) => {
   return grade ? grade.value : 'F';
 };
 
+const getGradeLetterFromScore = (score, maxScore) => {
+  const numericScore = parseFloat(score);
+  const numericMax = parseFloat(maxScore);
+  if (Number.isNaN(numericScore) || Number.isNaN(numericMax) || numericMax <= 0) return '—';
+  return getGradeLetter((numericScore / numericMax) * 100);
+};
+
 const getGradeColor = (percentage) => {
   if (!percentage && percentage !== 0) return '#94a3b8';
   const grade = GRADE_LETTERS.find(g => percentage >= g.min);
@@ -897,11 +904,13 @@ const TeacherAcademicGrades = () => {
 
   const openEditGradeModal = (grade) => {
     setSelectedGrade(grade);
+    const initialMax = grade.max_score || 100;
+    const initialScore = grade.score;
     setEditGradeForm({
-      score: grade.score,
-      max_score: grade.max_score || 100,
+      score: initialScore,
+      max_score: initialMax,
       remarks: grade.remarks || '',
-      custom_grade_letter: grade.custom_grade_letter || getGradeLetter(grade.percentage)
+      custom_grade_letter: grade.custom_grade_letter || ''
     });
     setShowEditGradeModal(true);
   };
@@ -1555,10 +1564,14 @@ const TeacherAcademicGrades = () => {
 
               <div>
                 <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">{t('teacherGrades.modals.editGrade.customGradeLetter')}</label>
+                <div className="mt-1 flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                  <span>Current letter: <strong>{getGradeLetterFromScore(editGradeForm.score, editGradeForm.max_score)}</strong></span>
+                  <span className="text-xs text-slate-500">Auto from score</span>
+                </div>
                 <select
                   value={editGradeForm.custom_grade_letter}
                   onChange={(e) => setEditGradeForm({ ...editGradeForm, custom_grade_letter: e.target.value })}
-                  className="w-full mt-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full mt-2 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="">{t('teacherGrades.modals.editGrade.autoCalculate')}</option>
                   {GRADE_LETTERS.map(g => (

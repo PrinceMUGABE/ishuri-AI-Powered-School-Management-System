@@ -1216,7 +1216,7 @@ def get_student_grades(request):
     result = []
     for grade in paginated_grades:
         upload = grade.grade_upload
-        percentage = (grade.score / grade.max_score * 100) if grade.max_score > 0 else 0
+        percentage = GradeCalculator.get_effective_percentage(grade)
         
         result.append({
             'id': grade.id,
@@ -1237,7 +1237,8 @@ def get_student_grades(request):
             'grade_type_display': upload.get_grade_type_display(),
             'score': float(grade.score),
             'max_score': float(grade.max_score),
-            'percentage': round(percentage, 2),
+            'percentage': round(float(percentage), 2),
+            'grade_letter': GradeCalculator.get_effective_grade_letter(grade),
             'custom_grade_letter': grade.custom_grade_letter,
             'remarks': grade.remarks,
             'is_published': grade.is_published,
@@ -1283,7 +1284,7 @@ def student_grade_detail(request, grade_id):
     
     if request.method == 'GET':
         upload = grade.grade_upload
-        percentage = (grade.score / grade.max_score * 100) if grade.max_score > 0 else 0
+        percentage = GradeCalculator.get_effective_percentage(grade)
         
         data = {
             'id': grade.id,
@@ -1292,7 +1293,8 @@ def student_grade_detail(request, grade_id):
             'student_roll': grade.student.roll_number,
             'score': float(grade.score),
             'max_score': float(grade.max_score),
-            'percentage': round(percentage, 2),
+            'percentage': round(float(percentage), 2),
+            'grade_letter': GradeCalculator.get_effective_grade_letter(grade),
             'custom_grade_letter': grade.custom_grade_letter,
             'remarks': grade.remarks,
             'is_published': grade.is_published,
@@ -1309,19 +1311,39 @@ def student_grade_detail(request, grade_id):
         
         if score is not None:
             try:
-                grade.score = Decimal(str(score))
+                score_decimal = Decimal(str(score))
             except (InvalidOperation, TypeError):
                 return _err("Invalid score value")
+
+            if max_score is not None:
+                try:
+                    max_score_decimal = Decimal(str(max_score))
+                except (InvalidOperation, TypeError):
+                    return _err("Invalid max_score value")
+            else:
+                max_score_decimal = grade.max_score
+
+            if score_decimal > max_score_decimal:
+                return _err("Score cannot exceed the maximum score")
+
+            grade.score = score_decimal
         
         if max_score is not None:
             try:
                 grade.max_score = Decimal(str(max_score))
             except (InvalidOperation, TypeError):
                 return _err("Invalid max_score value")
+
+            if grade.score > grade.max_score:
+                return _err("Score cannot exceed the maximum score")
         
         grade.remarks = remarks
-        grade.custom_grade_letter = custom_grade_letter
+        grade.custom_grade_letter = custom_grade_letter or ''
         grade.save()
+
+        if not custom_grade_letter:
+            grade.custom_grade_letter = ''
+            grade.save(update_fields=['custom_grade_letter'])
         
         # If grade upload is still pending, it remains pending
         # If approved, we might want to flag that changes were made
@@ -1516,7 +1538,7 @@ def get_teacher_grades(request):
     result = []
     for grade in paginated_grades:
         upload = grade.grade_upload
-        percentage = (grade.score / grade.max_score * 100) if grade.max_score > 0 else 0
+        percentage = GradeCalculator.get_effective_percentage(grade)
         
         result.append({
             'id': grade.id,
@@ -1537,7 +1559,8 @@ def get_teacher_grades(request):
             'grade_type_display': upload.get_grade_type_display(),
             'score': float(grade.score),
             'max_score': float(grade.max_score),
-            'percentage': round(percentage, 2),
+            'percentage': round(float(percentage), 2),
+            'grade_letter': GradeCalculator.get_effective_grade_letter(grade),
             'custom_grade_letter': grade.custom_grade_letter,
             'remarks': grade.remarks,
             'is_published': grade.is_published,

@@ -11,13 +11,26 @@ from .models import StudentGrade, StudentAttendance, GradeType, GradeUploadStatu
 
 class GradeCalculator:
     """Pure calculation utilities - all calculations done in real-time"""
-    
+
     @staticmethod
     def calculate_percentage(score: Decimal, max_score: Decimal) -> Decimal:
         """Calculate percentage from score and max_score"""
         if not score or not max_score or max_score == 0:
             return Decimal('0')
         return (score / max_score) * Decimal('100')
+
+    @staticmethod
+    def get_effective_percentage(grade) -> Decimal:
+        """Prefer the stored raw score over any stale custom letter override."""
+        if getattr(grade, 'score', None) is None or getattr(grade, 'max_score', None) is None:
+            return Decimal('0')
+        return GradeCalculator.calculate_percentage(grade.score, grade.max_score)
+
+    @staticmethod
+    def get_effective_grade_letter(grade) -> str:
+        """Derive the current grade letter from the effective percentage."""
+        percentage = GradeCalculator.get_effective_percentage(grade)
+        return GradeCalculator.get_grade_letter(percentage)
     
     @staticmethod
     def calculate_weighted_score(percentage: Decimal, weight: Decimal) -> Decimal:
@@ -85,14 +98,8 @@ class GradeCalculator:
         for grade in grades:
             grade_type = grade.grade_upload.grade_type
             weight = grade.grade_upload.weight_percentage or Decimal('10')
-            
-            # Use custom grade letter if provided, otherwise calculate
-            if grade.custom_grade_letter:
-                # Approximate percentage from grade letter
-                grade_letter_map = {'A+': 95, 'A': 85, 'B+': 78, 'B': 72, 'C+': 68, 'C': 62, 'D': 55, 'F': 40}
-                percentage = Decimal(str(grade_letter_map.get(grade.custom_grade_letter, 70)))
-            else:
-                percentage = GradeCalculator.calculate_percentage(grade.score, grade.max_score)
+
+            percentage = GradeCalculator.get_effective_percentage(grade)
             
             weighted = GradeCalculator.calculate_weighted_score(percentage, weight)
             
