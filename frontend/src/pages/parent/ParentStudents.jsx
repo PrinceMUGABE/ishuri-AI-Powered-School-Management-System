@@ -164,14 +164,82 @@ const SubjectPerformanceCard = ({ subject, t }) => {
 };
 
 // ============================================================
+// Payment Transaction Sub-Components
+// (used inside PaymentStatusCard to show the breakdown of what
+// has been paid so far vs what remains for a given fee)
+// ============================================================
+const TransactionStatusBadge = ({ status }) => {
+    const map = {
+        completed: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+        pending: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
+        failed: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
+        refunded: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
+    };
+    return (
+        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${map[status] || map.pending}`}>
+            {status}
+        </span>
+    );
+};
+
+const PaymentMethodIcon = ({ method }) => {
+    if (method === 'mobile_money') return <Wallet className="w-3.5 h-3.5 text-green-600" />;
+    if (method === 'bank_transfer') return <Building2 className="w-3.5 h-3.5 text-blue-600" />;
+    if (method === 'cash') return <DollarSign className="w-3.5 h-3.5 text-amber-600" />;
+    return <Receipt className="w-3.5 h-3.5 text-gray-500" />;
+};
+
+const TransactionRow = ({ transaction, t }) => {
+    const amount = parseFloat(transaction.amount) || 0;
+    const date = transaction.paid_at
+        ? new Date(transaction.paid_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+        : (t('parent_dashboard.pending') || 'Pending');
+
+    return (
+        <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50 dark:bg-gray-900/40 border border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-2 min-w-0">
+                <PaymentMethodIcon method={transaction.payment_method} />
+                <div className="min-w-0">
+                    <p className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">
+                        {transaction.receipt_number || transaction.transaction_reference}
+                    </p>
+                    <p className="text-[11px] text-gray-400">{date}</p>
+                </div>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+                <span className="text-sm font-semibold text-gray-800 dark:text-white">
+                    {amount.toFixed(2)} FRW
+                </span>
+                <TransactionStatusBadge status={transaction.transaction_status} />
+            </div>
+        </div>
+    );
+};
+
+// ============================================================
 // Payment Status Card
+// Shows the fee summary (paid / remaining) plus, when expanded,
+// every individual payment made toward this fee — so a parent can
+// see exactly which installments are settled and what's still owed.
 // ============================================================
 const PaymentStatusCard = ({ payment, onPay, t }) => {
+    const [expanded, setExpanded] = useState(false);
+
     const totalAmount = parseFloat(payment.total_amount) || 0;
     const paidAmount = parseFloat(payment.paid_amount) || 0;
     const remainingAmount = parseFloat(payment.remaining_amount) || 0;
     const percentage = totalAmount > 0 ? (paidAmount / totalAmount) * 100 : 0;
     const statusColor = getStatusColors(payment.status);
+
+    // Failed transactions don't represent settled money, so they're excluded
+    // from the visible history list (still tracked server-side, just not
+    // shown here to avoid confusing the parent about what they "paid").
+    const transactions = (payment.transactions || []).filter(
+        tx => tx.transaction_status !== 'failed'
+    );
+    const completedTransactions = transactions.filter(tx => tx.transaction_status === 'completed');
+    const hasPartialHistory = paidAmount > 0 && remainingAmount > 0;
+
     return (
         <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 shadow-sm">
             <div className="flex justify-between items-start mb-2">
@@ -183,6 +251,7 @@ const PaymentStatusCard = ({ payment, onPay, t }) => {
                     {payment.status_display || payment.status}
                 </span>
             </div>
+
             <div className="mb-3">
                 <div className="flex justify-between text-xs mb-1">
                     <span>{t('parent_dashboard.paid')}: {paidAmount.toFixed(2)} FRW</span>
@@ -192,6 +261,7 @@ const PaymentStatusCard = ({ payment, onPay, t }) => {
                     <div className="h-full bg-green-500 rounded-full transition-all" style={{ width: `${Math.min(percentage, 100)}%` }} />
                 </div>
             </div>
+
             <div className="flex justify-between items-center">
                 <p className="text-sm font-semibold">
                     {t('parent_dashboard.remaining')}: {remainingAmount.toFixed(2)} FRW
@@ -202,6 +272,53 @@ const PaymentStatusCard = ({ payment, onPay, t }) => {
                     </button>
                 )}
             </div>
+
+            {/* ── Payment History: which installments are paid vs what's left ── */}
+            {transactions.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                    <button
+                        onClick={() => setExpanded(prev => !prev)}
+                        className="w-full flex items-center justify-between text-xs font-medium text-gray-600 dark:text-gray-300 hover:text-green-700 dark:hover:text-green-400 transition-colors"
+                    >
+                        <span className="flex items-center gap-1.5">
+                            <Receipt className="w-3.5 h-3.5" />
+                            {hasPartialHistory
+                                ? (t('parent_dashboard.partialPaymentHistory') || `Payment history (${completedTransactions.length} payment${completedTransactions.length !== 1 ? 's' : ''} so far)`)
+                                : (t('parent_dashboard.paymentHistory') || 'Payment history')}
+                        </span>
+                        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {expanded && (
+                        <div className="mt-2 space-y-1.5">
+                            {transactions.map(tx => (
+                                <TransactionRow key={tx.id} transaction={tx} t={t} />
+                            ))}
+
+                            <div className="flex justify-between items-center mt-2 pt-2 border-t border-dashed border-gray-200 dark:border-gray-700 text-xs">
+                                <span className="text-green-700 dark:text-green-400 font-medium">
+                                    {t('parent_dashboard.totalPaidSoFar') || 'Total paid so far'}: {paidAmount.toFixed(2)} FRW
+                                </span>
+                                {remainingAmount > 0 ? (
+                                    <span className="text-amber-700 dark:text-amber-400 font-medium">
+                                        {t('parent_dashboard.stillOwing') || 'Still owing'}: {remainingAmount.toFixed(2)} FRW
+                                    </span>
+                                ) : (
+                                    <span className="text-green-700 dark:text-green-400 font-medium flex items-center gap-1">
+                                        <CheckCircle className="w-3 h-3" /> {t('parent_dashboard.fullyPaid') || 'Fully paid'}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {transactions.length === 0 && paidAmount === 0 && (
+                <p className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 text-[11px] text-gray-400 italic">
+                    {t('parent_dashboard.noPaymentsYet') || 'No payments made yet for this fee.'}
+                </p>
+            )}
         </div>
     );
 };
@@ -1202,7 +1319,19 @@ const ParentDashboard = () => {
                                         {paymentData.map(payment => (
                                             <PaymentStatusCard
                                                 key={payment.id}
-                                                payment={{ id: payment.id, fee_name: payment.class_level_cost_details?.name || t('parent_dashboard.schoolFees'), total_amount: payment.total_amount, paid_amount: payment.paid_amount, remaining_amount: payment.remaining_amount, status: payment.status, status_display: payment.status_display, due_date: payment.payment_due_date }}
+                                                payment={{
+                                                    id: payment.id,
+                                                    fee_name: payment.class_level_cost_details?.name || t('parent_dashboard.schoolFees'),
+                                                    total_amount: payment.total_amount,
+                                                    paid_amount: payment.paid_amount,
+                                                    remaining_amount: payment.remaining_amount,
+                                                    status: payment.status,
+                                                    status_display: payment.status_display,
+                                                    due_date: payment.payment_due_date,
+                                                    // Pass through the individual transactions so the card can
+                                                    // render which installments are paid vs still owing.
+                                                    transactions: payment.transactions || []
+                                                }}
                                                 onPay={handlePaymentClick}
                                                 t={t}
                                             />

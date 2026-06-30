@@ -65,6 +65,12 @@ const formatDate = (dateString) => {
   }
 };
 
+// Format whole numbers only (used for Y-axis ticks on count-based charts)
+const formatWholeNumber = (value) => {
+  if (value === null || value === undefined) return "0";
+  return Math.round(Number(value)).toLocaleString();
+};
+
 // Format status values for display
 const formatStatus = (value) => {
   if (!value) return 'N/A';
@@ -252,7 +258,10 @@ function SummaryCard({ title, value, icon, color, trend, trendUp }) {
 // ============================================================================
 // ANALYTICS CHART COMPONENT
 // ============================================================================
-function AnalyticsChart({ title, data, type, dataKey, nameKey, height = 300 }) {
+// `valueIsCount` tells the chart whether the dataKey represents a discrete
+// count (students, teachers, sessions, etc). Count-based axes should only
+// ever show whole numbers - never decimals like 0.25, 0.5, 0.75.
+function AnalyticsChart({ title, data, type, dataKey, nameKey, height = 300, valueIsCount = true }) {
   const { t } = useTranslation();
   const isDark = document.documentElement.classList.contains('dark');
 
@@ -277,6 +286,11 @@ function AnalyticsChart({ title, data, type, dataKey, nameKey, height = 300 }) {
     }
   };
 
+  // Y-axis tick formatter: whole numbers for counts, otherwise pass through
+  // formatNumber (still won't show meaningless long decimals for currency/etc).
+  const yAxisTickFormatter = (value) =>
+    valueIsCount ? formatWholeNumber(value) : formatNumber(value);
+
   const renderChart = () => {
     switch (type) {
       case 'bar':
@@ -291,6 +305,8 @@ function AnalyticsChart({ title, data, type, dataKey, nameKey, height = 300 }) {
             <YAxis
               stroke={chartTheme.axis.style.tick.fill}
               tick={{ fill: chartTheme.axis.style.tick.fill, fontSize: 12 }}
+              allowDecimals={false}
+              tickFormatter={yAxisTickFormatter}
             />
             <Tooltip
               contentStyle={chartTheme.tooltip.contentStyle}
@@ -312,6 +328,8 @@ function AnalyticsChart({ title, data, type, dataKey, nameKey, height = 300 }) {
             <YAxis
               stroke={chartTheme.axis.style.tick.fill}
               tick={{ fill: chartTheme.axis.style.tick.fill, fontSize: 12 }}
+              allowDecimals={false}
+              tickFormatter={yAxisTickFormatter}
             />
             <Tooltip
               contentStyle={chartTheme.tooltip.contentStyle}
@@ -364,6 +382,8 @@ function AnalyticsChart({ title, data, type, dataKey, nameKey, height = 300 }) {
             <YAxis
               stroke={chartTheme.axis.style.tick.fill}
               tick={{ fill: chartTheme.axis.style.tick.fill, fontSize: 12 }}
+              allowDecimals={false}
+              tickFormatter={yAxisTickFormatter}
             />
             <Tooltip
               contentStyle={chartTheme.tooltip.contentStyle}
@@ -1145,7 +1165,9 @@ export default function AnalyticsReports() {
   const currentConfig = reportTypes.find(r => r.value === reportType);
 
   // Prepare chart data from analytics
-  // Prepare chart data from analytics
+  // Each chart entry carries `valueIsCount` so AnalyticsChart knows whether
+  // its Y-axis represents a discrete count (no decimals) or a continuous
+  // value (currency, rate, etc.) that may legitimately need decimals.
   const prepareChartData = () => {
     const charts = [];
 
@@ -1155,7 +1177,8 @@ export default function AnalyticsReports() {
         data: Object.entries(reportAnalytics.by_role).map(([name, value]) => ({ name, value })),
         type: 'pie',
         dataKey: 'value',
-        nameKey: 'name'
+        nameKey: 'name',
+        valueIsCount: true
       });
     }
 
@@ -1165,7 +1188,8 @@ export default function AnalyticsReports() {
         data: Object.entries(reportAnalytics.by_status).map(([name, value]) => ({ name, value })),
         type: 'pie',
         dataKey: 'value',
-        nameKey: 'name'
+        nameKey: 'name',
+        valueIsCount: true
       });
     }
 
@@ -1175,7 +1199,8 @@ export default function AnalyticsReports() {
         data: reportAnalytics.monthly_registrations,
         type: 'area',
         dataKey: 'count',
-        nameKey: 'month'
+        nameKey: 'month',
+        valueIsCount: true
       });
     }
 
@@ -1185,7 +1210,8 @@ export default function AnalyticsReports() {
         data: reportAnalytics.monthly_collection_trend,
         type: 'bar',
         dataKey: 'total',
-        nameKey: 'month'
+        nameKey: 'month',
+        valueIsCount: false
       });
     }
 
@@ -1195,7 +1221,8 @@ export default function AnalyticsReports() {
         data: Object.entries(reportAnalytics.payment_status_distribution).map(([name, value]) => ({ name, value })),
         type: 'pie',
         dataKey: 'value',
-        nameKey: 'name'
+        nameKey: 'name',
+        valueIsCount: true
       });
     }
 
@@ -1205,7 +1232,8 @@ export default function AnalyticsReports() {
         data: Object.entries(reportAnalytics.grade_status_distribution).map(([name, value]) => ({ name, value })),
         type: 'pie',
         dataKey: 'value',
-        nameKey: 'name'
+        nameKey: 'name',
+        valueIsCount: true
       });
     }
 
@@ -1228,7 +1256,8 @@ export default function AnalyticsReports() {
           data: statusData,
           type: 'pie', // You can change to 'bar' if you prefer
           dataKey: 'value',
-          nameKey: 'name'
+          nameKey: 'name',
+          valueIsCount: true
         });
       }
     }
@@ -1240,7 +1269,8 @@ export default function AnalyticsReports() {
         data: reportAnalytics.students_per_school_level,
         type: 'bar',
         dataKey: 'count',
-        nameKey: 'current_school_level__name'
+        nameKey: 'current_school_level__name',
+        valueIsCount: true
       });
     }
 
@@ -1571,6 +1601,7 @@ export default function AnalyticsReports() {
                       type={chart.type}
                       dataKey={chart.dataKey}
                       nameKey={chart.nameKey}
+                      valueIsCount={chart.valueIsCount !== false}
                     />
                   ))}
                 </div>

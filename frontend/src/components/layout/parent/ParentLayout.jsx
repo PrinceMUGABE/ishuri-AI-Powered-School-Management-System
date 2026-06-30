@@ -10,7 +10,7 @@ import {
   ChevronDown, Dot, Clock, AlertCircle, Info,
   CheckCircle, BellOff, Loader2, ChevronRight,
   BookOpen, Calendar, Key, UserCircle, Shield, Save,
-  Eye, EyeOff, Settings, Mail, Phone, MapPin, Edit3, 
+  Eye, EyeOff, Settings, Mail, Phone, MapPin, Edit3,
   CalendarDays, DollarSign, CreditCard
 } from 'lucide-react';
 import ThemeToggle from '../../Common/ThemeToggle';
@@ -24,7 +24,6 @@ const API_BASE = 'http://127.0.0.1:8000/api';
 const NOTIF_API_URL = 'http://127.0.0.1:8000/api/notifications';
 const CHAT_API_URL = 'http://127.0.0.1:8000/api/chat';
 
-// API Clients
 const apiClient = axios.create({ baseURL: API_BASE, timeout: 30000 });
 const notifApiClient = axios.create({ baseURL: NOTIF_API_URL, timeout: 30000 });
 const chatApiClient = axios.create({ baseURL: CHAT_API_URL, timeout: 30000 });
@@ -54,7 +53,6 @@ const formatTimeAgo = (dateString) => {
   const diffMins = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
-
   if (diffMins < 1) return 'Just now';
   if (diffMins < 60) return `${diffMins} min ago`;
   if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
@@ -120,25 +118,43 @@ const GreetingIcon = ({ hour, className }) => {
 // ---------------------------------------------------------------------------
 function ProfileModal({ isOpen, onClose, userData, onUpdate, t }) {
   const [activeTab, setActiveTab] = useState('profile');
-  const [formData, setFormData] = useState({ full_name: '', phone_number: '', physical_address: '' });
-  const [passwordData, setPasswordData] = useState({ current_password: '', new_password: '', confirm_password: '' });
-  const [showPassword, setShowPassword] = useState({ current: false, new: false, confirm: false });
+  const [formData, setFormData] = useState({
+    full_name: '',
+    phone_number: '',
+    physical_address: '',
+  });
+  const [passwordData, setPasswordData] = useState({
+    current_password: '',
+    new_password: '',
+    confirm_password: '',
+  });
+  const [showPassword, setShowPassword] = useState({
+    current: false,
+    new: false,
+    confirm: false,
+  });
   const [loading, setLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [passwordErrors, setPasswordErrors] = useState({});
   const modalRef = useRef(null);
 
+  // Populate form when userData changes or modal opens
   useEffect(() => {
-    if (userData) {
+    if (userData && isOpen) {
       setFormData({
         full_name: userData.full_name || '',
         phone_number: userData.phone_number || '',
         physical_address: userData.physical_address || '',
       });
+      setErrors({});
+      setPasswordErrors({});
+      setActiveTab('profile');
+      setPasswordData({ current_password: '', new_password: '', confirm_password: '' });
     }
-  }, [userData]);
+  }, [userData, isOpen]);
 
+  // Close on outside click or Escape
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (modalRef.current && !modalRef.current.contains(e.target)) onClose();
@@ -179,11 +195,12 @@ function ProfileModal({ isOpen, onClose, userData, onUpdate, t }) {
     if (!validateProfileForm()) return;
     setLoading(true);
     try {
-      const response = await apiClient.put(`/students/parents/${userData.id}/update/`, formData);
+      // Support both id and parent_id field names from the API
+      const parentId = userData?.id || userData?.parent_id;
+      const response = await apiClient.put(`/students/parents/${parentId}/update/`, formData);
       if (response.data?.success) {
-        const updatedUser = { ...userData, ...formData };
         toast.success(response.data.message || 'Profile updated successfully');
-        onUpdate(updatedUser);
+        onUpdate({ ...userData, ...formData });
         onClose();
       } else {
         toast.error(response.data?.message || 'Failed to update profile');
@@ -218,23 +235,29 @@ function ProfileModal({ isOpen, onClose, userData, onUpdate, t }) {
 
   if (!isOpen) return null;
 
-  const isDark = document.documentElement.classList.contains('dark');
-
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div ref={modalRef} className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl animate-slideUp">
-        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 rounded-t-2xl p-5">
+      <div
+        ref={modalRef}
+        className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl animate-slideUp"
+      >
+        {/* Header */}
+        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 rounded-t-2xl p-5 z-10">
           <div className="flex justify-between items-center">
             <div>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">My Profile</h2>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage your account settings</p>
             </div>
-            <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            >
               <X size={20} className="text-gray-500 dark:text-gray-400" />
             </button>
           </div>
         </div>
 
+        {/* Tabs */}
         <div className="flex border-b border-gray-200 dark:border-gray-700 px-5">
           <button
             onClick={() => setActiveTab('profile')}
@@ -260,9 +283,11 @@ function ProfileModal({ isOpen, onClose, userData, onUpdate, t }) {
           </button>
         </div>
 
+        {/* Body */}
         <div className="p-5">
           {activeTab === 'profile' && (
             <div className="space-y-5">
+              {/* Read-only account details */}
               <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                   <Shield size={14} />
@@ -279,14 +304,25 @@ function ProfileModal({ isOpen, onClose, userData, onUpdate, t }) {
                     <span className="text-sm text-gray-500 dark:text-gray-400">Email:</span>
                     <span className="text-sm text-gray-900 dark:text-white">{userData?.email || '-'}</span>
                   </div>
+                  {userData?.relationship_type && (
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-sm text-gray-500 dark:text-gray-400">Relationship:</span>
+                      <span className="text-sm text-gray-900 dark:text-white capitalize">
+                        {userData.relationship_type}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 
+              {/* Editable fields */}
               <div>
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Edit Information</h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name *</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Full Name *
+                    </label>
                     <input
                       type="text"
                       value={formData.full_name}
@@ -297,26 +333,32 @@ function ProfileModal({ isOpen, onClose, userData, onUpdate, t }) {
                     />
                     {errors.full_name && <p className="text-xs text-red-500 mt-1">{errors.full_name}</p>}
                   </div>
+
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Phone Number
+                    </label>
                     <input
                       type="tel"
                       value={formData.phone_number}
                       onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+                      placeholder="+250XXXXXXXXX"
                       className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${
                         errors.phone_number ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                       }`}
-                      placeholder="+250XXXXXXXXX"
                     />
                     {errors.phone_number && <p className="text-xs text-red-500 mt-1">{errors.phone_number}</p>}
                   </div>
+
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Address</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Address
+                    </label>
                     <textarea
                       value={formData.physical_address}
                       onChange={(e) => setFormData({ ...formData, physical_address: e.target.value })}
                       rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
                     />
                   </div>
                 </div>
@@ -332,77 +374,45 @@ function ProfileModal({ isOpen, onClose, userData, onUpdate, t }) {
                 </p>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Current Password *</label>
-                <div className="relative">
-                  <input
-                    type={showPassword.current ? 'text' : 'password'}
-                    value={passwordData.current_password}
-                    onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })}
-                    className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent pr-10 ${
-                      passwordErrors.current_password ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                    }`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword({ ...showPassword, current: !showPassword.current })}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400"
-                  >
-                    {showPassword.current ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
+              {[
+                { key: 'current', label: 'Current Password', field: 'current_password', error: passwordErrors.current_password },
+                { key: 'new', label: 'New Password', field: 'new_password', error: passwordErrors.new_password },
+                { key: 'confirm', label: 'Confirm New Password', field: 'confirm_password', error: passwordErrors.confirm_password },
+              ].map(({ key, label, field, error }) => (
+                <div key={key}>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    {label} *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword[key] ? 'text' : 'password'}
+                      value={passwordData[field]}
+                      onChange={(e) => setPasswordData({ ...passwordData, [field]: e.target.value })}
+                      className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent pr-10 ${
+                        error ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword({ ...showPassword, [key]: !showPassword[key] })}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400"
+                    >
+                      {showPassword[key] ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                  {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
                 </div>
-                {passwordErrors.current_password && <p className="text-xs text-red-500 mt-1">{passwordErrors.current_password}</p>}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">New Password *</label>
-                <div className="relative">
-                  <input
-                    type={showPassword.new ? 'text' : 'password'}
-                    value={passwordData.new_password}
-                    onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
-                    className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent pr-10 ${
-                      passwordErrors.new_password ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                    }`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword({ ...showPassword, new: !showPassword.new })}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400"
-                  >
-                    {showPassword.new ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-                {passwordErrors.new_password && <p className="text-xs text-red-500 mt-1">{passwordErrors.new_password}</p>}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Confirm New Password *</label>
-                <div className="relative">
-                  <input
-                    type={showPassword.confirm ? 'text' : 'password'}
-                    value={passwordData.confirm_password}
-                    onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
-                    className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent pr-10 ${
-                      passwordErrors.confirm_password ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                    }`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword({ ...showPassword, confirm: !showPassword.confirm })}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400"
-                  >
-                    {showPassword.confirm ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-                {passwordErrors.confirm_password && <p className="text-xs text-red-500 mt-1">{passwordErrors.confirm_password}</p>}
-              </div>
+              ))}
             </div>
           )}
         </div>
 
-        <div className="sticky bottom-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-5 flex gap-3">
-          <button onClick={onClose} className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors">
+        {/* Footer */}
+        <div className="sticky bottom-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-5 flex gap-3 rounded-b-2xl">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
+          >
             Cancel
           </button>
           <button
@@ -410,7 +420,10 @@ function ProfileModal({ isOpen, onClose, userData, onUpdate, t }) {
             disabled={loading || passwordLoading}
             className="flex-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            {(loading || passwordLoading) ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+            {(loading || passwordLoading)
+              ? <Loader2 size={16} className="animate-spin" />
+              : <Save size={16} />
+            }
             {activeTab === 'profile' ? 'Save Changes' : 'Update Password'}
           </button>
         </div>
@@ -419,18 +432,16 @@ function ProfileModal({ isOpen, onClose, userData, onUpdate, t }) {
       <style>{`
         @keyframes slideUp {
           from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
+          to   { opacity: 1; transform: translateY(0); }
         }
-        .animate-slideUp {
-          animation: slideUp 0.3s ease-out;
-        }
+        .animate-slideUp { animation: slideUp 0.3s ease-out; }
       `}</style>
     </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// NOTIFICATIONS DROPDOWN COMPONENT (Client-side filtering)
+// NOTIFICATIONS DROPDOWN
 // ---------------------------------------------------------------------------
 function NotificationsDropdown({ isOpen, onClose, t }) {
   const navigate = useNavigate();
@@ -445,54 +456,34 @@ function NotificationsDropdown({ isOpen, onClose, t }) {
     setLoading(true);
     setError(null);
     try {
-      const response = await notifApiClient.get('/', {
-        params: { page: 1, page_size: 50 }
-      });
-      
-      let notificationsList = [];
-      
+      const response = await notifApiClient.get('/', { params: { page: 1, page_size: 50 } });
+      let list = [];
       if (response.data?.success) {
-        if (response.data.results) {
-          notificationsList = response.data.results;
-        } else if (response.data.data) {
-          notificationsList = Array.isArray(response.data.data) ? response.data.data : [];
-        }
+        list = response.data.results || (Array.isArray(response.data.data) ? response.data.data : []);
       } else if (Array.isArray(response.data)) {
-        notificationsList = response.data;
+        list = response.data;
       }
-      
-      setAllNotifications(notificationsList);
-      
-      const unreadList = notificationsList.filter(n => 
-        n.status === 'unread' || n.is_read === false
-      );
-      setUnreadNotifications(unreadList);
-      setUnreadCount(unreadList.length);
-      
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-      setError(error.response?.data?.message || 'Failed to load notifications');
+      setAllNotifications(list);
+      const unread = list.filter(n => n.status === 'unread' || n.is_read === false);
+      setUnreadNotifications(unread);
+      setUnreadCount(unread.length);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to load notifications');
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const markAsRead = async (notificationId) => {
+  const markAsRead = async (id) => {
     try {
-      await notifApiClient.patch(`/${notificationId}/`);
-      
-      const updatedAllNotifications = allNotifications.map(n =>
-        n.id === notificationId ? { ...n, status: 'read', is_read: true } : n
-      );
-      setAllNotifications(updatedAllNotifications);
-      
-      const newUnreadList = unreadNotifications.filter(n => n.id !== notificationId);
-      setUnreadNotifications(newUnreadList);
-      setUnreadCount(newUnreadList.length);
-      
+      await notifApiClient.patch(`/${id}/`);
+      const updated = allNotifications.map(n => n.id === id ? { ...n, status: 'read', is_read: true } : n);
+      setAllNotifications(updated);
+      const newUnread = unreadNotifications.filter(n => n.id !== id);
+      setUnreadNotifications(newUnread);
+      setUnreadCount(newUnread.length);
       toast.success('Marked as read');
-    } catch (error) {
-      console.error('Error marking as read:', error);
+    } catch {
       toast.error('Failed to mark as read');
     }
   };
@@ -501,35 +492,19 @@ function NotificationsDropdown({ isOpen, onClose, t }) {
     setMarkingAll(true);
     try {
       await notifApiClient.post('/mark-read/', { mark_all: true });
-      
-      const updatedAllNotifications = allNotifications.map(n => ({
-        ...n,
-        status: 'read',
-        is_read: true
-      }));
-      setAllNotifications(updatedAllNotifications);
-      
+      setAllNotifications(prev => prev.map(n => ({ ...n, status: 'read', is_read: true })));
       setUnreadNotifications([]);
       setUnreadCount(0);
-      
       toast.success('All notifications marked as read');
-    } catch (error) {
-      console.error('Error marking all as read:', error);
+    } catch {
       toast.error('Failed to mark all as read');
     } finally {
       setMarkingAll(false);
     }
   };
 
-  const handleViewAll = () => {
-    onClose();
-    navigate('/parent/notifications');
-  };
-
   useEffect(() => {
-    if (isOpen) {
-      fetchNotifications();
-    }
+    if (isOpen) fetchNotifications();
   }, [isOpen, fetchNotifications]);
 
   return (
@@ -541,9 +516,7 @@ function NotificationsDropdown({ isOpen, onClose, t }) {
           <Bell size={18} />
           Notifications
           {unreadCount > 0 && (
-            <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-              {unreadCount}
-            </span>
+            <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{unreadCount}</span>
           )}
         </h3>
         {unreadCount > 0 && (
@@ -567,12 +540,7 @@ function NotificationsDropdown({ isOpen, onClose, t }) {
           <div className="text-center py-8">
             <AlertCircle size={32} className="mx-auto mb-2 text-red-500 opacity-50" />
             <p className="text-sm text-red-500">{error}</p>
-            <button 
-              onClick={fetchNotifications}
-              className="mt-3 text-xs text-emerald-600 hover:underline"
-            >
-              Retry
-            </button>
+            <button onClick={fetchNotifications} className="mt-3 text-xs text-emerald-600 hover:underline">Retry</button>
           </div>
         ) : unreadNotifications.length === 0 ? (
           <div className="text-center py-12">
@@ -584,32 +552,23 @@ function NotificationsDropdown({ isOpen, onClose, t }) {
             {unreadNotifications.slice(0, 10).map((notif) => (
               <div
                 key={notif.id}
-                className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer bg-blue-50/30 dark:bg-blue-900/10"
                 onClick={() => markAsRead(notif.id)}
+                className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer bg-blue-50/30 dark:bg-blue-900/10"
               >
                 <div className="flex gap-3">
                   <div className={`p-2 rounded-lg flex-shrink-0 ${getPriorityColor(notif.priority)}`}>
                     {getNotificationIcon(notif.notification_type)}
                   </div>
-                  
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">
-                        {notif.title}
-                      </p>
-                      <span className="w-2 h-2 bg-emerald-500 rounded-full flex-shrink-0 mt-1.5"></span>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{notif.title}</p>
+                      <span className="w-2 h-2 bg-emerald-500 rounded-full flex-shrink-0 mt-1.5" />
                     </div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
-                      {notif.message}
-                    </p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">{notif.message}</p>
                     <div className="flex items-center gap-3 mt-2 text-xs text-gray-400 dark:text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <Clock size={10} />
-                        {formatTimeAgo(notif.created_at)}
-                      </span>
+                      <span className="flex items-center gap-1"><Clock size={10} />{formatTimeAgo(notif.created_at)}</span>
                       <span className={`px-1.5 py-0.5 rounded-full text-xs flex items-center gap-1 ${getPriorityColor(notif.priority)}`}>
-                        {getPriorityIcon(notif.priority)}
-                        {notif.priority}
+                        {getPriorityIcon(notif.priority)}{notif.priority}
                       </span>
                     </div>
                   </div>
@@ -622,11 +581,10 @@ function NotificationsDropdown({ isOpen, onClose, t }) {
 
       <div className="p-3 border-t border-gray-200 dark:border-gray-700">
         <button
-          onClick={handleViewAll}
-          className="w-full text-sm text-emerald-600 dark:text-emerald-400 hover:underline flex items-center justify-center gap-1 py-1 transition-colors"
+          onClick={() => { onClose(); navigate('/parent/notifications'); }}
+          className="w-full text-sm text-emerald-600 dark:text-emerald-400 hover:underline flex items-center justify-center gap-1 py-1"
         >
-          View all notifications
-          <ChevronRight size={14} />
+          View all notifications <ChevronRight size={14} />
         </button>
       </div>
     </div>
@@ -634,11 +592,10 @@ function NotificationsDropdown({ isOpen, onClose, t }) {
 }
 
 // ---------------------------------------------------------------------------
-// MESSAGES DROPDOWN COMPONENT (Client-side filtering)
+// MESSAGES DROPDOWN
 // ---------------------------------------------------------------------------
 function MessagesDropdown({ isOpen, onClose, t }) {
   const navigate = useNavigate();
-  const [allChatrooms, setAllChatrooms] = useState([]);
   const [unreadChatrooms, setUnreadChatrooms] = useState([]);
   const [totalUnread, setTotalUnread] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -649,55 +606,29 @@ function MessagesDropdown({ isOpen, onClose, t }) {
     setError(null);
     try {
       const response = await chatApiClient.get('/chatrooms/parent/');
-      
-      let rooms = [];
-      if (response.data?.chatrooms) {
-        rooms = response.data.chatrooms;
-      } else if (Array.isArray(response.data)) {
-        rooms = response.data;
-      } else if (response.data?.data?.chatrooms) {
-        rooms = response.data.data.chatrooms;
-      }
-      
-      setAllChatrooms(rooms);
-      
-      const roomsWithUnread = rooms.filter(room => (room.unread_count || 0) > 0);
-      setUnreadChatrooms(roomsWithUnread);
-      
-      const unreadTotal = roomsWithUnread.reduce((sum, room) => sum + (room.unread_count || 0), 0);
-      setTotalUnread(unreadTotal);
-      
-    } catch (error) {
-      console.error('Error fetching chatrooms:', error);
-      setError(error.response?.data?.message || 'Failed to load messages');
+      let rooms = response.data?.chatrooms || (Array.isArray(response.data) ? response.data : response.data?.data?.chatrooms || []);
+      const withUnread = rooms.filter(r => (r.unread_count || 0) > 0);
+      setUnreadChatrooms(withUnread);
+      setTotalUnread(withUnread.reduce((s, r) => s + (r.unread_count || 0), 0));
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to load messages');
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const handleViewAll = () => {
-    onClose();
-    navigate('/parent/chats');
-  };
+  useEffect(() => {
+    if (isOpen) fetchChatrooms();
+  }, [isOpen, fetchChatrooms]);
 
   const getRoomIcon = (roomType) => {
     switch (roomType) {
-      case 'direct':
-        return <UserCircle size={18} className="text-emerald-600 dark:text-emerald-400" />;
-      case 'group':
-        return <Users size={18} className="text-blue-600 dark:text-blue-400" />;
-      case 'class':
-        return <BookOpen size={18} className="text-purple-600 dark:text-purple-400" />;
-      default:
-        return <MessageCircle size={18} className="text-emerald-600 dark:text-emerald-400" />;
+      case 'direct': return <UserCircle size={18} className="text-emerald-600 dark:text-emerald-400" />;
+      case 'group': return <Users size={18} className="text-blue-600 dark:text-blue-400" />;
+      case 'class': return <BookOpen size={18} className="text-purple-600 dark:text-purple-400" />;
+      default: return <MessageCircle size={18} className="text-emerald-600 dark:text-emerald-400" />;
     }
   };
-
-  useEffect(() => {
-    if (isOpen) {
-      fetchChatrooms();
-    }
-  }, [isOpen, fetchChatrooms]);
 
   return (
     <div className={`absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 z-50 transition-all duration-200 ${
@@ -708,9 +639,7 @@ function MessagesDropdown({ isOpen, onClose, t }) {
           <MessageCircle size={18} />
           Messages
           {totalUnread > 0 && (
-            <span className="bg-emerald-500 text-white text-xs px-2 py-0.5 rounded-full">
-              {totalUnread}
-            </span>
+            <span className="bg-emerald-500 text-white text-xs px-2 py-0.5 rounded-full">{totalUnread}</span>
           )}
         </h3>
       </div>
@@ -724,12 +653,7 @@ function MessagesDropdown({ isOpen, onClose, t }) {
           <div className="text-center py-8">
             <AlertCircle size={32} className="mx-auto mb-2 text-red-500 opacity-50" />
             <p className="text-sm text-red-500">{error}</p>
-            <button 
-              onClick={fetchChatrooms}
-              className="mt-3 text-xs text-emerald-600 hover:underline"
-            >
-              Retry
-            </button>
+            <button onClick={fetchChatrooms} className="mt-3 text-xs text-emerald-600 hover:underline">Retry</button>
           </div>
         ) : unreadChatrooms.length === 0 ? (
           <div className="text-center py-12">
@@ -741,11 +665,8 @@ function MessagesDropdown({ isOpen, onClose, t }) {
             {unreadChatrooms.map(room => (
               <div
                 key={room.id}
+                onClick={() => { onClose(); navigate('/parent/chats', { state: { openChatId: room.id } }); }}
                 className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer bg-emerald-50/30 dark:bg-emerald-900/5"
-                onClick={() => {
-                  onClose();
-                  navigate('/parent/chats', { state: { openChatId: room.id } });
-                }}
               >
                 <div className="flex gap-3">
                   <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0 relative">
@@ -756,40 +677,29 @@ function MessagesDropdown({ isOpen, onClose, t }) {
                       </span>
                     )}
                   </div>
-                  
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                        {room.name}
-                      </p>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{room.name}</p>
                       {room.last_message?.sent_at && (
                         <span className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
-                          <Clock size={10} />
-                          {formatTimeAgo(room.last_message.sent_at)}
+                          <Clock size={10} />{formatTimeAgo(room.last_message.sent_at)}
                         </span>
                       )}
                     </div>
-                    
                     <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 truncate">
                       {room.last_message?.content || 'No messages yet'}
                     </p>
-                    
                     <div className="flex items-center gap-2 mt-1.5">
                       <span className="text-xs text-gray-400 dark:text-gray-500 capitalize">
                         {room.room_type?.replace(/_/g, ' ') || 'Chat'}
                       </span>
-                      <span className="text-xs text-gray-400 dark:text-gray-500">•</span>
-                      <span className="text-xs text-gray-400 dark:text-gray-500">
-                        {room.members?.length || 0} members
-                      </span>
+                      <span className="text-xs text-gray-400">•</span>
+                      <span className="text-xs text-gray-400 dark:text-gray-500">{room.members?.length || 0} members</span>
                     </div>
-                    
                     {room.unread_count > 0 && (
-                      <div className="mt-2">
-                        <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-                          {room.unread_count} unread {room.unread_count === 1 ? 'message' : 'messages'}
-                        </span>
-                      </div>
+                      <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-1">
+                        {room.unread_count} unread {room.unread_count === 1 ? 'message' : 'messages'}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -801,11 +711,10 @@ function MessagesDropdown({ isOpen, onClose, t }) {
 
       <div className="p-3 border-t border-gray-200 dark:border-gray-700">
         <button
-          onClick={handleViewAll}
-          className="w-full text-sm text-emerald-600 dark:text-emerald-400 hover:underline flex items-center justify-center gap-1 py-1 transition-colors"
+          onClick={() => { onClose(); navigate('/parent/chats'); }}
+          className="w-full text-sm text-emerald-600 dark:text-emerald-400 hover:underline flex items-center justify-center gap-1 py-1"
         >
-          View all messages
-          <ChevronRight size={14} />
+          View all messages <ChevronRight size={14} />
         </button>
       </div>
     </div>
@@ -813,13 +722,14 @@ function MessagesDropdown({ isOpen, onClose, t }) {
 }
 
 // ---------------------------------------------------------------------------
-// Header component with dropdowns
+// HEADER
 // ---------------------------------------------------------------------------
 const ParentHeader = ({
   parentProfile,
   onMenuClick,
   sidebarOpen,
   isMobile,
+  onOpenProfile,           // ← receives the setter from ParentLayout
 }) => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -827,31 +737,24 @@ const ParentHeader = ({
   const dropdownRef = useRef(null);
   const notifRef = useRef(null);
   const messagesRef = useRef(null);
+
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [unreadMessages, setUnreadMessages] = useState(0);
 
-  // Fetch unread counts
   const fetchUnreadCounts = useCallback(async () => {
     try {
       const [notifRes, chatRes] = await Promise.all([
         notifApiClient.get('/unread-count/'),
-        chatApiClient.get('/chatrooms/parent/')
+        chatApiClient.get('/chatrooms/parent/'),
       ]);
-      
-      if (notifRes.data?.success) {
-        setUnreadNotifications(notifRes.data.data.unread_count);
-      }
-      
+      if (notifRes.data?.success) setUnreadNotifications(notifRes.data.data.unread_count || 0);
       if (chatRes.data?.chatrooms) {
-        const total = chatRes.data.chatrooms.reduce((sum, room) => sum + (room.unread_count || 0), 0);
-        setUnreadMessages(total);
+        setUnreadMessages(chatRes.data.chatrooms.reduce((s, r) => s + (r.unread_count || 0), 0));
       }
-    } catch (error) {
-      console.error('Error fetching unread counts:', error);
-    }
+    } catch { /* silent */ }
   }, []);
 
   useEffect(() => {
@@ -863,22 +766,15 @@ const ParentHeader = ({
   // Close dropdowns on outside click
   useEffect(() => {
     const handler = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setDropdownOpen(false);
-      }
-      if (notifRef.current && !notifRef.current.contains(e.target)) {
-        setShowNotifications(false);
-      }
-      if (messagesRef.current && !messagesRef.current.contains(e.target)) {
-        setShowMessages(false);
-      }
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setDropdownOpen(false);
+      if (notifRef.current && !notifRef.current.contains(e.target)) setShowNotifications(false);
+      if (messagesRef.current && !messagesRef.current.contains(e.target)) setShowMessages(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
   const hour = now.getHours();
-
   const greeting = hour < 12
     ? t('parent_layout.greeting.morning', 'Good morning')
     : hour < 18
@@ -886,16 +782,13 @@ const ParentHeader = ({
       : t('parent_layout.greeting.evening', 'Good evening');
 
   const firstName = parentProfile?.full_name?.split(' ')[0] || t('parent_layout.greeting.parent', 'Parent');
+  const avatarInitials = parentProfile?.full_name?.charAt(0)?.toUpperCase() || 'P';
 
-  // Format date
-  const dateStr = now.toLocaleDateString(i18n.language === 'fr' ? 'fr-FR' : i18n.language === 'rw' ? 'rw-RW' : 'en-US', {
-    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
-  });
-
-  // Format time
+  const dateStr = now.toLocaleDateString(
+    i18n.language === 'fr' ? 'fr-FR' : i18n.language === 'rw' ? 'rw-RW' : 'en-US',
+    { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }
+  );
   const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-  const avatarInitials = parentProfile?.full_name?.charAt(0) || 'P';
 
   return (
     <header className={`
@@ -907,48 +800,35 @@ const ParentHeader = ({
     `}>
       <div className="flex items-center justify-between h-full px-4 gap-4">
 
-        {/* Left — hamburger + greeting */}
+        {/* Left */}
         <div className="flex items-center gap-3 min-w-0">
-          <button
-            onClick={onMenuClick}
-            className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex-shrink-0"
-            aria-label="Toggle sidebar"
-          >
+          <button onClick={onMenuClick} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex-shrink-0">
             <Menu className="w-5 h-5 text-gray-600 dark:text-gray-300" />
           </button>
-
           <div className="hidden sm:flex items-center gap-2 min-w-0">
-            <GreetingIcon
-              hour={hour}
-              className="w-4 h-4 text-amber-500 flex-shrink-0"
-            />
+            <GreetingIcon hour={hour} className="w-4 h-4 text-amber-500 flex-shrink-0" />
             <span className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">
               {greeting}, <span className="text-emerald-600 dark:text-emerald-400">{firstName}</span>
             </span>
           </div>
         </div>
 
-        {/* Centre — date & clock */}
+        {/* Centre */}
         <div className="hidden md:flex flex-col items-center leading-tight select-none">
           <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">{dateStr}</span>
           <span className="text-sm font-bold text-gray-700 dark:text-gray-200 tabular-nums tracking-wide">{timeStr}</span>
         </div>
 
-        {/* Right — actions */}
+        {/* Right */}
         <div className="flex items-center gap-1.5 flex-shrink-0">
           <LanguageSwitcher />
           <ThemeToggle />
 
-          {/* Messages Dropdown */}
+          {/* Messages */}
           <div ref={messagesRef} className="relative">
             <button
-              onClick={() => {
-                setShowMessages(!showMessages);
-                setShowNotifications(false);
-                setDropdownOpen(false);
-              }}
+              onClick={() => { setShowMessages(v => !v); setShowNotifications(false); setDropdownOpen(false); }}
               className="relative p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              aria-label="Messages"
             >
               <MessageCircle className="w-5 h-5 text-gray-600 dark:text-gray-300" />
               {unreadMessages > 0 && (
@@ -957,23 +837,14 @@ const ParentHeader = ({
                 </span>
               )}
             </button>
-            <MessagesDropdown 
-              isOpen={showMessages} 
-              onClose={() => setShowMessages(false)} 
-              t={t}
-            />
+            <MessagesDropdown isOpen={showMessages} onClose={() => setShowMessages(false)} t={t} />
           </div>
 
-          {/* Notifications Dropdown */}
+          {/* Notifications */}
           <div ref={notifRef} className="relative">
             <button
-              onClick={() => {
-                setShowNotifications(!showNotifications);
-                setShowMessages(false);
-                setDropdownOpen(false);
-              }}
+              onClick={() => { setShowNotifications(v => !v); setShowMessages(false); setDropdownOpen(false); }}
               className="relative p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              aria-label="Notifications"
             >
               <Bell className="w-5 h-5 text-gray-600 dark:text-gray-300" />
               {unreadNotifications > 0 && (
@@ -982,17 +853,13 @@ const ParentHeader = ({
                 </span>
               )}
             </button>
-            <NotificationsDropdown 
-              isOpen={showNotifications} 
-              onClose={() => setShowNotifications(false)} 
-              t={t}
-            />
+            <NotificationsDropdown isOpen={showNotifications} onClose={() => setShowNotifications(false)} t={t} />
           </div>
 
           {/* Avatar dropdown */}
           <div className="relative ml-1" ref={dropdownRef}>
             <button
-              onClick={() => setDropdownOpen((v) => !v)}
+              onClick={() => setDropdownOpen(v => !v)}
               className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
               <div className="w-8 h-8 rounded-xl overflow-hidden bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center ring-2 ring-emerald-500/30">
@@ -1007,13 +874,16 @@ const ParentHeader = ({
                   <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{parentProfile?.full_name}</p>
                   <p className="text-xs text-gray-400 truncate">{parentProfile?.email}</p>
                 </div>
+
+                {/* ← Opens modal instead of navigating */}
                 <button
-                  onClick={() => { setDropdownOpen(false); navigate('/parent/profile'); }}
+                  onClick={() => { setDropdownOpen(false); onOpenProfile(); }}
                   className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
                   <User className="w-4 h-4" />
                   Profile
                 </button>
+
                 <hr className="my-1 border-gray-100 dark:border-gray-700" />
                 <button
                   onClick={() => { setDropdownOpen(false); document.dispatchEvent(new Event('parent:logout')); }}
@@ -1032,6 +902,28 @@ const ParentHeader = ({
 };
 
 // ---------------------------------------------------------------------------
+// NavItem
+// ---------------------------------------------------------------------------
+const NavItem = ({ item, active, onClick }) => (
+  <li>
+    <button
+      onClick={onClick}
+      className={`
+        w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-sm font-medium group
+        ${active
+          ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20'
+          : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/60 hover:text-gray-900 dark:hover:text-white'
+        }
+      `}
+    >
+      <item.icon className={`w-[18px] h-[18px] flex-shrink-0 transition-transform duration-150 ${active ? '' : 'group-hover:scale-110'}`} />
+      <span className="truncate">{item.label}</span>
+      {active && <Dot className="ml-auto w-4 h-4 opacity-70" />}
+    </button>
+  </li>
+);
+
+// ---------------------------------------------------------------------------
 // ParentLayout
 // ---------------------------------------------------------------------------
 const ParentLayout = () => {
@@ -1043,29 +935,21 @@ const ParentLayout = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [parentProfile, setParentProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);  // ← controls the modal
 
-  // ---- Auth check --------------------------------------------------------
   const isAuthenticated = () => {
     const token = localStorage.getItem('access_token');
     const userStr = localStorage.getItem('user');
     if (!token || !userStr) return false;
     try {
       const expiry = localStorage.getItem('token_expiry');
-      if (expiry && Date.now() > parseInt(expiry)) {
-        localStorage.clear();
-        return false;
-      }
+      if (expiry && Date.now() > parseInt(expiry)) { localStorage.clear(); return false; }
       return true;
-    } catch {
-      return false;
-    }
+    } catch { return false; }
   };
 
-  // ---- Fetch parent profile using correct endpoint ----------------------
   const fetchParentProfile = useCallback(async () => {
     try {
-      console.log("Fetching parent profile from /students/parents/me/");
       const res = await fetch(`${API_BASE}/students/parents/me/`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('access_token')}`,
@@ -1074,23 +958,19 @@ const ParentLayout = () => {
         },
       });
       const data = await res.json();
-      console.log("Parent profile response:", data);
-      
       if (data.success) {
         setParentProfile(data.data);
       } else {
-        console.error("Failed to fetch parent profile:", data.message);
-        toast.error(data.message || "Failed to load profile");
+        toast.error(data.message || 'Failed to load profile');
       }
     } catch (err) {
       console.error('fetchParentProfile error:', err);
-      toast.error("Failed to load profile");
+      toast.error('Failed to load profile');
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // ---- Logout ------------------------------------------------------------
   const handleLogout = useCallback(async () => {
     try {
       const refresh = localStorage.getItem('refresh_token');
@@ -1098,37 +978,23 @@ const ParentLayout = () => {
       if (refresh && access) {
         await fetch(`${API_BASE}/account/logout/`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${access}`,
-            'X-Language': localStorage.getItem('user_language') || 'en',
-          },
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${access}` },
           body: JSON.stringify({ refresh }),
         });
       }
     } catch { /* silent */ }
     localStorage.clear();
     sessionStorage.clear();
-    toast.success("Logged out successfully");
+    toast.success('Logged out successfully');
     navigate('/', { replace: true });
   }, [navigate]);
 
-  // ---- Mount effects -----------------------------------------------------
   useEffect(() => {
-    if (!isAuthenticated()) {
-      navigate('/', { replace: true });
-      return;
-    }
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      try {
-        const u = JSON.parse(userStr);
-        if (u.role !== 'parent') {
-          navigate('/app/dashboard', { replace: true });
-          return;
-        }
-      } catch { /* ignore */ }
-    }
+    if (!isAuthenticated()) { navigate('/', { replace: true }); return; }
+    try {
+      const u = JSON.parse(localStorage.getItem('user') || '{}');
+      if (u.role !== 'parent') { navigate('/app/dashboard', { replace: true }); return; }
+    } catch { /* ignore */ }
     fetchParentProfile();
   }, [navigate, fetchParentProfile]);
 
@@ -1148,20 +1014,14 @@ const ParentLayout = () => {
     return () => document.removeEventListener('parent:logout', handleLogout);
   }, [handleLogout]);
 
-  // ---- Nav items ---------------------------------------------------------
+  // Nav items — profile is handled separately as a modal trigger
   const menuItems = [
     { path: '/parent/dashboard', icon: LayoutDashboard, label: t('parent_layout.nav.dashboard', 'Dashboard') },
-    { path: '/parent/children', icon: Users, label: t('parent_layout.nav.children', 'My Children') },
-    { path: '/parent/payments', icon: CreditCard, label: t('parent_layout.nav.payments', 'Payments') },
     { path: '/parent/chats', icon: MessageCircle, label: t('parent_layout.nav.chats', 'Messages') },
-    { path: '/parent/teachers', icon: Users, label: t('parent_layout.nav.teachers', 'My Teachers') },
-    { path: '/parent/profile', icon: User, label: t('parent_layout.nav.profile', 'Profile') },
   ];
 
-  const isActive = (path) =>
-    location.pathname === path || location.pathname.startsWith(`${path}/`);
+  const isActive = (path) => location.pathname === path || location.pathname.startsWith(`${path}/`);
 
-  // ---- Loading state -----------------------------------------------------
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -1173,7 +1033,7 @@ const ParentLayout = () => {
     );
   }
 
-  const avatarInitials = parentProfile?.full_name?.charAt(0) || 'P';
+  const avatarInitials = parentProfile?.full_name?.charAt(0)?.toUpperCase() || 'P';
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -1197,10 +1057,7 @@ const ParentLayout = () => {
               <span className="text-base font-bold text-gray-900 dark:text-white tracking-tight">Ishuri</span>
             </div>
             {isMobile && (
-              <button
-                onClick={() => setSidebarOpen(false)}
-                className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
+              <button onClick={() => setSidebarOpen(false)} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                 <X className="w-4 h-4 text-gray-500" />
               </button>
             )}
@@ -1210,16 +1067,12 @@ const ParentLayout = () => {
           {parentProfile && (
             <div className="mx-3 mt-4 p-3 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-100 dark:border-emerald-800/30 flex-shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-xl overflow-hidden bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center flex-shrink-0 ring-2 ring-emerald-500/20">
+                <div className="w-11 h-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center flex-shrink-0 ring-2 ring-emerald-500/20">
                   <span className="text-base font-bold text-emerald-700 dark:text-emerald-300">{avatarInitials}</span>
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 dark:text-white truncate leading-tight">
-                    {parentProfile.full_name}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
-                    {parentProfile.email}
-                  </p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white truncate leading-tight">{parentProfile.full_name}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">{parentProfile.email}</p>
                   <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 uppercase tracking-wide">
                     {parentProfile.relationship_type || 'Parent'}
                   </span>
@@ -1230,21 +1083,27 @@ const ParentLayout = () => {
 
           {/* Nav */}
           <nav className="flex-1 px-3 py-4 overflow-y-auto">
-            <p className="px-3 mb-2 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
-              Menu
-            </p>
+            <p className="px-3 mb-2 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Menu</p>
             <ul className="space-y-0.5">
               {menuItems.map((item) => (
                 <NavItem
                   key={item.path}
                   item={item}
                   active={isActive(item.path)}
-                  onClick={() => {
-                    navigate(item.path);
-                    if (isMobile) setSidebarOpen(false);
-                  }}
+                  onClick={() => { navigate(item.path); if (isMobile) setSidebarOpen(false); }}
                 />
               ))}
+
+              {/* Profile — opens modal, not a route */}
+              <li>
+                <button
+                  onClick={() => { setShowProfileModal(true); if (isMobile) setSidebarOpen(false); }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-sm font-medium group text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/60 hover:text-gray-900 dark:hover:text-white"
+                >
+                  <User className="w-[18px] h-[18px] flex-shrink-0 group-hover:scale-110 transition-transform duration-150" />
+                  <span className="truncate">{t('parent_layout.nav.profile', 'Profile')}</span>
+                </button>
+              </li>
             </ul>
           </nav>
 
@@ -1263,31 +1122,26 @@ const ParentLayout = () => {
 
       {/* Mobile overlay */}
       {sidebarOpen && isMobile && (
-        <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30"
-          onClick={() => setSidebarOpen(false)}
-        />
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* HEADER */}
+      {/* HEADER — receives onOpenProfile to open the modal */}
       <ParentHeader
         parentProfile={parentProfile}
-        onMenuClick={() => setSidebarOpen((v) => !v)}
+        onMenuClick={() => setSidebarOpen(v => !v)}
         sidebarOpen={sidebarOpen}
         isMobile={isMobile}
+        onOpenProfile={() => setShowProfileModal(true)}
       />
 
-      {/* MAIN CONTENT */}
-      <main className={`
-        transition-all duration-300 pt-16 min-h-screen
-        ${sidebarOpen && !isMobile ? 'lg:ml-64' : ''}
-      `}>
+      {/* MAIN */}
+      <main className={`transition-all duration-300 pt-16 min-h-screen ${sidebarOpen && !isMobile ? 'lg:ml-64' : ''}`}>
         <div className="p-4 md:p-6">
           <Outlet context={{ parentProfile, refreshProfile: fetchParentProfile }} />
         </div>
       </main>
 
-      {/* Profile Modal */}
+      {/* PROFILE MODAL — controlled by showProfileModal */}
       <ProfileModal
         isOpen={showProfileModal}
         onClose={() => setShowProfileModal(false)}
@@ -1301,27 +1155,5 @@ const ParentLayout = () => {
     </div>
   );
 };
-
-// ---------------------------------------------------------------------------
-// NavItem component
-// ---------------------------------------------------------------------------
-const NavItem = ({ item, active, onClick }) => (
-  <li>
-    <button
-      onClick={onClick}
-      className={`
-        w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 text-sm font-medium group
-        ${active
-          ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20'
-          : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/60 hover:text-gray-900 dark:hover:text-white'
-        }
-      `}
-    >
-      <item.icon className={`w-[18px] h-[18px] flex-shrink-0 transition-transform duration-150 ${active ? '' : 'group-hover:scale-110'}`} />
-      <span className="truncate">{item.label}</span>
-      {active && <Dot className="ml-auto w-4 h-4 opacity-70" />}
-    </button>
-  </li>
-);
 
 export default ParentLayout;

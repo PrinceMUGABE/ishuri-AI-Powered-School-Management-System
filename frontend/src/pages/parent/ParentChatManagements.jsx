@@ -697,7 +697,7 @@ const handleUploadFile = async () => {
                   </div>
                   <button
                     onClick={() => setShowDebug(p => !p)}
-                    style={{ padding: "6px 10px", borderRadius: 6, background: isConnected ? "#166534" : c.danger, color: "#fff", border: "none", cursor: "pointer", fontSize: 11, fontWeight: 600 }}
+                    style={{ padding: "6px 10px", borderRadius: 6, background: isConnected ? "#166534" : "#dc2626", color: "#fff", border: "none", cursor: "pointer", fontSize: 11, fontWeight: 600 }}
                   >
                     {isConnected ? "● WS" : "○ WS"}
                   </button>

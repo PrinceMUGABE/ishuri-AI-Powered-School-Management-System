@@ -57,6 +57,13 @@ const StatusBadge = ({ status }) => {
   );
 };
 
+const formatTransactionDateTime = (timestamp) => {
+  if (!timestamp) return '—';
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.valueOf())) return '—';
+  return date.toISOString().replace('T', ' ').replace('Z', '');
+};
+
 // ─────────────────────────────────────────────────────────────
 // Main Component
 // ─────────────────────────────────────────────────────────────
@@ -956,7 +963,9 @@ const FeeManagement = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-gray-400">{new Date(tx.paid_at || tx.created_at).toLocaleDateString()}</p>
+                    <p className="text-xs text-gray-400">
+                      {formatTransactionDateTime(tx.paid_at ?? tx.created_at)}
+                    </p>
                     <p className="text-xs font-mono text-gray-500">{tx.transaction_reference}</p>
                   </div>
                 </div>

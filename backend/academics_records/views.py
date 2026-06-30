@@ -19,7 +19,7 @@ from rest_framework.response import Response
 
 from academics.models import AcademicYear, ClassLevel, Subject, Term, SchoolLevel, ClassRoom
 from accounts.models import User
-from students.models import Student, Parent
+from students.models import Student, Parent, StudentClassroomAssignment
 from teachers.models import Teacher, TeacherAssignment
 
 from .models import (
@@ -45,7 +45,9 @@ def _ok(data=None, message="", status_code=status.HTTP_200_OK):
     return Response({"success": True, "message": message, "data": data}, status=status_code)
 
 
-def _err(message="", status_code=status.HTTP_400_BAD_REQUEST, errors=None):
+def _err(message="", status_code=status.HTTP_400_BAD_REQUEST, errors=None, lang=None):
+    # `lang` is accepted for compatibility with callers that pass it,
+    # but translation should already be applied to `message` before calling.
     payload = {"success": False, "message": message}
     if errors:
         payload["errors"] = errors
@@ -62,6 +64,42 @@ def _get_teacher(user, lang):
 
 def _is_admin(user):
     return user.role == "admin" or user.is_superuser or user.is_staff
+
+
+def _get_teacher_for_manual_grade(academic_year, term, class_level, subject, student, classroom_id=None):
+    """Resolve a teacher for manual grade entry based on classroom and subject."""
+    classroom = None
+    if classroom_id:
+        classroom = ClassRoom.objects.filter(pk=classroom_id).first()
+    if not classroom:
+        classroom_assignment = StudentClassroomAssignment.objects.filter(
+            student=student,
+            academic_year=academic_year,
+            term=term,
+            status=StudentClassroomAssignment.Status.ACTIVE
+        ).select_related('classroom').first()
+        classroom = classroom_assignment.classroom if classroom_assignment else None
+
+    if classroom:
+        teacher_assignment = TeacherAssignment.objects.filter(
+            academic_year=academic_year,
+            term=term,
+            class_level=class_level,
+            subject=subject,
+            classrooms=classroom,
+            status=TeacherAssignment.AssignmentStatus.ACTIVE
+        ).first()
+        if teacher_assignment:
+            return teacher_assignment.teacher, classroom
+
+    teacher_assignment = TeacherAssignment.objects.filter(
+        academic_year=academic_year,
+        term=term,
+        class_level=class_level,
+        subject=subject,
+        status=TeacherAssignment.AssignmentStatus.ACTIVE
+    ).first()
+    return (teacher_assignment.teacher, classroom) if teacher_assignment else (None, classroom)
 
 
 def _auto_grade_letter(score):
@@ -1543,6 +1581,7 @@ def create_manual_grade(request):
     subject_id       = request.data.get('subject_id')
     grade_type       = request.data.get('grade_type')
     student_id       = request.data.get('student_id')
+    classroom_id     = request.data.get('classroom_id')
     score            = request.data.get('score')
 
     missing = [
@@ -1622,24 +1661,46 @@ def create_manual_grade(request):
     try:
         with transaction.atomic():
             # Find or create the grade upload for this admin/combination
+            teacher, resolved_classroom = _get_teacher_for_manual_grade(
+                academic_year=academic_year,
+                term=term,
+                class_level=class_level,
+                subject=subject,
+                student=student,
+                classroom_id=classroom_id,
+            )
+            if not teacher:
+                return _err(
+                    "Unable to find a teacher assigned to this subject and class for the current academic year/term.",
+                    status.HTTP_400_BAD_REQUEST,
+                )
+
             grade_upload = GradeUpload.objects.filter(
-                teacher__isnull=True,
                 academic_year=academic_year,
                 term=term,
                 school_level=school_level,
                 class_level=class_level,
                 subject=subject,
                 grade_type=grade_type,
-            ).first()
+            )
+
+            grade_upload = grade_upload.filter(models.Q(teacher=teacher) | models.Q(teacher__isnull=True)).first()
+
+            if grade_upload and grade_upload.teacher is None:
+                grade_upload.teacher = teacher
+                if resolved_classroom and not grade_upload.classroom:
+                    grade_upload.classroom = resolved_classroom
+                grade_upload.save(update_fields=['teacher', 'classroom'])
 
             if not grade_upload:
                 grade_upload = GradeUpload.objects.create(
-                    teacher=None,
+                    teacher=teacher,
                     academic_year=academic_year,
                     term=term,
                     school_level=school_level,
                     class_level=class_level,
                     subject=subject,
+                    classroom=resolved_classroom,
                     grade_type=grade_type,
                     weight_percentage=weight,
                     assessment_date=date.today(),
