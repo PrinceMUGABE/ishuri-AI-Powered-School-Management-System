@@ -85,13 +85,14 @@ const RingChart = ({ value, size = 120 }) => {
 
 // ─── Subject card ────────────────────────────────────────────────────────────
 const SubjectCard = ({ subject, t }) => {
-  const pct = subject.final_percentage || 0;
+  const pct = subject.final_percentage ?? 0;
   const colors = getPercentageColor(pct);
   const icon = pct >= 80
     ? <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
     : pct >= 50
       ? <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
       : <AlertTriangle className="w-3.5 h-3.5 text-rose-500" />;
+  const gradeLabel = subject.has_grades ? (subject.grade_letter || 'N/A') : 'Pending';
   return (
     <div className="group flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/60 hover:bg-white dark:hover:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600 hover:shadow-sm transition-all">
       <div className={`w-1 self-stretch rounded-full ${colors.bar}`} />
@@ -104,7 +105,7 @@ const SubjectCard = ({ subject, t }) => {
       </div>
       <div className="text-right flex-shrink-0 ml-2">
         <p className={`text-base font-bold ${colors.text}`}>{pct.toFixed(1)}%</p>
-        <p className="text-xs text-gray-400">{subject.grade_letter || '—'}</p>
+        <p className="text-xs text-gray-400">{gradeLabel}</p>
       </div>
     </div>
   );
@@ -435,12 +436,11 @@ const AcademicReportModal = ({ student, reportData, onClose, t }) => {
     const vals = terms.map((_, i) => scores[i] ?? null);
     const valid = vals.filter(s => s !== null);
     const avg = valid.length > 0 ? valid.reduce((a, b) => a + b, 0) / valid.length : null;
-    const grade = avg === null ? 'F' : avg >= 90 ? 'A' : avg >= 80 ? 'B' : avg >= 70 ? 'C' : avg >= 60 ? 'D' : avg >= 30 ? 'E' : 'F';
+    const grade = avg === null ? 'N/A' : avg >= 90 ? 'A' : avg >= 80 ? 'B' : avg >= 70 ? 'C' : avg >= 60 ? 'D' : avg >= 30 ? 'E' : 'F';
     return { name, scores: vals, avg, grade };
   });
 
-  const allAvgs = subjectRows.map(r => r.avg).filter(Boolean);
-  const totalAvg = allAvgs.length > 0 ? allAvgs.reduce((a, b) => a + b, 0) / allAvgs.length : null;
+  const totalAvg = subjectRows.length > 0 ? subjectRows.reduce((sum, row) => sum + (row.avg ?? 0), 0) / subjectRows.length : null;
   const totalGrade = totalAvg === null ? 'F' : totalAvg >= 90 ? 'A' : totalAvg >= 80 ? 'B' : totalAvg >= 70 ? 'C' : totalAvg >= 60 ? 'D' : totalAvg >= 30 ? 'E' : 'F';
 
   const gradeColor = (g) => {
@@ -584,10 +584,11 @@ const AcademicReportModal = ({ student, reportData, onClose, t }) => {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginTop: 10 }}>
                 {[
-                  { label: 'Attendance Rate', value: `${(currentPerformance.discipline.attendance_rate ?? 0).toFixed(1)}%` },
                   { label: 'Present', value: currentPerformance.discipline.present ?? 0 },
                   { label: 'Absent', value: currentPerformance.discipline.absent ?? 0 },
                   { label: 'Late', value: currentPerformance.discipline.late ?? 0 },
+                  { label: 'Excused', value: currentPerformance.discipline.excused ?? 0 },
+                  { label: 'Discipline Score', value: `${(currentPerformance.discipline.discipline_score ?? 0).toFixed(1)}%` },
                 ].map(item => (
                   <div key={item.label} style={{ background: C.light, borderRadius: 6, padding: '12px 10px', textAlign: 'center', border: `1px solid ${C.border}` }}>
                     <div style={{ fontSize: 11, color: C.primary, fontFamily: 'sans-serif', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{item.label}</div>
@@ -602,6 +603,12 @@ const AcademicReportModal = ({ student, reportData, onClose, t }) => {
               <strong style={{ color: C.primary }}>Remarks: </strong>{currentPerformance.remarks}
             </div>
           )}
+          <div style={{ marginTop: 12, padding: '12px 16px', background: '#f7f9fb', borderRadius: 6, border: `1px solid #d1d5db`, fontSize: 12, fontFamily: 'sans-serif', color: '#374151' }}>
+            <p style={{ margin: 0, fontWeight: 600 }}>How this report works</p>
+            <p style={{ margin: '8px 0 0' }}>
+              Discipline score is the main combined metric. Counts represent present, excused, late, and absent sessions.
+            </p>
+          </div>
           <div style={{ marginTop: 24, paddingTop: 14, borderTop: `2px solid ${C.border}`, textAlign: 'center', fontSize: 12, color: C.muted, fontFamily: 'sans-serif' }}>
             <p style={{ margin: '0 0 4px' }}>Les Hirondelles de Don Bosco — {t('student_dashboard.qualityEducation')}</p>
             <p style={{ margin: 0 }}>Generated on: {new Date().toLocaleDateString()} | {t('student_dashboard.reportFooter')}</p>
@@ -712,7 +719,6 @@ const StudentDashboard = () => {
     return {
       overallAverage: performanceData.academic_performance?.overall_average || 0,
       disciplineScore: performanceData.discipline?.discipline_score || 0,
-      attendanceRate: performanceData.discipline?.attendance_rate || 0,
       subjectsPassed: performanceData.academic_performance?.subjects_passed || 0,
       subjectsFailed: performanceData.academic_performance?.subjects_failed || 0,
       totalSubjects: performanceData.academic_performance?.total_subjects || 0,
@@ -902,7 +908,6 @@ const StudentDashboard = () => {
                         {[
                           { label: t('student_dashboard.overallAverage'), val: chartData.overallAverage },
                           { label: t('student_dashboard.disciplineScore'), val: chartData.disciplineScore },
-                          { label: t('student_dashboard.attendanceRate'), val: chartData.attendanceRate },
                         ].map(item => {
                           const c = getPercentageColor(item.val);
                           return (
@@ -998,9 +1003,7 @@ const StudentDashboard = () => {
                   <h3 className="text-xs font-bold uppercase tracking-widest text-emerald-200">{t('student_dashboard.quickStats')}</h3>
                   {[
                     { label: t('student_dashboard.overallGrade'), value: chartData.grade_letter, highlight: true },
-                    { label: t('student_dashboard.attendance'), value: `${chartData.attendanceRate?.toFixed(1) || 0}%`,
-                      valueClass: chartData.attendanceRate >= 80 ? 'text-emerald-300' : chartData.attendanceRate >= 50 ? 'text-amber-300' : 'text-rose-300' },
-                    { label: t('student_dashboard.discipline'), value: `${chartData.disciplineScore?.toFixed(1) || 0}%`,
+                    { label: t('student_dashboard.disciplineScore'), value: `${chartData.disciplineScore?.toFixed(1) || 0}%`,
                       valueClass: chartData.disciplineScore >= 80 ? 'text-emerald-300' : chartData.disciplineScore >= 50 ? 'text-amber-300' : 'text-rose-300' },
                   ].map(item => (
                     <div key={item.label} className="flex items-center justify-between py-1.5 border-b border-white/10 last:border-0">

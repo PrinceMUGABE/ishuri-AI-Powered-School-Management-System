@@ -1038,6 +1038,7 @@
       "date": "Date",
       "present": "Present",
       "absent": "Absent",
+      "excused": "Excused",
       "late": "Late",
       "submitted": "Submitted",
       "yes": "Yes",
@@ -2093,7 +2094,8 @@
       "totalRecords": "Total Records",
       "present": "Present",
       "absent": "Absent",
-      "attendanceRate": "Attendance Rate"
+      "attendanceRate": "Attendance Rate",
+      "excused": "Excused"
     },
     "filters": {
       "title": "Filters",
@@ -2721,8 +2723,12 @@
     "disciplineAttendance": "Discipline & Attendance",
     "attendanceRate": "Attendance Rate",
     "present": "Present",
+    "excused": "Excused",
     "absent": "Absent",
     "late": "Late",
+    "pending": "Pending",
+    "attendanceExplanationTitle": "Attendance details",
+    "attendanceExplanation": "Attendance rate includes Present, Late, and Excused sessions. Discipline score starts from that attendance rate and applies penalties for Late and Absent sessions.",
     "overallPerformance": "Overall Performance",
     "totalSubjects": "Total Subjects",
     "performanceOverview": "Performance Overview",

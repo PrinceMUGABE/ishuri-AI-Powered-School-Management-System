@@ -156,8 +156,8 @@ class GradeCalculator:
             'total_weighted_score': float(total_weighted_score),
             'total_weight': float(total_weight),
             'final_percentage': final_percentage,
-            'grade_letter': GradeCalculator.get_grade_letter(Decimal(str(final_percentage))) if final_percentage else None,
-            'passed': final_percentage >= 50 if final_percentage else False,
+            'grade_letter': GradeCalculator.get_grade_letter(Decimal(str(final_percentage))) if final_percentage is not None else None,
+            'passed': final_percentage >= 50 if final_percentage is not None else None,
             'breakdown_by_type': {k: {
                 'type': v['type'],
                 'type_display': v['type_display'],
@@ -204,23 +204,40 @@ class GradeCalculator:
                     'final_percentage': result['final_percentage'],
                     'grade_letter': result['grade_letter'],
                     'passed': result['passed'],
+                    'has_grades': True,
                     'breakdown': result['breakdown_by_type']
                 })
                 total_percentage += Decimal(str(result['final_percentage']))
                 subjects_with_grades += 1
+            else:
+                subject_results.append({
+                    'subject_id': cls.subject.id,
+                    'subject_name': cls.subject.name,
+                    'subject_code': cls.subject.code,
+                    'final_percentage': None,
+                    'grade_letter': None,
+                    'passed': None,
+                    'has_grades': False,
+                    'breakdown': {}
+                })
         
         overall_average = None
-        if subjects_with_grades > 0:
-            overall_average = float(total_percentage / subjects_with_grades)
+        if subjects.count() > 0:
+            overall_average = float(total_percentage / subjects.count())
+        
+        subjects_passed = len([s for s in subject_results if s['has_grades'] and s['passed']])
+        subjects_failed = len([s for s in subject_results if s['has_grades'] and s['passed'] is False])
+        subjects_without_grades = len([s for s in subject_results if not s['has_grades']])
         
         return {
             'has_results': subjects_with_grades > 0,
             'total_subjects': subjects.count(),
             'subjects_with_grades': subjects_with_grades,
-            'subjects_passed': len([s for s in subject_results if s['passed']]),
-            'subjects_failed': len([s for s in subject_results if not s['passed']]),
+            'subjects_without_grades': subjects_without_grades,
+            'subjects_passed': subjects_passed,
+            'subjects_failed': subjects_failed,
             'overall_average': overall_average,
-            'grade_letter': GradeCalculator.get_grade_letter(Decimal(str(overall_average))) if overall_average else None,
+            'grade_letter': GradeCalculator.get_grade_letter(Decimal(str(overall_average))) if overall_average is not None else None,
             'subject_results': subject_results
         }
 
@@ -258,8 +275,8 @@ class DisciplineCalculator:
         late = attendance_qs.filter(status='late').count()
         excused = attendance_qs.filter(status='excused').count()
         
-        # Consider 'late' as present for attendance rate (but with penalty)
-        attendance_rate = ((present + late) / total) * 100
+        # Consider 'late' and 'excused' as attended for attendance rate
+        attendance_rate = ((present + late + excused) / total) * 100
         
         # Calculate discipline score (0-100)
         discipline_score = attendance_rate

@@ -1011,6 +1011,7 @@
       "date": "Itariki",
       "present": "Bahari",
       "absent": "Babuze",
+      "excused": "Bafite Impamvu",
       "late": "Bacyeze",
       "submitted": "Byoherejwe",
       "yes": "Yego",
@@ -2047,7 +2048,9 @@
       "totalRecords": "Inyandiko Zose",
       "present": "Bari Bahari",
       "absent": "Batahari",
-      "attendanceRate": "Igipimo cy'Itabaro"
+      "attendanceRate": "Igipimo cy'Itabaro",
+      "excused": "Batanze Impamvu",
+      "late": "Batinze"
     },
     "filters": {
       "title": "Ibyo Ukoresha",
@@ -2675,8 +2678,12 @@
     "disciplineAttendance": "Imyitwarire & Itabaza",
     "attendanceRate": "Itabaza",
     "present": "Yahari",
+    "excused": "Yemerewe",
     "absent": "Ntawahari",
     "late": "Atinze",
+    "pending": "Birategerezwa",
+    "attendanceExplanationTitle": "Amakuru y'itabaza",
+    "attendanceExplanation": "Igipimo cy'itabaza kirimo Abahari, Abatinze, n'Abafite impamvu. Amanota y'imyitwarire atangirira kuri icyo gipimo akavanwaho inkurikizi z'Atinze na Ntarahari.",
     "overallPerformance": "Ibyagezweho Byose",
     "totalSubjects": "Amasomo Yose",
     "performanceOverview": "Ibyagezweho mu Masomo",

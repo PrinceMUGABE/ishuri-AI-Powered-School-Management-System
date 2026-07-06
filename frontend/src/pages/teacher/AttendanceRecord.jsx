@@ -661,10 +661,11 @@ const TeacherAttendanceManagement = () => {
     const totalRecords = attendanceSessions.reduce((sum, s) => sum + (s.records_count || 0), 0);
     const presentCount = attendanceSessions.reduce((sum, s) => sum + (s.present_count || 0), 0);
     const absentCount = attendanceSessions.reduce((sum, s) => sum + (s.absent_count || 0), 0);
+    const excusedCount = attendanceSessions.reduce((sum, s) => sum + (s.excused_count || 0), 0);
     const lateCount = attendanceSessions.reduce((sum, s) => sum + (s.late_count || 0), 0);
     const attendanceRate = totalRecords > 0 ? (presentCount / totalRecords) * 100 : 0;
 
-    return { total, totalRecords, presentCount, absentCount, lateCount, attendanceRate };
+    return { total, totalRecords, presentCount, absentCount, excusedCount, lateCount, attendanceRate };
   }, [attendanceSessions]);
 
   // ── Render Components ───────────────────────────────────────
@@ -675,7 +676,8 @@ const TeacherAttendanceManagement = () => {
         { label: t('attendance.stats.totalRecords'), value: stats.totalRecords, color: 'from-blue-500 to-blue-700', icon: Users },
         { label: t('attendance.stats.present'), value: stats.presentCount, color: 'from-green-500 to-green-700', icon: CheckCircle },
         { label: t('attendance.stats.absent'), value: stats.absentCount, color: 'from-red-500 to-red-700', icon: XCircle },
-        { label: t('attendance.stats.attendanceRate'), value: `${stats.attendanceRate.toFixed(1)}%`, color: 'from-purple-500 to-purple-700', icon: TrendingUp },
+        { label: t('attendance.stats.excused'), value: stats.excusedCount, color: 'from-yellow-500 to-yellow-700', icon: Clock },
+        // { label: t('attendance.stats.attendanceRate'), value: `${stats.attendanceRate.toFixed(1)}%`, color: 'from-purple-500 to-purple-700', icon: TrendingUp },
       ].map(({ label, value, color, icon: Icon }) => (
         <div key={label} className={`bg-gradient-to-br ${color} rounded-2xl p-4 text-white shadow-lg`}>
           <div className="flex items-center justify-between">
@@ -870,6 +872,7 @@ const TeacherAttendanceManagement = () => {
                       <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Class</th>
                       <th className="px-4 py-3 text-center text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Present</th>
                       <th className="px-4 py-3 text-center text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Absent</th>
+                      <th className="px-4 py-3 text-center text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Excused</th>
                       <th className="px-4 py-3 text-center text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Late</th>
                       <th className="px-4 py-3 text-center text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Rate</th>
                       <th className="px-4 py-3 text-center text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
@@ -877,7 +880,7 @@ const TeacherAttendanceManagement = () => {
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                     {paginatedSessions.map((session) => {
-                      const total = (session.present_count || 0) + (session.absent_count || 0) + (session.late_count || 0);
+                      const total = (session.present_count || 0) + (session.absent_count || 0) + (session.late_count || 0) + (session.excused_count || 0);
                       const rate = total > 0 ? ((session.present_count || 0) / total) * 100 : 0;
                       return (
                         <tr key={session.id} className="hover:bg-green-50/50 dark:hover:bg-green-900/10 transition-colors">
@@ -890,7 +893,9 @@ const TeacherAttendanceManagement = () => {
                           <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{session.class_level_name}</td>
                           <td className="px-4 py-3 text-center text-green-600 dark:text-green-400 font-semibold">{session.present_count || 0}</td>
                           <td className="px-4 py-3 text-center text-red-600 dark:text-red-400 font-semibold">{session.absent_count || 0}</td>
+                          <td className="px-4 py-3 text-center text-purple-600 dark:text-purple-400 font-semibold">{session.excused_count || 0}</td>
                           <td className="px-4 py-3 text-center text-yellow-600 dark:text-yellow-400 font-semibold">{session.late_count || 0}</td>
+                          
                           <td className="px-4 py-3 text-center">
                             <span className={`font-semibold ${rate >= 80 ? 'text-green-600' : rate >= 50 ? 'text-yellow-600' : 'text-red-600'}`}>
                               {rate.toFixed(1)}%

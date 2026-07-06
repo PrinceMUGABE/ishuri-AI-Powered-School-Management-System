@@ -137,14 +137,18 @@ const PerformanceChart = ({ percentage, label }) => {
 // Subject Performance Card
 // ============================================================
 const SubjectPerformanceCard = ({ subject, t }) => {
+    const percentage = typeof subject.final_percentage === 'number' ? subject.final_percentage : null;
+    const hasGrades = Boolean(subject.has_grades);
     const getBorderColor = () => {
-        if (subject.final_percentage >= 80) return 'border-green-500';
-        if (subject.final_percentage >= 50) return 'border-yellow-500';
+        if (percentage === null) return 'border-gray-300 dark:border-gray-600';
+        if (percentage >= 80) return 'border-green-500';
+        if (percentage >= 50) return 'border-yellow-500';
         return 'border-red-500';
     };
     const getBgColor = () => {
-        if (subject.final_percentage >= 80) return 'bg-green-50 dark:bg-green-900/20';
-        if (subject.final_percentage >= 50) return 'bg-yellow-50 dark:bg-yellow-900/20';
+        if (percentage === null) return 'bg-gray-50 dark:bg-gray-900/20';
+        if (percentage >= 80) return 'bg-green-50 dark:bg-green-900/20';
+        if (percentage >= 50) return 'bg-yellow-50 dark:bg-yellow-900/20';
         return 'bg-red-50 dark:bg-red-900/20';
     };
     return (
@@ -152,11 +156,13 @@ const SubjectPerformanceCard = ({ subject, t }) => {
             <div className="flex justify-between items-center">
                 <div>
                     <p className="font-semibold text-gray-800 dark:text-white">{subject.subject_name}</p>
-                    <p className="text-xs text-gray-500">{subject.grade_letter || 'N/A'}</p>
+                    <p className="text-xs text-gray-500">{hasGrades ? (subject.grade_letter || 'N/A') : t('parent_dashboard.pending') || 'Pending'}</p>
                 </div>
                 <div className="text-right">
-                    <p className="text-xl font-bold text-gray-800 dark:text-white">{subject.final_percentage?.toFixed(1) || 0}%</p>
-                    <p className="text-xs text-gray-500">{subject.passed ? t('parent_dashboard.passed') : t('parent_dashboard.failed')}</p>
+                    <p className="text-xl font-bold text-gray-800 dark:text-white">{percentage !== null ? percentage.toFixed(1) : '—'}%</p>
+                    <p className="text-xs text-gray-500">
+                        {hasGrades ? (subject.passed ? t('parent_dashboard.passed') : t('parent_dashboard.failed')) : (t('parent_dashboard.pending') || 'Pending')}
+                    </p>
                 </div>
             </div>
         </div>
@@ -790,12 +796,11 @@ const AcademicReportModal = ({ student, reportData, onClose, t }) => {
         const scores = terms.map((_, i) => data.scores[i] ?? null);
         const valid = scores.filter(s => s !== null);
         const avg = valid.length > 0 ? valid.reduce((a, b) => a + b, 0) / valid.length : null;
-        const grade = avg === null ? 'F' : avg >= 90 ? 'A' : avg >= 80 ? 'B' : avg >= 70 ? 'C' : avg >= 60 ? 'D' : avg >= 30 ? 'E' : 'F';
+        const grade = avg === null ? 'N/A' : avg >= 90 ? 'A' : avg >= 80 ? 'B' : avg >= 70 ? 'C' : avg >= 60 ? 'D' : avg >= 30 ? 'E' : 'F';
         return { name, scores, avg, grade };
     });
 
-    const allAvgs = subjectRows.map(r => r.avg).filter(a => a !== null);
-    const totalAvg = allAvgs.length > 0 ? allAvgs.reduce((a, b) => a + b, 0) / allAvgs.length : null;
+    const totalAvg = subjectRows.length > 0 ? subjectRows.reduce((sum, row) => sum + (row.avg ?? 0), 0) / subjectRows.length : null;
     const totalGrade = totalAvg === null ? 'F' : totalAvg >= 90 ? 'A' : totalAvg >= 80 ? 'B' : totalAvg >= 70 ? 'C' : totalAvg >= 60 ? 'D' : totalAvg >= 30 ? 'E' : 'F';
 
     const S = {
@@ -941,16 +946,21 @@ const AcademicReportModal = ({ student, reportData, onClose, t }) => {
                             <div style={S.greenHeader}>{t('parent_dashboard.disciplineAttendance')}</div>
                             <div style={S.disciplineGrid}>
                                 {[
-                                    { label: t('parent_dashboard.attendanceRate'), value: `${(currentPerformance.discipline.attendance_rate ?? 0).toFixed(1)}%` },
                                     { label: t('parent_dashboard.present'), value: currentPerformance.discipline.present ?? 0 },
+                                    { label: t('parent_dashboard.excused'), value: currentPerformance.discipline.excused ?? 0 },
                                     { label: t('parent_dashboard.absent'), value: currentPerformance.discipline.absent ?? 0 },
                                     { label: t('parent_dashboard.late'), value: currentPerformance.discipline.late ?? 0 },
+                                    { label: t('parent_dashboard.disciplineScore'), value: `${(currentPerformance.discipline.discipline_score ?? 0).toFixed(1)}%` },
                                 ].map(item => (
                                     <div key={item.label} style={S.disciplineCard}>
                                         <div style={S.disciplineLabel}>{item.label}</div>
                                         <div style={S.disciplineValue}>{item.value}</div>
                                     </div>
                                 ))}
+                            </div>
+                            <div style={{ marginTop: '12px', padding: '12px 16px', background: '#f7f9fb', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '12px', fontFamily: 'sans-serif', color: '#374151' }}>
+                                <p style={{ margin: 0, fontWeight: 600 }}>{t('parent_dashboard.attendanceExplanationTitle') || 'Attendance details'}</p>
+                                <p style={{ margin: '8px 0 0' }}>{t('parent_dashboard.attendanceExplanation') || 'Discipline score is the main combined metric. Counts represent present, excused, late, and absent sessions.'}</p>
                             </div>
                         </div>
                     )}
@@ -1153,7 +1163,6 @@ const ParentDashboard = () => {
         return {
             overallAverage: performanceData.academic_performance?.overall_average || 0,
             disciplineScore: performanceData.discipline?.discipline_score || 0,
-            attendanceRate: performanceData.discipline?.attendance_rate || 0,
             subjectsPassed: performanceData.academic_performance?.subjects_passed || 0,
             subjectsFailed: performanceData.academic_performance?.subjects_failed || 0,
             totalSubjects: performanceData.academic_performance?.total_subjects || 0,
@@ -1250,7 +1259,6 @@ const ParentDashboard = () => {
                                         <div>
                                             <PerformanceChart percentage={chartData.overallAverage} label={t('parent_dashboard.overallAverage')} />
                                             <PerformanceChart percentage={chartData.disciplineScore} label={t('parent_dashboard.disciplineScore')} />
-                                            <PerformanceChart percentage={chartData.attendanceRate} label={t('parent_dashboard.attendanceRate')} />
                                         </div>
                                         <div className="flex items-center justify-center">
                                             <div className="text-center">
@@ -1345,8 +1353,7 @@ const ParentDashboard = () => {
                             <h3 className="font-semibold mb-3">{t('parent_dashboard.quickStats')}</h3>
                             <div className="space-y-2 text-sm">
                                 <div className="flex justify-between"><span>{t('parent_dashboard.overallGrade')}:</span><span className="font-bold">{chartData?.grade_letter || 'N/A'}</span></div>
-                                <div className="flex justify-between"><span>{t('parent_dashboard.attendance')}:</span><span className="font-bold">{chartData?.attendanceRate?.toFixed(1) || 0}%</span></div>
-                                <div className="flex justify-between"><span>{t('parent_dashboard.discipline')}:</span><span className="font-bold">{chartData?.disciplineScore?.toFixed(1) || 0}%</span></div>
+                                <div className="flex justify-between"><span>{t('parent_dashboard.disciplineScore')}:</span><span className="font-bold">{chartData?.disciplineScore?.toFixed(1) || 0}%</span></div>
                             </div>
                         </div>
                     </div>

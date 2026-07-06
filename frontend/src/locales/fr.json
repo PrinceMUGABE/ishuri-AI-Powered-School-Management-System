@@ -1007,6 +1007,7 @@
       "date": "Date",
       "present": "Présent",
       "absent": "Absent",
+      "excused": "Excusé",
       "late": "En Retard",
       "submitted": "Soumis",
       "yes": "Oui",
@@ -2045,7 +2046,9 @@
       "totalRecords": "Enregistrements Totaux",
       "present": "Présents",
       "absent": "Absents",
-      "attendanceRate": "Taux de Présence"
+      "attendanceRate": "Taux de Présence",
+      "excused": "Excusés",
+      "late": "En Retard"
     },
     "filters": {
       "title": "Filtres",
@@ -2629,8 +2632,12 @@
     "disciplineAttendance": "Discipline & Assiduité",
     "attendanceRate": "Taux d'Assiduité",
     "present": "Présent",
+    "excused": "Excusé",
     "absent": "Absent",
     "late": "Retard",
+    "pending": "En Attente",
+    "attendanceExplanationTitle": "Détails de l'assiduité",
+    "attendanceExplanation": "Le taux d'assiduité inclut les sessions Présentes, en Retard et Excusées. Le score de discipline part de ce taux et applique des pénalités pour les Retards et Absences.",
     "overallPerformance": "Performance Globale",
     "totalSubjects": "Total Matières",
     "performanceOverview": "Aperçu des Performances",
