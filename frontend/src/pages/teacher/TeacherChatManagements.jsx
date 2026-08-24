@@ -670,7 +670,6 @@ export default function TeacherChatManagement() {
                     <div
                       key={msg.id}
                       data-message-id={msg.id}
-                      className="message-item"
                       ref={el => { if (el) messageRefs.current[msg.id] = el; }}
                       className={`flex gap-2 ${isMine ? "justify-end" : "justify-start"}`}
                     >

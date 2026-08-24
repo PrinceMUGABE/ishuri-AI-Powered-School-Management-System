@@ -10,8 +10,8 @@ import {
   Loader2, X, ChevronRight, BellOff, MessageSquare, UserCircle, Key,
   Globe, Home, Users, BookOpen, DollarSign, Activity
 } from 'lucide-react';
-import ThemeToggle from '../../Common/ThemeToggle';
-import LanguageSwitcher from '../../Common/LanguageSwitcher';
+import ThemeToggle from '../../common/ThemeToggle';
+import LanguageSwitcher from '../../common/LanguageSwitcher';
 import toast from 'react-hot-toast';
 
 // API Configuration

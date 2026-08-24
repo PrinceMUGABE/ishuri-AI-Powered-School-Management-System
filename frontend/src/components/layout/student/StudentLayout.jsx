@@ -13,8 +13,8 @@ import {
   Eye, EyeOff, Mail, Phone,
   CalendarDays, CreditCard, Check, FilePlus,
 } from 'lucide-react';
-import ThemeToggle from '../../Common/ThemeToggle';
-import LanguageSwitcher from '../../Common/LanguageSwitcher';
+import ThemeToggle from '../../common/ThemeToggle';
+import LanguageSwitcher from '../../common/LanguageSwitcher';
 import toast from 'react-hot-toast';
 
 // ---------------------------------------------------------------------------

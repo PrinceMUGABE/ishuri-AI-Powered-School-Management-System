@@ -1,3 +1,4 @@
+import { websocketUrl } from '../config/api';
 // hooks/useWebSocket.js
 import { useState, useEffect, useRef, useCallback } from 'react';
 
@@ -37,7 +38,7 @@ export const useWebSocket = (chatroomId, onMessageReceived) => {
     const token = localStorage.getItem('access_token');
     if (!token) { ERR('No access_token in localStorage — WS will be rejected'); return; }
 
-    const wsUrl = `ws://127.0.0.1:8000/ws/chat/${roomId}/?token=${token}`;
+    const wsUrl = websocketUrl(`/ws/chat/${roomId}/?token=${encodeURIComponent(token)}`);
     addDebug(`Connecting to room ${roomId} (attempt #${++reconnectCountRef.current})`, 'info');
     LOG(`Opening WebSocket: ${wsUrl}`);
 

@@ -16,12 +16,11 @@ import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Toolti
 import { Bar } from 'react-chartjs-2';
 import axios from 'axios';
 import { useAuth } from '../../contexts/AuthContext';
+import { API_BASE_URL } from '../../config/api';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 // API Configuration
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
-
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {

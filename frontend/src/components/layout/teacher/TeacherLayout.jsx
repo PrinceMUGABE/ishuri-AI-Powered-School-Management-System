@@ -11,8 +11,8 @@ import {
   BookOpen, Calendar, Key, UserCircle, Shield, Save,
   Eye, EyeOff, Settings, Mail, Phone, MapPin, Edit3, CalendarDays
 } from 'lucide-react';
-import ThemeToggle from '../../Common/ThemeToggle';
-import LanguageSwitcher from '../../Common/LanguageSwitcher';
+import ThemeToggle from '../../common/ThemeToggle';
+import LanguageSwitcher from '../../common/LanguageSwitcher';
 import toast from 'react-hot-toast';
 
 // ---------------------------------------------------------------------------

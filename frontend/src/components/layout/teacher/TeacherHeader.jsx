@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { LogOut, User, Settings, ChevronDown, Menu, Bell, MessageCircle } from 'lucide-react';
-import ThemeToggle from '../../Common/ThemeToggle';
-import LanguageSwitcher from '../../Common/LanguageSwitcher';
+import ThemeToggle from '../../common/ThemeToggle';
+import LanguageSwitcher from '../../common/LanguageSwitcher';
 import toast from 'react-hot-toast';
 
 const AdminHeader = ({ user, onMenuClick }) => {
