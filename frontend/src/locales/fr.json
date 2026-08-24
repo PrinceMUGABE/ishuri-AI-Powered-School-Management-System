@@ -27,213 +27,218 @@
   "messages": {
     "logoutSuccess": "Déconnecté avec succès"
   },
+  
   "landingPage": {
+    "hero": {
+      "badge": "Éducation IA",
+      "title": "Bienvenue à",
+      "description": "Un système complet de gestion scolaire alimenté par l'IA pour l'éducation moderne. Rationalisez l'administration, améliorez l'apprentissage et la communication.",
+      "getStarted": "Commencer",
+      "learnMore": "En Savoir Plus"
+    },
     "nav": {
       "features": "Fonctionnalités",
-      "about": "À propos",
+      "about": "À Propos",
       "testimonials": "Témoignages",
       "contact": "Contact",
       "signIn": "Connexion"
     },
-    "hero": {
-      "badge": "Gestion scolaire alimentée par l'IA",
-      "title": "Bienvenue à",
-      "description": "Transformez votre école avec une gestion intelligente, des analyses en temps réel et une communication fluide entre les élèves, les parents et les enseignants.",
-      "getStarted": "Commencer",
-      "learnMore": "En savoir plus"
+    "featuresSection": {
+      "badge": "Fonctionnalités",
+      "title": "Fonctionnalités Puissantes pour l'Éducation Moderne",
+      "subtitle": "Tout ce dont vous avez besoin pour gérer votre école efficacement"
     },
     "features": {
       "ai": {
-        "title": "Analyses basées sur l'IA",
-        "desc": "Prédisez les performances des élèves et identifiez les élèves à risque tôt"
+        "title": "Insights IA",
+        "desc": "Des algorithmes d'apprentissage automatique analysent les performances des élèves et prédisent les résultats"
       },
       "dashboard": {
-        "title": "Tableaux de bord interactifs",
-        "desc": "Analyses en temps réel et rapports personnalisables pour toutes les parties prenantes"
+        "title": "Tableau de Bord Intelligent",
+        "desc": "Analyses en temps réel et visualisation des indicateurs clés en un coup d'œil"
       },
       "communication": {
-        "title": "Communication fluide",
-        "desc": "Messagerie instantanée, annonces et réunions parents-enseignants"
+        "title": "Communication Intégrée",
+        "desc": "Messagerie transparente entre enseignants, parents et élèves"
       },
       "security": {
-        "title": "Plateforme sécurisée",
-        "desc": "Contrôle d'accès basé sur les rôles et stockage de données chiffrées"
+        "title": "Sécurité Avancée",
+        "desc": "Contrôle d'accès basé sur les rôles et chiffrement des données"
       },
       "reports": {
-        "title": "Rapports intelligents",
-        "desc": "Bulletins automatiques, relevés de notes et analyses de performance"
+        "title": "Rapports Automatisés",
+        "desc": "Générez des rapports complets en quelques clics"
       },
       "fees": {
-        "title": "Gestion des frais",
-        "desc": "Paiements en ligne, facturation et suivi financier"
+        "title": "Gestion des Frais",
+        "desc": "Suivez les paiements, envoyez des rappels et générez des rapports financiers"
       }
     },
     "stats": {
-      "students": "Élèves actifs",
+      "students": "Élèves",
       "teachers": "Enseignants",
-      "satisfaction": "Taux de satisfaction",
-      "paperForms": "Formulaires papier"
+      "satisfaction": "Taux de Satisfaction",
+      "paperForms": "Formulaires Papier"
+    },
+    "rolesSection": {
+      "badge": "Pour Tous",
+      "title": "Conçu pour Toutes les Parties Prenantes",
+      "subtitle": "Expériences adaptées à chaque membre de votre communauté scolaire"
     },
     "roles": {
       "student": "Élève",
       "parent": "Parent",
       "teacher": "Enseignant",
-      "admin": "Admin"
-    },
-    "rolesSection": {
-      "title": "Conçu pour tous",
-      "subtitle": "Expériences adaptées pour chaque utilisateur de votre communauté scolaire"
+      "admin": "Administrateur"
     },
     "roleFeatures": {
       "student": {
-        "0": "Voir les notes et devoirs",
+        "0": "Voir les devoirs et les notes",
         "1": "Soumettre les devoirs en ligne",
-        "2": "Suivre l'assiduité",
-        "3": "Accéder aux ressources d'apprentissage"
+        "2": "Suivre les progrès académiques",
+        "3": "Accéder aux supports de cours"
       },
       "parent": {
         "0": "Suivre les progrès de l'enfant",
-        "1": "Recevoir des alertes en temps réel",
-        "2": "Communiquer avec les enseignants",
-        "3": "Payer les frais en ligne"
+        "1": "Recevoir des mises à jour en temps réel",
+        "2": "Consulter les états de frais",
+        "3": "Communiquer avec les enseignants"
       },
       "teacher": {
         "0": "Gérer les classes et les élèves",
-        "1": "Enregistrer les notes et l'assiduité",
-        "2": "Générer les bulletins",
-        "3": "Analyses basées sur l'IA"
+        "1": "Créer et noter les devoirs",
+        "2": "Générer des rapports de progrès",
+        "3": "Envoyer des annonces"
       },
       "admin": {
-        "0": "Contrôle complet du système",
-        "1": "Gestion des utilisateurs",
-        "2": "Supervision financière",
-        "3": "Analyses et rapports"
+        "0": "Gérer les opérations scolaires",
+        "1": "Accéder aux analyses complètes",
+        "2": "Contrôler les permissions utilisateur",
+        "3": "Générer des rapports à l'échelle de l'école"
       }
     },
     "aiSection": {
-      "badge": "Système d'alerte précoce basé sur l'IA",
-      "title": "Identifiez les élèves à risque avant qu'il ne soit trop tard",
-      "description": "Notre système intelligent analyse les modèles de performance des élèves et alerte les enseignants lorsqu'une intervention est nécessaire.",
-      "cardTitle": "Aperçu des performances de la classe",
-      "cardDesc": "Analyse IA des performances académiques actuelles",
-      "classAvg": "Moyenne de la classe",
-      "atRisk": "Élèves à risque"
+      "badge": "Alimenté par l'IA",
+      "title": "Analyses Intelligentes avec Intelligence Artificielle",
+      "description": "Notre système IA analyse les données des élèves pour identifier les élèves à risque, prédire les performances et suggérer des interventions personnalisées.",
+      "cardTitle": "Aperçu des Performances",
+      "cardDesc": "Analyse des performances académiques par IA dans toutes les classes",
+      "classAvg": "Moyenne de la Classe",
+      "atRisk": "Élèves à Risque"
     },
     "zones": {
       "green": {
-        "title": "Zone verte - Sur la bonne voie",
-        "desc": "Bonnes performances, aucune intervention nécessaire"
+        "title": "Zone de Performance",
+        "desc": "Élèves atteignant ou dépassant les attentes"
       },
       "yellow": {
-        "title": "Zone jaune - À surveiller",
-        "desc": "Légère baisse, vérification recommandée"
+        "title": "Zone d'Attention",
+        "desc": "Élèves nécessitant un soutien supplémentaire"
       },
       "red": {
-        "title": "Zone rouge - Action immédiate",
-        "desc": "Baisse critique, intervention requise"
+        "title": "Zone d'Intervention",
+        "desc": "Élèves nécessitant une aide immédiate"
       }
     },
-    "testimonials": {
-      "parent": "En tant que parent, je peux facilement suivre les progrès de mon enfant et communiquer avec les enseignants. Les alertes en temps réel me tiennent informé de tout ce qui se passe à l'école.",
-      "teacher": "Les analyses IA m'aident à identifier tôt les élèves en difficulté. La saisie des notes est rapide et les rapports se génèrent automatiquement.",
-      "director": "Gérer notre école n'a jamais été aussi facile. Des frais aux études, tout est au même endroit.",
-      "directorRole": "Directeur d'école"
-    },
     "testimonialsSection": {
-      "title": "Approuvé par notre communauté",
-      "subtitle": "Découvrez ce que nos utilisateurs disent"
+      "badge": "Témoignages",
+      "title": "Ce Que Dit Notre Communauté",
+      "subtitle": "Découvrez ceux qui vivent l'impact d'Ishuri au quotidien"
     },
-    "chart": {
-      "classAverage": "Moyenne de la classe",
-      "atRisk": "Élèves à risque",
-      "attendance": "Taux d'assiduité",
-      "title": "Tendances de performance par trimestre"
+    "testimonials": {
+      "parent": "La communication parent-enseignant n'a jamais été aussi bonne. Je peux suivre les progrès de mon enfant en temps réel.",
+      "teacher": "Ishuri a transformé ma façon d'enseigner. Les insights IA m'aident à identifier les élèves en difficulté tôt.",
+      "director": "Notre administration scolaire est devenue plus efficace. Ishuri gère tout, des présences aux rapports.",
+      "directorRole": "Directeur d'École"
     },
     "cta": {
-      "title": "Prêt à transformer votre école ?",
-      "subtitle": "Rejoignez des centaines d'écoles qui utilisent déjà Ishuri pour rationaliser leurs opérations.",
-      "signIn": "Connectez-vous à votre compte",
-      "contact": "Contacter les ventes",
-      "note": "Gratuit pour les élèves, parents et personnel des Hirondelles de Don Bosco"
+      "title": "Prêt à Transformer Votre École ?",
+      "subtitle": "Rejoignez des centaines d'écoles qui utilisent déjà Ishuri pour améliorer l'éducation et rationaliser l'administration.",
+      "signIn": "Se Connecter",
+      "contact": "Contactez-Nous",
+      "note": "Aucune carte de crédit requise • Essai gratuit disponible"
     },
     "footer": {
-      "description": "Système moderne de gestion scolaire pour Les Hirondelles de Don Bosco.",
-      "quickLinks": "Liens rapides",
-      "contact": "Coordonnées",
+      "description": "Outiller les écoles avec des solutions de gestion intelligentes",
+      "quickLinks": "Liens Rapides",
+      "contact": "Contact",
       "resources": "Ressources",
-      "schoolWebsite": "Site web de l'école",
+      "schoolWebsite": "Site Web de l'École",
       "documentation": "Documentation",
       "support": "Support",
-      "rights": "Tous droits réservés.",
-      "tagline": "Renforcer l'éducation grâce à la technologie"
+      "rights": "Tous Droits Réservés",
+      "tagline": "Les Hirondelles de Don Bosco - Excellence en Éducation"
+    },
+    "trustedBy": "Approuvé par les écoles à travers le Rwanda",
+    "common": {
+      "loading": "Chargement..."
     },
     "login": {
-      "title": "Bon retour",
+      "title": "Bon Retour",
       "subtitle": "Connectez-vous à votre compte",
       "username": "Nom d'utilisateur",
-      "password": "Mot de passe",
       "usernamePlaceholder": "Entrez votre nom d'utilisateur",
+      "password": "Mot de passe",
       "passwordPlaceholder": "Entrez votre mot de passe",
       "forgotPassword": "Mot de passe oublié ?",
-      "signIn": "Se connecter",
-      "adminNote": "Contactez votre administrateur scolaire si vous avez besoin d'un compte",
+      "signIn": "Se Connecter",
+      "welcome": "Bon retour !",
+      "invalidCredentials": "Nom d'utilisateur ou mot de passe invalide",
       "usernameRequired": "Le nom d'utilisateur est requis",
       "passwordRequired": "Le mot de passe est requis",
-      "invalidCredentials": "Nom d'utilisateur ou mot de passe invalide",
-      "welcome": "Bon retour !"
+      "adminNote": "Contactez l'administrateur en cas de problème de connexion"
     },
     "forgotPassword": {
-      "title": "Réinitialiser le mot de passe",
-      "subtitle": "Entrez votre nom d'utilisateur pour vérifier votre compte",
-      "resetTitle": "Créer un nouveau mot de passe",
-      "resetSubtitle": "Choisissez un mot de passe fort pour votre compte",
+      "title": "Réinitialiser le Mot de Passe",
+      "subtitle": "Entrez votre nom d'utilisateur pour réinitialiser votre mot de passe",
       "usernameLabel": "Nom d'utilisateur",
       "usernamePlaceholder": "Entrez votre nom d'utilisateur",
+      "verifyUsername": "Vérifier le Nom d'Utilisateur",
+      "usernameFound": "Nom d'utilisateur trouvé ! Veuillez réinitialiser votre mot de passe.",
+      "usernameNotFound": "Nom d'utilisateur introuvable. Veuillez vérifier et réessayer.",
       "usernameRequired": "Le nom d'utilisateur est requis",
-      "usernameFound": "Nom d'utilisateur vérifié ! Veuillez entrer votre nouveau mot de passe.",
-      "usernameNotFound": "Nom d'utilisateur non trouvé. Veuillez vérifier et réessayer.",
-      "verifyUsername": "Vérifier le nom d'utilisateur",
-      "newPassword": "Nouveau mot de passe",
-      "newPasswordPlaceholder": "Entrez le nouveau mot de passe",
-      "confirmPassword": "Confirmer le mot de passe",
-      "confirmPasswordPlaceholder": "Confirmez le nouveau mot de passe",
-      "resetPassword": "Réinitialiser le mot de passe",
-      "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
-      "passwordResetSuccess": "Réinitialisation du mot de passe réussie ! Connexion en cours...",
-      "resetSuccess": "Réinitialisation du mot de passe réussie ! Veuillez vous connecter.",
-      "resetFailed": "Échec de la réinitialisation du mot de passe. Veuillez réessayer.",
-      "loginSuccess": "Réinitialisation du mot de passe réussie ! Connexion en cours...",
+      "backToSignIn": "Retour à la Connexion",
+      "resetTitle": "Créer un Nouveau Mot de Passe",
+      "resetSubtitle": "Choisissez un mot de passe fort pour votre compte",
       "resettingFor": "Réinitialisation du mot de passe pour",
-      "backToSignIn": "Retour à la connexion",
-      "backToUsername": "Retour à la vérification du nom d'utilisateur"
+      "newPassword": "Nouveau Mot de Passe",
+      "newPasswordPlaceholder": "Entrez un nouveau mot de passe",
+      "confirmPassword": "Confirmer le Mot de Passe",
+      "confirmPasswordPlaceholder": "Confirmez le nouveau mot de passe",
+      "resetPassword": "Réinitialiser le Mot de Passe",
+      "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
+      "passwordResetSuccess": "Réinitialisation du mot de passe réussie !",
+      "resetSuccess": "Réinitialisation réussie ! Veuillez vous connecter.",
+      "resetFailed": "Échec de la réinitialisation. Veuillez réessayer.",
+      "backToUsername": "Retour à la vérification du nom d'utilisateur",
+      "loginSuccess": "Mot de passe réinitialisé ! Connexion en cours..."
     },
     "passwordValidation": {
-      "title": "Le mot de passe doit contenir :",
-      "strength": "Force du mot de passe",
       "minLength": "Au moins 6 caractères",
-      "uppercase": "Au moins une lettre majuscule",
-      "lowercase": "Au moins une lettre minuscule",
+      "uppercase": "Au moins une majuscule",
+      "lowercase": "Au moins une minuscule",
       "number": "Au moins un chiffre",
       "specialChar": "Au moins un caractère spécial (!@#$%^&*)",
-      "requirements": "Exigences du mot de passe :"
+      "strength": "Force du mot de passe",
+      "requirements": "Le mot de passe doit contenir :"
     },
     "addParent": {
-      "title": "Ajouter un parent/tuteur",
-      "subtitle": "Veuillez ajouter au moins un parent ou tuteur à votre profil",
-      "fullName": "Nom complet",
+      "title": "Ajouter un Parent/Tuteur",
+      "subtitle": "Ajoutez un parent ou tuteur à votre compte",
+      "fullName": "Nom Complet",
       "fullNamePlaceholder": "Entrez le nom complet du parent",
-      "phoneNumber": "Numéro de téléphone",
-      "email": "Adresse e-mail",
-      "physicalAddress": "Adresse physique",
-      "addressPlaceholder": "Entrez l'adresse physique",
-      "relationshipType": "Relation",
-      "submit": "Ajouter le parent",
+      "phoneNumber": "Numéro de Téléphone",
+      "email": "Email",
+      "physicalAddress": "Adresse Physique",
+      "addressPlaceholder": "Entrez l'adresse du parent",
+      "relationshipType": "Lien de Parenté",
+      "submit": "Ajouter le Parent",
       "cancel": "Annuler",
-      "fullNameRequired": "Le nom complet du parent est requis",
-      "phoneRequired": "Le numéro de téléphone est requis",
-      "emailRequired": "L'adresse e-mail est requise",
       "success": "Parent ajouté avec succès !",
-      "error": "Échec de l'ajout du parent. Veuillez réessayer."
+      "error": "Échec de l'ajout du parent. Veuillez réessayer.",
+      "fullNameRequired": "Le nom complet est requis",
+      "phoneRequired": "Le numéro de téléphone est requis",
+      "emailRequired": "L'email est requis"
     },
     "addRelationship": {
       "father": "Père",
@@ -241,15 +246,19 @@
       "guardian": "Tuteur",
       "other": "Autre"
     },
-    "common": {
-      "loading": "Chargement..."
+    "chart": {
+      "classAverage": "Moyenne de la Classe",
+      "atRisk": "Élèves à Risque",
+      "attendance": "Taux de Présence",
+      "title": "Tableau de Bord des Performances Académiques"
     },
     "errors": {
       "networkError": "Erreur réseau. Veuillez vérifier votre connexion.",
-      "somethingWentWrong": "Quelque chose s'est mal passé. Veuillez réessayer.",
+      "somethingWentWrong": "Une erreur s'est produite. Veuillez réessayer.",
       "invalidCredentials": "Nom d'utilisateur ou mot de passe invalide"
     }
   },
+
   "teachers": {
     "title": "Gestion des Enseignants",
     "subtitle": "Gérer les enseignants, les affectations, les emplois du temps et les rapports",

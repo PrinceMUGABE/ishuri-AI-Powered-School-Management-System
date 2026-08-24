@@ -27,52 +27,63 @@
   "messages": {
     "logoutSuccess": "Wasohotse neza"
   },
+  
   "landingPage": {
+    "hero": {
+      "badge": "Uburezi Bufashwa na AI",
+      "title": "Murakaza Neza kuri",
+      "description": "Sisitemu yuzuye yo gucungura amashuri ifashwa na AI kuburezi bugezweho. Woroshya imiyoborere, wongere imyigire, kandi utezimbere itumanaho.",
+      "getStarted": "Tangira",
+      "learnMore": "Menya Byinshi"
+    },
     "nav": {
       "features": "Ibiranga",
-      "about": "Ibyerekeye",
+      "about": "Ibiranga",
       "testimonials": "Ubuhamya",
       "contact": "Twandikire",
       "signIn": "Injira"
     },
-    "hero": {
-      "badge": "Gestion y'Ishuri ikoresheje tekinoroji",
-      "title": "Murakaza neza kuri",
-      "description": "Hindura ishuri ryawe uyijemo ubumenyi bwa tekinoroji, isesengura ry'igihe nyaryo, n'itumanaho ryoroshye hagati y'abanyeshuri, ababyeyi n'abarimu.",
-      "getStarted": "Tangira",
-      "learnMore": "Menya byinshi"
+    "featuresSection": {
+      "badge": "Ibiranga",
+      "title": "Ibiranga By'ingenzi Kuburezi Bugezweho",
+      "subtitle": "Ibihari byose ukenera kugirango ucungure ishuri ryawe neza"
     },
     "features": {
       "ai": {
-        "title": "Ubushishozi bwa tekinoroji",
-        "desc": "Menya iby'ikoranabuhanga ry'umunyeshuri ukiri kare"
+        "title": "Inama Zifashwa na AI",
+        "desc": "Porogaramu z'ubwenge zisesengura imyigire y'abanyeshuri ikanasobanura ibizava"
       },
       "dashboard": {
-        "title": "Ibikorana by'ikoranabuhanga",
-        "desc": "Isesengura ry'igihe nyaryo n'raporo zikoreshwa na buri wese"
+        "title": "Ikibaho Cy'ubwenge",
+        "desc": "Isesengura ry'igihe cy'ukuri n'ibipimo by'ingenzi kurubuga"
       },
       "communication": {
-        "title": "Itumanaho ritoroshye",
-        "desc": "Ubutumwa bwihuse, amakuru, n'inama z'ababyeyi n'abarimu"
+        "title": "Itumanaho Rihuriweho",
+        "desc": "Ubutumwa bugenda neza hagati y'abarimu, ababyeyi n'abanyeshuri"
       },
       "security": {
-        "title": "Ikibanza kiziritse",
-        "desc": "Uburenganzira bukoreshwa n'inshingano za buri wese n'ububiko bw'amakuru buhifitse"
+        "title": "Umutekano Utangaje",
+        "desc": "Kugenzura ibyo umuntu ashobora gukora no kubika amakuru mu buryo bwa kode"
       },
       "reports": {
-        "title": "Raporo zihaye ubwenge",
-        "desc": "Ibipimo byikora, inyandiko z'amasomo, n'isesengura ry'ikoranabuhanga"
+        "title": "Raporo Zikora Zenewe",
+        "desc": "Kora raporo zuzuye mu buryo bworoshye"
       },
       "fees": {
-        "title": "Imicungire y'amasomo",
-        "desc": "Kwishyura kuri interineti, amadeni, n'ubukangurambaga bw'amafaranga"
+        "title": "Gucungura Amafaranga Y'ishuri",
+        "desc": "Kurikira ibishyuwe, kohereza ubutumwa, kandi ukore raporo z'imari"
       }
     },
     "stats": {
-      "students": "Abanyeshuri bakora",
+      "students": "Abanyeshuri",
       "teachers": "Abarimu",
-      "satisfaction": "Urwego rw'ishimwe",
-      "paperForms": "Impapuro zikoreshwa"
+      "satisfaction": "Kunyurwa",
+      "paperForms": "Impapuro"
+    },
+    "rolesSection": {
+      "badge": "Kubose",
+      "title": "Kubufite Bugenewe Abagize Ishyirahamwe Bose",
+      "subtitle": "Ibyifuzo bihuriweho kuri buri muntu mugikorwa cy'ishuri ryawe"
     },
     "roles": {
       "student": "Umunyeshuri",
@@ -80,176 +91,174 @@
       "teacher": "Umwarimu",
       "admin": "Ubuyobozi"
     },
-    "rolesSection": {
-      "title": "Biteganyirijwe buri wese",
-      "subtitle": "Ibikorwa bihuje n'ibyo buri wese akenera mu muryango w'ishuri ryawe"
-    },
     "roleFeatures": {
       "student": {
-        "0": "Reba amanota n'imirimo",
-        "1": "Ohereza imirimo yawe kuri interineti",
-        "2": "Kurikira itabaza",
-        "3": "Koresha ibikoresho by'imyigishirize"
+        "0": "Reba imirimo n'amanota",
+        "1": "Ohereza imirimo yawe kuri internet",
+        "2": "Kurikira intambwe y'imyigire",
+        "3": "Kubona ibikoresho by'imyigire"
       },
       "parent": {
-        "0": "Kurikira iterambere ry'umwana",
-        "1": "Kubona amakuru akiri make",
-        "2": "Kuvugana n'abarimu",
-        "3": "Kwishyura amasomo kuri interineti"
+        "0": "Kurikira intambwe y'umwana",
+        "1": "Kubona amakuru mu gihe cy'ukuri",
+        "2": "Reba ibishyuwe",
+        "3": "Kuvugana n'abarimu"
       },
       "teacher": {
-        "0": "Gicungira amashuri n'abanyeshuri",
-        "1": "Andika amanota n'itabaza",
-        "2": "Kora ibipimo by'amasomo",
-        "3": "Ubushishozi bwa tekinoroji"
+        "0": "Gucungura amashuri n'abanyeshuri",
+        "1": "Gutanga no gutora imirimo",
+        "2": "Gutanga raporo z'intambwe",
+        "3": "Kohereza amatangazo"
       },
       "admin": {
-        "0": "Kugenzura sisitemu yose",
-        "1": "Imicungire y'abakoresha",
-        "2": "Kurikirana imari",
-        "3": "Isesengura n'uraporo"
+        "0": "Gucungura ibikorwa by'ishuri",
+        "1": "Kubona isesengura ryuzuye",
+        "2": "Kugenzura ibyo abantu bashobora gukora",
+        "3": "Gutanga raporo z'ishuri ryose"
       }
     },
     "aiSection": {
-      "badge": "Sisitemu ihanura ikoresheje tekinoroji",
-      "title": "Menya abanyeshuri bari mu kaga mbere y'igihe",
-      "description": "Sisitemu yacu y'ikoranabuhanga isesengura imikorere y'abanyeshuri ikanamenyesha abarimu mugihe hakeneye ubufasha.",
-      "cardTitle": "Iperereza ku mikorere y'ishuri",
-      "cardDesc": "Isesengura rya tekinoroji ku mikorere y'amasomo",
-      "classAvg": "Urugero rw'amanota y'ishuri",
-      "atRisk": "Abanyeshuri bari mu kaga"
+      "badge": "Byakozwe na AI",
+      "title": "Isesengura Ry'ubwenge n'Ikibogamaza",
+      "description": "Sisitemu yacu ya AI isesengura amakuru y'abanyeshuri kugirango imenye abanyeshuri bari mu kaga, ihanure ibizava, kandi itange inama zihuriweho.",
+      "cardTitle": "Isesengura Ry'Imiyigire",
+      "cardDesc": "Isesengura ry'ubwenge ry'imyigire y'abanyeshuri mu mashuri yose",
+      "classAvg": "Amanota Agereranije",
+      "atRisk": "Abanyeshuri Bari Mu Kaga"
     },
     "zones": {
       "green": {
-        "title": "Akazu gahoraho - Bari mu nzira",
-        "desc": "Imikorere myiza, nta ngingo yo kugira icyo ubakorera"
+        "title": "Akagori K'Imiyigire",
+        "desc": "Abanyeshuri bageze cyangwa barenze ibyari byitezwe"
       },
       "yellow": {
-        "title": "Akazu k'umuhondo - Gukurikiranwa",
-        "desc": "Agaciro kagabanutse, gisabwa kugenzurwa"
+        "title": "Akagori K'Uruhare",
+        "desc": "Abanyeshuri bakeneye ubufasha bw'inyongera"
       },
       "red": {
-        "title": "Akazu gatukura - Igikorwa cyihutirwa",
-        "desc": "Agaciro kagabanutse cyane, bisaba gukiranwa"
+        "title": "Akagori K'Ubufasha",
+        "desc": "Abanyeshuri bakeneye ubufasha bwihute"
       }
     },
-    "testimonials": {
-      "parent": "Nk'umubyeyi, ndashobora gukurikira byoroshye iterambere ry'umwana wanjye no kuvugana n'abarimu. Amakuru akiri make ampa ibyo uri hose biba mu ishuri.",
-      "teacher": "Ubushishozi bwa tekinoroji bumfasha kumenya abanyeshuri bari mu kaga hakiri kare. Ibyo wandika amanota bihita bikora kandi raporo zikora zikabyara.",
-      "director": "Gucungira ishuri ryacu ntibyarigeze bworoshya gutya. Kuva amasomo kugeza ku by'amasomo, byose biri ahantu hamwe.",
-      "directorRole": "Umuyobozi w'ishuri"
-    },
     "testimonialsSection": {
-      "title": "Twizerwa n'abanyamuryango bacu",
-      "subtitle": "Urumva ibyo abakoresha bacu bavuga"
+      "badge": "Ubuhamya",
+      "title": "Icyo Abagize Ishyirahamwe Bavuga",
+      "subtitle": "Umutwe w'abo bumva ingaruka za Ishuri ku munsi"
     },
-    "chart": {
-      "classAverage": "Urugero rw'amanota y'ishuri",
-      "atRisk": "Abanyeshuri bari mu kaga",
-      "attendance": "Urwego rw'itabaza",
-      "title": "Imikorere mu gihe cy'amasomo"
+    "testimonials": {
+      "parent": "Itumanaho hagati y'ababyeyi n'abarimu ntirigeze rirushaho. Nshobora gukurikira intambwe y'umwana wanjye mu gihe cy'ukuri.",
+      "teacher": "Ishuri ryahinduye uko nyigisha. Inama za AI zifasha kumenya abanyeshuri bari mu kaga hakiri kare.",
+      "director": "Ubuyobozi bw'ishuri ryacu bwarushijeho gukora neza. Ishuri ikora byose kuva mu itabaza kugeza mu raporo.",
+      "directorRole": "Umuyobozi W'ishuri"
     },
     "cta": {
-      "title": "Uriteguye guhindura ishuri ryawe?",
-      "subtitle": "Injira mu mashuri amaze gukoresha Ishuri kugira ngo ujye ubona ibikorwa byoroshye.",
-      "signIn": "Injira muri konti yawe",
-      "contact": "Twandikire kugura",
-      "note": "Kubuntu ku banyeshuri, ababyeyi n'abakozi ba Les Hirondelles de Don Bosco"
+      "title": "Urateguye Guhindura Ishuri Ryawe?",
+      "subtitle": "Jya mu mashuri amagana akoresha Ishuri kugirango ateza imbere uburezi kandi woroshye imiyoborere.",
+      "signIn": "Injira",
+      "contact": "Twandikire",
+      "note": "Nta karita ya banki ikenewe • Hari uburyo bwo kugerageza ku buntu"
     },
     "footer": {
-      "description": "Sisitemu y'ubucungiramashuri ya Les Hirondelles de Don Bosco.",
-      "quickLinks": "Ibyo ukenera",
+      "description": "Gufasha amashuri n'ibikoresho by'ubwenge byo gucungura",
+      "quickLinks": "Ihuzahuriro",
       "contact": "Twandikire",
-      "resources": "Ibikoresho",
-      "schoolWebsite": "Urubuga rw'ishuri",
+      "resources": "Ibyifashishwa",
+      "schoolWebsite": "Urubuga Rw'ishuri",
       "documentation": "Inyandiko",
       "support": "Ubufasha",
-      "rights": "Uburenganzira bwose buragengwa.",
-      "tagline": "Guteza imbere uburezi binyuze mu ikoranabuhanga"
+      "rights": "Uburenganzira Bwose Burabujywe",
+      "tagline": "Les Hirondelles de Don Bosco - Ubuhanga mu Burezi"
+    },
+    "trustedBy": "Byizerwa n'amashuri mu Rwanda hose",
+    "common": {
+      "loading": "Birakora..."
     },
     "login": {
-      "title": "Murakaza neza",
+      "title": "Murakaza Neza",
       "subtitle": "Injira muri konti yawe",
-      "username": "Izina rya konti",
-      "password": "Ijambo ry'ibanga",
-      "usernamePlaceholder": "Andika izina rya konti yawe",
-      "passwordPlaceholder": "Andika ijambo ry'ibanga",
-      "forgotPassword": "Wibagiwe ijambo ry'ibanga?",
+      "username": "Izina",
+      "usernamePlaceholder": "Andika izina ryawe",
+      "password": "Ijambobanga",
+      "passwordPlaceholder": "Andika ijambobanga ryawe",
+      "forgotPassword": "Wibagiwe Ijambobanga?",
       "signIn": "Injira",
-      "adminNote": "Twandikire ubuyobozi bw'ishuri niba ukeneye konti",
-      "usernameRequired": "Izina rya konti birakenewe",
-      "passwordRequired": "Ijambo ry'ibanga rirakenewe",
-      "invalidCredentials": "Izina rya konti cyangwa ijambo ry'ibanga si byo",
-      "welcome": "Murakaza nega!"
+      "welcome": "Murakaza neza!",
+      "invalidCredentials": "Izina cyangwa ijambobanga si byo",
+      "usernameRequired": "Izina risabwa",
+      "passwordRequired": "Ijambobanga risabwa",
+      "adminNote": "Twandikire ubuyobozi niba ugize ikibazo cyo kwinjira"
     },
     "forgotPassword": {
-      "title": "Hindura ijambo ry'ibanga",
-      "subtitle": "Andika izina rya konti yawe kugira ngo tubanze turebe niba ibaho",
-      "resetTitle": "Kora ijambo ry'ibanga rishya",
-      "resetSubtitle": "Hitamo ijambo ry'ibanga rikomeye kuri konti yawe",
-      "usernameLabel": "Izina rya konti",
-      "usernamePlaceholder": "Andika izina rya konti yawe",
-      "usernameRequired": "Izina rya konti birakenewe",
-      "usernameFound": "Izina rya konti rirahari! Andika ijambo ry'ibanga rishya.",
-      "usernameNotFound": "Izina rya konti ntiriboneka. Gerageza noneho.",
-      "verifyUsername": "Genzura izina rya konti",
-      "newPassword": "Ijambo ry'ibanga rishya",
-      "newPasswordPlaceholder": "Andika ijambo ry'ibanga rishya",
-      "confirmPassword": "Emeza ijambo ry'ibanga",
-      "confirmPasswordPlaceholder": "Emeza ijambo ry'ibanga rishya",
-      "resetPassword": "Hindura ijambo ry'ibanga",
-      "passwordsDoNotMatch": "Ijambo ry'ibanga n'iryemeza ntabwo bihuye",
-      "passwordResetSuccess": "Ijambo ry'ibanga ryahinduwe! Turakwinjiza...",
-      "resetSuccess": "Ijambo ry'ibanga ryahinduwe! Injira muri konti yawe.",
-      "resetFailed": "Ijambo ry'ibanga nti ryahinduwe. Gerageza noneho.",
-      "loginSuccess": "Ijambo ry'ibanga ryahinduwe! Turakwinjiza...",
-      "resettingFor": "Uhinduwe ijambo ry'ibanga",
-      "backToSignIn": "Garuka mu winjira",
-      "backToUsername": "Garuka mu igenzura ry'izina rya konti"
+      "title": "Guhindura Ijambobanga",
+      "subtitle": "Andika izina ryawe kugirango uhindure ijambobanga",
+      "usernameLabel": "Izina",
+      "usernamePlaceholder": "Andika izina ryawe",
+      "verifyUsername": "Kugenzura Izina",
+      "usernameFound": "Izina ryabonetse! Hindura ijambobanga ryawe.",
+      "usernameNotFound": "Izina ntaboneka. Ongera ugerageze.",
+      "usernameRequired": "Izina risabwa",
+      "backToSignIn": "Garuka ku Kwinjira",
+      "resetTitle": "Hindura Ijambobanga",
+      "resetSubtitle": "Hitamo ijambobanga rikomeye kuri konti yawe",
+      "resettingFor": "Uhindurira ijambobanga kuri",
+      "newPassword": "Ijambobanga Rishya",
+      "newPasswordPlaceholder": "Andika ijambobanga rishya",
+      "confirmPassword": "Emeza Ijambobanga",
+      "confirmPasswordPlaceholder": "Emeza ijambobanga rishya",
+      "resetPassword": "Hindura Ijambobanga",
+      "passwordsDoNotMatch": "Ijambobanga ntirihuye",
+      "passwordResetSuccess": "Ijambobanga ryahinduwe neza!",
+      "resetSuccess": "Ijambobanga ryahinduwe neza! Injira.",
+      "resetFailed": "Ijambobanga ntabwo ryahinduwe. Ongera ugerageze.",
+      "backToUsername": "Garuka ku kugenzura izina",
+      "loginSuccess": "Ijambobanga ryahinduwe neza! Dukwinjiza..."
     },
     "passwordValidation": {
-      "title": "Ijambo ry'ibanga rikgomba kugirimo:",
-      "strength": "Imbaraga z'ijambo ry'ibanga",
-      "minLength": "Inyuguti 6 byibuze",
-      "uppercase": "Inyuguti nkuru imwe byibuze",
-      "lowercase": "Inyuguti ntoya imwe byibuze",
-      "number": "Imibare imwe byibuze",
-      "specialChar": "Ikimenyetso kimwe byibuze (!@#$%^&*)",
-      "requirements": "Ibikenewe mu ijambo ry'ibanga:"
+      "minLength": "Nibura inyuguti 6",
+      "uppercase": "Nibura inyuguti nkuru imwe",
+      "lowercase": "Nibura inyuguti ntoya imwe",
+      "number": "Nibura umubare umwe",
+      "specialChar": "Nibura ikimenyetso kidasanzwe (!@#$%^&*)",
+      "strength": "Ubushobozi bw'ijambobanga",
+      "requirements": "Ijambobanga rigomba kugira:"
     },
     "addParent": {
-      "title": "Ongeraho umubyeyi/umurinzi",
-      "subtitle": "Ongeraho byibuze umubyeyi umwe cyangwa umurinzi kuri konti yawe",
-      "fullName": "Izina ryuzuye",
+      "title": "Ongeraho Umubyeyi",
+      "subtitle": "Ongeraho umubyeyi cyangwa umurinzi kuri konti yawe",
+      "fullName": "Izina Ryuzuye",
       "fullNamePlaceholder": "Andika izina ryuzuye ry'umubyeyi",
-      "phoneNumber": "Nimero ya terefone",
-      "email": "Aderesi ya imeri",
-      "physicalAddress": "Aho atuye",
-      "addressPlaceholder": "Andika aho atuye",
+      "phoneNumber": "Numero ya Telefoni",
+      "email": "Email",
+      "physicalAddress": "Aho Atuye",
+      "addressPlaceholder": "Andika aho umubyeyi atuye",
       "relationshipType": "Isano",
-      "submit": "Ongeraho umubyeyi",
+      "submit": "Ongeraho Umubyeyi",
       "cancel": "Hagarika",
-      "fullNameRequired": "Izina ry'umubyeyi rirakenewe",
-      "phoneRequired": "Nimero ya terefone irakenewe",
-      "emailRequired": "Aderesi ya imeri irakenewe",
-      "success": "Umubyeyi yongeweho!",
-      "error": "Umubyeyi ntiyongeweho. Gerageza noneho."
+      "success": "Umubyeyi yongeweho neza!",
+      "error": "Umubyeyi ntabwo yongeweho. Ongera ugerageze.",
+      "fullNameRequired": "Izina ryuzuye risabwa",
+      "phoneRequired": "Numero ya telefoni isabwa",
+      "emailRequired": "Email isabwa"
     },
     "addRelationship": {
       "father": "Data",
       "mother": "Mama",
       "guardian": "Umurinzi",
-      "other": "Ibindi"
+      "other": "Ikindi"
     },
-    "common": {
-      "loading": "Birakora..."
+    "chart": {
+      "classAverage": "Amanota Agereranije",
+      "atRisk": "Abanyeshuri Bari Mu Kaga",
+      "attendance": "Igitigiri Cy'itabira",
+      "title": "Ikibaho Cy'Imiyigire Y'abanyeshuri"
     },
     "errors": {
-      "networkError": "Ikibazo cy'ubucuruzi bw'umurongo. Gerageza urebe niba umeze neza.",
-      "somethingWentWrong": "Ikintu gitagenda neza. Gerageza noneho.",
-      "invalidCredentials": "Izina rya konti cyangwa ijambo ry'ibanga si byo"
+      "networkError": "Hari ikibazo cy'itumanaho. Ongera ugerageze.",
+      "somethingWentWrong": "Hari ikibazo cyabaye. Ongera ugerageze.",
+      "invalidCredentials": "Izina cyangwa ijambobanga si byo"
     }
   },
+
   "teachers": {
     "title": "Gucunga Abarimu",
     "subtitle": "Gucunga abarimu, imirimo, ibihe by'amasomo, na raporo",

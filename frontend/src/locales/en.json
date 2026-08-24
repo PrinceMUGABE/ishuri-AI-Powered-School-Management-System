@@ -27,7 +27,15 @@
   "messages": {
     "logoutSuccess": "Logged out successfully"
   },
+  
   "landingPage": {
+    "hero": {
+      "badge": "AI-Powered Education",
+      "title": "Welcome to",
+      "description": "A comprehensive AI-powered school management system for modern education. Streamline administration, enhance learning, and improve communication.",
+      "getStarted": "Get Started",
+      "learnMore": "Learn More"
+    },
     "nav": {
       "features": "Features",
       "about": "About",
@@ -35,44 +43,47 @@
       "contact": "Contact",
       "signIn": "Sign In"
     },
-    "hero": {
-      "badge": "AI-Powered School Management",
-      "title": "Welcome to",
-      "description": "Transform your school with intelligent management, real-time analytics, and seamless communication between students, parents, and teachers.",
-      "getStarted": "Get Started",
-      "learnMore": "Learn More"
+    "featuresSection": {
+      "badge": "Features",
+      "title": "Powerful Features for Modern Education",
+      "subtitle": "Everything you need to manage your school efficiently and effectively"
     },
     "features": {
       "ai": {
         "title": "AI-Powered Insights",
-        "desc": "Predict student performance and identify at-risk students early"
+        "desc": "Machine learning algorithms analyze student performance and predict outcomes"
       },
       "dashboard": {
-        "title": "Interactive Dashboards",
-        "desc": "Real-time analytics and customizable reports for all stakeholders"
+        "title": "Smart Dashboard",
+        "desc": "Real-time analytics and visualization of key metrics at a glance"
       },
       "communication": {
-        "title": "Seamless Communication",
-        "desc": "Instant messaging, announcements, and parent-teacher meetings"
+        "title": "Integrated Communication",
+        "desc": "Seamless messaging between teachers, parents, and students"
       },
       "security": {
-        "title": "Secure Platform",
-        "desc": "Role-based access control and encrypted data storage"
+        "title": "Advanced Security",
+        "desc": "Role-based access control and data encryption for peace of mind"
       },
       "reports": {
-        "title": "Smart Reports",
-        "desc": "Automated report cards, transcripts, and performance analytics"
+        "title": "Automated Reports",
+        "desc": "Generate comprehensive reports with just a few clicks"
       },
       "fees": {
         "title": "Fee Management",
-        "desc": "Online payments, invoicing, and financial tracking"
+        "desc": "Track payments, send reminders, and generate financial reports"
       }
     },
     "stats": {
-      "students": "Active Students",
+      "students": "Students",
       "teachers": "Teachers",
       "satisfaction": "Satisfaction Rate",
       "paperForms": "Paper Forms"
+    },
+    "rolesSection": {
+      "badge": "For Everyone",
+      "title": "Designed for All Stakeholders",
+      "subtitle": "Tailored experiences for every member of your school community"
     },
     "roles": {
       "student": "Student",
@@ -80,160 +91,154 @@
       "teacher": "Teacher",
       "admin": "Admin"
     },
-    "rolesSection": {
-      "title": "Designed for Everyone",
-      "subtitle": "Tailored experiences for every user in your school community"
-    },
     "roleFeatures": {
       "student": {
-        "0": "View grades and assignments",
+        "0": "View assignments and grades",
         "1": "Submit homework online",
-        "2": "Track attendance",
-        "3": "Access learning resources"
+        "2": "Track academic progress",
+        "3": "Access learning materials"
       },
       "parent": {
         "0": "Monitor child's progress",
-        "1": "Receive real-time alerts",
-        "2": "Communicate with teachers",
-        "3": "Pay fees online"
+        "1": "Receive real-time updates",
+        "2": "View fee statements",
+        "3": "Communicate with teachers"
       },
       "teacher": {
         "0": "Manage classes and students",
-        "1": "Record grades and attendance",
-        "2": "Generate report cards",
-        "3": "AI-powered insights"
+        "1": "Create and grade assignments",
+        "2": "Generate progress reports",
+        "3": "Send announcements"
       },
       "admin": {
-        "0": "Full system control",
-        "1": "User management",
-        "2": "Financial oversight",
-        "3": "Analytics and reporting"
+        "0": "Manage school operations",
+        "1": "Access comprehensive analytics",
+        "2": "Control user permissions",
+        "3": "Generate school-wide reports"
       }
     },
     "aiSection": {
-      "badge": "AI-Powered Early Warning System",
-      "title": "Identify At-Risk Students Before It's Too Late",
-      "description": "Our intelligent system analyzes student performance patterns and alerts teachers when intervention is needed.",
-      "cardTitle": "Class Performance Overview",
-      "cardDesc": "AI analysis of current academic performance",
+      "badge": "AI Powered",
+      "title": "Smart Analytics with Artificial Intelligence",
+      "description": "Our AI system analyzes student data to identify at-risk students, predict performance, and suggest personalized interventions.",
+      "cardTitle": "Performance Overview",
+      "cardDesc": "AI-powered analysis of academic performance across all classes",
       "classAvg": "Class Average",
       "atRisk": "At-Risk Students"
     },
     "zones": {
       "green": {
-        "title": "Green Zone - On Track",
-        "desc": "Performing well, no intervention needed"
+        "title": "Performance Zone",
+        "desc": "Students meeting or exceeding expectations"
       },
       "yellow": {
-        "title": "Yellow Zone - Monitor",
-        "desc": "Slight decline, recommended check-in"
+        "title": "Attention Zone",
+        "desc": "Students needing additional support"
       },
       "red": {
-        "title": "Red Zone - Immediate Action",
-        "desc": "Critical decline, intervention required"
+        "title": "Intervention Zone",
+        "desc": "Students requiring immediate assistance"
       }
     },
-    "testimonials": {
-      "parent": "As a parent, I can easily track my child's progress and communicate with teachers. The real-time alerts keep me informed about everything happening at school.",
-      "teacher": "The AI insights help me identify struggling students early. Grade entry is quick and reports generate automatically.",
-      "director": "Managing our school has never been easier. From fees to academics, everything is in one place.",
-      "directorRole": "School Director"
-    },
     "testimonialsSection": {
-      "title": "Trusted by Our Community",
-      "subtitle": "Hear what our users have to say"
+      "badge": "Testimonials",
+      "title": "What Our Community Says",
+      "subtitle": "Hear from those who experience the impact of Ishuri every day"
     },
-    "chart": {
-      "classAverage": "Class Average",
-      "atRisk": "At-Risk Students",
-      "attendance": "Attendance Rate",
-      "title": "Performance trends across terms"
+    "testimonials": {
+      "parent": "The parent-teacher communication has never been better. I can track my child's progress in real-time.",
+      "teacher": "Ishuri has transformed how I teach. The AI insights help me identify struggling students early.",
+      "director": "Our school administration has become more efficient. Ishuri handles everything from attendance to reporting.",
+      "directorRole": "School Director"
     },
     "cta": {
       "title": "Ready to Transform Your School?",
-      "subtitle": "Join hundreds of schools already using Ishuri to streamline their operations.",
-      "signIn": "Sign In to Your Account",
-      "contact": "Contact Sales",
-      "note": "Free for Les Hirondelles de Don Bosco students, parents, and staff"
+      "subtitle": "Join hundreds of schools already using Ishuri to enhance education and streamline administration.",
+      "signIn": "Sign In Now",
+      "contact": "Contact Us",
+      "note": "No credit card required • Free trial available"
     },
     "footer": {
-      "description": "Modern school management system for Les Hirondelles de Don Bosco.",
+      "description": "Empowering schools with AI-driven management solutions",
       "quickLinks": "Quick Links",
-      "contact": "Contact Info",
+      "contact": "Contact",
       "resources": "Resources",
       "schoolWebsite": "School Website",
       "documentation": "Documentation",
       "support": "Support",
-      "rights": "All rights reserved.",
-      "tagline": "Empowering education through technology"
+      "rights": "All Rights Reserved",
+      "tagline": "Les Hirondelles de Don Bosco - Excellence in Education"
+    },
+    "trustedBy": "Trusted by schools across Rwanda",
+    "common": {
+      "loading": "Loading..."
     },
     "login": {
       "title": "Welcome Back",
       "subtitle": "Sign in to your account",
       "username": "Username",
-      "password": "Password",
       "usernamePlaceholder": "Enter your username",
+      "password": "Password",
       "passwordPlaceholder": "Enter your password",
       "forgotPassword": "Forgot Password?",
       "signIn": "Sign In",
-      "adminNote": "Contact your school administrator if you need an account",
+      "welcome": "Welcome back!",
+      "invalidCredentials": "Invalid username or password",
       "usernameRequired": "Username is required",
       "passwordRequired": "Password is required",
-      "invalidCredentials": "Invalid username or password",
-      "welcome": "Welcome back!"
+      "adminNote": "Contact administrator if you have issues logging in"
     },
     "forgotPassword": {
       "title": "Reset Password",
-      "subtitle": "Enter your username to verify your account",
-      "resetTitle": "Create New Password",
-      "resetSubtitle": "Choose a strong password for your account",
+      "subtitle": "Enter your username to reset your password",
       "usernameLabel": "Username",
       "usernamePlaceholder": "Enter your username",
-      "usernameRequired": "Username is required",
-      "usernameFound": "Username verified! Please enter your new password.",
-      "usernameNotFound": "Username not found. Please check and try again.",
       "verifyUsername": "Verify Username",
+      "usernameFound": "Username found! Please reset your password.",
+      "usernameNotFound": "Username not found. Please check and try again.",
+      "usernameRequired": "Username is required",
+      "backToSignIn": "Back to Sign In",
+      "resetTitle": "Create New Password",
+      "resetSubtitle": "Choose a strong password for your account",
+      "resettingFor": "Resetting password for",
       "newPassword": "New Password",
       "newPasswordPlaceholder": "Enter new password",
       "confirmPassword": "Confirm Password",
       "confirmPasswordPlaceholder": "Confirm new password",
       "resetPassword": "Reset Password",
       "passwordsDoNotMatch": "Passwords do not match",
-      "passwordResetSuccess": "Password reset successful! Logging you in...",
+      "passwordResetSuccess": "Password reset successful!",
       "resetSuccess": "Password reset successful! Please login.",
       "resetFailed": "Password reset failed. Please try again.",
-      "loginSuccess": "Password reset successful! Logging you in...",
-      "resettingFor": "Resetting password for",
-      "backToSignIn": "Back to Sign In",
-      "backToUsername": "Back to username verification"
+      "backToUsername": "Back to username verification",
+      "loginSuccess": "Password reset successful! Logging you in..."
     },
     "passwordValidation": {
-      "title": "Password must contain:",
-      "strength": "Password strength",
       "minLength": "At least 6 characters",
       "uppercase": "At least one uppercase letter",
       "lowercase": "At least one lowercase letter",
       "number": "At least one number",
       "specialChar": "At least one special character (!@#$%^&*)",
-      "requirements": "Password requirements:"
+      "strength": "Password strength",
+      "requirements": "Password must contain:"
     },
     "addParent": {
       "title": "Add Parent/Guardian",
-      "subtitle": "Please add at least one parent or guardian to your profile",
+      "subtitle": "Add a parent or guardian to your account",
       "fullName": "Full Name",
       "fullNamePlaceholder": "Enter parent's full name",
       "phoneNumber": "Phone Number",
-      "email": "Email Address",
+      "email": "Email",
       "physicalAddress": "Physical Address",
-      "addressPlaceholder": "Enter physical address",
+      "addressPlaceholder": "Enter parent's address",
       "relationshipType": "Relationship",
       "submit": "Add Parent",
       "cancel": "Cancel",
-      "fullNameRequired": "Parent's full name is required",
-      "phoneRequired": "Phone number is required",
-      "emailRequired": "Email address is required",
       "success": "Parent added successfully!",
-      "error": "Failed to add parent. Please try again."
+      "error": "Failed to add parent. Please try again.",
+      "fullNameRequired": "Full name is required",
+      "phoneRequired": "Phone number is required",
+      "emailRequired": "Email is required"
     },
     "addRelationship": {
       "father": "Father",
@@ -241,8 +246,11 @@
       "guardian": "Guardian",
       "other": "Other"
     },
-    "common": {
-      "loading": "Loading..."
+    "chart": {
+      "classAverage": "Class Average",
+      "atRisk": "At-Risk Students",
+      "attendance": "Attendance Rate",
+      "title": "Academic Performance Dashboard"
     },
     "errors": {
       "networkError": "Network error. Please check your connection.",
@@ -250,6 +258,7 @@
       "invalidCredentials": "Invalid username or password"
     }
   },
+
   "teachers": {
     "title": "Teacher Management",
     "subtitle": "Manage teachers, assignments, timetables, and reports",
