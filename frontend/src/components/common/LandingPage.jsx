@@ -8,8 +8,8 @@ import {
   AlertCircle, Check, Phone, MapPin, Home, UserPlus
 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
-import ThemeToggle from '../../components/Common/ThemeToggle';
-import LanguageSwitcher from '../../components/Common/LanguageSwitcher';
+import ThemeToggle from '../../components/common/ThemeToggle';
+import LanguageSwitcher from '../../components/common/LanguageSwitcher';
 import toast from 'react-hot-toast';
 import schoolLogo from '../../../public/imgs/school-logo.png';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
