@@ -11,5 +11,24 @@ export default defineConfig({
         changeOrigin: true,
       }
     }
+  },
+  build: {
+    // Improve chunk splitting for better performance
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Split large vendor libraries into separate chunks
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-mui': ['@mui/material', '@mui/lab', '@emotion/react', '@emotion/styled'],
+          'vendor-charts': ['chart.js', 'react-chartjs-2', 'recharts'],
+          'vendor-maps': ['leaflet', 'react-leaflet'],
+          'vendor-utils': ['axios', 'date-fns', 'framer-motion']
+        }
+      }
+    },
+    // Increase warning limit to reduce noise (optional)
+    chunkSizeWarningLimit: 1000,
+    // Generate sourcemaps for production (helpful for debugging)
+    sourcemap: true
   }
 })
